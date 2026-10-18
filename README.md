@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nimantran — wedding invitation websites
 
-## Getting Started
+Designer invitation websites for Indian weddings. Couples pick a design, reserve on WhatsApp,
+and receive one link with every function, venue, song and RSVP.
 
-First, run the development server:
+Built with Next.js 16, Tailwind CSS 4 and Framer Motion.
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npm run build    # production build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## What's where
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Path | What |
+| --- | --- |
+| `src/app/(site)/` | Marketing site: home, designs, category pages, design detail pages, custom, about, legal |
+| `src/app/i/[slug]/` | The invitation guests open, e.g. `/i/aarav-weds-meera` |
+| `src/app/design-system/` | Live style guide for the site |
+| `src/invites/` | The invitation templates (Rajwada, Gulmohar, Agni, Noor, Phulkari, Kolam) |
+| `src/art/` | Code-drawn ornaments, glyphs and patterns used by templates |
+| `src/ui/` | Site design-system components — rules in [DESIGN.md](DESIGN.md) |
+| `src/site/` | Site sections, gallery, header/footer, add-on picker |
+| `src/data/` | Templates, categories and demo invites |
+| `src/config/` | Brand details, prices and add-ons |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Before launch
 
-## Learn More
+- Replace placeholder brand details, WhatsApp number and prices in `src/config/site.ts`,
+  `src/config/addons.ts` and `src/data/templates.ts`.
+- Replace the yellow `[placeholder]` stats and testimonials with real ones.
+- Have the legal pages (`/privacy`, `/refunds`, `/terms`) reviewed.
 
-To learn more about Next.js, take a look at the following resources:
+## Adding a customer's invite
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Add an entry to `src/data/invites.ts` with a `slug` and a `template` id. It is published at
+`/i/<slug>`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Adding a template
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Create `src/invites/<name>.tsx` implementing `InviteTheme`, register it in
+`src/invites/registry.ts`, add its metadata to `src/data/templates.ts` and a demo invite to
+`src/data/invites.ts`. Templates are free to ignore the site design system.
