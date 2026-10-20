@@ -2,7 +2,7 @@
 
 import { useInView } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getInvite } from "@/data/invites";
+import { getInvite, type Invite } from "@/data/invites";
 import { OpenedContext } from "./opened";
 import { themes } from "./registry";
 
@@ -12,19 +12,22 @@ import { themes } from "./registry";
  */
 export function InvitePreview({
   slug,
+  invite: given,
   loop = true,
   offset = 0,
   stage = "closed",
   names,
 }: {
-  slug: string;
+  slug?: string;
+  // Render this invite instead of looking up a demo by slug (used by the order form's live preview).
+  invite?: Invite;
   loop?: boolean;
   offset?: number;
   stage?: "closed" | "open";
   // Swap in a visitor's own names, in display order.
   names?: [string, string];
 }) {
-  const base = getInvite(slug)!;
+  const base = given ?? getInvite(slug ?? "")!;
   const invite = useMemo(() => {
     if (!names) return base;
     const [first, second] = names;

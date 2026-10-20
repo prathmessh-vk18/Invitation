@@ -291,7 +291,7 @@ function Blessing({ invite }: { invite: Invite }) {
       </Reveal>
       <div className="mt-[10cqw] grid grid-cols-2 gap-[4cqw]">
         {[a, b].map((p, i) => (
-          <Reveal key={p.full} delay={i * 0.15}>
+          <Reveal key={p === invite.bride ? "bride" : "groom"} delay={i * 0.15}>
             <div className="relative h-full overflow-hidden rounded-t-[30cqw] rounded-b-[3cqw] border border-[#e3b964]/50 bg-[#072822]/70 px-[3cqw] pt-[12cqw] pb-[5cqw]">
               <Rosette className="absolute -top-[14cqw] left-1/2 w-[34cqw] -translate-x-1/2 opacity-30" />
               <p className="inv-label relative text-[2cqw] text-[#e3b964]">{p === invite.bride ? "The bride" : "The groom"}</p>

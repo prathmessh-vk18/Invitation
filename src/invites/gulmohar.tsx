@@ -248,7 +248,7 @@ function Blessing({ invite }: { invite: Invite }) {
       </Reveal>
       <div className="mt-[10cqw] space-y-[6cqw]">
         {[a, b].map((p, i) => (
-          <Reveal key={p.full} delay={i * 0.15}>
+          <Reveal key={p === invite.bride ? "bride" : "groom"} delay={i * 0.15}>
             <div className={`flex items-center gap-[5cqw] ${i ? "flex-row-reverse text-right" : "text-left"}`}>
               <span className="relative grid size-[26cqw] shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#f7d6d8] to-[#e7efe0]">
                 <span className="absolute inset-[1.5cqw] rounded-full border border-dashed border-[#a2405f]/40" />

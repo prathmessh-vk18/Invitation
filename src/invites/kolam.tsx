@@ -322,7 +322,7 @@ function Blessing({ invite }: { invite: Invite }) {
       </Reveal>
       <div className="mt-[10cqw] space-y-[4cqw]">
         {[a, b].map((p, i) => (
-          <Reveal key={p.full} delay={i * 0.15}>
+          <Reveal key={p === invite.bride ? "bride" : "groom"} delay={i * 0.15}>
             <div className="overflow-hidden rounded-[4cqw] bg-white shadow-[0_2cqw_6cqw_-4cqw_rgba(59,10,31,.35)]">
               <SilkBorder className="h-[7cqw] w-full" />
               <div className="px-[6cqw] py-[5cqw]">

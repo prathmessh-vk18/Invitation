@@ -296,7 +296,7 @@ function Blessing({ invite }: { invite: Invite }) {
       </Reveal>
       <div className="mt-[10cqw] grid grid-cols-2 gap-[4cqw]">
         {[a, b].map((p, i) => (
-          <Reveal key={p.full} delay={i * 0.15}>
+          <Reveal key={p === invite.bride ? "bride" : "groom"} delay={i * 0.15}>
             <div
               className="h-full rounded-[4cqw] p-[4cqw] text-left shadow-[0_1.5cqw_0_#2a0614]"
               style={{ background: i ? MUSTARD : PINK, color: i ? MADDER : CREAM, rotate: `${i ? 2 : -2}deg` }}

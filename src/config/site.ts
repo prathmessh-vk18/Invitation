@@ -12,7 +12,21 @@ export const site = {
   deliveryDays: 3,
   revisionRounds: 2,
   customFrom: 6999,
+
+  // UPI payments. Use a business UPI ID (current account or a business app), not a personal one.
+  upiId: "yourbusiness@okhdfcbank",
+  upiPayee: "Nimantran",
+  // When an order is paid we aim to publish within this time.
+  publishWithin: "24 hours",
+  // A published invite stays live until this many days after the wedding date.
+  inviteDaysAfterWedding: 15,
 };
+
+/** UPI deep link with the amount and order code filled in. Opens GPay, PhonePe, Paytm etc. on phones. */
+export function upiLink(amount: number, note: string) {
+  // The UPI ID goes in raw: some apps reject an encoded "@".
+  return `upi://pay?pa=${site.upiId}&pn=${encodeURIComponent(site.upiPayee)}&am=${amount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(note)}`;
+}
 
 export function whatsappLink(message: string, phone: string = site.whatsapp) {
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;

@@ -2,7 +2,7 @@ import { Diya, MarigoldHead } from "@/art/ornaments";
 import { formatINR } from "@/config/site";
 import { getTemplate, templates } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
-import { Gallery } from "@/site/gallery";
+import { Showcase } from "@/site/showcase";
 import { ClosingCta, Comparison, Faq, Features, HowItWorks, Testimonials } from "@/site/sections";
 import { Badge, ButtonLink, Container, Display, Heading, InlineIcon, Lead, PhoneFrame, Placeholder, Reveal } from "@/ui";
 
@@ -44,12 +44,10 @@ export default function Home() {
         </Container>
       </section>
 
-      {/* Gallery */}
+      {/* Designs */}
       <section id="designs" className="scroll-mt-20">
         <Container wide className="px-3 sm:px-5">
-          <Reveal delay={0.1}>
-            <Gallery />
-          </Reveal>
+          <Showcase />
         </Container>
       </section>
 

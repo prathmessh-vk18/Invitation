@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getInvite } from "@/data/invites";
+import type { Invite } from "@/data/invites";
 import { useInviteMusic } from "./music";
 import { OpenedContext } from "./opened";
 import { themes } from "./registry";
 import { Countdown, Gallery, MusicToggle, Rsvp, Story } from "./shared";
 
-export function InviteRenderer({ slug }: { slug: string }) {
-  const invite = getInvite(slug)!;
+export function InviteRenderer({ invite }: { invite: Invite }) {
   const theme = themes[invite.template];
   const [opened, setOpened] = useState(false);
   const [gone, setGone] = useState(false);

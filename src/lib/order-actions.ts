@@ -1,0 +1,85 @@
+"use server";
+
+import { randomUUID } from "node:crypto";
+import { addons as addonCatalogue } from "@/config/addons";
+import { getTemplate } from "@/data/templates";
+import { cleanPhone, orderTotal, validateDetails } from "@/lib/orders";
+import { db, SONGS_BUCKET } from "@/lib/supabase";
+
+const AUDIO = /^(audio\/(mpeg|mp3|mp4|x-m4a|aac|wav|x-wav|ogg))$/;
+const MAX_SONG_BYTES = 15 * 1024 * 1024;
+
+/** A one-time URL the browser uploads the couple's song to. The file never passes through our server. */
+export async function createSongUpload(fileName: string, contentType: string, size: number) {
+  if (!AUDIO.test(contentType)) return { error: "Please choose an audio file (MP3, M4A, AAC, WAV or OGG)." };
+  if (size > MAX_SONG_BYTES) return { error: "That file is over 15 MB. Please trim it or choose a shorter version." };
+  const ext = (fileName.split(".").pop() || "mp3").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "mp3";
+  const path = `uploads/${randomUUID()}.${ext}`;
+  const { data, error } = await db().storage.from(SONGS_BUCKET).createSignedUploadUrl(path);
+  if (error || !data) return { error: "We couldn't prepare the upload. Please try again." };
+  return { path: data.path, token: data.token };
+}
+
+export type CreateOrderInput = {
+  template: string;
+  addons: string[];
+  details: unknown;
+  songPath: string | null;
+  customer: { name: string; phone: string; email: string };
+};
+
+export async function createOrder(input: CreateOrderInput): Promise<{ id: string } | { errors: string[] }> {
+  const t = getTemplate(input.template);
+  if (!t) return { errors: ["Please choose a design first."] };
+
+  const checked = validateDetails(input.details);
+  const errors = checked.ok ? [] : [...checked.errors];
+
+  const name = String(input.customer?.name ?? "").trim().slice(0, 80);
+  const phone = cleanPhone(input.customer?.phone);
+  const email = String(input.customer?.email ?? "").trim().slice(0, 120);
+  if (!name) errors.push("Add your name so we know who to contact.");
+  if (phone.length < 12) errors.push("Add your WhatsApp number so we can send your link.");
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("Check your email address.");
+  if (errors.length || !checked.ok) return { errors };
+
+  const addonIds = (input.addons ?? []).filter((id) => addonCatalogue.some((a) => a.id === id));
+  const songPath = typeof input.songPath === "string" && /^uploads\/[0-9a-f-]{36}\.[a-z0-9]{1,5}$/.test(input.songPath) ? input.songPath : null;
+
+  const { data, error } = await db()
+    .from("orders")
+    .insert({
+      template: t.id,
+      amount: orderTotal(t.id, addonIds),
+      addons: addonIds,
+      customer_name: name,
+      customer_phone: phone,
+      customer_email: email || null,
+      details: checked.details,
+      song_path: songPath,
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) return { errors: ["We couldn't save your order. Please try again in a moment."] };
+  return { id: data.id as string };
+}
+
+/** The couple tells us the 12-digit UPI reference after paying. */
+export async function submitUtr(orderId: string, utr: string): Promise<{ ok: true } | { error: string }> {
+  const clean = String(utr ?? "").replace(/\s/g, "");
+  if (!/^\d{12}$/.test(clean)) return { error: "The UTR is the 12-digit number in your UPI app's payment details." };
+  if (!/^[0-9a-f-]{36}$/.test(orderId)) return { error: "We couldn't find this order." };
+
+  const { data, error } = await db()
+    .from("orders")
+    .update({ utr: clean, status: "payment_submitted", payment_submitted_at: new Date().toISOString() })
+    .eq("id", orderId)
+    .in("status", ["awaiting_payment", "payment_submitted"])
+    .select("id")
+    .maybeSingle();
+
+  if (error) return { error: "We couldn't save that. Please try again." };
+  if (!data) return { error: "This order isn't waiting for payment any more." };
+  return { ok: true };
+}

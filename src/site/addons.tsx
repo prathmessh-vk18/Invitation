@@ -3,22 +3,12 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { addons } from "@/config/addons";
-import { formatINR, site, whatsappLink } from "@/config/site";
+import { formatINR } from "@/config/site";
 import type { TemplateMeta } from "@/data/templates";
-import { WaIcon } from "@/invites/shared";
+import Link from "next/link";
 import { buttonClass } from "@/ui";
 
-function reserveMessage(t: TemplateMeta, picked: string[], total: number) {
-  const lines = [`Hi ${site.name}! I'd like to reserve the ${t.name} design (${formatINR(t.price)}).`];
-  const chosen = addons.filter((a) => picked.includes(a.id));
-  if (chosen.length) {
-    lines.push("", "Add-ons:", ...chosen.map((a) => `• ${a.name} (${formatINR(a.price)})`));
-  }
-  lines.push("", `Total: ${formatINR(total)}`);
-  return lines.join("\n");
-}
-
-/** Add-on cards with a running total and a reserve button that carries the selection to WhatsApp. */
+/** Add-on cards with a running total; continuing carries the selection into the order form. */
 export function AddonPicker({ t }: { t: TemplateMeta }) {
   const [picked, setPicked] = useState<string[]>([]);
   const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
@@ -66,9 +56,9 @@ export function AddonPicker({ t }: { t: TemplateMeta }) {
               </motion.p>
             </AnimatePresence>
           </div>
-          <a href={whatsappLink(reserveMessage(t, picked, total))} target="_blank" rel="noreferrer" className={buttonClass("primary", "lg", "w-full sm:w-auto")}>
-            <WaIcon /> Reserve on WhatsApp
-          </a>
+          <Link href={`/start/${t.id}${picked.length ? `?addons=${picked.join(",")}` : ""}`} className={buttonClass("primary", "lg", "w-full sm:w-auto")}>
+            Continue with {picked.length ? "these extras" : "this design"} →
+          </Link>
         </div>
       </div>
     </div>

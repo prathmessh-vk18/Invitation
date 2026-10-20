@@ -141,7 +141,7 @@ function Blessing({ invite }: { invite: Invite }) {
       </Reveal>
       <div className="mt-[12cqw] grid grid-cols-2 border-y border-[#2a1c15]/15">
         {[a, b].map((p, i) => (
-          <Reveal key={p.full} delay={i * 0.15} className={`py-[6cqw] ${i ? "border-l border-[#2a1c15]/15 pl-[5cqw]" : "pr-[5cqw]"}`}>
+          <Reveal key={p === invite.bride ? "bride" : "groom"} delay={i * 0.15} className={`py-[6cqw] ${i ? "border-l border-[#2a1c15]/15 pl-[5cqw]" : "pr-[5cqw]"}`}>
             <p className="text-[2.2cqw] tracking-[0.3em] text-[#2a1c15]/50 uppercase">{p === invite.bride ? "The bride" : "The groom"}</p>
             <p className="inv-script mt-[2cqw] text-[10cqw] leading-none">{p.first}</p>
             <p className="mt-[2cqw] text-[3.2cqw] font-semibold">{p.full}</p>

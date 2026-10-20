@@ -134,8 +134,8 @@ export function HowItWorks() {
       ),
     },
     {
-      n: "Share your details",
-      b: "Names, functions, venues and your song, over a WhatsApp chat.",
+      n: "Fill in your details",
+      b: "Names, functions, venues and your song. Watch the invite update as you type.",
       v: (
         <div className="flex h-full items-center justify-center p-6">
           <div className="w-full max-w-[240px] rounded-2xl bg-panel p-4 text-caption">
@@ -151,8 +151,8 @@ export function HowItWorks() {
       ),
     },
     {
-      n: "Send one link",
-      b: `Your invite arrives in ${site.deliveryDays} days, with ${site.revisionRounds} rounds of changes. Share it with everyone at once.`,
+      n: "Pay, then get your link",
+      b: `We send payment details on WhatsApp. Your invite goes live within ${site.publishWithin} of payment.`,
       v: (
         <div className="flex h-full flex-col justify-center gap-2 bg-whatsapp-wash px-5">
           <ChatBubble>Is the invite ready? 👀</ChatBubble>
@@ -270,11 +270,11 @@ export function Testimonials() {
 
 export const generalFaqs = [
   { q: "How do guests open it?", a: "It's a normal link. Share it on WhatsApp and it opens in the phone's browser in seconds. No app, no login." },
-  { q: "What do you need from us?", a: "Names, families, functions with dates, times and venues, dress codes, and optionally a song and photos. Send it however is easiest, voice notes included." },
-  { q: "What if a venue or time changes?", a: `We update the same link, so nobody needs a new invite. ${site.revisionRounds} rounds of changes are included.` },
+  { q: "What do you need from us?", a: "Just the form on your design's page: names, functions with dates, times and venues, dress codes, and your song if you'd like one. You'll see the invite update as you fill it in." },
+  { q: "What if a venue or time changes?", a: "Message us with your order code and we'll update the same link, so nobody needs a new invite." },
   { q: "Can it include Hindi, Urdu, Punjabi or Tamil?", a: "Yes. Invocations, blessings and event names can be set in their own script alongside English." },
-  { q: "How long does the link stay live?", a: "For life. Open it on your first anniversary, and every one after." },
-  { q: "How do we pay?", a: "Once we confirm your slot on WhatsApp, we share payment details. We start as soon as your details are in." },
+  { q: "How long does the link stay live?", a: `Until ${site.inviteDaysAfterWedding} days after your wedding, so guests can look back at it after the celebrations.` },
+  { q: "How do we pay?", a: `Submit your details first, no payment needed. We then message you on WhatsApp with a UPI QR code, and publish your invite within ${site.publishWithin} of payment.` },
 ];
 
 export function Faq({ items = generalFaqs, title = "Questions, answered." }: { items?: { q: string; a: string }[]; title?: string }) {

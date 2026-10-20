@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatINR, site, whatsappLink } from "@/config/site";
+import { formatINR, site } from "@/config/site";
 import { categoryOf } from "@/data/categories";
 import { getTemplate, templates } from "@/data/templates";
-import { WaIcon } from "@/invites/shared";
 import { AddonPicker } from "@/site/addons";
 import { TemplateTile } from "@/site/gallery";
 import { ClosingCta, Faq, HowItWorks } from "@/site/sections";
@@ -25,10 +24,10 @@ export async function generateMetadata({ params }: PageProps<"/templates/[slug]"
 
 const highlights = [
   ["Opens in seconds", "On any phone, straight from WhatsApp. No app to install."],
-  [`Ready in ${site.deliveryDays} days`, "Counted from the day your details reach us."],
+  [`Live within ${site.publishWithin}`, "Once your UPI payment is confirmed."],
   [`${site.revisionRounds} rounds of changes`, "Venue moved or a name misspelt? We update the same link."],
   ["One tap to the venue", "Google Maps directions on every function card."],
-  ["Yours for life", "The link never expires. Open it again on your anniversary."],
+  ["Live through the wedding", `Your link works until ${site.inviteDaysAfterWedding} days after the big day.`],
   ["A real person on WhatsApp", `We reply ${site.hours}, not a bot.`],
 ];
 
@@ -83,18 +82,16 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
                 One price with {site.revisionRounds} rounds of changes and your link for life.
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
-                <ButtonLink href={whatsappLink(`Hi ${site.name}! I'd like to reserve the ${t.name} design (${formatINR(t.price)}).`)}>
-                  <WaIcon /> Reserve on WhatsApp
-                </ButtonLink>
+                <ButtonLink href={`/start/${t.id}`}>Customise this design</ButtonLink>
                 <ButtonLink href={`/i/${t.demoSlug}`} variant="inverse" arrow>
                   Open full demo
                 </ButtonLink>
               </div>
               <ol className="mt-8 space-y-4 border-t border-line pt-6">
                 {[
-                  ["We reply on WhatsApp", `Usually within 15 minutes, ${site.hours}.`],
-                  ["You share your details", "Names, functions, venues, photos and your song."],
-                  ["Your link arrives", `Within ${site.deliveryDays} days, ready to share.`],
+                  ["Fill in your details", "Names, functions, venues and your song, with a live preview."],
+                  ["We message you on WhatsApp", "With payment details. Pay by UPI from any app."],
+                  ["Your link arrives", `Within ${site.publishWithin} of payment, on WhatsApp.`],
                 ].map(([h, b], i) => (
                   <li key={h} className="flex gap-3">
                     <span className="grid size-6 shrink-0 place-items-center rounded-full bg-ink text-[12px] font-semibold text-white">{i + 1}</span>

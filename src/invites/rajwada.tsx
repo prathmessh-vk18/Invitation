@@ -174,7 +174,7 @@ function Blessing({ invite }: { invite: Invite }) {
       </Reveal>
       <div className="mt-[10cqw] grid grid-cols-[1fr_auto_1fr] items-center gap-[2cqw]">
         {[a, b].map((p, i) => (
-          <Reveal key={p.full} delay={i * 0.2} className={i === 1 ? "col-start-3" : ""}>
+          <Reveal key={p === invite.bride ? "bride" : "groom"} delay={i * 0.2} className={i === 1 ? "col-start-3" : ""}>
             <div className="relative overflow-hidden rounded-t-full border border-[#e9bf62]/60 bg-[#3a0815]/60 px-[3cqw] pt-[10cqw] pb-[5cqw]">
               <Mandala color={GOLD} className="absolute -top-[10cqw] left-1/2 w-[40cqw] -translate-x-1/2 opacity-20" />
               <p className="inv-script relative text-[10cqw] leading-none text-[#f6d987]">{p.first}</p>
