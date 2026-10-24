@@ -4,6 +4,8 @@ import { site } from "@/config/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  // Absolute URLs for link previews (WhatsApp, Instagram) use the live domain.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://aavjoo.in"),
   title: {
     default: `${site.name} — Designer Wedding Invitation Websites`,
     template: `%s · ${site.name}`,
