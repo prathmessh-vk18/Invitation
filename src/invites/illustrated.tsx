@@ -175,10 +175,10 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
     const [a, b] = couple(invite);
     const ref = useRef<HTMLElement>(null);
     const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-    const imgY = useTransform(scrollYProgress, [0, 1], ["0%", "22%"]);
-    const imgScale = useTransform(scrollYProgress, [0, 1], [1, 1.08]);
-    const textY = useTransform(scrollYProgress, [0, 1], ["0%", "-60%"]);
-    const textFade = useTransform(scrollYProgress, [0, 0.45], [1, 0]);
+    const imgY = useTransform(scrollYProgress, [0, 1], ["0%", "8%"]);
+    const imgScale = useTransform(scrollYProgress, [0, 1], [1, 1.04]);
+    const textY = useTransform(scrollYProgress, [0, 1], ["0%", "-30%"]);
+    const textFade = useTransform(scrollYProgress, [0, 0.4], [1, 0]);
     const show = (delay: number) => ({ initial: { opacity: 0, y: 14 }, animate: opened ? { opacity: 1, y: 0 } : {}, transition: { duration: 1, delay, ease } });
     return (
       <section ref={ref} className="relative w-full overflow-hidden" style={{ aspectRatio: ART_RATIO }}>
@@ -213,20 +213,22 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
             {invite.city}
           </motion.p>
         </motion.div>
-        <motion.div
-          className="absolute inset-x-0 bottom-[3%] flex flex-col items-center gap-1 text-white [text-shadow:0_1px_8px_rgba(0,0,0,.5)]"
+        <motion.button
+          type="button"
+          onClick={() => ref.current?.nextElementSibling?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          className="absolute bottom-[3%] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1 px-[6cqw] py-[2cqw] text-white [text-shadow:0_1px_8px_rgba(0,0,0,.5)]"
           initial={{ opacity: 0 }}
           animate={opened ? { opacity: 1, y: [0, 6, 0] } : {}}
           transition={{ opacity: { delay: 1.8, duration: 0.6 }, y: { delay: 1.8, duration: 1.8, repeat: Infinity } }}
           style={{ opacity: textFade }}
-          aria-hidden
+          aria-label="Scroll to the invitation"
         >
           <span className="inv-label text-[2.3cqw]">Scroll</span>
           <svg viewBox="0 0 24 24" className="size-[4cqw]" fill="none" stroke="currentColor" strokeWidth={1.6}>
             <path d="M6 9l6 6 6-6" />
           </svg>
-        </motion.div>
-        <div className="absolute inset-x-0 bottom-0 h-[10%] bg-gradient-to-b from-transparent" style={{ backgroundImage: `linear-gradient(to bottom, transparent, ${c.paper})` }} />
+        </motion.button>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[10%] bg-gradient-to-b from-transparent" style={{ backgroundImage: `linear-gradient(to bottom, transparent, ${c.paper})` }} />
       </section>
     );
   }
@@ -264,7 +266,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
   function Blessing({ invite }: { invite: Invite }) {
     const [a, b] = couple(invite);
     return (
-      <section className="relative px-[14cqw] pt-[20cqw] pb-[14cqw] text-center">
+      <section className="relative px-[14cqw] pt-[16cqw] pb-[14cqw] text-center">
         <Reveal>
           <p className="inv-label text-[2.8cqw] leading-relaxed" style={{ color: c.accent }}>
             {invite.hosts || "Together with their families"}
@@ -378,7 +380,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
       window.addEventListener("resize", measure);
       return () => window.removeEventListener("resize", measure);
     }, []);
-    const opacity = useTransform(scrollY, [heroH * 0.55, heroH * 0.92], [0, 1]);
+    const opacity = useTransform(scrollY, [heroH * 0.35, heroH * 0.75], [0, 1]);
     const f = spec.frame;
     const soft = 4;
     const mask = [

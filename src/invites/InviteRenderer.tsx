@@ -17,7 +17,7 @@ export function InviteRenderer({ invite }: { invite: Invite }) {
   useEffect(() => {
     document.documentElement.style.overflow = opened ? "" : "hidden";
     if (!opened) return;
-    const t = window.setTimeout(() => setGone(true), 2600);
+    const t = window.setTimeout(() => setGone(true), 1900);
     return () => window.clearTimeout(t);
   }, [opened]);
 
@@ -66,7 +66,7 @@ export function InviteRenderer({ invite }: { invite: Invite }) {
         )}
 
         {!gone && (
-          <div className="fixed inset-0 z-50 flex justify-center">
+          <div className={`fixed inset-0 z-50 flex justify-center ${opened ? "pointer-events-none" : ""}`}>
             <div className="@container relative h-full w-full max-w-[480px]">
               <theme.Opening invite={invite} opened={opened} onOpen={open} />
             </div>

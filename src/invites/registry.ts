@@ -1,7 +1,6 @@
 import type { TemplateId } from "@/data/templates";
 import { agni } from "./agni";
-import { bagh } from "./bagh";
-import { gopuram, khat, mahal } from "./illustrated-themes";
+import { bagh, gopuram, khat, mahal } from "./illustrated-themes";
 import { gulmohar } from "./gulmohar";
 import { kolam } from "./kolam";
 import { noor } from "./noor";

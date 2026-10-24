@@ -34,3 +34,13 @@ export const gopuram = makeIllustrated({
   colors: { ink: "#5a0d2b", accent: "#a6175a", soft: "#6b4a3a", paper: "#fbf5e8", onAccent: "#fff" },
   fonts: { script: "var(--font-yeseva), serif", serif: "var(--font-cormorant), serif", label: "var(--font-marcellus), serif" },
 });
+
+export const bagh = makeIllustrated({
+  id: "bagh",
+  images: { opening: `${base}/bagh-gate.jpg`, hero: `${base}/bagh-hero.jpg`, card: `${base}/bagh-card.jpg` },
+  opening: "doors",
+  heroTextTop: 7,
+  frame: { top: 14, bottom: 21, side: 3 },
+  colors: { ink: "#3d1633", accent: "#b5603a", soft: "#6a4a4a", paper: "#f3eadb", onAccent: "#fff" },
+  fonts: { script: "var(--font-dancing), cursive", serif: "var(--font-cormorant), serif", label: "var(--font-cinzel), serif" },
+});

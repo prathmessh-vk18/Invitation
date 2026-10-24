@@ -18,7 +18,7 @@ export type Order = {
   customer_email: string | null;
   details: InviteDetails;
   song_path: string | null;
-  photo_paths: string[];
+  photo_paths?: string[] | null;
   utr: string | null;
   admin_notes: string | null;
   invite_slug: string | null;

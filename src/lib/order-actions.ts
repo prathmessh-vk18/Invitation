@@ -58,6 +58,8 @@ export async function createOrder(input: CreateOrderInput): Promise<{ id: string
 
   const songPath = typeof input.songPath === "string" && /^uploads\/[0-9a-f-]{36}\.[a-z0-9]{1,5}$/.test(input.songPath) ? input.songPath : null;
 
+  const photoPaths = (input.photoPaths ?? []).filter((x) => typeof x === "string" && PHOTO_PATH.test(x)).slice(0, MAX_PHOTOS);
+
   const { data, error } = await db()
     .from("orders")
     .insert({
@@ -68,7 +70,8 @@ export async function createOrder(input: CreateOrderInput): Promise<{ id: string
       customer_email: email || null,
       details: checked.details,
       song_path: songPath,
-      photo_paths: (input.photoPaths ?? []).filter((x) => typeof x === "string" && PHOTO_PATH.test(x)).slice(0, MAX_PHOTOS),
+      // Only sent when there are photos, so orders still save on a database without the photos column.
+      ...(photoPaths.length ? { photo_paths: photoPaths } : {}),
     })
     .select("id")
     .single();

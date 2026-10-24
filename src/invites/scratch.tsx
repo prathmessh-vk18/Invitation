@@ -2,6 +2,8 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { MarigoldHead, PetalShape } from "@/art/ornaments";
 import { seeded } from "@/art/geometry";
 import type { Invite } from "@/data/invites";
 import { dayNum, monthName, weekday, yearNum } from "@/lib/format";
@@ -38,24 +40,80 @@ function paintFoil(ctx: CanvasRenderingContext2D, w: number, h: number, dpr: num
   ctx.fillText("✦  SCRATCH TO REVEAL THE DATE  ✦", w / 2, h / 2);
 }
 
-function Confetti({ colors }: { colors: string[] }) {
-  const bits = useMemo(() => {
-    const rnd = seeded(11);
-    return Array.from({ length: 36 }, (_, i) => ({ x: (rnd() - 0.5) * 340, y: -60 - rnd() * 220, r: rnd() * 540, c: colors[i % colors.length], s: 5 + rnd() * 6, d: rnd() * 0.15 }));
-  }, [colors]);
-  return (
-    <div className="pointer-events-none absolute top-1/2 left-1/2" aria-hidden>
-      {bits.map((b, i) => (
-        <motion.span
+type Bloom = { kind: "marigold" | "petal" | "jasmine"; color: string; size: number; x0: number; y0: number; burstX: number; burstY: number; fallX: number; spin: number; delay: number; dur: number };
+
+const petalColors = ["#f2b8c0", "#e98aa3", "#fbe1dc", "#f4a6a0", "#c2456b"];
+
+function Flower({ kind, color }: { kind: Bloom["kind"]; color: string }) {
+  if (kind === "marigold")
+    return (
+      <svg viewBox="-12 -12 24 24" className="h-full w-full drop-shadow-[0_2px_3px_rgba(0,0,0,.2)]">
+        <MarigoldHead r={11} hue={color === "yellow" ? "yellow" : "orange"} />
+      </svg>
+    );
+  if (kind === "jasmine")
+    return (
+      <svg viewBox="-12 -12 24 24" className="h-full w-full drop-shadow-[0_2px_3px_rgba(0,0,0,.18)]">
+        {[0, 72, 144, 216, 288].map((r) => (
+          <ellipse key={r} cx="0" cy="-6" rx="3.6" ry="6" fill="#fffdf6" transform={`rotate(${r})`} />
+        ))}
+        <circle r="2.4" fill="#f1d77a" />
+      </svg>
+    );
+  return <PetalShape color={color} className="h-full w-full drop-shadow-[0_2px_3px_rgba(0,0,0,.15)]" />;
+}
+
+/**
+ * A full-screen shower of marigolds, petals and jasmine: it bursts out of the card,
+ * then drifts down past the bottom of the screen. Rendered on <body> so nothing clips it.
+ */
+function FlowerShower({ from }: { from: { x: number; y: number } }) {
+  // Only ever mounted in the browser, after a guest scratches.
+  const [vh] = useState(() => window.innerHeight);
+  const blooms = useMemo<Bloom[]>(() => {
+    const rnd = seeded(23);
+    return Array.from({ length: 70 }, (_, i) => {
+      const kind: Bloom["kind"] = i % 5 === 0 ? "marigold" : i % 7 === 0 ? "jasmine" : "petal";
+      const a = rnd() * Math.PI * 2;
+      const power = 90 + rnd() * 220;
+      return {
+        kind,
+        color: kind === "marigold" ? (rnd() > 0.5 ? "yellow" : "orange") : petalColors[i % petalColors.length],
+        size: kind === "petal" ? 12 + rnd() * 12 : 18 + rnd() * 12,
+        x0: from.x,
+        y0: from.y,
+        burstX: Math.cos(a) * power,
+        burstY: Math.sin(a) * power * 0.7 - 160 - rnd() * 140,
+        fallX: (rnd() - 0.5) * 160,
+        spin: (rnd() > 0.5 ? 1 : -1) * (240 + rnd() * 480),
+        delay: rnd() * 0.25,
+        dur: 3.4 + rnd() * 2.4,
+      };
+    });
+  }, [from]);
+
+  return createPortal(
+    <div className="pointer-events-none fixed inset-0 z-[80] overflow-hidden" aria-hidden>
+      {blooms.map((f, i) => (
+        <motion.div
           key={i}
-          className="absolute block rounded-[1px]"
-          style={{ width: b.s, height: b.s * 0.6, background: b.c }}
-          initial={{ x: 0, y: 0, opacity: 1, rotate: 0 }}
-          animate={{ x: b.x, y: [0, b.y, b.y + 260], opacity: [1, 1, 0], rotate: b.r }}
-          transition={{ duration: 1.8, delay: b.d, ease: "easeOut" }}
-        />
+          className="absolute"
+          style={{ left: f.x0 - f.size / 2, top: f.y0 - f.size / 2, width: f.size, height: f.size }}
+          initial={{ x: 0, y: 0, scale: 0.3, opacity: 0, rotate: 0 }}
+          animate={{
+            x: [0, f.burstX, f.burstX + f.fallX],
+            y: [0, f.burstY, vh - f.y0 + 80],
+            scale: [0.3, 1, 1],
+            opacity: [0, 1, 1],
+            rotate: [0, f.spin * 0.3, f.spin],
+          }}
+          transition={{ duration: f.dur, delay: f.delay, times: [0, 0.18, 1], ease: ["easeOut", "easeIn"] }}
+        >
+          <Flower kind={f.kind} color={f.color} />
+        </motion.div>
       ))}
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -69,6 +127,15 @@ export function ScratchDate({ invite, theme }: { invite: Invite; theme: InviteTh
   const drawing = useRef(false);
   const last = useRef<{ x: number; y: number } | null>(null);
   const [revealed, setRevealed] = useState(false);
+  const [burst, setBurst] = useState<{ x: number; y: number } | null>(null);
+
+  // Reveal and celebrate: flowers burst from the middle of the card.
+  function reveal() {
+    const r = box.current?.getBoundingClientRect();
+    setBurst(r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : { x: window.innerWidth / 2, y: window.innerHeight / 2 });
+    setRevealed(true);
+    window.setTimeout(() => setBurst(null), 6500);
+  }
 
   useEffect(() => {
     const el = box.current;
@@ -124,10 +191,8 @@ export function ScratchDate({ invite, theme }: { invite: Invite; theme: InviteTh
   function end() {
     drawing.current = false;
     last.current = null;
-    if (!revealed && scratched() > REVEAL_AT) setRevealed(true);
+    if (!revealed && scratched() > REVEAL_AT) reveal();
   }
-
-  const colors = [theme.accent, "#f3d98a", "#ffffff", "#e8582a"];
 
   return (
     <section className={theme.ui.section}>
@@ -165,14 +230,14 @@ export function ScratchDate({ invite, theme }: { invite: Invite; theme: InviteTh
               />
             )}
           </AnimatePresence>
-          {revealed && <Confetti colors={colors} />}
         </div>
         {!revealed && (
-          <button type="button" onClick={() => setRevealed(true)} className={`mx-auto mt-[4cqw] block text-[3.2cqw] underline underline-offset-4 ${theme.ui.muted}`}>
+          <button type="button" onClick={reveal} className={`mx-auto mt-[4cqw] block text-[3.2cqw] underline underline-offset-4 ${theme.ui.muted}`}>
             Tap here to reveal instead
           </button>
         )}
       </Reveal>
+      {burst && <FlowerShower from={burst} />}
     </section>
   );
 }
