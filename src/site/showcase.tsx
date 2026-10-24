@@ -46,11 +46,8 @@ export function PosterTile({ t, index }: { t: TemplateMeta; index: number }) {
         </span>
 
         <div className="relative flex aspect-[4/4.6] flex-col sm:aspect-[4/4.2]">
-          {/* badges */}
-          <div className="flex items-start justify-between p-[5cqw]">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 font-sans text-[13px] font-medium text-ink backdrop-blur">
-              <span className="size-2 animate-pulse rounded-full bg-live" /> Live demo
-            </span>
+          {/* price */}
+          <div className="flex items-start justify-end p-[5cqw]">
             <span className="rounded-full bg-white/90 px-3 py-1 font-sans text-ink backdrop-blur"><PriceTag price={t.price} mrp={t.mrp} size="sm" /></span>
           </div>
 
