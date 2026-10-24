@@ -1,7 +1,7 @@
 import { site } from "@/config/site";
 import { LegalPage } from "@/site/legal";
 
-export const metadata = { title: "Privacy policy" };
+export const metadata = { title: "Privacy policy", description: "How Aavjoo handles the details and photos you share for your wedding invitation.", alternates: { canonical: "/privacy" } };
 
 export default function PrivacyPage() {
   return (

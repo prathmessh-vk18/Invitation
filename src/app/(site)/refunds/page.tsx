@@ -1,7 +1,7 @@
 import { site } from "@/config/site";
 import { LegalPage } from "@/site/legal";
 
-export const metadata = { title: "Refund policy" };
+export const metadata = { title: "Refund policy", description: "Aavjoo's refund and changes policy for digital wedding invitations.", alternates: { canonical: "/refunds" } };
 
 export default function RefundsPage() {
   return (

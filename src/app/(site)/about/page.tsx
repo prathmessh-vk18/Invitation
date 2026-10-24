@@ -3,7 +3,7 @@ import { site, whatsappLink } from "@/config/site";
 import { templates } from "@/data/templates";
 import { ButtonLink, Container, Display, Heading, Lead, Panel, Reveal, Section } from "@/ui";
 
-export const metadata: Metadata = { title: "About", description: `Why ${site.name} exists and how we work.` };
+export const metadata: Metadata = { title: "About", alternates: { canonical: "/about" }, description: `Why ${site.name} exists and how we work.` };
 
 export default function AboutPage() {
   return (

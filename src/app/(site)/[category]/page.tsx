@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { categories, getCategory } from "@/data/categories";
@@ -17,7 +18,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<"/[category]">): Promise<Metadata> {
   const c = getCategory((await params).category);
   if (!c) return {};
-  return { title: c.title, description: c.intro };
+  return pageMeta(`/${c.slug}`, `${c.title} · digital & animated`, c.intro);
 }
 
 const included = [

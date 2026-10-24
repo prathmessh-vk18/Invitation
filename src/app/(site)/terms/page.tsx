@@ -1,7 +1,7 @@
 import { site } from "@/config/site";
 import { LegalPage } from "@/site/legal";
 
-export const metadata = { title: "Terms" };
+export const metadata = { title: "Terms", description: "Terms of service for Aavjoo digital wedding invitations.", alternates: { canonical: "/terms" } };
 
 export default function TermsPage() {
   return (

@@ -28,6 +28,7 @@ export function Wordmark({ light, className }: { light?: boolean; className?: st
 const nav = [
   { href: "/designs", label: "Designs" },
   { href: "/#how", label: "How it works" },
+  { href: "/guides", label: "Guides" },
   { href: "/#faq", label: "FAQ" },
 ];
 
@@ -112,6 +113,7 @@ export function Footer() {
       h: "Company",
       l: [
         { href: "/about", label: "About" },
+        { href: "/guides", label: "Wedding guides" },
         { href: "/#how", label: "How it works" },
         { href: "/design-system", label: "Design system" },
       ],

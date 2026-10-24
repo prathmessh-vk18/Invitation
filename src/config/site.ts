@@ -1,6 +1,8 @@
 // All brand details live here. Swap these placeholders for the real values.
 export const site = {
   name: "Aavjoo",
+  // The public address. Canonical links, the sitemap and share previews all use it.
+  url: "https://aavjoo.in",
   tagline: "Wedding invitations that open like a celebration",
   description:
     "Designer invitation websites for Indian weddings — one beautiful link with your events, venues, music and RSVP, shared on WhatsApp.",

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd, pageMeta } from "@/lib/seo";
+import { site as siteConfig } from "@/config/site";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { site } from "@/config/site";
@@ -12,6 +14,10 @@ import { ButtonLink, Container, Eyebrow, Heading, Lead, Panel, PhoneFrame, Revea
 // Every design is prerendered from generateStaticParams.
 export const instant = false;
 
+/** The design's own artwork as its share preview (illustrated designs), else the site card. */
+const illustrated = new Set(["mahal", "khat", "gopuram", "bagh"]);
+const shareImage = (id: string) => (illustrated.has(id) ? `/art/illus/${id}-hero.jpg` : "/opengraph-image");
+
 export function generateStaticParams() {
   return templates.map((t) => ({ slug: t.id }));
 }
@@ -19,7 +25,8 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<"/templates/[slug]">): Promise<Metadata> {
   const t = getTemplate((await params).slug);
   if (!t) return {};
-  return { title: `${t.name} · ${categoryOf(t.category).title}`, description: t.tagline };
+  const meta = pageMeta(`/templates/${t.id}`, `${t.name} · ${categoryOf(t.category).title}`, `${t.tagline} Animated digital invitation from ₹${t.price}, shared on WhatsApp.`);
+  return { ...meta, openGraph: { ...meta.openGraph, images: [{ url: shareImage(t.id), width: 864, height: 1536 }] } };
 }
 
 const highlights = [
@@ -39,6 +46,18 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: `${t.name} digital wedding invitation`,
+          description: t.description.join(" "),
+          image: `${siteConfig.url}${shareImage(t.id)}`,
+          brand: { "@type": "Brand", name: siteConfig.name },
+          category: "Digital wedding invitation",
+          offers: { "@type": "Offer", price: t.price, priceCurrency: "INR", availability: "https://schema.org/InStock", url: `${siteConfig.url}/templates/${t.id}` },
+        }}
+      />
       <section className="pt-10 pb-20">
         <Container className="grid gap-14 lg:grid-cols-[minmax(0,400px)_1fr]">
           <div className="lg:sticky lg:top-24 lg:self-start">

@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 import { Showcase } from "@/site/showcase";
 import { ClosingCta, HowItWorks } from "@/site/sections";
 import { Container, Display, Lead, Reveal } from "@/ui";
 
-export const metadata: Metadata = {
-  title: "All designs",
-  description: "Every invitation design, with live demos: Hindu, Muslim, Sikh and South Indian weddings.",
-};
+export const metadata: Metadata = pageMeta(
+  "/designs",
+  "Wedding invitation designs",
+  "Animated digital wedding invitation designs for Hindu, Muslim, Sikh and South Indian weddings, with live demos. From ₹249.",
+);
 
 export default function DesignsPage() {
   return (

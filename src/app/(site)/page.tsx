@@ -1,3 +1,4 @@
+import { JsonLd, organizationLd } from "@/lib/seo";
 import Link from "next/link";
 import { Diya, MarigoldHead } from "@/art/ornaments";
 import { formatINR } from "@/config/site";
@@ -8,11 +9,18 @@ import { Showcase } from "@/site/showcase";
 import { ClosingCta, Comparison, Faq, Features, HowItWorks, Testimonials } from "@/site/sections";
 import { Badge, ButtonLink, Container, Display, Heading, InlineIcon, Lead, PhoneFrame, Reveal } from "@/ui";
 
+export const metadata = {
+  alternates: { canonical: "/" },
+  openGraph: { url: "/", title: "Aavjoo — Designer Wedding Invitation Websites", description: "Animated wedding invitation websites for Indian weddings, with every function, venue, song and RSVP in one WhatsApp link. From ₹249." },
+};
+
 export default function Home() {
   const spotlight = getTemplate("rajwada")!;
   const [left, right] = [getTemplate("noor")!, getTemplate("kolam")!];
   return (
     <>
+      <JsonLd data={organizationLd} />
+      <JsonLd data={{ "@context": "https://schema.org", "@type": "WebSite", name: "Aavjoo", url: "https://aavjoo.in" }} />
       {/* Hero */}
       <section className="pt-20 pb-16 text-center sm:pt-28">
         <Container>
