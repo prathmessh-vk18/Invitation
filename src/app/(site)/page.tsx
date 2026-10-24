@@ -1,3 +1,4 @@
+import { offer } from "@/config/offer";
 import { JsonLd, organizationLd } from "@/lib/seo";
 import Link from "next/link";
 import { Diya, MarigoldHead } from "@/art/ornaments";
@@ -29,7 +30,7 @@ export default function Home() {
               href="/designs"
               className="mb-7 inline-flex items-center gap-2 rounded-full bg-[#fff1e6] py-1.5 pr-4 pl-1.5 text-[14px] font-medium text-[#b4410f] transition hover:bg-[#ffe6d2]"
             >
-              <span className="rounded-full bg-[#e8582a] px-2.5 py-0.5 text-[12px] font-semibold whitespace-nowrap text-white">🪔 Diwali offer</span>
+              <span className="rounded-full bg-[#e8582a] px-2.5 py-0.5 text-[12px] font-semibold whitespace-nowrap text-white">{offer.emoji} {offer.name}</span>
               <span className="whitespace-nowrap">
                 From ₹249<span className="max-sm:hidden">, up to 75% off</span> →
               </span>

@@ -1,3 +1,4 @@
+import { offer } from "@/config/offer";
 import type { ReactNode } from "react";
 import { EventGlyph } from "@/art/glyphs";
 import { Mandala } from "@/art/ornaments";
@@ -271,7 +272,7 @@ export function ClosingCta() {
         <div className="rounded-card bg-ink px-6 py-20 text-center text-white">
           <h2 className="text-heading text-balance">Ready when you are.</h2>
           <p className="mx-auto mt-4 max-w-md text-lead text-white/60">
-            🪔 Diwali offer: every design from {formatINR(from)}, up to 75% off. Pick one and make it yours in minutes.
+            {offer.emoji} {offer.name}: every design from {formatINR(from)}, up to 75% off. Pick one and make it yours in minutes.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-2">
             <ButtonLink href={whatsappLink(`Hi ${site.name}! We're getting married and would love an invitation website.`)} variant="inverse">

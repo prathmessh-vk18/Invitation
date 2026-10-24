@@ -1,5 +1,6 @@
 "use client";
 
+import { offer } from "@/config/offer";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
@@ -958,7 +959,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
           <p className="text-caption font-medium text-subtle">{t.name} design · everything included</p>
           <PriceTag price={t.price} mrp={t.mrp} size="lg" className="mt-1" />
           <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#fff1e6] px-3 py-1 text-[13px] font-medium text-[#b4410f]">
-            🪔 Diwali offer · <OfferCountdown />
+            {offer.emoji} {offer.name} · <OfferCountdown />
           </p>
         </Panel>
       </aside>

@@ -1,3 +1,4 @@
+import { offer } from "@/config/offer";
 import type { Metadata } from "next";
 import { JsonLd, pageMeta } from "@/lib/seo";
 import { site as siteConfig } from "@/config/site";
@@ -93,7 +94,7 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
 
             <Panel className="mt-8 p-6 sm:p-8">
               <p className="flex w-fit items-center gap-1.5 rounded-full bg-[#fff1e6] px-3 py-1 text-[13px] font-medium text-[#b4410f]">
-                🪔 Diwali offer · <OfferCountdown />
+                {offer.emoji} {offer.name} · <OfferCountdown />
               </p>
               <PriceTag price={t.price} mrp={t.mrp} size="lg" className="mt-3 flex" />
               <p className="mt-1 text-body text-muted">
