@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatINR, site } from "@/config/site";
+import { site } from "@/config/site";
 import { categoryOf } from "@/data/categories";
 import { getTemplate, templates } from "@/data/templates";
-import { AddonPicker } from "@/site/addons";
+import { OfferCountdown, PriceTag } from "@/site/offer";
 import { TemplateTile } from "@/site/gallery";
 import { ClosingCta, Faq, HowItWorks } from "@/site/sections";
 import { ButtonLink, Container, Eyebrow, Heading, Lead, Panel, PhoneFrame, Reveal, Section } from "@/ui";
@@ -73,13 +73,12 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
             <Lead className="mt-4">{t.tagline}</Lead>
 
             <Panel className="mt-8 p-6 sm:p-8">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="text-[44px] font-semibold tracking-[-0.04em]">{formatINR(t.price)}</span>
-                <span className="text-lead text-faint line-through">{formatINR(t.mrp)}</span>
-                <span className="rounded-full bg-surface px-3 py-1 text-caption font-medium">Save {formatINR(t.mrp - t.price)}</span>
-              </div>
+              <p className="flex w-fit items-center gap-1.5 rounded-full bg-[#fff1e6] px-3 py-1 text-[13px] font-medium text-[#b4410f]">
+                🪔 Diwali offer · <OfferCountdown />
+              </p>
+              <PriceTag price={t.price} mrp={t.mrp} size="lg" className="mt-3 flex" />
               <p className="mt-1 text-body text-muted">
-                One price with {site.revisionRounds} rounds of changes and your link for life.
+                One price, everything included: music, maps, countdown and RSVP.
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 <ButtonLink href={`/start/${t.id}`}>Customise this design</ButtonLink>
@@ -157,14 +156,6 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
         </Container>
       </Section>
 
-      <Section id="addons">
-        <Container>
-          <Heading muted="Pick only what your family needs.">Add the extras.</Heading>
-          <div className="mt-12">
-            <AddonPicker t={t} />
-          </div>
-        </Container>
-      </Section>
 
       <HowItWorks />
 

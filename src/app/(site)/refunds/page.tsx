@@ -18,10 +18,6 @@ export default function RefundsPage() {
         </p>
       </div>
       <div>
-        <h2>Custom designs</h2>
-        <p>Custom invitations follow the payment schedule agreed in your quote.</p>
-      </div>
-      <div>
         <h2>How to ask</h2>
         <p>
           Message us on WhatsApp at {site.whatsappDisplay} or email {site.email}. Approved refunds are returned to the original payment method within 7 working days.

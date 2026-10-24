@@ -8,6 +8,7 @@ import {
   Bodoni_Moda,
   Cinzel,
   Cormorant_Garamond,
+  Dancing_Script,
   Fraunces,
   Geist,
   Inter,
@@ -57,6 +58,8 @@ export const rozha = Rozha_One({ subsets: ["latin"], variable: "--font-rozha", w
 export const tamil = Noto_Serif_Tamil({ subsets: ["tamil"], variable: "--font-tamil" });
 export const yeseva = Yeseva_One({ subsets: ["latin"], variable: "--font-yeseva", weight: "400" });
 
-export const fontVars = [amiri, marcellus, gurmukhi, rozha, tamil, yeseva, fraunces, geist, inter, manrope, cinzel, cormorant, parisienne, pinyon, bodoni, devanagari]
+export const dancing = Dancing_Script({ subsets: ["latin"], variable: "--font-dancing", weight: ["500", "700"] });
+
+export const fontVars = [dancing, amiri, marcellus, gurmukhi, rozha, tamil, yeseva, fraunces, geist, inter, manrope, cinzel, cormorant, parisienne, pinyon, bodoni, devanagari]
   .map((f) => f.variable)
   .join(" ");

@@ -33,7 +33,7 @@ export default async function StartPage({ params }: PageProps<"/start/[template]
           Make {t.name} yours.
         </Heading>
         <Lead className="mt-3 max-w-[640px]">
-          Fill in your details and watch the invite update on the right. When you&rsquo;re happy, submit it and we&rsquo;ll message you on WhatsApp.
+          Seven short steps, with a live preview of your invite as you go. No payment now: we&rsquo;ll message you on WhatsApp once you submit.
         </Lead>
         <div className="mt-10">
           <Suspense fallback={<div className="h-[60vh] rounded-card bg-panel" />}>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import { formatINR } from "@/config/site";
+import { PriceTag } from "./offer";
 import { categories } from "@/data/categories";
 import { templates, type CategoryId, type TemplateMeta } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
@@ -34,9 +34,7 @@ export function TemplateTile({ t, index = 0, price }: { t: TemplateMeta; index?:
           </PhoneFrame>
         </div>
         {price && (
-          <span className="absolute top-4 right-4 rounded-full bg-surface px-3 py-1 text-caption font-medium text-ink">
-            {formatINR(t.price)}
-          </span>
+          <span className="absolute top-4 right-4 rounded-full bg-surface px-3 py-1 text-ink"><PriceTag price={t.price} mrp={t.mrp} size="sm" /></span>
         )}
       </div>
       <TileCaption icon={<TemplateIcon t={t} />} name={t.name} sub={t.mood} />
@@ -80,13 +78,6 @@ export function Gallery({ initial = ALL }: { initial?: Filter }) {
               <TemplateTile t={t} index={i} price />
             </motion.div>
           ))}
-          <motion.div key="custom" layout initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <Link href="/custom" className="group flex aspect-[4/3.6] flex-col items-center justify-center rounded-tile border-2 border-dashed border-line p-6 text-center transition hover:border-faint">
-              <span className="grid size-12 place-items-center rounded-full bg-panel text-2xl transition group-hover:scale-110">+</span>
-              <p className="mt-4 text-title">Something else in mind?</p>
-              <p className="mt-1 text-caption text-muted">We&rsquo;ll design one from scratch.</p>
-            </Link>
-          </motion.div>
         </AnimatePresence>
       </div>
     </Frame>

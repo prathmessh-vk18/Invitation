@@ -1,4 +1,4 @@
-export type TemplateId = "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam";
+export type TemplateId = "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh";
 export type CategoryId = "hindu" | "muslim" | "sikh" | "south-indian";
 
 export type TemplateMeta = {
@@ -28,6 +28,34 @@ const DEVA = "var(--font-deva)";
 
 export const templates: TemplateMeta[] = [
   {
+    id: "bagh",
+    category: "hindu",
+    name: "Bagh",
+    native: "बाग़",
+    nativeFont: DEVA,
+    mood: "Palace garden · Painted & pastel",
+    tagline: "A glass garden gate swings open onto a lotus pool, peacocks and a slow, story-like reveal.",
+    description: [
+      "Bagh is inspired by the painted palace gardens of Rajasthan: carved arches, white chhatris, lotus pools and banana leaves.",
+      "It opens at a glass garden gate inside a floral arch. Tap the seal and the gate swings wide, then “Save the Date” writes itself above the lake.",
+      "Scroll on and the card builds itself line by line, the functions appear one at a time, and a pair of painted elephants walks in to close the celebration.",
+    ],
+    price: 299,
+    mrp: 999,
+    demoSlug: "riya-weds-aditya",
+    palette: [
+      { name: "Palace cream", hex: "#ebe0cc" },
+      { name: "Terracotta", hex: "#c4622d" },
+      { name: "Lotus pool", hex: "#4fbfcf" },
+      { name: "Plum ink", hex: "#3d1633" },
+    ],
+    suits: ["Gujarati & Rajasthani weddings", "Lake & garden venues", "Couples who love a story-like reveal"],
+    signature: ["Glass garden gate", "Hand-written “Save the Date”", "Line-by-line card reveal", "Walking elephant procession"],
+    tint: "#f3e6d3",
+    icon: { bg: "#c4622d", fg: "#fbe8cf" },
+    addedOn: "2026-10-24",
+  },
+  {
     id: "rajwada",
     category: "hindu",
     name: "Rajwada",
@@ -40,8 +68,8 @@ export const templates: TemplateMeta[] = [
       "It opens behind carved palace doors. One tap and they swing apart, a toran of marigolds sways overhead, and your names appear beneath a jharokha arch in gold.",
       "Every function gets its own card in the same maroon and gold, so Haldi to Reception feels like one continuous celebration.",
     ],
-    price: 3499,
-    mrp: 4999,
+    price: 299,
+    mrp: 999,
     demoSlug: "aarav-weds-meera",
     palette: [
       { name: "Sindoor maroon", hex: "#5b0f22" },
@@ -68,8 +96,8 @@ export const templates: TemplateMeta[] = [
       "It arrives as an envelope closed with a wax seal carrying your initials. Break the seal and the card lifts out while petals drift down the screen.",
       "Hand-drawn blossoms frame each section and the palette stays light, so photographs and mehndi greens sit beautifully beside it.",
     ],
-    price: 2999,
-    mrp: 4299,
+    price: 249,
+    mrp: 999,
     demoSlug: "ishaan-weds-tara",
     palette: [
       { name: "Blush", hex: "#f6dfdc" },
@@ -96,8 +124,8 @@ export const templates: TemplateMeta[] = [
       "It opens with a seal that expands into the page. The sacred fire draws itself in fine line-art and seven rings, one for each phera, trace around your names.",
       "Events read like an editorial programme, numbered and timed, so guests know exactly where to be.",
     ],
-    price: 2499,
-    mrp: 3999,
+    price: 249,
+    mrp: 999,
     demoSlug: "kabir-weds-anaya",
     palette: [
       { name: "Ivory", hex: "#f5ede1" },
@@ -124,8 +152,8 @@ export const templates: TemplateMeta[] = [
       "It opens behind a carved geometric screen. Tap the crescent and the two halves of the jaali glide apart, the lanterns swing into view and Bismillah appears in gold.",
       "Nikah, Mehndi and Walima each get their own arched card, with the Mehr ceremony time and venue clear for every guest.",
     ],
-    price: 2999,
-    mrp: 4299,
+    price: 299,
+    mrp: 999,
     demoSlug: "zaid-weds-inaya",
     palette: [
       { name: "Emerald night", hex: "#0c3b33" },
@@ -152,8 +180,8 @@ export const templates: TemplateMeta[] = [
       "The invite arrives folded in an embroidered dupatta. Tap it and the stitches run open from the centre, revealing ੴ and your names in bold folk letters.",
       "Every function has its own colour block, from Jaggo to Anand Karaj to Reception, with the four laavan noted in the ceremony card.",
     ],
-    price: 2999,
-    mrp: 4299,
+    price: 299,
+    mrp: 999,
     demoSlug: "jasraj-weds-simran",
     palette: [
       { name: "Rani pink", hex: "#d6246e" },
@@ -180,8 +208,8 @@ export const templates: TemplateMeta[] = [
       "The invitation opens with a kolam drawing itself, line by line, around a grid of dots. Then the silk border unrolls in magenta, gold and parrot green.",
       "The muhurtham is front and centre, with each ceremony, from Nichayathartham to Reception, set out clearly for family travelling in.",
     ],
-    price: 2999,
-    mrp: 4299,
+    price: 299,
+    mrp: 999,
     demoSlug: "karthik-weds-meenakshi",
     palette: [
       { name: "Temple magenta", hex: "#9c1650" },

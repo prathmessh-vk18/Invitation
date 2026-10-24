@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { addons } from "@/config/addons";
 import { formatINR } from "@/config/site";
 import { getTemplate } from "@/data/templates";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -127,7 +126,6 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
                   ))}
                 </Row>
                 <Row k="RSVP to">+{d.rsvp.phone}</Row>
-                <Row k="Add-ons">{addons.filter((a) => o.addons.includes(a.id)).map((a) => a.name).join(", ") || "None"}</Row>
                 <Row k="Song">{o.song_path ? <audio controls src={songPublicUrl(o.song_path)} className="h-9 w-full" /> : "Design's own music"}</Row>
               </div>
             </Panel>

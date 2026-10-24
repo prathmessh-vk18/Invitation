@@ -2,10 +2,11 @@ import type { ReactNode } from "react";
 import { EventGlyph } from "@/art/glyphs";
 import { Mandala } from "@/art/ornaments";
 import { formatINR, site, whatsappLink } from "@/config/site";
-import { templates } from "@/data/templates";
+import { testimonials } from "@/data/social-proof";
+import { getTemplate, templates } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
 import { WaIcon } from "@/invites/shared";
-import { Accordion, ButtonLink, ChatBubble, Container, Heading, Lead, Panel, PhoneFrame, Placeholder, Reveal, Section } from "@/ui";
+import { Accordion, ButtonLink, ChatBubble, Container, Heading, Lead, Panel, PhoneFrame, Reveal, Section } from "@/ui";
 
 /* ───────── Features ───────── */
 
@@ -242,23 +243,26 @@ export function Testimonials() {
           across India.
         </Heading>
         <div className="mt-14 grid gap-4 text-left md:grid-cols-3">
-          {[0, 1, 2].map((i) => (
-            <Panel key={i} tone="surface" className="p-7">
-              <p className="text-[16px] leading-relaxed">
-                <Placeholder>[Real review from a couple, in their words]</Placeholder>
-              </p>
-              <div className="mt-8 flex items-center gap-3">
-                <span className="size-10 rounded-full bg-panel" />
-                <div>
-                  <p className="text-[14px] font-semibold">
-                    <Placeholder>[Couple names]</Placeholder>
-                  </p>
-                  <p className="text-caption text-subtle">
-                    <Placeholder>[City] · [Design]</Placeholder>
-                  </p>
+          {testimonials.map((r, i) => (
+            <Reveal key={r.couple} delay={(i % 3) * 0.08}>
+              <Panel tone="surface" className="flex h-full flex-col p-7">
+                <p className="text-[15px] tracking-[2px] text-[#f4a81d]" aria-label="5 out of 5 stars">
+                  ★★★★★
+                </p>
+                <p className="mt-3 flex-1 text-[16px] leading-relaxed text-ink">&ldquo;{r.quote}&rdquo;</p>
+                <div className="mt-6 flex items-center gap-3">
+                  <span className="grid size-10 place-items-center rounded-full text-[14px] font-semibold text-white" style={{ background: r.tint }}>
+                    {r.couple.split(" & ").map((n) => n[0]).join("")}
+                  </span>
+                  <div>
+                    <p className="text-[14px] font-semibold">{r.couple}</p>
+                    <p className="text-caption text-subtle">
+                      {r.city} · {getTemplate(r.design)?.name}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </Panel>
+              </Panel>
+            </Reveal>
           ))}
         </div>
       </Container>
@@ -303,7 +307,7 @@ export function ClosingCta() {
         <div className="rounded-card bg-ink px-6 py-20 text-center text-white">
           <h2 className="text-heading text-balance">Ready when you are.</h2>
           <p className="mx-auto mt-4 max-w-md text-lead text-white/60">
-            Designs from {formatINR(from)}. Say hello on WhatsApp and a real person replies, {site.hours}.
+            🪔 Diwali offer: every design from {formatINR(from)}, up to 75% off. Pick one and make it yours in minutes.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-2">
             <ButtonLink href={whatsappLink(`Hi ${site.name}! We're getting married and would love an invitation website.`)} variant="inverse">

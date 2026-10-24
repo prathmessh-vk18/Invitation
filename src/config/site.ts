@@ -11,7 +11,6 @@ export const site = {
   hours: "9 am – 10 pm IST",
   deliveryDays: 3,
   revisionRounds: 2,
-  customFrom: 6999,
 
   // UPI payments. Use a business UPI ID (current account or a business app), not a personal one.
   upiId: "yourbusiness@okhdfcbank",

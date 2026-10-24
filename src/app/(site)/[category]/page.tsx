@@ -70,11 +70,6 @@ export default async function CategoryPage({ params }: PageProps<"/[category]">)
                   <TemplateTile t={t} index={i} price />
                 </Reveal>
               ))}
-              <Link href="/custom" className="flex aspect-[4/3.6] flex-col items-center justify-center rounded-tile border-2 border-dashed border-line p-6 text-center transition hover:border-faint">
-                <span className="grid size-12 place-items-center rounded-full bg-panel text-2xl">+</span>
-                <p className="mt-4 text-title">More {c.label} designs are on the way</p>
-                <p className="mt-1 text-caption text-muted">Or have one drawn from scratch.</p>
-              </Link>
             </div>
           </div>
         </Container>

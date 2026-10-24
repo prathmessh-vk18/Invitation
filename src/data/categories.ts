@@ -21,7 +21,7 @@ export const categories: Category[] = [
     faqs: [
       { q: "Can we include the shubh muhurat?", a: "Yes. The muhurat time appears on the ceremony card and the countdown runs to it." },
       { q: "Can the invocation be in Hindi or Sanskrit?", a: "Yes. Lines like ॥ श्री गणेशाय नमः ॥ are set in Devanagari, and you can choose a different invocation for your family." },
-      { q: "We have functions on both sides. Can each family send their own?", a: "Yes, with the second-family add-on: the same design with their names first and only their events." },
+      { q: "We have functions on both sides. Can we include them all?", a: "Yes. Add every function from both families, each with its own date, venue and dress code." },
     ],
   },
   {

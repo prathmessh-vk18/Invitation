@@ -1,4 +1,3 @@
-import { addons as addonCatalogue } from "@/config/addons";
 import type { EventKind, Invite, InviteEvent } from "@/data/invites";
 import { getTemplate, type TemplateId } from "@/data/templates";
 
@@ -51,11 +50,10 @@ export const eventKinds: { kind: EventKind; label: string }[] = [
   { kind: "reception", label: "Reception" },
 ];
 
-export function orderTotal(template: TemplateId, addonIds: string[]) {
+export function orderTotal(template: TemplateId) {
   const t = getTemplate(template);
   if (!t) throw new Error("Unknown design");
-  const extras = addonCatalogue.filter((a) => addonIds.includes(a.id)).reduce((s, a) => s + a.price, 0);
-  return t.price + extras;
+  return t.price;
 }
 
 /** "Aarav", "Meera" → "aarav-weds-meera"; ASCII letters, digits and hyphens only. */

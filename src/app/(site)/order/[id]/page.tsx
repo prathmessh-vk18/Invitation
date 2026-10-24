@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { addons } from "@/config/addons";
 import { formatINR, site, whatsappLink } from "@/config/site";
 import { getTemplate } from "@/data/templates";
 import { WaIcon } from "@/invites/shared";
@@ -36,7 +35,6 @@ async function OrderView({ params }: { params: PageProps<"/order/[id]">["params"
   const t = getTemplate(order.template)!;
   const d = order.details;
   const [a, b] = d.lead === "groom" ? [d.groom, d.bride] : [d.bride, d.groom];
-  const chosen = addons.filter((x) => order.addons.includes(x.id));
   const inviteUrl = order.invite_slug ? `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/i/${order.invite_slug}` : null;
   const stage = { awaiting_payment: 1, payment_submitted: 1, paid: 3, live: 4, cancelled: 0 }[order.status];
 
@@ -124,14 +122,8 @@ async function OrderView({ params }: { params: PageProps<"/order/[id]">["params"
           <div className="mt-4 space-y-2 text-body">
             <p className="flex justify-between">
               <span>{t.name} design</span>
-              <span>{formatINR(t.price)}</span>
+              <span>{formatINR(order.amount)}</span>
             </p>
-            {chosen.map((x) => (
-              <p key={x.id} className="flex justify-between text-muted">
-                <span className="truncate pr-3">{x.name}</span>
-                <span>{formatINR(x.price)}</span>
-              </p>
-            ))}
           </div>
           <p className="mt-4 flex items-baseline justify-between border-t border-line pt-4">
             <span className="text-title">Total</span>

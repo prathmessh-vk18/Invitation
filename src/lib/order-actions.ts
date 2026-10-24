@@ -1,7 +1,6 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { addons as addonCatalogue } from "@/config/addons";
 import { getTemplate } from "@/data/templates";
 import { cleanPhone, orderTotal, validateDetails } from "@/lib/orders";
 import { db, SONGS_BUCKET } from "@/lib/supabase";
@@ -22,7 +21,6 @@ export async function createSongUpload(fileName: string, contentType: string, si
 
 export type CreateOrderInput = {
   template: string;
-  addons: string[];
   details: unknown;
   songPath: string | null;
   customer: { name: string; phone: string; email: string };
@@ -43,15 +41,13 @@ export async function createOrder(input: CreateOrderInput): Promise<{ id: string
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("Check your email address.");
   if (errors.length || !checked.ok) return { errors };
 
-  const addonIds = (input.addons ?? []).filter((id) => addonCatalogue.some((a) => a.id === id));
   const songPath = typeof input.songPath === "string" && /^uploads\/[0-9a-f-]{36}\.[a-z0-9]{1,5}$/.test(input.songPath) ? input.songPath : null;
 
   const { data, error } = await db()
     .from("orders")
     .insert({
       template: t.id,
-      amount: orderTotal(t.id, addonIds),
-      addons: addonIds,
+      amount: orderTotal(t.id),
       customer_name: name,
       customer_phone: phone,
       customer_email: email || null,

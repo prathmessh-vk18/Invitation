@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { formatINR } from "@/config/site";
+import { PriceTag } from "./offer";
 import { templates, type TemplateMeta } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
 import { themes } from "@/invites/registry";
@@ -15,7 +15,7 @@ const cta = { rest: { opacity: 0, y: 10 }, hover: { opacity: 1, y: 0 } };
 // Designs whose world is dark get white type over a dark fade; light ones fade to white
 // and take the design's own accent for the name.
 const darkStage = new Set(["rajwada", "noor", "phulkari"]);
-const lightGround: Record<string, string> = { gulmohar: "#fdf6f2", agni: "#f5ede1", kolam: "#fbf6ea" };
+const lightGround: Record<string, string> = { gulmohar: "#fdf6f2", agni: "#f5ede1", kolam: "#fbf6ea", bagh: "#ebe0cc" };
 
 /**
  * A design shown as a poster in its own world: its backdrop, its typeface, two live phones
@@ -49,7 +49,7 @@ export function PosterTile({ t, index }: { t: TemplateMeta; index: number }) {
             <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 font-sans text-[13px] font-medium text-ink backdrop-blur">
               <span className="size-2 animate-pulse rounded-full bg-live" /> Live demo
             </span>
-            <span className="rounded-full bg-white/90 px-3 py-1.5 font-sans text-[13px] font-semibold text-ink backdrop-blur">{formatINR(t.price)}</span>
+            <span className="rounded-full bg-white/90 px-3 py-1 font-sans text-ink backdrop-blur"><PriceTag price={t.price} mrp={t.mrp} size="sm" /></span>
           </div>
 
           {/* phones */}
@@ -105,16 +105,6 @@ export function Showcase() {
           <PosterTile t={t} index={i} />
         </motion.div>
       ))}
-      <Link
-        href="/custom"
-        className="group flex flex-col items-start justify-between gap-6 rounded-card bg-panel p-8 transition hover:bg-panel-strong sm:flex-row sm:items-center md:col-span-2"
-      >
-        <div>
-          <p className="text-title">Something else in mind?</p>
-          <p className="mt-1 text-body text-muted">Tell us the idea and we&rsquo;ll design an invitation from scratch, just for your wedding.</p>
-        </div>
-        <span className="shrink-0 rounded-full bg-ink px-5 py-3 text-[15px] font-medium text-white transition group-hover:bg-black">Start a custom design →</span>
-      </Link>
     </div>
   );
 }

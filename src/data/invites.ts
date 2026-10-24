@@ -359,6 +359,48 @@ export const invites: Invite[] = [
     rsvp: { phone: "919999999999", by: "2027-01-15T00:00:00+05:30", contact: "Sundaram family" },
     closing: "Your blessings will make our day complete.",
   },
+  {
+    slug: "riya-weds-aditya",
+    template: "bagh",
+    groom: { first: "Aditya", full: "Aditya Desai", parents: "Son of Mrs. Hema & Mr. Nilesh Desai" },
+    bride: { first: "Riya", full: "Riya Mehta", parents: "Daughter of Mrs. Kinjal & Mr. Paresh Mehta" },
+    lead: "bride",
+    invocation: "॥ श्री गणेशाय नमः ॥",
+    invocationMeaning: "With the blessings of Lord Ganesha",
+    hosts: "The Mehta & Desai families",
+    message: "request the pleasure of your company as our children begin their life together.",
+    date: "2027-01-26T19:30:00+05:30",
+    city: "Udaipur, Rajasthan",
+    hashtag: "#RiyaKaAditya",
+    events: [
+      {
+        kind: "mehndi",
+        name: "Mandap Muhurat & Mehendi",
+        start: "2027-01-24T16:00:00+05:30",
+        venue: "Lakeside Lawns, Fateh Garh",
+        address: "Fateh Garh, Udaipur, Rajasthan 313001",
+        dress: "Greens & pinks",
+      },
+      {
+        kind: "haldi",
+        name: "Pithi, Mameru & Haldi",
+        start: "2027-01-25T10:30:00+05:30",
+        venue: "The Courtyard, Fateh Garh",
+        address: "Fateh Garh, Udaipur, Rajasthan 313001",
+        dress: "Shades of yellow",
+      },
+      {
+        kind: "phere",
+        name: "Wedding",
+        start: "2027-01-26T19:30:00+05:30",
+        venue: "Durbar Lawns, Fateh Garh",
+        address: "Fateh Garh, Udaipur, Rajasthan 313001",
+        note: "Dinner to follow",
+      },
+    ],
+    rsvp: { phone: "919999999999", by: "2027-01-10T00:00:00+05:30", contact: "Mehta family" },
+    closing: "Come for the vows, stay for the garba.",
+  },
 ];
 
 export function getInvite(slug: string) {

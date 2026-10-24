@@ -1,10 +1,12 @@
+import Link from "next/link";
 import { Diya, MarigoldHead } from "@/art/ornaments";
 import { formatINR } from "@/config/site";
-import { getTemplate, templates } from "@/data/templates";
+import { stats } from "@/data/social-proof";
+import { getTemplate } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
 import { Showcase } from "@/site/showcase";
 import { ClosingCta, Comparison, Faq, Features, HowItWorks, Testimonials } from "@/site/sections";
-import { Badge, ButtonLink, Container, Display, Heading, InlineIcon, Lead, PhoneFrame, Placeholder, Reveal } from "@/ui";
+import { Badge, ButtonLink, Container, Display, Heading, InlineIcon, Lead, PhoneFrame, Reveal } from "@/ui";
 
 export default function Home() {
   const spotlight = getTemplate("rajwada")!;
@@ -15,6 +17,15 @@ export default function Home() {
       <section className="pt-20 pb-16 text-center sm:pt-28">
         <Container>
           <Reveal>
+            <Link
+              href="/designs"
+              className="mb-7 inline-flex items-center gap-2 rounded-full bg-[#fff1e6] py-1.5 pr-4 pl-1.5 text-[14px] font-medium text-[#b4410f] transition hover:bg-[#ffe6d2]"
+            >
+              <span className="rounded-full bg-[#e8582a] px-2.5 py-0.5 text-[12px] font-semibold whitespace-nowrap text-white">🪔 Diwali offer</span>
+              <span className="whitespace-nowrap">
+                From ₹249<span className="max-sm:hidden">, up to 75% off</span> →
+              </span>
+            </Link>
             <Display className="mx-auto max-w-[1040px]">
               Wedding invites
               <InlineIcon bg="var(--color-icon-maroon)" rotate={-6}>
@@ -56,15 +67,10 @@ export default function Home() {
         <Container>
           <p className="text-body text-muted">Opened by guests in every corner of India</p>
           <div className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-4">
-            {[
-              [<Placeholder key="a">[0,000+]</Placeholder>, "Invites sent"],
-              [<Placeholder key="b">[0.0★]</Placeholder>, "Couple rating"],
-              ["3 days", "To your link"],
-              [`${templates.length} designs`, "And growing"],
-            ].map(([v, l]) => (
-              <div key={l as string}>
-                <p className="text-[32px] font-semibold tracking-[-0.03em]">{v}</p>
-                <p className="mt-1 text-caption text-subtle">{l}</p>
+            {stats.map((x) => (
+              <div key={x.label}>
+                <p className="text-[32px] font-semibold tracking-[-0.03em]">{x.value}</p>
+                <p className="mt-1 text-caption text-subtle">{x.label}</p>
               </div>
             ))}
           </div>
@@ -82,7 +88,7 @@ export default function Home() {
               <div className="mt-7 flex flex-wrap gap-2">
                 <ButtonLink href={`/i/${spotlight.demoSlug}`}>Open the invite →</ButtonLink>
                 <ButtonLink href={`/templates/${spotlight.id}`} variant="inverse">
-                  {formatINR(spotlight.price)} · Details
+                  Only {formatINR(spotlight.price)} · Details
                 </ButtonLink>
               </div>
             </div>

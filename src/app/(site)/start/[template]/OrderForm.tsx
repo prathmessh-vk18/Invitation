@@ -1,189 +1,309 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { addons as addonCatalogue } from "@/config/addons";
+import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { formatINR } from "@/config/site";
-import { getInvite, type EventKind, type Invite } from "@/data/invites";
+import { getInvite } from "@/data/invites";
 import type { TemplateMeta } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
+import { fmtDate } from "@/lib/format";
 import { eventKinds } from "@/lib/orders";
 import { createOrder, createSongUpload } from "@/lib/order-actions";
 import { browserSupabase } from "@/lib/supabase-browser";
-import { Button, Panel, PhoneFrame } from "@/ui";
+import { OfferCountdown, PriceTag } from "@/site/offer";
+import { Button, Panel, PhoneFrame, ease } from "@/ui";
+import {
+  addDays,
+  blankEvent,
+  idOf,
+  initialState,
+  LIMITS,
+  mainCeremonies,
+  mobile10,
+  stepOf,
+  steps,
+  toDetails,
+  toPreview,
+  validate,
+  type EventRow,
+  type FormState,
+  type Person,
+  type StepId,
+} from "./form-model";
 
-/* ───────── Form state ───────── */
+/* ───────── Field pieces ───────── */
 
-type Person = { first: string; full: string; parents: string };
-type EventRow = { kind: EventKind; name: string; date: string; time: string; venue: string; address: string; dress: string; note: string };
-type FormState = {
-  lead: "bride" | "groom";
-  bride: Person;
-  groom: Person;
-  weddingDate: string;
-  weddingTime: string;
-  city: string;
-  invocation: string;
-  invocationMeaning: string;
-  hosts: string;
-  message: string;
-  closing: string;
-  hashtag: string;
-  events: EventRow[];
-  rsvpPhone: string;
-  rsvpBy: string;
-  customer: { name: string; phone: string; email: string };
+const inputBase = "mt-1.5 w-full rounded-field border bg-surface px-3.5 py-2.5 text-[16px] text-ink outline-none transition placeholder:text-faint";
+const inputTone = (error?: string) => (error ? "border-[#d64545] focus:border-[#d64545] focus:shadow-[0_0_0_3px_rgb(214_69_69/.15)]" : "border-line focus:border-ink focus:shadow-[0_0_0_3px_rgb(0_0_0/.06)]");
+
+function FieldShell({ k, label, hint, error, help, counter, children }: { k: string; label: string; hint?: string; error?: string; help?: string; counter?: string; children: ReactNode }) {
+  return (
+    <div>
+      <label htmlFor={idOf(k)} className="flex items-baseline justify-between gap-3 text-[14px] font-semibold text-ink">
+        <span>
+          {label}
+          {hint && <span className="font-normal text-subtle"> · {hint}</span>}
+        </span>
+        {counter && <span className="text-caption font-normal text-subtle tabular-nums">{counter}</span>}
+      </label>
+      {children}
+      <AnimatePresence initial={false}>
+        {error ? (
+          <motion.p
+            key="err"
+            id={`${idOf(k)}-error`}
+            role="alert"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-1.5 flex items-start gap-1.5 overflow-hidden text-[13px] text-[#b42318]"
+          >
+            <svg viewBox="0 0 20 20" className="mt-px size-3.5 shrink-0" fill="currentColor" aria-hidden>
+              <path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm-.75 4h1.5v5h-1.5V6Zm.75 8.25a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" />
+            </svg>
+            {error}
+          </motion.p>
+        ) : help ? (
+          <p key="help" className="mt-1.5 text-[13px] text-subtle">
+            {help}
+          </p>
+        ) : null}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+type InputProps = {
+  k: string;
+  label: string;
+  hint?: string;
+  help?: string;
+  value: string;
+  onChange: (v: string) => void;
+  onBlur: () => void;
+  error?: string;
+  type?: "text" | "date" | "time" | "tel" | "email";
+  placeholder?: string;
+  maxLength?: number;
+  min?: string;
+  max?: string;
+  autoComplete?: string;
+  inputMode?: "text" | "tel" | "email" | "numeric";
+  counter?: boolean;
 };
 
-const emptyPerson: Person = { first: "", full: "", parents: "" };
-const blankEvent = (kind: EventKind = "phere", name = ""): EventRow => ({ kind, name, date: "", time: "", venue: "", address: "", dress: "", note: "" });
-
-/** Starts from the design's demo so the wording fits its tradition; personal details are left empty. */
-function initialState(demo: Invite): FormState {
-  return {
-    lead: demo.lead,
-    bride: emptyPerson,
-    groom: emptyPerson,
-    weddingDate: "",
-    weddingTime: "",
-    city: "",
-    invocation: demo.invocation,
-    invocationMeaning: demo.invocationMeaning,
-    hosts: "",
-    message: demo.message,
-    closing: demo.closing,
-    hashtag: "",
-    events: demo.events.map((e) => blankEvent(e.kind, e.name)),
-    rsvpPhone: "",
-    rsvpBy: "",
-    customer: { name: "", phone: "", email: "" },
-  };
-}
-
-const iso = (date: string, time: string) => (date ? `${date}T${time || "12:00"}:00+05:30` : "");
-
-/** The invite exactly as it will be published (used for submission). */
-function toDetails(s: FormState) {
-  return {
-    bride: s.bride,
-    groom: s.groom,
-    lead: s.lead,
-    invocation: s.invocation,
-    invocationMeaning: s.invocationMeaning,
-    hosts: s.hosts,
-    message: s.message,
-    date: iso(s.weddingDate, s.weddingTime),
-    city: s.city,
-    hashtag: s.hashtag,
-    events: s.events.map((e) => ({ kind: e.kind, name: e.name, start: iso(e.date, e.time), venue: e.venue, address: e.address, dress: e.dress, note: e.note })),
-    rsvp: { phone: s.rsvpPhone, by: s.rsvpBy ? iso(s.rsvpBy, "00:00") : "", contact: s.hosts },
-    closing: s.closing,
-  };
-}
-
-/** The same invite with friendly stand-ins for anything not filled yet, for the live preview. */
-function toPreview(s: FormState, demo: Invite): Invite {
-  const person = (p: Person, fallback: string) => ({ first: p.first || fallback, full: p.full || p.first || fallback, parents: p.parents });
-  const date = iso(s.weddingDate, s.weddingTime) || demo.date;
-  return {
-    ...demo,
-    bride: person(s.bride, "Bride"),
-    groom: person(s.groom, "Groom"),
-    lead: s.lead,
-    invocation: s.invocation || demo.invocation,
-    invocationMeaning: s.invocationMeaning,
-    hosts: s.hosts || "Together with their families",
-    message: s.message,
-    date,
-    city: s.city || "Your city",
-    hashtag: s.hashtag || undefined,
-    closing: s.closing,
-    events: s.events.map((e) => ({
-      kind: e.kind,
-      name: e.name || "Function",
-      start: iso(e.date, e.time) || date,
-      venue: e.venue || "Venue",
-      address: e.address,
-      dress: e.dress || undefined,
-      note: e.note || undefined,
-    })),
-  };
-}
-
-/* ───────── Small inputs ───────── */
-
-const inputClass = "mt-1.5 w-full rounded-field border border-line bg-surface px-3.5 py-2.5 text-[15px] text-ink outline-none transition placeholder:text-faint focus:border-ink";
-
-function Field({ label, hint, children, className }: { label: string; hint?: string; children: React.ReactNode; className?: string }) {
+function Input(p: InputProps) {
   return (
-    <label className={`block ${className ?? ""}`}>
-      <span className="text-[14px] font-semibold text-ink">
-        {label}
-        {hint && <span className="font-normal text-subtle"> · {hint}</span>}
-      </span>
-      {children}
-    </label>
+    <FieldShell k={p.k} label={p.label} hint={p.hint} help={p.help} error={p.error} counter={p.counter && p.maxLength ? `${p.value.length}/${p.maxLength}` : undefined}>
+      <input
+        id={idOf(p.k)}
+        type={p.type ?? "text"}
+        value={p.value}
+        onChange={(e) => p.onChange(e.target.value)}
+        onBlur={p.onBlur}
+        placeholder={p.placeholder}
+        maxLength={p.maxLength}
+        min={p.min}
+        max={p.max}
+        autoComplete={p.autoComplete ?? "off"}
+        inputMode={p.inputMode}
+        aria-invalid={Boolean(p.error)}
+        aria-describedby={p.error ? `${idOf(p.k)}-error` : undefined}
+        className={`${inputBase} ${inputTone(p.error)}`}
+      />
+    </FieldShell>
   );
 }
 
-function Section({ n, title, note, children }: { n: number; title: string; note?: string; children: React.ReactNode }) {
+function TextArea(p: Omit<InputProps, "type" | "min" | "max" | "inputMode"> & { rows?: number }) {
   return (
-    <Panel className="p-6 sm:p-8">
-      <div className="flex items-baseline gap-3">
-        <span className="grid size-7 shrink-0 place-items-center rounded-full bg-ink text-[13px] font-semibold text-white">{n}</span>
-        <div>
-          <p className="text-title">{title}</p>
-          {note && <p className="mt-0.5 text-body text-muted">{note}</p>}
-        </div>
+    <FieldShell k={p.k} label={p.label} hint={p.hint} help={p.help} error={p.error} counter={p.maxLength ? `${p.value.length}/${p.maxLength}` : undefined}>
+      <textarea
+        id={idOf(p.k)}
+        rows={p.rows ?? 3}
+        value={p.value}
+        onChange={(e) => p.onChange(e.target.value)}
+        onBlur={p.onBlur}
+        placeholder={p.placeholder}
+        maxLength={p.maxLength}
+        aria-invalid={Boolean(p.error)}
+        aria-describedby={p.error ? `${idOf(p.k)}-error` : undefined}
+        className={`${inputBase} ${inputTone(p.error)} resize-none`}
+      />
+    </FieldShell>
+  );
+}
+
+function Toggle({ options, value, onChange, label }: { options: { v: string; l: string }[]; value: string; onChange: (v: string) => void; label: string }) {
+  return (
+    <div role="radiogroup" aria-label={label} className="inline-flex rounded-full bg-surface p-1">
+      {options.map((o) => (
+        <button
+          key={o.v}
+          type="button"
+          role="radio"
+          aria-checked={value === o.v}
+          onClick={() => onChange(o.v)}
+          className={`rounded-full px-4 py-1.5 text-[14px] font-medium transition ${value === o.v ? "bg-ink text-white" : "text-muted hover:text-ink"}`}
+        >
+          {o.l}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ───────── Stepper ───────── */
+
+function Stepper({ current }: { current: number }) {
+  const s = steps[current];
+  return (
+    <div>
+      <div className="flex items-center justify-between text-caption">
+        <span className="font-medium text-ink">
+          Step {current + 1} of {steps.length} · {s.title}
+        </span>
       </div>
-      <div className="mt-6 space-y-4">{children}</div>
-    </Panel>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-panel">
+        <motion.div className="h-full rounded-full bg-ink" animate={{ width: `${((current + 1) / steps.length) * 100}%` }} transition={{ duration: 0.5, ease }} />
+      </div>
+    </div>
   );
 }
+
+/* ───────── Review ───────── */
+
+function ReviewBlock({ title, onEdit, children }: { title: string; onEdit: () => void; children: ReactNode }) {
+  return (
+    <div className="rounded-tile bg-surface p-5">
+      <div className="flex items-center justify-between">
+        <p className="text-[15px] font-semibold">{title}</p>
+        <button type="button" onClick={onEdit} className="text-caption font-medium text-muted underline underline-offset-4 hover:text-ink">
+          Edit
+        </button>
+      </div>
+      <div className="mt-2 space-y-1 text-body text-muted">{children}</div>
+    </div>
+  );
+}
+
+const nice = (date: string, time?: string) =>
+  date ? `${fmtDate(`${date}T12:00:00+05:30`, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}${time ? `, ${fmtDate(`${date}T${time}:00+05:30`, { hour: "numeric", minute: "2-digit", hour12: true })}` : ""}` : "—";
 
 /* ───────── The form ───────── */
+
+type Song = { path: string; name: string };
+type Draft = { v: 2; s: FormState; step: number; furthest: number; song: Song | null };
 
 export function OrderForm({ t }: { t: TemplateMeta }) {
   const demo = getInvite(t.demoSlug)!;
   const router = useRouter();
-  const params = useSearchParams();
   const draftKey = `nim-draft-${t.id}`;
 
   const [s, setS] = useState<FormState>(() => initialState(demo));
-  const [picked, setPicked] = useState<string[]>(() => (params.get("addons") ?? "").split(",").filter((id) => addonCatalogue.some((a) => a.id === id)));
-  const [song, setSong] = useState<{ path: string; name: string; url: string } | null>(null);
+  const [step, setStep] = useState(0);
+  const [furthest, setFurthest] = useState(0);
+  const [song, setSong] = useState<Song | null>(null);
   const [songState, setSongState] = useState<"idle" | "uploading" | "error">("idle");
   const [songError, setSongError] = useState("");
-  const [errors, setErrors] = useState<string[]>([]);
+  const [touched, setTouched] = useState<Set<string>>(() => new Set());
+  const [attempted, setAttempted] = useState<Set<StepId>>(() => new Set());
+  const [serverErrors, setServerErrors] = useState<string[]>([]);
+  const [today, setToday] = useState("");
   const [opening, setOpening] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [pending, start] = useTransition();
   const restored = useRef(false);
+  const topRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const firstRender = useRef(true);
 
-  // Bring back an unsent draft from this browser, then keep saving as they type.
+  // Today's date in India, and any unsent draft from this browser.
   useEffect(() => {
     const t0 = window.setTimeout(() => {
+      setToday(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()));
       try {
-        const saved = window.localStorage.getItem(draftKey);
-        if (saved) setS({ ...initialState(demo), ...JSON.parse(saved) });
+        const raw = window.localStorage.getItem(draftKey);
+        const saved = raw ? JSON.parse(raw) : null;
+        if (saved?.v === 2) {
+          const d = saved as Draft;
+          setS({ ...initialState(demo), ...d.s });
+          setStep(Math.min(d.step, steps.length - 1));
+          setFurthest(Math.min(d.furthest, steps.length - 1));
+          setSong(d.song ?? null);
+        }
       } catch {}
       restored.current = true;
     }, 0);
     return () => window.clearTimeout(t0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftKey]);
+
   useEffect(() => {
     if (!restored.current) return;
     try {
-      window.localStorage.setItem(draftKey, JSON.stringify(s));
+      const d: Draft = { v: 2, s, step, furthest, song };
+      window.localStorage.setItem(draftKey, JSON.stringify(d));
     } catch {}
-  }, [s, draftKey]);
+  }, [s, step, furthest, song, draftKey]);
+
+  // Bring the new step into view and announce it.
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    headingRef.current?.focus({ preventScroll: true });
+  }, [step]);
+
+  const errors = useMemo(() => validate(s, today), [s, today]);
+  const shown = (k: string) => (touched.has(k) || attempted.has(stepOf(k)) ? errors[k] : undefined);
+  const touch = (k: string) => setTouched((p) => (p.has(k) ? p : new Set(p).add(k)));
+  const stepHasErrors = (id: StepId) => Object.keys(errors).some((k) => stepOf(k) === id);
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setS((p) => ({ ...p, [k]: v }));
   const setPerson = (who: "bride" | "groom", k: keyof Person, v: string) => setS((p) => ({ ...p, [who]: { ...p[who], [k]: v } }));
   const setEvent = (i: number, k: keyof EventRow, v: string) => setS((p) => ({ ...p, events: p.events.map((e, j) => (j === i ? { ...e, [k]: v } : e)) }));
 
   const preview = useMemo(() => toPreview(s, demo), [s, demo]);
-  const total = t.price + addonCatalogue.filter((a) => picked.includes(a.id)).reduce((sum, a) => sum + a.price, 0);
+  const current = steps[step];
+  const [a, b] = s.lead === "groom" ? [s.groom, s.bride] : [s.bride, s.groom];
+
+  function focusFirstError(id: StepId) {
+    const first = Object.keys(errors).find((k) => stepOf(k) === id);
+    if (!first) return;
+    window.setTimeout(() => {
+      const el = document.getElementById(idOf(first));
+      el?.focus();
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
+  }
+
+  function goTo(i: number) {
+    if (i > furthest) return;
+    setStep(i);
+  }
+
+  function next() {
+    const id = current.id;
+    if (stepHasErrors(id)) {
+      setAttempted((p) => new Set(p).add(id));
+      focusFirstError(id);
+      return;
+    }
+    // Moving on from the date: fill the main ceremony with the wedding's date and time.
+    if (id === "wedding") {
+      setS((p) => ({
+        ...p,
+        events: p.events.map((e) => (mainCeremonies.includes(e.kind) && !e.date ? { ...e, date: p.weddingDate, time: e.time || p.weddingTime } : e)),
+      }));
+    }
+    const n = Math.min(step + 1, steps.length - 1);
+    setStep(n);
+    setFurthest((f) => Math.max(f, n));
+  }
 
   async function pickSong(file: File | undefined) {
     if (!file) return;
@@ -194,7 +314,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
       if ("error" in res) throw new Error(res.error);
       const { error } = await browserSupabase().storage.from("songs").uploadToSignedUrl(res.path, res.token, file, { contentType: file.type });
       if (error) throw new Error("The upload didn't finish. Please try again.");
-      setSong({ path: res.path, name: file.name, url: URL.createObjectURL(file) });
+      setSong({ path: res.path, name: file.name });
       setSongState("idle");
     } catch (e) {
       setSongState("error");
@@ -203,12 +323,23 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
   }
 
   function submit() {
-    setErrors([]);
+    const bad = steps.find((st) => stepHasErrors(st.id));
+    if (bad) {
+      setAttempted(new Set(steps.map((st) => st.id)));
+      setStep(steps.indexOf(bad));
+      focusFirstError(bad.id);
+      return;
+    }
+    setServerErrors([]);
     start(async () => {
-      const res = await createOrder({ template: t.id, addons: picked, details: toDetails(s), songPath: song?.path ?? null, customer: s.customer });
+      const res = await createOrder({
+        template: t.id,
+        details: toDetails(s),
+        songPath: song?.path ?? null,
+        customer: { ...s.customer, phone: mobile10(s.customer.phone) },
+      });
       if ("errors" in res) {
-        setErrors(res.errors);
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        setServerErrors(res.errors);
         return;
       }
       try {
@@ -218,279 +349,477 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
     });
   }
 
-  const people = (["bride", "groom"] as const).map((who) => (
-    <div key={who} className="space-y-3">
-      <p className="text-caption font-medium text-subtle uppercase">{who === "bride" ? "Bride" : "Groom"}</p>
-      <Field label="First name">
-        <input id={`${who}-first`} className={inputClass} value={s[who].first} onChange={(e) => setPerson(who, "first", e.target.value)} placeholder={who === "bride" ? "Meera" : "Aarav"} />
-      </Field>
-      <Field label="Full name" hint="optional">
-        <input id={`${who}-full`} className={inputClass} value={s[who].full} onChange={(e) => setPerson(who, "full", e.target.value)} placeholder={who === "bride" ? "Meera Shekhawat" : "Aarav Singh Rathore"} />
-      </Field>
-      <Field label="Parents" hint="optional">
-        <input
-          id={`${who}-parents`}
-          className={inputClass}
-          value={s[who].parents}
-          onChange={(e) => setPerson(who, "parents", e.target.value)}
-          placeholder={who === "bride" ? "Daughter of Mrs. Sunita & Mr. Rajendra Shekhawat" : "Son of Mrs. Kavita & Mr. Vikram Rathore"}
-        />
-      </Field>
-    </div>
-  ));
+  const songUrl = song ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/songs/${song.path}` : "";
 
-  return (
-    <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
-      <div className="min-w-0 space-y-4">
-        {errors.length > 0 && (
-          <div role="alert" className="rounded-card bg-[#fdecec] p-6 text-[#8a1c1c]">
-            <p className="text-title text-current">A few things to fix</p>
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-body">
-              {errors.map((e) => (
-                <li key={e}>{e}</li>
-              ))}
-            </ul>
+  /* ───── Step bodies ───── */
+
+  const couple = (
+    <div className="space-y-6">
+      {(["bride", "groom"] as const).map((who) => (
+        <div key={who} className="rounded-tile bg-surface p-5">
+          <p className="text-[15px] font-semibold">{who === "bride" ? "The bride" : "The groom"}</p>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+            <Input
+              k={`${who}.first`}
+              label="First name"
+              value={s[who].first}
+              onChange={(v) => setPerson(who, "first", v)}
+              onBlur={() => touch(`${who}.first`)}
+              error={shown(`${who}.first`)}
+              placeholder={who === "bride" ? "Meera" : "Aarav"}
+              maxLength={LIMITS.name}
+              autoComplete="given-name"
+            />
+            <Input
+              k={`${who}.full`}
+              label="Full name"
+              hint="optional"
+              value={s[who].full}
+              onChange={(v) => setPerson(who, "full", v)}
+              onBlur={() => touch(`${who}.full`)}
+              placeholder={who === "bride" ? "Meera Shekhawat" : "Aarav Singh Rathore"}
+              maxLength={LIMITS.fullName}
+            />
           </div>
-        )}
-
-        <Section n={1} title="Your WhatsApp number" note="We'll message you here with payment details and your invite link.">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Field label="Your name">
-              <input id="customer-name" className={inputClass} value={s.customer.name} onChange={(e) => set("customer", { ...s.customer, name: e.target.value })} placeholder="Full name" />
-            </Field>
-            <Field label="WhatsApp number">
-              <input
-                id="customer-phone"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                className={inputClass}
-                value={s.customer.phone}
-                onChange={(e) => set("customer", { ...s.customer, phone: e.target.value })}
-                placeholder="98765 43210"
-              />
-            </Field>
-            <Field label="Email" hint="optional">
-              <input id="customer-email" type="email" className={inputClass} value={s.customer.email} onChange={(e) => set("customer", { ...s.customer, email: e.target.value })} />
-            </Field>
-          </div>
-        </Section>
-
-        <Section n={2} title="The couple">
-          <div className="grid gap-6 sm:grid-cols-2">{people}</div>
-          <div className="flex flex-wrap items-center gap-2 pt-2">
-            <span className="text-[14px] font-semibold">Name shown first</span>
-            {(["groom", "bride"] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                onClick={() => set("lead", v)}
-                aria-pressed={s.lead === v}
-                className={`rounded-full px-4 py-1.5 text-[14px] font-medium transition ${s.lead === v ? "bg-ink text-white" : "bg-surface"}`}
-              >
-                {v === "groom" ? "Groom" : "Bride"}
-              </button>
-            ))}
-          </div>
-        </Section>
-
-        <Section n={3} title="The wedding" note="The countdown runs to this time.">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Field label="Date">
-              <input id="wedding-date" type="date" className={inputClass} value={s.weddingDate} onChange={(e) => set("weddingDate", e.target.value)} />
-            </Field>
-            <Field label="Time">
-              <input id="wedding-time" type="time" className={inputClass} value={s.weddingTime} onChange={(e) => set("weddingTime", e.target.value)} />
-            </Field>
-            <Field label="City">
-              <input id="wedding-city" className={inputClass} value={s.city} onChange={(e) => set("city", e.target.value)} placeholder="Udaipur, Rajasthan" />
-            </Field>
-          </div>
-        </Section>
-
-        <Section n={4} title="The wording" note="We've started you with lines that suit this design. Change anything.">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Opening line">
-              <input id="invocation" className={inputClass} value={s.invocation} onChange={(e) => set("invocation", e.target.value)} />
-            </Field>
-            <Field label="Its meaning" hint="shown small">
-              <input id="invocation-meaning" className={inputClass} value={s.invocationMeaning} onChange={(e) => set("invocationMeaning", e.target.value)} />
-            </Field>
-          </div>
-          <Field label="Hosted by">
-            <input id="hosts" className={inputClass} value={s.hosts} onChange={(e) => set("hosts", e.target.value)} placeholder={demo.hosts} />
-          </Field>
-          <Field label="Invitation message">
-            <textarea id="message" rows={3} className={`${inputClass} resize-none`} value={s.message} onChange={(e) => set("message", e.target.value)} />
-          </Field>
-          <div className="grid gap-4 sm:grid-cols-[1fr_200px]">
-            <Field label="Closing line">
-              <input id="closing" className={inputClass} value={s.closing} onChange={(e) => set("closing", e.target.value)} />
-            </Field>
-            <Field label="Hashtag" hint="optional">
-              <input id="hashtag" className={inputClass} value={s.hashtag} onChange={(e) => set("hashtag", e.target.value)} placeholder="#AaravKiMeera" />
-            </Field>
-          </div>
-        </Section>
-
-        <Section n={5} title="The functions" note="Each one gets its own card with directions and a save-the-date button.">
-          {s.events.map((e, i) => (
-            <div key={i} className="rounded-tile bg-surface p-5">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-[14px] font-semibold">Function {i + 1}</p>
-                {s.events.length > 1 && (
-                  <button type="button" onClick={() => set("events", s.events.filter((_, j) => j !== i))} className="text-caption text-subtle underline underline-offset-4 hover:text-ink">
-                    Remove
-                  </button>
-                )}
-              </div>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <Field label="Type">
-                  <select id={`event-${i}-kind`} className={inputClass} value={e.kind} onChange={(ev) => setEvent(i, "kind", ev.target.value)}>
-                    {eventKinds.map((k) => (
-                      <option key={k.kind} value={k.kind}>
-                        {k.label}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="Name on the card">
-                  <input id={`event-${i}-name`} className={inputClass} value={e.name} onChange={(ev) => setEvent(i, "name", ev.target.value)} placeholder="Haldi" />
-                </Field>
-                <Field label="Date">
-                  <input id={`event-${i}-date`} type="date" className={inputClass} value={e.date} onChange={(ev) => setEvent(i, "date", ev.target.value)} />
-                </Field>
-                <Field label="Time">
-                  <input id={`event-${i}-time`} type="time" className={inputClass} value={e.time} onChange={(ev) => setEvent(i, "time", ev.target.value)} />
-                </Field>
-                <Field label="Venue">
-                  <input id={`event-${i}-venue`} className={inputClass} value={e.venue} onChange={(ev) => setEvent(i, "venue", ev.target.value)} placeholder="The Courtyard, Jagmandir Palace" />
-                </Field>
-                <Field label="Address" hint="for Google Maps">
-                  <input id={`event-${i}-address`} className={inputClass} value={e.address} onChange={(ev) => setEvent(i, "address", ev.target.value)} placeholder="Lake Pichola, Udaipur 313001" />
-                </Field>
-                <Field label="Dress code" hint="optional">
-                  <input id={`event-${i}-dress`} className={inputClass} value={e.dress} onChange={(ev) => setEvent(i, "dress", ev.target.value)} placeholder="Shades of yellow" />
-                </Field>
-                <Field label="Note" hint="optional">
-                  <input id={`event-${i}-note`} className={inputClass} value={e.note} onChange={(ev) => setEvent(i, "note", ev.target.value)} placeholder="Lunch to follow" />
-                </Field>
-              </div>
-            </div>
-          ))}
-          {s.events.length < 12 && (
-            <button type="button" onClick={() => set("events", [...s.events, blankEvent()])} className="w-full rounded-tile border-2 border-dashed border-line py-4 text-[15px] font-medium transition hover:border-faint">
-              + Add a function
-            </button>
-          )}
-        </Section>
-
-        <Section n={6} title="RSVPs" note="Guests' replies go straight to this WhatsApp number.">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="WhatsApp number for RSVPs">
-              <input id="rsvp-phone" inputMode="tel" className={inputClass} value={s.rsvpPhone} onChange={(e) => set("rsvpPhone", e.target.value)} placeholder="98765 43210" />
-            </Field>
-            <Field label="Reply by" hint="optional">
-              <input id="rsvp-by" type="date" className={inputClass} value={s.rsvpBy} onChange={(e) => set("rsvpBy", e.target.value)} />
-            </Field>
-          </div>
-        </Section>
-
-        <Section n={7} title="Your song" note="It plays when guests open the invite. Skip this and the design plays its own soft music.">
-          <label className={`flex cursor-pointer items-center justify-between gap-4 rounded-tile bg-surface p-5 transition hover:bg-panel-strong ${songState === "uploading" ? "pointer-events-none opacity-60" : ""}`}>
-            <div className="min-w-0">
-              <p className="truncate text-[15px] font-medium">{song ? song.name : songState === "uploading" ? "Uploading…" : "Choose an audio file"}</p>
-              <p className="text-caption text-subtle">MP3, M4A, AAC, WAV or OGG, up to 15 MB</p>
-            </div>
-            <span className="shrink-0 rounded-full bg-ink px-4 py-2 text-[14px] font-medium text-white">{song ? "Replace" : "Upload"}</span>
-            <input id="song" type="file" accept="audio/*" className="sr-only" onChange={(e) => pickSong(e.target.files?.[0])} />
-          </label>
-          {song && (
-            <div className="flex items-center gap-3">
-              <audio controls src={song.url} className="h-10 flex-1" />
-              <button type="button" onClick={() => setSong(null)} className="text-caption text-subtle underline underline-offset-4">
-                Remove
-              </button>
-            </div>
-          )}
-          {songState === "error" && <p className="text-body text-[#8a1c1c]">{songError}</p>}
-          <p className="text-caption text-subtle">Please only upload music you have the right to share.</p>
-        </Section>
-
-        <Section n={8} title="Add-ons" note="Optional extras.">
-          <div className="grid gap-2 sm:grid-cols-2">
-            {addonCatalogue.map((a) => {
-              const on = picked.includes(a.id);
-              return (
-                <button
-                  key={a.id}
-                  type="button"
-                  aria-pressed={on}
-                  onClick={() => setPicked((p) => (on ? p.filter((x) => x !== a.id) : [...p, a.id]))}
-                  className={`flex items-start justify-between gap-3 rounded-tile p-4 text-left transition ${on ? "bg-ink text-white" : "bg-surface hover:bg-panel-strong"}`}
-                >
-                  <span>
-                    <span className="block text-[15px] font-semibold">{a.name}</span>
-                    <span className={`mt-0.5 block text-caption ${on ? "text-white/70" : "text-muted"}`}>{a.body}</span>
-                  </span>
-                  <span className="shrink-0 text-[15px] font-semibold">{formatINR(a.price)}</span>
-                </button>
-              );
-            })}
-          </div>
-        </Section>
-
-      </div>
-
-      {/* Preview + total */}
-      <aside className="lg:sticky lg:top-24 lg:self-start">
-        <div className="rounded-frame p-6" style={{ background: t.tint }}>
-          <div className="mx-auto w-[240px]">
-            <PhoneFrame className="shadow-phone">
-              <InvitePreview key={opening ? "open-anim" : "static"} invite={preview} stage={opening ? "closed" : "open"} loop={opening} />
-            </PhoneFrame>
-          </div>
-          <div className="mt-4 flex justify-center gap-1.5">
-            {[
-              [false, "Invite"],
-              [true, "Opening"],
-            ].map(([v, l]) => (
-              <button
-                key={String(v)}
-                type="button"
-                onClick={() => setOpening(v as boolean)}
-                className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${opening === v ? "bg-ink text-white" : "bg-white/80 text-ink"}`}
-              >
-                {l as string}
-              </button>
-            ))}
+          <div className="mt-4">
+            <Input
+              k={`${who}.parents`}
+              label="Parents"
+              hint="optional"
+              value={s[who].parents}
+              onChange={(v) => setPerson(who, "parents", v)}
+              onBlur={() => touch(`${who}.parents`)}
+              placeholder={who === "bride" ? "Daughter of Mrs. Sunita & Mr. Rajendra Shekhawat" : "Son of Mrs. Kavita & Mr. Vikram Rathore"}
+              maxLength={LIMITS.parents}
+            />
           </div>
         </div>
-        <Panel className="mt-4 p-6">
-          <div className="space-y-2 text-body">
-            <p className="flex justify-between">
-              <span>{t.name} design</span>
-              <span>{formatINR(t.price)}</span>
-            </p>
-            {addonCatalogue
-              .filter((a) => picked.includes(a.id))
-              .map((a) => (
-                <p key={a.id} className="flex justify-between text-muted">
-                  <span className="truncate pr-3">{a.name}</span>
-                  <span>{formatINR(a.price)}</span>
-                </p>
-              ))}
+      ))}
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-[14px] font-semibold">Name shown first on the invite</span>
+        <Toggle
+          label="Name shown first"
+          value={s.lead}
+          onChange={(v) => set("lead", v as "bride" | "groom")}
+          options={[
+            { v: "groom", l: s.groom.first || "Groom" },
+            { v: "bride", l: s.bride.first || "Bride" },
+          ]}
+        />
+      </div>
+    </div>
+  );
+
+  const wedding = (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <Input k="weddingDate" type="date" label="Wedding date" value={s.weddingDate} min={today || undefined} onChange={(v) => set("weddingDate", v)} onBlur={() => touch("weddingDate")} error={shown("weddingDate")} />
+      <Input
+        k="weddingTime"
+        type="time"
+        label="Ceremony time"
+        help="The muhurat or main ceremony time."
+        value={s.weddingTime}
+        onChange={(v) => set("weddingTime", v)}
+        onBlur={() => touch("weddingTime")}
+        error={shown("weddingTime")}
+      />
+      <div className="sm:col-span-2">
+        <Input k="city" label="City" value={s.city} onChange={(v) => set("city", v)} onBlur={() => touch("city")} error={shown("city")} placeholder="Udaipur, Rajasthan" maxLength={LIMITS.city} autoComplete="address-level2" />
+      </div>
+    </div>
+  );
+
+  const functions = (
+    <div className="space-y-4">
+      {s.events.map((e, i) => {
+        const k = `events.${i}`;
+        const prev = s.events[i - 1];
+        const hasErr = Object.keys(errors).some((x) => x.startsWith(`${k}.`) && shown(x));
+        return (
+          <div key={i} className={`rounded-tile bg-surface p-5 ${hasErr ? "ring-1 ring-[#d64545]/40" : ""}`}>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[15px] font-semibold">
+                {i + 1}. {e.name || "New function"}
+              </p>
+              {s.events.length > 1 && (
+                <button type="button" onClick={() => set("events", s.events.filter((_, j) => j !== i))} className="text-caption text-subtle underline underline-offset-4 hover:text-ink">
+                  Remove
+                </button>
+              )}
+            </div>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              <FieldShell k={`${k}.kind`} label="Type">
+                <select id={idOf(`${k}.kind`)} value={e.kind} onChange={(ev) => setEvent(i, "kind", ev.target.value)} className={`${inputBase} ${inputTone()}`}>
+                  {eventKinds.map((x) => (
+                    <option key={x.kind} value={x.kind}>
+                      {x.label}
+                    </option>
+                  ))}
+                </select>
+              </FieldShell>
+              <Input k={`${k}.name`} label="Name on the card" value={e.name} onChange={(v) => setEvent(i, "name", v)} onBlur={() => touch(`${k}.name`)} error={shown(`${k}.name`)} placeholder="Haldi" maxLength={40} />
+              <Input
+                k={`${k}.date`}
+                type="date"
+                label="Date"
+                value={e.date}
+                min={today || undefined}
+                max={s.weddingDate ? addDays(s.weddingDate, 10) : undefined}
+                onChange={(v) => setEvent(i, "date", v)}
+                onBlur={() => touch(`${k}.date`)}
+                error={shown(`${k}.date`)}
+              />
+              <Input k={`${k}.time`} type="time" label="Time" value={e.time} onChange={(v) => setEvent(i, "time", v)} onBlur={() => touch(`${k}.time`)} error={shown(`${k}.time`)} />
+              <Input
+                k={`${k}.venue`}
+                label="Venue"
+                value={e.venue}
+                onChange={(v) => setEvent(i, "venue", v)}
+                onBlur={() => touch(`${k}.venue`)}
+                error={shown(`${k}.venue`)}
+                placeholder="The Courtyard, Jagmandir Palace"
+                maxLength={LIMITS.venue}
+              />
+              <Input
+                k={`${k}.address`}
+                label="Address"
+                hint="for Google Maps"
+                value={e.address}
+                onChange={(v) => setEvent(i, "address", v)}
+                onBlur={() => touch(`${k}.address`)}
+                placeholder="Lake Pichola, Udaipur 313001"
+                maxLength={LIMITS.address}
+              />
+              <Input k={`${k}.dress`} label="Dress code" hint="optional" value={e.dress} onChange={(v) => setEvent(i, "dress", v)} onBlur={() => touch(`${k}.dress`)} placeholder="Shades of yellow" maxLength={80} />
+              <Input k={`${k}.note`} label="Note" hint="optional" value={e.note} onChange={(v) => setEvent(i, "note", v)} onBlur={() => touch(`${k}.note`)} placeholder="Lunch to follow" maxLength={160} />
+            </div>
+            {prev && prev.venue && !e.venue && (
+              <button
+                type="button"
+                onClick={() => setS((p) => ({ ...p, events: p.events.map((x, j) => (j === i ? { ...x, venue: prev.venue, address: prev.address } : x)) }))}
+                className="mt-3 text-caption font-medium text-muted underline underline-offset-4 hover:text-ink"
+              >
+                Same venue as {prev.name || `function ${i}`}
+              </button>
+            )}
           </div>
-          <p className="mt-4 flex items-baseline justify-between border-t border-line pt-4">
-            <span className="text-title">Total</span>
-            <span className="text-[28px] font-semibold tracking-[-0.03em]">{formatINR(total)}</span>
+        );
+      })}
+      {s.events.length < 12 && (
+        <button
+          type="button"
+          onClick={() => set("events", [...s.events, { ...blankEvent("reception", ""), date: s.weddingDate }])}
+          className="w-full rounded-tile border-2 border-dashed border-line py-4 text-[15px] font-medium transition hover:border-faint"
+        >
+          + Add a function
+        </button>
+      )}
+    </div>
+  );
+
+  const wording = (
+    <div className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Input k="invocation" label="Opening line" value={s.invocation} onChange={(v) => set("invocation", v)} onBlur={() => touch("invocation")} maxLength={120} />
+        <Input k="invocationMeaning" label="Its meaning" hint="shown small" value={s.invocationMeaning} onChange={(v) => set("invocationMeaning", v)} onBlur={() => touch("invocationMeaning")} maxLength={120} />
+      </div>
+      <Input k="hosts" label="Hosted by" hint="optional" value={s.hosts} onChange={(v) => set("hosts", v)} onBlur={() => touch("hosts")} placeholder={demo.hosts} maxLength={160} />
+      <TextArea k="message" label="Invitation message" value={s.message} onChange={(v) => set("message", v)} onBlur={() => touch("message")} error={shown("message")} maxLength={LIMITS.message} />
+      <div className="grid gap-4 sm:grid-cols-[1fr_220px]">
+        <Input k="closing" label="Closing line" value={s.closing} onChange={(v) => set("closing", v)} onBlur={() => touch("closing")} error={shown("closing")} maxLength={LIMITS.closing} counter />
+        <Input k="hashtag" label="Hashtag" hint="optional" value={s.hashtag} onChange={(v) => set("hashtag", v)} onBlur={() => touch("hashtag")} placeholder="#AaravKiMeera" maxLength={40} />
+      </div>
+      <button
+        type="button"
+        onClick={() => setS((p) => ({ ...p, invocation: demo.invocation, invocationMeaning: demo.invocationMeaning, message: demo.message, closing: demo.closing }))}
+        className="text-caption font-medium text-muted underline underline-offset-4 hover:text-ink"
+      >
+        Reset to the suggested wording
+      </button>
+    </div>
+  );
+
+  const music = (
+    <div className="space-y-6">
+      <div>
+        <p className="text-[14px] font-semibold">
+          Your song <span className="font-normal text-subtle">· optional</span>
+        </p>
+        <label
+          className={`mt-1.5 flex cursor-pointer items-center justify-between gap-4 rounded-tile bg-surface p-5 transition hover:bg-panel-strong ${songState === "uploading" ? "pointer-events-none opacity-60" : ""}`}
+        >
+          <div className="min-w-0">
+            <p className="truncate text-[15px] font-medium">{song ? song.name : songState === "uploading" ? "Uploading…" : "Choose an audio file"}</p>
+            <p className="text-caption text-subtle">MP3, M4A, AAC, WAV or OGG, up to 15 MB. Skip it and the design plays its own soft music.</p>
+          </div>
+          <span className="shrink-0 rounded-full bg-ink px-4 py-2 text-[14px] font-medium text-white">{song ? "Replace" : "Upload"}</span>
+          <input id="song" type="file" accept="audio/*" className="sr-only" onChange={(e) => pickSong(e.target.files?.[0])} />
+        </label>
+        {song && (
+          <div className="mt-3 flex items-center gap-3">
+            <audio controls src={songUrl} className="h-10 flex-1" />
+            <button type="button" onClick={() => setSong(null)} className="text-caption text-subtle underline underline-offset-4">
+              Remove
+            </button>
+          </div>
+        )}
+        {songState === "error" && <p className="mt-2 text-[13px] text-[#b42318]">{songError}</p>}
+        <p className="mt-2 text-caption text-subtle">Please only upload music you have the right to share.</p>
+      </div>
+    </div>
+  );
+
+  const contact = (
+    <div className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Input
+          k="customer.name"
+          label="Your name"
+          value={s.customer.name}
+          onChange={(v) => set("customer", { ...s.customer, name: v })}
+          onBlur={() => touch("customer.name")}
+          error={shown("customer.name")}
+          placeholder="Full name"
+          maxLength={80}
+          autoComplete="name"
+        />
+        <Input
+          k="customer.phone"
+          type="tel"
+          inputMode="tel"
+          label="WhatsApp number"
+          value={s.customer.phone}
+          onChange={(v) => set("customer", { ...s.customer, phone: v })}
+          onBlur={() => touch("customer.phone")}
+          error={shown("customer.phone")}
+          placeholder="98765 43210"
+          maxLength={16}
+          autoComplete="tel-national"
+        />
+      </div>
+      <Input
+        k="customer.email"
+        type="email"
+        inputMode="email"
+        label="Email"
+        hint="optional"
+        value={s.customer.email}
+        onChange={(v) => set("customer", { ...s.customer, email: v })}
+        onBlur={() => touch("customer.email")}
+        error={shown("customer.email")}
+        maxLength={120}
+        autoComplete="email"
+      />
+      <div className="rounded-tile bg-surface p-5">
+        <p className="text-[15px] font-semibold">RSVPs</p>
+        <p className="mt-0.5 text-body text-muted">Guests&rsquo; replies go straight to a WhatsApp number.</p>
+        <label className="mt-4 flex items-center gap-3 text-[15px]">
+          <input id="rsvpSame" type="checkbox" checked={s.rsvpSame} onChange={(e) => set("rsvpSame", e.target.checked)} className="size-4 accent-[#141414]" />
+          Send RSVPs to my WhatsApp number
+        </label>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {!s.rsvpSame && (
+            <Input
+              k="rsvpPhone"
+              type="tel"
+              inputMode="tel"
+              label="RSVP number"
+              value={s.rsvpPhone}
+              onChange={(v) => set("rsvpPhone", v)}
+              onBlur={() => touch("rsvpPhone")}
+              error={shown("rsvpPhone")}
+              placeholder="98765 43210"
+              maxLength={16}
+            />
+          )}
+          <Input
+            k="rsvpBy"
+            type="date"
+            label="Reply by"
+            hint="optional"
+            value={s.rsvpBy}
+            min={today || undefined}
+            max={s.weddingDate || undefined}
+            onChange={(v) => set("rsvpBy", v)}
+            onBlur={() => touch("rsvpBy")}
+            error={shown("rsvpBy")}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const review = (
+    <div className="space-y-3">
+      {serverErrors.length > 0 && (
+        <div role="alert" className="rounded-tile bg-[#fdecec] p-5 text-[#8a1c1c]">
+          <p className="text-[15px] font-semibold">We couldn&rsquo;t send your order</p>
+          <ul className="mt-1 list-disc space-y-1 pl-5 text-body">
+            {serverErrors.map((x) => (
+              <li key={x}>{x}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <ReviewBlock title="The couple" onEdit={() => goTo(0)}>
+        <p className="text-ink">
+          {a.full || a.first} &amp; {b.full || b.first}
+        </p>
+        {s.bride.parents && <p>{s.bride.parents}</p>}
+        {s.groom.parents && <p>{s.groom.parents}</p>}
+      </ReviewBlock>
+      <ReviewBlock title="Date & place" onEdit={() => goTo(1)}>
+        <p className="text-ink">{nice(s.weddingDate, s.weddingTime)}</p>
+        <p>{s.city}</p>
+      </ReviewBlock>
+      <ReviewBlock title={`Functions · ${s.events.length}`} onEdit={() => goTo(2)}>
+        {s.events.map((e, i) => (
+          <p key={i}>
+            <span className="text-ink">{e.name}</span> · {nice(e.date, e.time)} · {e.venue}
           </p>
-          <Button onClick={submit} disabled={pending || songState === "uploading"} className="mt-5 w-full">
-            {pending ? "Sending…" : "Submit order"}
-          </Button>
-          <p className="mt-3 text-center text-caption text-subtle">No payment now. We&rsquo;ll send payment details on WhatsApp. Your details are saved in this browser as you type.</p>
+        ))}
+      </ReviewBlock>
+      <ReviewBlock title="Wording" onEdit={() => goTo(3)}>
+        <p className="line-clamp-2">{s.message}</p>
+      </ReviewBlock>
+      <ReviewBlock title="Song" onEdit={() => goTo(4)}>
+        <p>{song ? song.name : "The design's own music"}</p>
+      </ReviewBlock>
+      <ReviewBlock title="Your contact" onEdit={() => goTo(5)}>
+        <p className="text-ink">
+          {s.customer.name} · +91 {mobile10(s.customer.phone)}
+        </p>
+        <p>RSVPs to +91 {mobile10(s.rsvpSame ? s.customer.phone : s.rsvpPhone)}</p>
+      </ReviewBlock>
+      <p className="pt-2 text-caption text-subtle">No payment now. After you submit, we&rsquo;ll message you on WhatsApp with the payment details.</p>
+    </div>
+  );
+
+  const bodies: Record<StepId, ReactNode> = { couple, wedding, functions, wording, music, contact, review };
+  const isLast = step === steps.length - 1;
+
+  const phone = (
+    <PhoneFrame className="shadow-phone">
+      <InvitePreview key={opening ? "open-anim" : "static"} invite={preview} stage={opening ? "closed" : "open"} loop={opening} />
+    </PhoneFrame>
+  );
+  const previewToggle = (
+    <div className="flex justify-center gap-1.5">
+      {[
+        [false, "Invite"],
+        [true, "Opening"],
+      ].map(([v, l]) => (
+        <button
+          key={String(v)}
+          type="button"
+          onClick={() => setOpening(v as boolean)}
+          className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${opening === v ? "bg-ink text-white" : "bg-white/80 text-ink"}`}
+        >
+          {l as string}
+        </button>
+      ))}
+    </div>
+  );
+
+  return (
+    <div ref={topRef} className="grid scroll-mt-24 gap-10 lg:grid-cols-[1fr_360px]">
+      <div className="min-w-0">
+        <Stepper current={step} />
+
+        <Panel className="mt-6 p-6 sm:p-8">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div key={current.id} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.25, ease }}>
+              <h3 ref={headingRef} tabIndex={-1} className="text-[24px] font-semibold tracking-[-0.02em] outline-none">
+                {current.title}
+                {"optional" in current && current.optional && <span className="ml-2 align-middle text-caption font-medium text-subtle">Optional</span>}
+              </h3>
+              <p className="mt-1 text-body text-muted">{current.note}</p>
+              <form
+                className="mt-6"
+                noValidate
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (isLast) submit();
+                  else next();
+                }}
+              >
+                {bodies[current.id]}
+
+                <div className="mt-8 flex items-center justify-between gap-3 border-t border-line pt-6">
+                  {step > 0 ? (
+                    <Button type="button" variant="ghost" onClick={() => setStep(step - 1)}>
+                      ← Back
+                    </Button>
+                  ) : (
+                    <span />
+                  )}
+                  <div className="flex items-center gap-3">
+                    {"optional" in current && current.optional && !isLast && (
+                      <button type="button" onClick={next} className="text-body font-medium text-muted hover:text-ink">
+                        Skip
+                      </button>
+                    )}
+                    <Button type="submit" disabled={pending || songState === "uploading"}>
+                      {isLast ? (pending ? "Sending…" : "Submit order") : `Continue to ${steps[step + 1].title.toLowerCase()} →`}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </motion.div>
+          </AnimatePresence>
+        </Panel>
+        <p className="mt-3 text-center text-caption text-subtle">Saved in this browser as you type, so you can come back later.</p>
+      </div>
+
+      {/* Desktop: live preview + total */}
+      <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
+        <div className="rounded-frame p-6" style={{ background: t.tint }}>
+          <div className="mx-auto w-[230px]">{phone}</div>
+          <div className="mt-4">{previewToggle}</div>
+        </div>
+        <Panel className="mt-4 p-6">
+          <p className="text-caption font-medium text-subtle">{t.name} design · everything included</p>
+          <PriceTag price={t.price} mrp={t.mrp} size="lg" className="mt-1" />
+          <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#fff1e6] px-3 py-1 text-[13px] font-medium text-[#b4410f]">
+            🪔 Diwali offer · <OfferCountdown />
+          </p>
         </Panel>
       </aside>
+
+      {/* Mobile: preview on demand */}
+      <button
+        type="button"
+        onClick={() => setPreviewOpen(true)}
+        className="fixed bottom-4 left-4 z-40 flex items-center gap-2 rounded-full bg-ink py-2.5 pr-4 pl-3 text-[15px] font-medium text-white shadow-lg lg:hidden"
+      >
+        <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
+          <rect x="6" y="2.5" width="12" height="19" rx="2.5" />
+          <path d="M10.5 18.5h3" />
+        </svg>
+        Preview · {formatINR(t.price)}
+      </button>
+      <AnimatePresence>
+        {previewOpen && (
+          <motion.div
+            className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-4 bg-black/70 p-6 backdrop-blur-sm lg:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setPreviewOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Invite preview"
+          >
+            <motion.div initial={{ y: 30 }} animate={{ y: 0 }} className="w-[min(70vw,280px)]" onClick={(e) => e.stopPropagation()}>
+              {phone}
+              <div className="mt-4">{previewToggle}</div>
+            </motion.div>
+            <button type="button" onClick={() => setPreviewOpen(false)} className="rounded-full bg-white px-5 py-2.5 text-[15px] font-medium text-ink">
+              Back to the form
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
