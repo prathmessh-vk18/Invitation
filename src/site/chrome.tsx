@@ -6,6 +6,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { site, whatsappLink } from "@/config/site";
 import { categories } from "@/data/categories";
+import { templates } from "@/data/templates";
+import { guides } from "@/data/guides";
 import { WaIcon } from "@/invites/shared";
 import { buttonClass } from "@/ui";
 
@@ -106,54 +108,110 @@ export function WhatsAppFab() {
   );
 }
 
-export function Footer() {
-  const cols: { h: string; l: { href: string; label: string }[] }[] = [
-    { h: "Designs", l: [...categories.map((c) => ({ href: `/${c.slug}`, label: c.label })), { href: "/designs", label: "All designs" }] },
-    {
-      h: "Company",
-      l: [
-        { href: "/about", label: "About" },
-        { href: "/guides", label: "Wedding guides" },
-        { href: "/#how", label: "How it works" },
-        { href: "/design-system", label: "Design system" },
-      ],
-    },
-    {
-      h: "Legal",
-      l: [
-        { href: "/privacy", label: "Privacy" },
-        { href: "/refunds", label: "Refunds" },
-        { href: "/terms", label: "Terms" },
-      ],
-    },
-  ];
+const guideLabel: Record<string, string> = {
+  "haldi-invitation-wording": "Haldi invitation wording",
+  "mehndi-invitation-wording": "Mehndi invitation wording",
+  "sangeet-invitation-wording": "Sangeet invitation wording",
+  "marathi-lagna-patrika-format": "Marathi lagna patrika format",
+  "nikah-invitation-wording": "Nikah invitation wording",
+  "anand-karaj-invitation-wording": "Anand Karaj invitation",
+  "south-indian-wedding-invitation-wording": "South Indian wedding invitation",
+  "when-to-send-wedding-invitations": "When to send invitations",
+  "digital-vs-printed-wedding-invitations": "Digital vs printed cards",
+  "wedding-invitation-wording-guide": "Wedding invitation wording",
+};
+
+const categoryLabel: Record<string, string> = {
+  hindu: "Hindu wedding invitation",
+  muslim: "Muslim & Nikah invitation",
+  sikh: "Sikh Anand Karaj invitation",
+  "south-indian": "South Indian wedding invitation",
+};
+
+function FooterCol({ title, links }: { title: string; links: { href: string; label: string }[] }) {
   return (
-    <footer className="border-t border-line">
-      <div className="mx-auto grid max-w-page gap-10 px-5 py-14 text-[15px] sm:grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <div>
-          <Wordmark />
-          <p className="mt-4 max-w-xs text-muted">Invitation websites for Indian weddings, designed by hand and shared on WhatsApp.</p>
-          <p className="mt-6 text-ink">{site.whatsappDisplay}</p>
-          <p className="text-ink">{site.email}</p>
-          <p className="mt-1 text-caption text-subtle">Every day, {site.hours}</p>
-        </div>
-        {cols.map((c) => (
-          <div key={c.h}>
-            <p className="font-semibold text-ink">{c.h}</p>
-            <ul className="mt-4 space-y-2.5">
-              {c.l.map((x) => (
-                <li key={x.href}>
-                  <Link href={x.href} className="text-muted transition hover:text-ink">
-                    {x.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+    <nav aria-label={title}>
+      <p className="text-[13px] font-semibold tracking-[0.08em] text-[#f3d18a] uppercase">{title}</p>
+      <ul className="mt-5 space-y-3">
+        {links.map((x) => (
+          <li key={x.href}>
+            <Link href={x.href} className="text-[15px] text-white/65 transition hover:text-white">
+              {x.label}
+            </Link>
+          </li>
         ))}
-      </div>
-      <div className="border-t border-line">
-        <p className="mx-auto max-w-page px-5 py-6 text-caption text-subtle">© {site.name} · Made in India</p>
+      </ul>
+    </nav>
+  );
+}
+
+export function Footer() {
+  return (
+    <footer className="relative overflow-hidden bg-[#2a0f1c] text-white">
+      {/* soft glow + a faint arch motif for warmth */}
+      <div className="pointer-events-none absolute -top-40 left-1/2 size-[720px] -translate-x-1/2 rounded-full bg-[#66223f] opacity-40 blur-[140px]" />
+      <svg className="pointer-events-none absolute -right-24 -bottom-24 w-[420px] opacity-[0.06]" viewBox="0 0 200 240" aria-hidden>
+        <path d="M10 240 V110 C10 50 50 12 100 6 C150 12 190 50 190 110 V240" fill="none" stroke="#f3d18a" strokeWidth="3" />
+        <path d="M34 240 V118 C34 72 64 40 100 34 C136 40 166 72 166 118 V240" fill="none" stroke="#f3d18a" strokeWidth="1.5" />
+      </svg>
+
+      <div className="relative mx-auto max-w-wide px-5">
+        {/* call to action */}
+        <div className="flex flex-col items-start justify-between gap-6 border-b border-white/10 py-14 md:flex-row md:items-center">
+          <div>
+            <p className="text-[clamp(28px,3.4vw,40px)] leading-tight font-semibold tracking-[-0.03em]">Planning a wedding?</p>
+            <p className="mt-2 max-w-md text-[16px] text-white/65">Pick a design, add your functions and song, and share one beautiful link with everyone.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/designs" className={buttonClass("inverse", "lg")}>
+              Choose a design
+            </Link>
+            <a href={whatsappLink(hello)} target="_blank" rel="noreferrer" className={buttonClass("secondary", "lg", "bg-white/10 text-white hover:bg-white/15")}>
+              <WaIcon /> Chat on WhatsApp
+            </a>
+          </div>
+        </div>
+
+        {/* links */}
+        <div className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr_0.8fr]">
+          <div>
+            <Wordmark light className="h-9" />
+            <p className="mt-5 max-w-xs text-[15px] leading-relaxed text-white/60">
+              {site.name} makes animated wedding invitation websites for Indian weddings: every function, venue, song and RSVP in one link, shared on WhatsApp.
+            </p>
+            <div className="mt-6 space-y-1.5 text-[15px]">
+              <a href={whatsappLink(hello)} target="_blank" rel="noreferrer" className="block text-white hover:text-[#f3d18a]">
+                WhatsApp {site.whatsappDisplay}
+              </a>
+              <a href={`mailto:${site.email}`} className="block break-all text-white/80 hover:text-[#f3d18a]">
+                {site.email}
+              </a>
+              <p className="text-[13px] text-white/45">Every day, {site.hours}</p>
+            </div>
+          </div>
+          <FooterCol
+            title="Wedding invitations"
+            links={[...categories.map((c) => ({ href: `/${c.slug}`, label: categoryLabel[c.id] ?? c.title })), { href: "/designs", label: "All invitation designs" }]}
+          />
+          <FooterCol title="Designs" links={templates.map((t) => ({ href: `/templates/${t.id}`, label: `${t.name} · ${t.mood.split(" · ").pop()}` }))} />
+          <FooterCol title="Wedding guides" links={[...guides.map((g) => ({ href: `/guides/${g.slug}`, label: guideLabel[g.slug] ?? g.title })), { href: "/guides", label: "All guides" }]} />
+          <FooterCol
+            title="Aavjoo"
+            links={[
+              { href: "/about", label: "About us" },
+              { href: "/#how", label: "How it works" },
+              { href: "/#faq", label: "FAQ" },
+              { href: "/privacy", label: "Privacy" },
+              { href: "/refunds", label: "Refunds" },
+              { href: "/terms", label: "Terms" },
+            ]}
+          />
+        </div>
+
+        <div className="flex flex-col justify-between gap-3 border-t border-white/10 py-7 text-[13px] text-white/45 sm:flex-row">
+          <p>© {site.name} · Digital wedding invitations, made with love in India</p>
+          <p>Hindu · Muslim · Sikh · South Indian weddings</p>
+        </div>
       </div>
     </footer>
   );

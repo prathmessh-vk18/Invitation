@@ -33,6 +33,11 @@ function split(ms: number) {
 
 /** "Ends in 16d 04h 12m 09s", ticking. */
 export function OfferCountdown({ className }: { className?: string }) {
+  if (!offer.endsAt) return null;
+  return <Countdown className={className} />;
+}
+
+function Countdown({ className }: { className?: string }) {
   const left = useOfferLeft();
   if (left === 0) return null;
   const t = split(left ?? 0);
