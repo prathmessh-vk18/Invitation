@@ -4,7 +4,10 @@ import { AnimatePresence, motion, type HTMLMotionProps } from "framer-motion";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Invite, InviteEvent } from "@/data/invites";
 import { calendarLink, longDate, mapsLink } from "@/lib/format";
+import { invites as demoInvites } from "@/data/invites";
 import { couple, initials } from "./people";
+
+const demoSlugs = new Set(demoInvites.map((d) => d.slug));
 import type { InviteTheme } from "./types";
 
 export function Reveal({ children, delay = 0, y = 28, ...rest }: { children: ReactNode; delay?: number; y?: number } & HTMLMotionProps<"div">) {
@@ -236,12 +239,19 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
   const [attending, setAttending] = useState<"yes" | "no">("yes");
   const [events, setEvents] = useState<string[]>(() => invite.events.map((e) => e.name));
   const [note, setNote] = useState("");
+  const [demoSent, setDemoSent] = useState(false);
   const [a, b] = couple(invite);
+  // Sample invites on the website don't belong to a real couple, so nothing is sent from them.
+  const isDemo = demoSlugs.has(invite.slug);
 
   const toggle = (e: string) => setEvents((cur) => (cur.includes(e) ? cur.filter((x) => x !== e) : [...cur, e]));
 
   const submit = (ev: React.FormEvent) => {
     ev.preventDefault();
+    if (isDemo) {
+      setDemoSent(true);
+      return;
+    }
     const lines =
       attending === "yes"
         ? [
@@ -319,6 +329,19 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
           <button type="submit" className={`${theme.ui.button} w-full justify-center py-[3.6cqw] text-[3.8cqw]`}>
             <WaIcon /> Send RSVP on WhatsApp
           </button>
+          <AnimatePresence>
+            {demoSent && (
+              <motion.p
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                role="status"
+                className="rounded-[3cqw] bg-black/5 px-[4cqw] py-[3cqw] text-center text-[3.4cqw] leading-snug"
+              >
+                This is a demo invitation, so nothing was sent. On your own invite, guests&rsquo; replies arrive straight on your WhatsApp. 💌
+              </motion.p>
+            )}
+          </AnimatePresence>
         </form>
       </Reveal>
     </section>

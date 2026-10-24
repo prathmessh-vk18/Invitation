@@ -65,7 +65,7 @@ export default function Home() {
       {/* Stats — placeholders until real numbers exist */}
       <section className="py-20 text-center">
         <Container>
-          <p className="text-body text-muted">Opened by guests in every corner of India</p>
+          <p className="text-body text-muted">Made for today&rsquo;s Indian weddings</p>
           <div className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-4">
             {stats.map((x) => (
               <div key={x.label}>

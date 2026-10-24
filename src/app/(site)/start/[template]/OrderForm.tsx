@@ -8,6 +8,8 @@ import { getInvite } from "@/data/invites";
 import type { TemplateMeta } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
 import { fmtDate } from "@/lib/format";
+import { instrumentals, songs, tracks, type Track } from "@/config/music";
+import { useInviteMusic } from "@/invites/music";
 import { eventKinds } from "@/lib/orders";
 import { createOrder, createPhotoUpload, createSongUpload } from "@/lib/order-actions";
 import { browserSupabase } from "@/lib/supabase-browser";
@@ -191,6 +193,55 @@ function ReviewBlock({ title, onEdit, children }: { title: string; onEdit: () =>
 const nice = (date: string, time?: string) =>
   date ? `${fmtDate(`${date}T12:00:00+05:30`, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}${time ? `, ${fmtDate(`${date}T${time}:00+05:30`, { hour: "numeric", minute: "2-digit", hour12: true })}` : ""}` : "—";
 
+/* ───────── Song picker ───────── */
+
+function TrackRow({ track, selected, active, onPreview, onChoose }: { track: Track; selected: boolean; active: boolean; onPreview: (on: boolean) => void; onChoose: () => void }) {
+  const player = useInviteMusic(track.id);
+  // Only one preview at a time: stop when another row starts.
+  useEffect(() => {
+    if (!active && player.playing) player.pause();
+  }, [active, player]);
+  return (
+    <div className={`flex items-center gap-3 rounded-tile p-3 pr-4 transition ${selected ? "bg-ink text-white" : "bg-surface"}`}>
+      <button
+        type="button"
+        onClick={() => {
+          if (player.playing) {
+            player.pause();
+            onPreview(false);
+          } else {
+            onPreview(true);
+            player.play();
+          }
+        }}
+        aria-label={player.playing ? `Stop ${track.name}` : `Play ${track.name}`}
+        className={`grid size-10 shrink-0 place-items-center rounded-full ${selected ? "bg-white text-ink" : "bg-panel text-ink"}`}
+      >
+        {player.playing ? (
+          <span className="flex h-3.5 items-end gap-[2px]">
+            {[0, 1, 2].map((i) => (
+              <motion.span key={i} className="w-[3px] rounded-full bg-current" animate={{ height: ["30%", "100%", "40%", "80%", "30%"] }} transition={{ duration: 1 + i * 0.2, repeat: Infinity }} />
+            ))}
+          </span>
+        ) : (
+          <svg viewBox="0 0 24 24" className="ml-0.5 size-4" fill="currentColor" aria-hidden>
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        )}
+      </button>
+      <button type="button" onClick={onChoose} className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left" aria-pressed={selected}>
+        <span className="min-w-0">
+          <span className="block text-[15px] font-semibold">{track.name}</span>
+          <span className={`block truncate text-caption ${selected ? "text-white/70" : "text-muted"}`}>{track.mood}</span>
+        </span>
+        <span className={`grid size-5 shrink-0 place-items-center rounded-full border-2 ${selected ? "border-white bg-white" : "border-line"}`}>
+          {selected && <span className="size-2 rounded-full bg-ink" />}
+        </span>
+      </button>
+    </div>
+  );
+}
+
 /* ───────── The form ───────── */
 
 type Song = { path: string; name: string };
@@ -225,6 +276,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
   const [step, setStep] = useState(0);
   const [furthest, setFurthest] = useState(0);
   const [song, setSong] = useState<Song | null>(null);
+  const [previewing, setPreviewing] = useState<string | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [photoBusy, setPhotoBusy] = useState(0);
   const [photoError, setPhotoError] = useState("");
@@ -633,32 +685,52 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
   );
 
   const music = (
-    <div className="space-y-6">
-      <div>
-        <p className="text-[14px] font-semibold">
-          Your song <span className="font-normal text-subtle">· optional</span>
-        </p>
-        <label
-          className={`mt-1.5 flex cursor-pointer items-center justify-between gap-4 rounded-tile bg-surface p-5 transition hover:bg-panel-strong ${songState === "uploading" ? "pointer-events-none opacity-60" : ""}`}
-        >
-          <div className="min-w-0">
-            <p className="truncate text-[15px] font-medium">{song ? song.name : songState === "uploading" ? "Uploading…" : "Choose an audio file"}</p>
-            <p className="text-caption text-subtle">MP3, M4A, AAC, WAV or OGG, up to 15 MB. Skip it and the design plays its own soft music.</p>
+    <div className="space-y-3">
+      {[
+        ["Popular songs", songs],
+        ["Aavjoo instrumentals", instrumentals],
+      ].map(([label, list]) => (
+        <div key={label as string} className="space-y-2 pb-2">
+          <p className="text-[14px] font-semibold">{label as string}</p>
+          <div className="grid gap-2">
+        {(list as Track[]).map((tr) => (
+          <TrackRow
+            key={tr.id}
+            track={tr}
+            selected={!song && s.music === tr.id}
+            active={previewing === tr.id}
+            onPreview={(on) => setPreviewing(on ? tr.id : null)}
+            onChoose={() => {
+              set("music", tr.id);
+              setSong(null);
+            }}
+          />
+        ))}
           </div>
-          <span className="shrink-0 rounded-full bg-ink px-4 py-2 text-[14px] font-medium text-white">{song ? "Replace" : "Upload"}</span>
-          <input id="song" type="file" accept="audio/*" className="sr-only" onChange={(e) => pickSong(e.target.files?.[0])} />
-        </label>
-        {song && (
-          <div className="mt-3 flex items-center gap-3">
-            <audio controls src={songUrl} className="h-10 flex-1" />
-            <button type="button" onClick={() => setSong(null)} className="text-caption text-subtle underline underline-offset-4">
-              Remove
-            </button>
-          </div>
-        )}
-        {songState === "error" && <p className="mt-2 text-[13px] text-[#b42318]">{songError}</p>}
-        <p className="mt-2 text-caption text-subtle">Please only upload music you have the right to share.</p>
-      </div>
+        </div>
+      ))}
+
+      <p className="pt-2 text-[14px] font-semibold">Or upload your own</p>
+      <label
+        className={`flex cursor-pointer items-center justify-between gap-4 rounded-tile p-4 transition ${song ? "bg-ink text-white" : "bg-surface hover:bg-panel-strong"} ${songState === "uploading" ? "pointer-events-none opacity-60" : ""}`}
+      >
+        <div className="min-w-0">
+          <p className="truncate text-[15px] font-medium">{song ? song.name : songState === "uploading" ? "Uploading…" : "Your own song"}</p>
+          <p className={`text-caption ${song ? "text-white/70" : "text-subtle"}`}>MP3, M4A, AAC, WAV or OGG, up to 15 MB</p>
+        </div>
+        <span className={`shrink-0 rounded-full px-4 py-2 text-[14px] font-medium ${song ? "bg-white text-ink" : "bg-ink text-white"}`}>{song ? "Replace" : "Upload"}</span>
+        <input id="song" type="file" accept="audio/*" className="sr-only" onChange={(e) => pickSong(e.target.files?.[0])} />
+      </label>
+      {song && (
+        <div className="flex items-center gap-3">
+          <audio controls src={songUrl} className="h-10 flex-1" />
+          <button type="button" onClick={() => setSong(null)} className="text-caption text-subtle underline underline-offset-4">
+            Use an Aavjoo track instead
+          </button>
+        </div>
+      )}
+      {songState === "error" && <p className="text-[13px] text-[#b42318]">{songError}</p>}
+      <p className="text-caption text-subtle">Please only upload music you have the right to share.</p>
     </div>
   );
 
@@ -788,7 +860,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
         )}
       </ReviewBlock>
       <ReviewBlock title="Song" onEdit={() => goTo(stepIndex("music"))}>
-        <p>{song ? song.name : "The design's own music"}</p>
+        <p>{song ? `Your upload: ${song.name}` : (tracks.find((x) => x.id === s.music)?.name ?? "Aavjoo track")}</p>
       </ReviewBlock>
       <ReviewBlock title="Your contact" onEdit={() => goTo(stepIndex("contact"))}>
         <p className="text-ink">

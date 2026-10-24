@@ -1,3 +1,4 @@
+import { songs } from "@/config/music";
 import type { TemplateId } from "./templates";
 
 export type EventKind = "haldi" | "mehndi" | "sangeet" | "baraat" | "phere" | "reception" | "nikah" | "walima" | "jaggo" | "anandkaraj" | "muhurtham";
@@ -107,7 +108,7 @@ export const invites: Invite[] = [
         dress: "Black tie / Indian formal",
       },
     ],
-    rsvp: { phone: "919999999999", by: "2026-11-20T00:00:00+05:30", contact: "Rathore family" },
+    rsvp: { phone: "919699711809", by: "2026-11-20T00:00:00+05:30", contact: "Rathore family" },
     closing: "Your presence is the greatest blessing we could ask for.",
   },
   {
@@ -167,7 +168,7 @@ export const invites: Invite[] = [
       { year: "2023", title: "The question", text: "Asked at sunrise on Sinhagad fort, answered before he finished." },
       { year: "2027", title: "Forever", text: "And now, with everyone we love, we make it official." },
     ],
-    rsvp: { phone: "919999999999", by: "2027-01-05T00:00:00+05:30", contact: "Tara & Ishaan" },
+    rsvp: { phone: "919699711809", by: "2027-01-05T00:00:00+05:30", contact: "Tara & Ishaan" },
     closing: "We can't wait to celebrate with you.",
   },
   {
@@ -220,7 +221,7 @@ export const invites: Invite[] = [
         dress: "Formal",
       },
     ],
-    rsvp: { phone: "919999999999", by: "2026-11-10T00:00:00+05:30", contact: "Malhotra family" },
+    rsvp: { phone: "919699711809", by: "2026-11-10T00:00:00+05:30", contact: "Malhotra family" },
     closing: "Come for the vows, stay for the dancing.",
   },
   {
@@ -263,7 +264,7 @@ export const invites: Invite[] = [
         note: "Hosted by the Qureshi family",
       },
     ],
-    rsvp: { phone: "919999999999", by: "2026-12-05T00:00:00+05:30", contact: "Qureshi family" },
+    rsvp: { phone: "919699711809", by: "2026-12-05T00:00:00+05:30", contact: "Qureshi family" },
     closing: "Your duas and presence mean the world to us.",
   },
   {
@@ -314,7 +315,7 @@ export const invites: Invite[] = [
         dress: "Party glam",
       },
     ],
-    rsvp: { phone: "919999999999", by: "2027-01-31T00:00:00+05:30", contact: "Gill family" },
+    rsvp: { phone: "919699711809", by: "2027-01-31T00:00:00+05:30", contact: "Gill family" },
     closing: "Aao ji, nachiye! We can't wait to see you on the dance floor.",
   },
   {
@@ -356,7 +357,7 @@ export const invites: Invite[] = [
         dress: "Festive",
       },
     ],
-    rsvp: { phone: "919999999999", by: "2027-01-15T00:00:00+05:30", contact: "Sundaram family" },
+    rsvp: { phone: "919699711809", by: "2027-01-15T00:00:00+05:30", contact: "Sundaram family" },
     closing: "Your blessings will make our day complete.",
   },
   {
@@ -398,7 +399,7 @@ export const invites: Invite[] = [
         note: "Dinner to follow",
       },
     ],
-    rsvp: { phone: "919999999999", by: "2027-01-10T00:00:00+05:30", contact: "Mehta family" },
+    rsvp: { phone: "919699711809", by: "2027-01-10T00:00:00+05:30", contact: "Mehta family" },
     closing: "Come for the vows, stay for the garba.",
   },
   {
@@ -419,7 +420,7 @@ export const invites: Invite[] = [
       { kind: "sangeet", name: "Sangeet", start: "2027-02-05T19:30:00+05:30", venue: "Durbar Hall", address: "City Palace, Udaipur, Rajasthan 313001", dress: "Festive glam" },
       { kind: "phere", name: "Pheras", start: "2027-02-06T19:00:00+05:30", venue: "Lakeside Mandap", address: "Lake Pichola, Udaipur, Rajasthan 313001", note: "Dinner to follow" },
     ],
-    rsvp: { phone: "919999999999", by: "2027-01-20T00:00:00+05:30", contact: "Chauhan family" },
+    rsvp: { phone: "919699711809", by: "2027-01-20T00:00:00+05:30", contact: "Chauhan family" },
     closing: "Your blessings will make our day complete.",
   },
   {
@@ -440,7 +441,7 @@ export const invites: Invite[] = [
       { kind: "sangeet", name: "Sangeet", start: "2027-03-12T19:30:00+05:30", venue: "Sunset Lawns", address: "Amer Road, Jaipur, Rajasthan 302002", note: "Bring your dancing shoes" },
       { kind: "phere", name: "Wedding", start: "2027-03-13T17:30:00+05:30", venue: "The Meadow", address: "Amer Road, Jaipur, Rajasthan 302002", note: "Ceremony at golden hour" },
     ],
-    rsvp: { phone: "919999999999", by: "2027-02-25T00:00:00+05:30", contact: "Rhea & Arjun" },
+    rsvp: { phone: "919699711809", by: "2027-02-25T00:00:00+05:30", contact: "Rhea & Arjun" },
     closing: "We can't wait to celebrate with you.",
   },
   {
@@ -460,7 +461,7 @@ export const invites: Invite[] = [
       { kind: "muhurtham", name: "Muhurtham", start: "2027-02-11T07:00:00+05:30", venue: "Sri Lakshmi Kalyana Mandapam", address: "Bypass Road, Madurai, Tamil Nadu 625010", note: "Breakfast follows" },
       { kind: "reception", name: "Reception", start: "2027-02-11T18:30:00+05:30", venue: "Heritage Madurai", address: "Kochadai, Madurai, Tamil Nadu 625016", dress: "Festive" },
     ],
-    rsvp: { phone: "919999999999", by: "2027-01-28T00:00:00+05:30", contact: "Krishnan family" },
+    rsvp: { phone: "919699711809", by: "2027-01-28T00:00:00+05:30", contact: "Krishnan family" },
     closing: "Your blessings will make our day complete.",
   },
 ];
@@ -468,6 +469,10 @@ export const invites: Invite[] = [
 // Sample "Our moments" photos for the demos (illustrations of a fictional couple, see public/art/moments).
 const demoMoments = ["/art/moments/m1.jpg", "/art/moments/m2.jpg", "/art/moments/m3.jpg", "/art/moments/m4.jpg"];
 for (const i of invites) i.gallery ??= demoMoments;
+
+// Each demo plays one of the songs, shuffled across the designs (fixed per demo so server and browser agree).
+const demoTracks = songs.map((s) => s.id);
+invites.forEach((i, n) => (i.music ??= demoTracks[(n * 5 + 2) % demoTracks.length]));
 
 export function getInvite(slug: string) {
   return invites.find((i) => i.slug === slug);

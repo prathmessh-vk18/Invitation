@@ -2,8 +2,7 @@ import type { ReactNode } from "react";
 import { EventGlyph } from "@/art/glyphs";
 import { Mandala } from "@/art/ornaments";
 import { formatINR, site, whatsappLink } from "@/config/site";
-import { testimonials } from "@/data/social-proof";
-import { getTemplate, templates } from "@/data/templates";
+import { templates } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
 import { WaIcon } from "@/invites/shared";
 import { Accordion, ButtonLink, ChatBubble, Container, Heading, Lead, Panel, PhoneFrame, Reveal, Section } from "@/ui";
@@ -231,44 +230,9 @@ export function Comparison() {
   );
 }
 
-/* ───────── Testimonials (placeholders until real) ───────── */
+/* ───────── Our promise ───────── */
 
-export function Testimonials() {
-  return (
-    <Section tone="panel" center>
-      <Container>
-        <Heading>
-          Loved by couples
-          <br />
-          across India.
-        </Heading>
-        <div className="mt-14 grid gap-4 text-left md:grid-cols-3">
-          {testimonials.map((r, i) => (
-            <Reveal key={r.couple} delay={(i % 3) * 0.08}>
-              <Panel tone="surface" className="flex h-full flex-col p-7">
-                <p className="text-[15px] tracking-[2px] text-[#f4a81d]" aria-label="5 out of 5 stars">
-                  ★★★★★
-                </p>
-                <p className="mt-3 flex-1 text-[16px] leading-relaxed text-ink">&ldquo;{r.quote}&rdquo;</p>
-                <div className="mt-6 flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-full text-[14px] font-semibold text-white" style={{ background: r.tint }}>
-                    {r.couple.split(" & ").map((n) => n[0]).join("")}
-                  </span>
-                  <div>
-                    <p className="text-[14px] font-semibold">{r.couple}</p>
-                    <p className="text-caption text-subtle">
-                      {r.city} · {getTemplate(r.design)?.name}
-                    </p>
-                  </div>
-                </div>
-              </Panel>
-            </Reveal>
-          ))}
-        </div>
-      </Container>
-    </Section>
-  );
-}
+export { Promises as Testimonials } from "./promises";
 
 /* ───────── FAQ ───────── */
 

@@ -1,10 +1,11 @@
 import type { EventKind, Invite, InviteEvent } from "@/data/invites";
 import { getTemplate, type TemplateId } from "@/data/templates";
+import { isTrackId } from "@/config/music";
 
 export type OrderStatus = "awaiting_payment" | "payment_submitted" | "paid" | "live" | "cancelled";
 
-/** What the couple fills in: the invite minus the parts we assign (slug, template, music). */
-export type InviteDetails = Omit<Invite, "slug" | "template" | "music">;
+/** What the couple fills in: the invite minus the parts we assign. `music` is a chosen Aavjoo track, if any. */
+export type InviteDetails = Omit<Invite, "slug" | "template">;
 
 export type Order = {
   id: string;
@@ -158,6 +159,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
         contact: str(rsvp.contact, 80),
       },
       closing: str(d.closing, 240),
+      ...(isTrackId(d.music) ? { music: d.music } : {}),
     },
   };
 }

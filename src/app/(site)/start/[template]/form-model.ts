@@ -22,6 +22,8 @@ export type FormState = {
   rsvpPhone: string;
   rsvpBy: string;
   customer: { name: string; phone: string; email: string };
+  // A chosen Aavjoo track ("synth:…"); an uploaded song replaces it.
+  music: string;
 };
 
 export const LIMITS = { name: 40, fullName: 80, parents: 160, city: 80, message: 400, closing: 240, venue: 120, address: 200 };
@@ -52,6 +54,7 @@ export function initialState(demo: Invite): FormState {
     rsvpPhone: "",
     rsvpBy: "",
     customer: { name: "", phone: "", email: "" },
+    music: demo.music ?? "synth:bhupali",
   };
 }
 
@@ -63,7 +66,7 @@ export const steps = [
   { id: "functions", title: "Functions", note: "Each one gets its own card with directions and a save-the-date button." },
   { id: "wording", title: "Wording", note: "We've started you with lines that suit this design. Change anything, or keep them.", optional: true },
   { id: "photos", title: "Our moments", note: "Add up to 8 photos of the two of you. Guests see them as polaroids they can swipe through.", optional: true },
-  { id: "music", title: "Your song", note: "It plays when guests open the invite. Skip it and the design plays its own soft music.", optional: true },
+  { id: "music", title: "Your song", note: "It plays softly when guests open the invite. Pick one of ours or upload your own.", optional: true },
   { id: "contact", title: "Your contact", note: "We'll message you here with payment details and your invite link." },
   { id: "review", title: "Review", note: "Check everything once. You can go back to any step." },
 ] as const;
@@ -181,6 +184,7 @@ export function toDetails(s: FormState) {
     events: s.events.map((e) => ({ kind: e.kind, name: e.name, start: iso(e.date, e.time), venue: e.venue, address: e.address, dress: e.dress, note: e.note })),
     rsvp: { phone: mobile10(rsvp), by: s.rsvpBy ? iso(s.rsvpBy, "00:00") : "", contact: s.hosts },
     closing: s.closing,
+    music: s.music,
   };
 }
 

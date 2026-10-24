@@ -5,15 +5,15 @@ export const site = {
   description:
     "Designer invitation websites for Indian weddings — one beautiful link with your events, venues, music and RSVP, shared on WhatsApp.",
   // International format without "+" or spaces, used for wa.me links.
-  whatsapp: "919999999999",
-  whatsappDisplay: "+91 99999 99999",
-  email: "hello@aavjoo.example",
+  whatsapp: "919699711809",
+  whatsappDisplay: "+91 96997 11809",
+  email: "vishwakarmaprathmesh1818@gmail.com",
   hours: "9 am – 10 pm IST",
   deliveryDays: 3,
   revisionRounds: 2,
 
   // UPI payments. Use a business UPI ID (current account or a business app), not a personal one.
-  upiId: "yourbusiness@okhdfcbank",
+  upiId: "vishwakarmaprathmesh18-1@okicici",
   upiPayee: "Aavjoo",
   // When an order is paid we aim to publish within this time.
   publishWithin: "24 hours",
