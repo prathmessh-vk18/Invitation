@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { site } from "@/config/site";
 import { endAdminSession, passwordMatches, requireAdmin, startAdminSession } from "@/lib/admin-auth";
 import { isValidSlug, liveUntil, validateDetails, type Order } from "@/lib/orders";
-import { db, songPublicUrl } from "@/lib/supabase";
+import { db, photoPublicUrl, songPublicUrl } from "@/lib/supabase";
 import { getInvite as getDemoInvite } from "@/data/invites";
 
 export async function login(_: unknown, form: FormData) {
@@ -84,7 +84,13 @@ export async function publishInvite(id: string, slugInput: string): Promise<{ ok
   const { data: taken } = await db().from("invites").select("order_id").eq("slug", slug).maybeSingle();
   if (taken && taken.order_id !== order.id) return { error: "That address is already taken. Try adding a year or city." };
 
-  const invite = { ...order.details, slug, template: order.template, ...(order.song_path ? { music: songPublicUrl(order.song_path) } : {}) };
+  const invite = {
+    ...order.details,
+    slug,
+    template: order.template,
+    ...(order.song_path ? { music: songPublicUrl(order.song_path) } : {}),
+    ...(order.photo_paths?.length ? { gallery: order.photo_paths.map(photoPublicUrl) } : {}),
+  };
   const { error } = await db()
     .from("invites")
     .upsert({

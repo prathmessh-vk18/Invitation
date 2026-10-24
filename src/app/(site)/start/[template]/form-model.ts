@@ -62,6 +62,7 @@ export const steps = [
   { id: "wedding", title: "Date & place", note: "The countdown on the invite runs to this time." },
   { id: "functions", title: "Functions", note: "Each one gets its own card with directions and a save-the-date button." },
   { id: "wording", title: "Wording", note: "We've started you with lines that suit this design. Change anything, or keep them.", optional: true },
+  { id: "photos", title: "Our moments", note: "Add up to 8 photos of the two of you. Guests see them as polaroids they can swipe through.", optional: true },
   { id: "music", title: "Your song", note: "It plays when guests open the invite. Skip it and the design plays its own soft music.", optional: true },
   { id: "contact", title: "Your contact", note: "We'll message you here with payment details and your invite link." },
   { id: "review", title: "Review", note: "Check everything once. You can go back to any step." },

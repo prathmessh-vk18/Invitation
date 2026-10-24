@@ -3,7 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { getTemplate } from "@/data/templates";
 import { cleanPhone, orderTotal, validateDetails } from "@/lib/orders";
-import { db, SONGS_BUCKET } from "@/lib/supabase";
+import { db, MAX_PHOTOS, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
 
 const AUDIO = /^(audio\/(mpeg|mp3|mp4|x-m4a|aac|wav|x-wav|ogg))$/;
 const MAX_SONG_BYTES = 15 * 1024 * 1024;
@@ -19,10 +19,25 @@ export async function createSongUpload(fileName: string, contentType: string, si
   return { path: data.path, token: data.token };
 }
 
+const IMAGE = /^image\/(jpeg|png|webp)$/;
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+const PHOTO_PATH = /^moments\/[0-9a-f-]{36}\.(jpg|png|webp)$/;
+
+/** A one-time URL the browser uploads one couple photo to (already resized in the browser). */
+export async function createPhotoUpload(contentType: string, size: number) {
+  if (!IMAGE.test(contentType)) return { error: "Please choose a JPG, PNG or WebP photo." };
+  if (size > MAX_PHOTO_BYTES) return { error: "That photo is over 10 MB." };
+  const ext = contentType === "image/png" ? "png" : contentType === "image/webp" ? "webp" : "jpg";
+  const { data, error } = await db().storage.from(PHOTOS_BUCKET).createSignedUploadUrl(`moments/${randomUUID()}.${ext}`);
+  if (error || !data) return { error: "We couldn't prepare the upload. Please try again." };
+  return { path: data.path, token: data.token };
+}
+
 export type CreateOrderInput = {
   template: string;
   details: unknown;
   songPath: string | null;
+  photoPaths?: string[];
   customer: { name: string; phone: string; email: string };
 };
 
@@ -53,6 +68,7 @@ export async function createOrder(input: CreateOrderInput): Promise<{ id: string
       customer_email: email || null,
       details: checked.details,
       song_path: songPath,
+      photo_paths: (input.photoPaths ?? []).filter((x) => typeof x === "string" && PHOTO_PATH.test(x)).slice(0, MAX_PHOTOS),
     })
     .select("id")
     .single();

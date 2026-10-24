@@ -5,6 +5,7 @@ import type { Invite } from "@/data/invites";
 import { useInviteMusic } from "./music";
 import { OpenedContext } from "./opened";
 import { themes } from "./registry";
+import { ScratchDate } from "./scratch";
 import { Countdown, Gallery, MusicToggle, Rsvp, Story } from "./shared";
 
 export function InviteRenderer({ invite }: { invite: Invite }) {
@@ -34,6 +35,7 @@ export function InviteRenderer({ invite }: { invite: Invite }) {
             <theme.Hero invite={invite} />
             <theme.Blessing invite={invite} />
             <theme.Divider />
+            <ScratchDate invite={invite} theme={theme} />
             <Countdown invite={invite} theme={theme} />
             <theme.Events invite={invite} />
             <Story invite={invite} theme={theme} />
@@ -42,6 +44,14 @@ export function InviteRenderer({ invite }: { invite: Invite }) {
             <theme.Closing invite={invite} />
           </div>
         </main>
+
+        {opened && theme.Frame && (
+          <div className="pointer-events-none fixed inset-0 z-30 flex justify-center">
+            <div className="relative h-full w-full max-w-[480px]">
+              <theme.Frame />
+            </div>
+          </div>
+        )}
 
         {opened && (
           <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center">

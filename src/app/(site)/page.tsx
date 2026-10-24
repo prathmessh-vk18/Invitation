@@ -47,7 +47,7 @@ export default function Home() {
             </Lead>
             <div className="mt-9 flex flex-wrap justify-center gap-2">
               <ButtonLink href="/designs">Choose a design</ButtonLink>
-              <ButtonLink href={`/i/${spotlight.demoSlug}`} variant="secondary" arrow>
+              <ButtonLink href={`/i/${spotlight.demoSlug}`} variant="secondary" arrow newTab>
                 See a live invite
               </ButtonLink>
             </div>
@@ -86,8 +86,8 @@ export default function Home() {
               <Heading className="mt-5">Meet {spotlight.name}.</Heading>
               <Lead className="mt-4">{spotlight.tagline} Tap the seal and watch your names appear in gold.</Lead>
               <div className="mt-7 flex flex-wrap gap-2">
-                <ButtonLink href={`/i/${spotlight.demoSlug}`}>Open the invite →</ButtonLink>
-                <ButtonLink href={`/templates/${spotlight.id}`} variant="inverse">
+                <ButtonLink href={`/i/${spotlight.demoSlug}`} newTab>Open the invite →</ButtonLink>
+                <ButtonLink href={`/templates/${spotlight.id}`} variant="inverse" newTab>
                   Only {formatINR(spotlight.price)} · Details
                 </ButtonLink>
               </div>

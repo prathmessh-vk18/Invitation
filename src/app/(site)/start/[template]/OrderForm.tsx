@@ -9,7 +9,7 @@ import type { TemplateMeta } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
 import { fmtDate } from "@/lib/format";
 import { eventKinds } from "@/lib/orders";
-import { createOrder, createSongUpload } from "@/lib/order-actions";
+import { createOrder, createPhotoUpload, createSongUpload } from "@/lib/order-actions";
 import { browserSupabase } from "@/lib/supabase-browser";
 import { OfferCountdown, PriceTag } from "@/site/offer";
 import { Button, Panel, PhoneFrame, ease } from "@/ui";
@@ -194,7 +194,27 @@ const nice = (date: string, time?: string) =>
 /* ───────── The form ───────── */
 
 type Song = { path: string; name: string };
-type Draft = { v: 2; s: FormState; step: number; furthest: number; song: Song | null };
+type Photo = { path: string };
+type Draft = { v: 2; s: FormState; step: number; furthest: number; song: Song | null; photos?: Photo[] };
+
+const MAX_PHOTOS = 8;
+const photoUrl = (path: string) => `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${path}`;
+
+/** Shrinks a phone photo to at most 1600px on its long side, as a JPEG. Falls back to the original. */
+async function shrink(file: File): Promise<Blob> {
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bmp.width * scale);
+    canvas.height = Math.round(bmp.height * scale);
+    canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/jpeg", 0.82));
+    return blob ?? file;
+  } catch {
+    return file;
+  }
+}
 
 export function OrderForm({ t }: { t: TemplateMeta }) {
   const demo = getInvite(t.demoSlug)!;
@@ -205,6 +225,9 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
   const [step, setStep] = useState(0);
   const [furthest, setFurthest] = useState(0);
   const [song, setSong] = useState<Song | null>(null);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [photoBusy, setPhotoBusy] = useState(0);
+  const [photoError, setPhotoError] = useState("");
   const [songState, setSongState] = useState<"idle" | "uploading" | "error">("idle");
   const [songError, setSongError] = useState("");
   const [touched, setTouched] = useState<Set<string>>(() => new Set());
@@ -232,6 +255,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
           setStep(Math.min(d.step, steps.length - 1));
           setFurthest(Math.min(d.furthest, steps.length - 1));
           setSong(d.song ?? null);
+          setPhotos(d.photos ?? []);
         }
       } catch {}
       restored.current = true;
@@ -243,10 +267,10 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
   useEffect(() => {
     if (!restored.current) return;
     try {
-      const d: Draft = { v: 2, s, step, furthest, song };
+      const d: Draft = { v: 2, s, step, furthest, song, photos };
       window.localStorage.setItem(draftKey, JSON.stringify(d));
     } catch {}
-  }, [s, step, furthest, song, draftKey]);
+  }, [s, step, furthest, song, photos, draftKey]);
 
   // Bring the new step into view and announce it.
   useEffect(() => {
@@ -280,6 +304,8 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
       el?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 50);
   }
+
+  const stepIndex = (id: StepId) => steps.findIndex((x) => x.id === id);
 
   function goTo(i: number) {
     if (i > furthest) return;
@@ -322,6 +348,32 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
     }
   }
 
+  async function addPhotos(files: FileList | null) {
+    if (!files?.length) return;
+    setPhotoError("");
+    const room = MAX_PHOTOS - photos.length;
+    const list = Array.from(files).slice(0, room);
+    if (files.length > room) setPhotoError(`You can add up to ${MAX_PHOTOS} photos. We added the first ${room}.`);
+    setPhotoBusy((n) => n + list.length);
+    await Promise.all(
+      list.map(async (file) => {
+        try {
+          const blob = await shrink(file);
+          const type = blob.type || file.type;
+          const res = await createPhotoUpload(type, blob.size);
+          if ("error" in res) throw new Error(res.error);
+          const { error } = await browserSupabase().storage.from("photos").uploadToSignedUrl(res.path, res.token, blob, { contentType: type });
+          if (error) throw new Error("A photo didn't finish uploading. Please try again.");
+          setPhotos((p) => (p.length < MAX_PHOTOS ? [...p, { path: res.path }] : p));
+        } catch (e) {
+          setPhotoError(e instanceof Error ? e.message : "A photo didn't finish uploading. Please try again.");
+        } finally {
+          setPhotoBusy((n) => n - 1);
+        }
+      }),
+    );
+  }
+
   function submit() {
     const bad = steps.find((st) => stepHasErrors(st.id));
     if (bad) {
@@ -336,6 +388,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
         template: t.id,
         details: toDetails(s),
         songPath: song?.path ?? null,
+        photoPaths: photos.map((x) => x.path),
         customer: { ...s.customer, phone: mobile10(s.customer.phone) },
       });
       if ("errors" in res) {
@@ -539,6 +592,46 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
     </div>
   );
 
+  const photosStep = (
+    <div className="space-y-4">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+        {photos.map((ph, i) => (
+          <div key={ph.path} className="group relative aspect-[4/5] overflow-hidden rounded-tile bg-panel">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={photoUrl(ph.path)} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
+            <button
+              type="button"
+              onClick={() => setPhotos((p) => p.filter((x) => x.path !== ph.path))}
+              aria-label={`Remove photo ${i + 1}`}
+              className="absolute top-1.5 right-1.5 grid size-7 place-items-center rounded-full bg-black/55 text-white"
+            >
+              ×
+            </button>
+            {i === 0 && <span className="absolute bottom-1.5 left-1.5 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-semibold">First</span>}
+          </div>
+        ))}
+        {Array.from({ length: photoBusy }, (_, i) => (
+          <div key={`busy${i}`} className="grid aspect-[4/5] animate-pulse place-items-center rounded-tile bg-panel text-caption text-subtle">
+            Uploading…
+          </div>
+        ))}
+        {photos.length + photoBusy < MAX_PHOTOS && (
+          <label className="grid aspect-[4/5] cursor-pointer place-items-center rounded-tile border-2 border-dashed border-line text-center transition hover:border-faint">
+            <span>
+              <span className="mx-auto grid size-10 place-items-center rounded-full bg-panel text-xl">+</span>
+              <span className="mt-2 block text-caption font-medium">Add photos</span>
+            </span>
+            <input id="photos" type="file" accept="image/*" multiple className="sr-only" onChange={(e) => addPhotos(e.target.files)} />
+          </label>
+        )}
+      </div>
+      <p className="text-caption text-subtle">
+        {photos.length}/{MAX_PHOTOS} added · Pre-wedding shoots, candid moments, childhood photos. Photos are resized for fast loading.
+      </p>
+      {photoError && <p className="text-[13px] text-[#b42318]">{photoError}</p>}
+    </div>
+  );
+
   const music = (
     <div className="space-y-6">
       <div>
@@ -661,31 +754,43 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
           </ul>
         </div>
       )}
-      <ReviewBlock title="The couple" onEdit={() => goTo(0)}>
+      <ReviewBlock title="The couple" onEdit={() => goTo(stepIndex("couple"))}>
         <p className="text-ink">
           {a.full || a.first} &amp; {b.full || b.first}
         </p>
         {s.bride.parents && <p>{s.bride.parents}</p>}
         {s.groom.parents && <p>{s.groom.parents}</p>}
       </ReviewBlock>
-      <ReviewBlock title="Date & place" onEdit={() => goTo(1)}>
+      <ReviewBlock title="Date & place" onEdit={() => goTo(stepIndex("wedding"))}>
         <p className="text-ink">{nice(s.weddingDate, s.weddingTime)}</p>
         <p>{s.city}</p>
       </ReviewBlock>
-      <ReviewBlock title={`Functions · ${s.events.length}`} onEdit={() => goTo(2)}>
+      <ReviewBlock title={`Functions · ${s.events.length}`} onEdit={() => goTo(stepIndex("functions"))}>
         {s.events.map((e, i) => (
           <p key={i}>
             <span className="text-ink">{e.name}</span> · {nice(e.date, e.time)} · {e.venue}
           </p>
         ))}
       </ReviewBlock>
-      <ReviewBlock title="Wording" onEdit={() => goTo(3)}>
+      <ReviewBlock title="Wording" onEdit={() => goTo(stepIndex("wording"))}>
         <p className="line-clamp-2">{s.message}</p>
       </ReviewBlock>
-      <ReviewBlock title="Song" onEdit={() => goTo(4)}>
+      <ReviewBlock title={`Our moments · ${photos.length}`} onEdit={() => goTo(stepIndex("photos"))}>
+        {photos.length ? (
+          <div className="mt-1 flex gap-1.5">
+            {photos.map((ph) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={ph.path} src={photoUrl(ph.path)} alt="" className="size-12 rounded-md object-cover" />
+            ))}
+          </div>
+        ) : (
+          <p>No photos</p>
+        )}
+      </ReviewBlock>
+      <ReviewBlock title="Song" onEdit={() => goTo(stepIndex("music"))}>
         <p>{song ? song.name : "The design's own music"}</p>
       </ReviewBlock>
-      <ReviewBlock title="Your contact" onEdit={() => goTo(5)}>
+      <ReviewBlock title="Your contact" onEdit={() => goTo(stepIndex("contact"))}>
         <p className="text-ink">
           {s.customer.name} · +91 {mobile10(s.customer.phone)}
         </p>
@@ -695,7 +800,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
     </div>
   );
 
-  const bodies: Record<StepId, ReactNode> = { couple, wedding, functions, wording, music, contact, review };
+  const bodies: Record<StepId, ReactNode> = { couple, wedding, functions, wording, photos: photosStep, music, contact, review };
   const isLast = step === steps.length - 1;
 
   const phone = (
@@ -759,7 +864,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
                         Skip
                       </button>
                     )}
-                    <Button type="submit" disabled={pending || songState === "uploading"}>
+                    <Button type="submit" disabled={pending || songState === "uploading" || photoBusy > 0}>
                       {isLast ? (pending ? "Sending…" : "Submit order") : `Continue to ${steps[step + 1].title.toLowerCase()} →`}
                     </Button>
                   </div>

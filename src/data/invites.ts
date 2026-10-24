@@ -401,7 +401,73 @@ export const invites: Invite[] = [
     rsvp: { phone: "919999999999", by: "2027-01-10T00:00:00+05:30", contact: "Mehta family" },
     closing: "Come for the vows, stay for the garba.",
   },
+  {
+    slug: "vihaan-weds-kavya",
+    template: "mahal",
+    groom: { first: "Vihaan", full: "Vihaan Singh Chauhan", parents: "Son of Mrs. Anita & Mr. Devendra Singh Chauhan" },
+    bride: { first: "Kavya", full: "Kavya Rathore", parents: "Daughter of Mrs. Meenal & Mr. Harsh Rathore" },
+    lead: "groom",
+    invocation: "॥ श्री गणेशाय नमः ॥",
+    invocationMeaning: "With the blessings of Lord Ganesha",
+    hosts: "The Chauhan & Rathore families",
+    message: "request the honour of your presence as we celebrate the union of our children by the lake.",
+    date: "2027-02-06T19:00:00+05:30",
+    city: "Udaipur, Rajasthan",
+    hashtag: "#VihaanWedsKavya",
+    events: [
+      { kind: "mehndi", name: "Mehndi", start: "2027-02-04T16:00:00+05:30", venue: "The Garden Terrace", address: "Lake Pichola, Udaipur, Rajasthan 313001", dress: "Greens & pinks" },
+      { kind: "sangeet", name: "Sangeet", start: "2027-02-05T19:30:00+05:30", venue: "Durbar Hall", address: "City Palace, Udaipur, Rajasthan 313001", dress: "Festive glam" },
+      { kind: "phere", name: "Pheras", start: "2027-02-06T19:00:00+05:30", venue: "Lakeside Mandap", address: "Lake Pichola, Udaipur, Rajasthan 313001", note: "Dinner to follow" },
+    ],
+    rsvp: { phone: "919999999999", by: "2027-01-20T00:00:00+05:30", contact: "Chauhan family" },
+    closing: "Your blessings will make our day complete.",
+  },
+  {
+    slug: "rhea-weds-arjun",
+    template: "khat",
+    groom: { first: "Arjun", full: "Arjun Malhotra", parents: "Son of Mrs. Ritu & Mr. Sanjay Malhotra" },
+    bride: { first: "Rhea", full: "Rhea Kapoor", parents: "Daughter of Mrs. Neelam & Mr. Vikas Kapoor" },
+    lead: "bride",
+    invocation: "॥ श्री गणेशाय नमः ॥",
+    invocationMeaning: "With the blessings of Lord Ganesha",
+    hosts: "Together with their families",
+    message: "invite you to a weekend of flowers, music and love as they say yes to forever.",
+    date: "2027-03-13T17:30:00+05:30",
+    city: "Jaipur, Rajasthan",
+    hashtag: "#RheaArjunForever",
+    events: [
+      { kind: "haldi", name: "Haldi", start: "2027-03-12T11:00:00+05:30", venue: "The Orchard", address: "Amer Road, Jaipur, Rajasthan 302002", dress: "Yellow & white" },
+      { kind: "sangeet", name: "Sangeet", start: "2027-03-12T19:30:00+05:30", venue: "Sunset Lawns", address: "Amer Road, Jaipur, Rajasthan 302002", note: "Bring your dancing shoes" },
+      { kind: "phere", name: "Wedding", start: "2027-03-13T17:30:00+05:30", venue: "The Meadow", address: "Amer Road, Jaipur, Rajasthan 302002", note: "Ceremony at golden hour" },
+    ],
+    rsvp: { phone: "919999999999", by: "2027-02-25T00:00:00+05:30", contact: "Rhea & Arjun" },
+    closing: "We can't wait to celebrate with you.",
+  },
+  {
+    slug: "nila-weds-surya",
+    template: "gopuram",
+    groom: { first: "Surya", full: "Surya Narayanan", parents: "Son of Smt. Padma & Shri. Narayanan Iyer" },
+    bride: { first: "Nila", full: "Nila Krishnan", parents: "Daughter of Smt. Vasanthi & Shri. Krishnan Raman" },
+    lead: "bride",
+    invocation: "சுப முகூர்த்தம்",
+    invocationMeaning: "Subha Muhurtham",
+    hosts: "With the blessings of elders, the Krishnan & Narayanan families",
+    message: "request the pleasure of your company at the marriage of their children, and seek your blessings.",
+    date: "2027-02-11T07:00:00+05:30",
+    city: "Madurai, Tamil Nadu",
+    events: [
+      { kind: "mehndi", name: "Nichayathartham", start: "2027-02-10T17:00:00+05:30", venue: "Sri Lakshmi Kalyana Mandapam", address: "Bypass Road, Madurai, Tamil Nadu 625010", dress: "Silk" },
+      { kind: "muhurtham", name: "Muhurtham", start: "2027-02-11T07:00:00+05:30", venue: "Sri Lakshmi Kalyana Mandapam", address: "Bypass Road, Madurai, Tamil Nadu 625010", note: "Breakfast follows" },
+      { kind: "reception", name: "Reception", start: "2027-02-11T18:30:00+05:30", venue: "Heritage Madurai", address: "Kochadai, Madurai, Tamil Nadu 625016", dress: "Festive" },
+    ],
+    rsvp: { phone: "919999999999", by: "2027-01-28T00:00:00+05:30", contact: "Krishnan family" },
+    closing: "Your blessings will make our day complete.",
+  },
 ];
+
+// Sample "Our moments" photos for the demos (illustrations of a fictional couple, see public/art/moments).
+const demoMoments = ["/art/moments/m1.jpg", "/art/moments/m2.jpg", "/art/moments/m3.jpg", "/art/moments/m4.jpg"];
+for (const i of invites) i.gallery ??= demoMoments;
 
 export function getInvite(slug: string) {
   return invites.find((i) => i.slug === slug);

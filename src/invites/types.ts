@@ -28,6 +28,8 @@ export type InviteTheme = {
   Events: FC<{ invite: Invite }>;
   Closing: FC<{ invite: Invite }>;
   Backdrop: FC;
+  // Optional ornamental frame drawn above the content; the invite scrolls underneath it.
+  Frame?: FC;
   Divider: FC<{ className?: string }>;
   Title: FC<{ kicker?: string; children: ReactNode }>;
 };

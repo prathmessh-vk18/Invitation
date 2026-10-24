@@ -82,7 +82,7 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 <ButtonLink href={`/start/${t.id}`}>Customise this design</ButtonLink>
-                <ButtonLink href={`/i/${t.demoSlug}`} variant="inverse" arrow>
+                <ButtonLink href={`/i/${t.demoSlug}`} variant="inverse" arrow newTab>
                   Open full demo
                 </ButtonLink>
               </div>

@@ -1,4 +1,4 @@
-export type TemplateId = "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh";
+export type TemplateId = "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram";
 export type CategoryId = "hindu" | "muslim" | "sikh" | "south-indian";
 
 export type TemplateMeta = {
@@ -27,6 +27,90 @@ export type TemplateMeta = {
 const DEVA = "var(--font-deva)";
 
 export const templates: TemplateMeta[] = [
+  {
+    id: "mahal",
+    category: "hindu",
+    name: "Mahal",
+    native: "महल",
+    nativeFont: DEVA,
+    mood: "Illustrated · Royal lake palace",
+    tagline: "Painted palace doors swing open onto the two of you beside a lake palace at golden hour.",
+    description: [
+      "Mahal is a fully painted invitation in the spirit of Rajasthani miniature art: a floral arch, a white lake palace, peacocks on a marble balustrade and the couple in wedding finery.",
+      "It opens behind carved maroon-and-gold palace doors. Tap the seal and they swing apart to reveal the painted scene, with your names written in the sky.",
+      "The rest of the invite sits on a painted floral card, with each function, the scratch-to-reveal date, RSVP and music.",
+    ],
+    price: 299,
+    mrp: 999,
+    demoSlug: "vihaan-weds-kavya",
+    palette: [
+      { name: "Lehenga maroon", hex: "#7a1d2e" },
+      { name: "Sunset peach", hex: "#f2c08f" },
+      { name: "Marble ivory", hex: "#f7ecd9" },
+      { name: "Peacock teal", hex: "#1f6f78" },
+    ],
+    suits: ["Rajasthani & North Indian weddings", "Palace & lake venues", "Couples who want a painted look"],
+    signature: ["Painted palace doors", "Couple illustration", "Lake-palace scene", "Floral painted card"],
+    tint: "#f6e4cf",
+    icon: { bg: "#7a1d2e", fg: "#f3d18a" },
+    addedOn: "2026-10-26",
+  },
+  {
+    id: "khat",
+    category: "hindu",
+    name: "Khat",
+    native: "ख़त",
+    nativeFont: DEVA,
+    mood: "Illustrated · Love letter in a meadow",
+    tagline: "A wax-sealed letter in a golden-hour meadow opens onto the two of you walking into the sunset.",
+    description: [
+      "Khat means a letter. It begins with a sealed envelope lying in a field of wildflowers, glowing in late-afternoon light.",
+      "Tap the seal and the camera drifts into it, opening onto a painted scene of the couple walking hand in hand towards a floral arch.",
+      "Soft watercolour florals frame every section, so it reads like a handwritten note from the two of you.",
+    ],
+    price: 299,
+    mrp: 999,
+    demoSlug: "rhea-weds-arjun",
+    palette: [
+      { name: "Blush", hex: "#f3c9c4" },
+      { name: "Golden hour", hex: "#f6d4a8" },
+      { name: "Wax red", hex: "#8e1f2c" },
+      { name: "Sage", hex: "#9aae8c" },
+    ],
+    suits: ["Day & destination weddings", "Intimate ceremonies", "Romantic, modern couples"],
+    signature: ["Wax-seal envelope", "Cinematic zoom-in", "Couple in a meadow", "Watercolour florals"],
+    tint: "#fbe6dd",
+    icon: { bg: "#b2566c", fg: "#fbe6dd" },
+    addedOn: "2026-10-26",
+  },
+  {
+    id: "gopuram",
+    category: "south-indian",
+    name: "Gopuram",
+    native: "கோபுரம்",
+    nativeFont: "var(--font-tamil)",
+    mood: "Illustrated · Temple dawn",
+    tagline: "Carved temple doors open at dawn onto a painted gopuram, jasmine strings and the two of you in silk.",
+    description: [
+      "Gopuram is a painted South Indian invitation set in a temple courtyard at sunrise: a towering gopuram, banana plants, brass lamps and a kolam at your feet.",
+      "Guests tap the brass seal and the teak temple doors open onto the couple, the bride in Kanjeevaram silk and the groom in a veshti.",
+      "Every function sits on a silk-bordered card with jasmine across the top, with the muhurtham front and centre.",
+    ],
+    price: 299,
+    mrp: 999,
+    demoSlug: "nila-weds-surya",
+    palette: [
+      { name: "Kanjeevaram magenta", hex: "#a6175a" },
+      { name: "Temple gold", hex: "#d9a53c" },
+      { name: "Banana leaf", hex: "#4f8f3a" },
+      { name: "Jasmine", hex: "#fbf5e8" },
+    ],
+    suits: ["Tamil, Telugu & Kannada weddings", "Temple & early-morning muhurthams", "Traditional families"],
+    signature: ["Carved temple doors", "Painted gopuram scene", "Couple in silk", "Jasmine-strung card"],
+    tint: "#f8ecd6",
+    icon: { bg: "#a6175a", fg: "#f6d98a" },
+    addedOn: "2026-10-26",
+  },
   {
     id: "bagh",
     category: "hindu",

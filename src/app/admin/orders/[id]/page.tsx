@@ -5,7 +5,7 @@ import { getTemplate } from "@/data/templates";
 import { requireAdmin } from "@/lib/admin-auth";
 import { fmtDate, longDate, time } from "@/lib/format";
 import { statusLabel, suggestSlug, type Order } from "@/lib/orders";
-import { db, songPublicUrl } from "@/lib/supabase";
+import { db, photoPublicUrl, songPublicUrl } from "@/lib/supabase";
 import { Panel } from "@/ui";
 import { AdminHeader, statusTone } from "../../AdminHeader";
 import { DetailsEditor, NotesAndCancel, PaymentActions, PublishActions } from "./OrderActions";
@@ -126,6 +126,20 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
                   ))}
                 </Row>
                 <Row k="RSVP to">+{d.rsvp.phone}</Row>
+                <Row k="Photos">
+                  {o.photo_paths?.length ? (
+                    <span className="grid grid-cols-4 gap-1.5">
+                      {o.photo_paths.map((p) => (
+                        <a key={p} href={photoPublicUrl(p)} target="_blank" rel="noreferrer">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={photoPublicUrl(p)} alt="" className="aspect-square w-full rounded-md object-cover" />
+                        </a>
+                      ))}
+                    </span>
+                  ) : (
+                    "None"
+                  )}
+                </Row>
                 <Row k="Song">{o.song_path ? <audio controls src={songPublicUrl(o.song_path)} className="h-9 w-full" /> : "Design's own music"}</Row>
               </div>
             </Panel>

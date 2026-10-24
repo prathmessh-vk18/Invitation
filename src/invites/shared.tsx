@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, type HTMLMotionProps } from "framer-motion";
-import { useEffect, useState, type ReactNode } from "react";
+import { AnimatePresence, motion, type HTMLMotionProps } from "framer-motion";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Invite, InviteEvent } from "@/data/invites";
 import { calendarLink, longDate, mapsLink } from "@/lib/format";
 import { couple, initials } from "./people";
@@ -127,19 +127,103 @@ export function Story({ invite, theme }: { invite: Invite; theme: InviteTheme })
 
 /* ───────── Gallery ───────── */
 
+const tilts = [-3, 2.5, -1.5, 3, -2.5, 1.5, -3, 2];
+
+/** "Our moments": the couple's photos as a swipeable row of polaroids, tap to view full screen. */
 export function Gallery({ invite, theme }: { invite: Invite; theme: InviteTheme }) {
-  if (!invite.gallery?.length) return null;
+  const photos = invite.gallery ?? [];
+  const [open, setOpen] = useState<number | null>(null);
+  const [active, setActive] = useState(0);
+  const track = useRef<HTMLDivElement>(null);
+  if (!photos.length) return null;
+
+  const onScroll = () => {
+    const el = track.current;
+    if (!el) return;
+    const card = el.firstElementChild as HTMLElement | null;
+    if (!card) return;
+    setActive(Math.round(el.scrollLeft / (card.offsetWidth + 16)));
+  };
+  const step = (d: number) => setOpen((i) => (i === null ? i : (i + d + photos.length) % photos.length));
+
   return (
-    <section className={theme.ui.section}>
-      <Reveal>
-        <theme.Title kicker="Moments">A few of our favourites</theme.Title>
+    <section className={`${theme.ui.section} !px-0`}>
+      <Reveal className="px-[12cqw]">
+        <theme.Title kicker="Our moments">Before the big day</theme.Title>
       </Reveal>
-      <div className="no-scrollbar -mx-[6cqw] mt-8 flex snap-x snap-mandatory gap-[3cqw] overflow-x-auto px-[6cqw]">
-        {invite.gallery.map((src) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img key={src} src={src} alt="" className="aspect-[3/4] w-[62cqw] shrink-0 snap-center rounded-[4cqw] object-cover" />
-        ))}
-      </div>
+      <Reveal delay={0.1}>
+        <div
+          ref={track}
+          onScroll={onScroll}
+          className="no-scrollbar mt-[8cqw] flex snap-x snap-mandatory gap-4 overflow-x-auto px-[19cqw] pt-[3cqw] pb-[6cqw]"
+        >
+          {photos.map((src, i) => (
+            <motion.button
+              key={src}
+              type="button"
+              onClick={() => setOpen(i)}
+              className="w-[62cqw] shrink-0 snap-center rounded-[1.5cqw] bg-white p-[2.4cqw] pb-[9cqw] text-left shadow-[0_3cqw_8cqw_-3cqw_rgba(40,20,10,.45)]"
+              style={{ rotate: `${tilts[i % tilts.length]}deg` }}
+              whileTap={{ scale: 0.97 }}
+              aria-label={`Open photo ${i + 1} of ${photos.length}`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt="" loading="lazy" className="aspect-[4/5] w-full rounded-[0.6cqw] object-cover" />
+            </motion.button>
+          ))}
+        </div>
+        <div className="flex justify-center gap-[1.5cqw]" aria-hidden>
+          {photos.map((_, i) => (
+            <span key={i} className={`h-[1.4cqw] rounded-full bg-current transition-all ${i === active ? "w-[5cqw] opacity-80" : "w-[1.4cqw] opacity-25"}`} />
+          ))}
+        </div>
+      </Reveal>
+
+      <AnimatePresence>
+        {open !== null && (
+          <motion.div
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setOpen(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Photo viewer"
+          >
+            <motion.img
+              key={photos[open]}
+              src={photos[open]}
+              alt=""
+              className="max-h-[82vh] max-w-full rounded-lg object-contain shadow-2xl"
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              onDragEnd={(_, info) => Math.abs(info.offset.x) > 60 && step(info.offset.x < 0 ? 1 : -1)}
+              onClick={(e) => e.stopPropagation()}
+            />
+            {photos.length > 1 &&
+              ([-1, 1] as const).map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  aria-label={d < 0 ? "Previous photo" : "Next photo"}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    step(d);
+                  }}
+                  className={`absolute top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-xl text-white ${d < 0 ? "left-3" : "right-3"}`}
+                >
+                  {d < 0 ? "‹" : "›"}
+                </button>
+              ))}
+            <p className="absolute bottom-6 text-sm text-white/70">
+              {open + 1} / {photos.length} · tap outside to close
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

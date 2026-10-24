@@ -95,10 +95,13 @@ export function ButtonLink({
   variant,
   size,
   arrow,
+  newTab,
   className,
   children,
 }: {
   href: string;
+  // Opens in a new tab (used for designs and live demos, so the site stays open behind them).
+  newTab?: boolean;
   variant?: ButtonVariant;
   size?: ButtonSize;
   arrow?: boolean;
@@ -117,7 +120,7 @@ export function ButtonLink({
       {content}
     </a>
   ) : (
-    <Link href={href} className={buttonClass(variant, size, className)}>
+    <Link href={href} target={newTab ? "_blank" : undefined} rel={newTab ? "noopener" : undefined} className={buttonClass(variant, size, className)}>
       {content}
     </Link>
   );

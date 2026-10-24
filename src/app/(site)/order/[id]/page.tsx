@@ -76,7 +76,7 @@ async function OrderView({ params }: { params: PageProps<"/order/[id]">["params"
             <p className="text-title">Your invite is live 🎉</p>
             <p className="mt-2 break-all text-lead font-medium">{inviteUrl}</p>
             <div className="mt-5 flex flex-wrap gap-2">
-              <ButtonLink href={`/i/${order.invite_slug}`}>Open invite</ButtonLink>
+              <ButtonLink href={`/i/${order.invite_slug}`} newTab>Open invite</ButtonLink>
               <ButtonLink href={`https://wa.me/?text=${encodeURIComponent(`You're invited! ${inviteUrl}`)}`} variant="inverse">
                 <WaIcon /> Share on WhatsApp
               </ButtonLink>
@@ -136,7 +136,7 @@ async function OrderView({ params }: { params: PageProps<"/order/[id]">["params"
               Live until {site.inviteDaysAfterWedding} days after the wedding
             </p>
           </div>
-          <Link href={`/templates/${t.id}`} className="mt-4 block text-caption text-subtle underline underline-offset-4">
+          <Link href={`/templates/${t.id}`} target="_blank" rel="noopener" className="mt-4 block text-caption text-subtle underline underline-offset-4">
             View the {t.name} design
           </Link>
         </Panel>

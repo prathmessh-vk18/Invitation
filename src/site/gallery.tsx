@@ -23,7 +23,7 @@ export function TemplateIcon({ t }: { t: TemplateMeta }) {
 /** A design on its tint, with the phone rising slightly on hover, and its caption. */
 export function TemplateTile({ t, index = 0, price }: { t: TemplateMeta; index?: number; price?: boolean }) {
   return (
-    <Link href={`/templates/${t.id}`} className="group block">
+    <Link href={`/templates/${t.id}`} target="_blank" rel="noopener" className="group block">
       <div
         className="relative flex aspect-[4/3.6] items-end justify-center overflow-hidden rounded-tile transition duration-500 group-hover:shadow-lift"
         style={{ background: t.tint }}
