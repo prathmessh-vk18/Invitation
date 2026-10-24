@@ -1,4 +1,4 @@
-# Nimantran — wedding invitation websites
+# Aavjoo — wedding invitation websites
 
 Designer invitation websites for Indian weddings. Couples pick a design, reserve on WhatsApp,
 and receive one link with every function, venue, song and RSVP.

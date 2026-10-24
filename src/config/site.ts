@@ -1,20 +1,20 @@
 // All brand details live here. Swap these placeholders for the real values.
 export const site = {
-  name: "Nimantran",
+  name: "Aavjoo",
   tagline: "Wedding invitations that open like a celebration",
   description:
     "Designer invitation websites for Indian weddings — one beautiful link with your events, venues, music and RSVP, shared on WhatsApp.",
   // International format without "+" or spaces, used for wa.me links.
   whatsapp: "919999999999",
   whatsappDisplay: "+91 99999 99999",
-  email: "hello@nimantran.example",
+  email: "hello@aavjoo.example",
   hours: "9 am – 10 pm IST",
   deliveryDays: 3,
   revisionRounds: 2,
 
   // UPI payments. Use a business UPI ID (current account or a business app), not a personal one.
   upiId: "yourbusiness@okhdfcbank",
-  upiPayee: "Nimantran",
+  upiPayee: "Aavjoo",
   // When an order is paid we aim to publish within this time.
   publishWithin: "24 hours",
   // A published invite stays live until this many days after the wedding date.

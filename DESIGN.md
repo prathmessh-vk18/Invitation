@@ -1,4 +1,4 @@
-# Nimantran design system
+# Aavjoo design system
 
 The marketing site is quiet and monochrome. The invitations are the colour. Every page should
 feel like a calm, well-lit gallery with the designs hung on the walls.

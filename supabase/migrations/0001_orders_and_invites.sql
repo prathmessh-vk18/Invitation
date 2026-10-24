@@ -1,4 +1,4 @@
--- Nimantran: orders placed by couples, and the invites published from them.
+-- Aavjoo: orders placed by couples, and the invites published from them.
 -- Run once in the Supabase dashboard: SQL Editor → New query → paste → Run.
 
 create sequence if not exists order_number_seq start 1001;

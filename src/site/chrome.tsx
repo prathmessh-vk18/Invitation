@@ -1,9 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import { MarigoldHead } from "@/art/ornaments";
 import { site, whatsappLink } from "@/config/site";
 import { categories } from "@/data/categories";
 import { WaIcon } from "@/invites/shared";
@@ -11,16 +11,17 @@ import { buttonClass } from "@/ui";
 
 const hello = `Hi ${site.name}! I'd like to know more about your wedding invitations.`;
 
-export function Wordmark({ light }: { light?: boolean }) {
+/** The Aavjoo logo. `light` gives the white version for dark backgrounds. */
+export function Wordmark({ light, className }: { light?: boolean; className?: string }) {
   return (
-    <span className={`flex items-center gap-2 text-[20px] font-semibold tracking-[-0.04em] ${light ? "text-white" : "text-ink"}`}>
-      <span className={`grid size-8 place-items-center rounded-[9px] ${light ? "bg-white" : "bg-ink"}`}>
-        <svg viewBox="-12 -12 24 24" className="size-5" aria-hidden>
-          <MarigoldHead r={10} />
-        </svg>
-      </span>
-      {site.name.toLowerCase()}
-    </span>
+    <Image
+      src={light ? "/brand/aavjoo-logo-white.png" : "/brand/aavjoo-logo.png"}
+      alt={site.name}
+      width={1099}
+      height={337}
+      priority
+      className={`h-8 w-auto ${className ?? ""}`}
+    />
   );
 }
 

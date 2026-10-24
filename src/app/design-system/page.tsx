@@ -89,7 +89,7 @@ export default function DesignSystemPage() {
     <main className="bg-surface pb-24">
       <Container>
         <div className="pt-20 pb-16">
-          <Eyebrow>Nimantran · design system</Eyebrow>
+          <Eyebrow>Aavjoo · design system</Eyebrow>
           <Display className="mt-4 max-w-3xl">
             Quiet chrome,
             <InlineIcon bg="var(--color-icon-butter)" rotate={-4}>
