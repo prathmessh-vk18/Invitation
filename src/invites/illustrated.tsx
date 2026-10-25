@@ -387,9 +387,15 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
       `linear-gradient(to bottom, #000 0%, #000 ${f.top}%, transparent ${f.top + soft}%, transparent ${100 - f.bottom - soft}%, #000 ${100 - f.bottom}%, #000 100%)`,
       `linear-gradient(to right, #000 0%, #000 ${f.side}%, transparent ${f.side + soft / 2}%, transparent ${100 - f.side - soft / 2}%, #000 ${100 - f.side}%, #000 100%)`,
     ].join(", ");
+    // In-app browsers (WhatsApp, Instagram) draw the page behind their toolbars too, beyond this
+    // fixed layer, so paper strips above and below keep the scrolling invite from showing there.
     return (
-      <motion.div className="absolute inset-0" style={{ opacity, WebkitMaskImage: mask, maskImage: mask }} aria-hidden>
-        <Art src={spec.images.card} />
+      <motion.div className="absolute inset-0" style={{ opacity }} aria-hidden>
+        <div className="absolute inset-x-0 bottom-full h-[50vh]" style={{ background: c.paper }} />
+        <div className="absolute inset-0" style={{ WebkitMaskImage: mask, maskImage: mask }}>
+          <Art src={spec.images.card} />
+        </div>
+        <div className="absolute inset-x-0 top-full h-[50vh]" style={{ background: c.paper }} />
       </motion.div>
     );
   }

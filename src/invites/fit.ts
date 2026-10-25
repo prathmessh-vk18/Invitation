@@ -28,7 +28,9 @@ function room(el: HTMLElement, root: HTMLElement) {
 /** Shrinks any `.inv-script` text (names, titles) that is too wide for its space, so long names fit in every font. */
 function fit(root: HTMLElement) {
   root.querySelectorAll<HTMLElement>(".inv-script").forEach((el) => {
-    el.style.fontSize = "";
+    // Start from the size the design set (some set it inline), not from a previous fit.
+    el.dataset.fitBase ??= el.style.fontSize;
+    el.style.fontSize = el.dataset.fitBase;
     const text = el.textContent?.trim();
     if (!text) return;
     // Text that can wrap only needs its longest word to fit.
