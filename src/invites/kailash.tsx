@@ -15,8 +15,8 @@ import type { InviteTheme } from "./types";
 /**
  * Kailash: a gold seal over the clouds opens onto the couple praying at a Shivling before a
  * Himalayan temple. Guests scroll into the scene, which dissolves as the invitation zooms in.
- * The rest scrolls inside a fixed frame of carved arches, with every function on a flower-shaped
- * card, and ends on the couple walking into the mandap. Art: public/art/illus/kailash-*.
+ * The rest scrolls over a still Himalayan sky inside a fixed frame of garlanded pillars, with every
+ * function on a flower-shaped card, and ends on the couple walking into the mandap. Art: public/art/illus/kailash-*.
  */
 
 const art = "/art/illus";
@@ -28,11 +28,12 @@ const c = {
   soft: "#7a5a50",
 };
 const HAND = "var(--font-parisienne), cursive";
+const SKY = "#cfe1f4";
 const ease = [0.22, 1, 0.36, 1] as const;
 
 const base = makeIllustrated({
   id: "kailash",
-  images: { opening: `${art}/kailash-seal.jpg`, hero: `${art}/kailash-temple.jpg`, card: `${art}/kailash-arches.jpg` },
+  images: { opening: `${art}/kailash-seal.jpg`, hero: `${art}/kailash-temple.jpg`, card: `${art}/kailash-sky.jpg` },
   opening: "envelope",
   sealAt: { x: 50, y: 46 },
   heroTextTop: 6,
@@ -313,8 +314,6 @@ function Closing({ invite }: { invite: Invite }) {
       <motion.div className="absolute inset-0" style={{ opacity: show, scale: zoom }}>
         <Art src={`${art}/kailash-mandap.jpg`} alt={`${a.first} and ${b.first} walking into the mandap`} />
       </motion.div>
-      {/* The painting rises out of the paper rather than starting at a hard edge. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[18%]" style={{ background: `linear-gradient(${c.paper}, transparent)` }} />
       <div className="absolute inset-x-0 top-0 h-[50%]" style={{ background: "radial-gradient(70% 60% at 50% 30%, rgba(255,250,244,.75), transparent 75%)" }} />
       <Mist />
       <div className="absolute inset-x-[12%] top-[7%] text-center">
@@ -340,10 +339,10 @@ function Closing({ invite }: { invite: Invite }) {
   );
 }
 
-/* ───────── The arches frame the invite scrolls inside ───────── */
+/* ───────── The garland frame the invite scrolls inside ───────── */
 
-// How much of each edge of the arches painting is ornament (%), so content scrolls underneath it.
-const FRAME = { top: 9, bottom: 4, side: 9 };
+// How much of each edge of the garland painting is ornament (%), so content scrolls underneath it.
+const FRAME = { top: 10, bottom: 12, side: 11 };
 
 /** Fades in as the temple dissolves, and out again as the mandap closing scene arrives. */
 function Frame() {
@@ -374,17 +373,25 @@ function Frame() {
   ].join(", ");
   return (
     <motion.div className="absolute inset-0" style={{ opacity }} aria-hidden>
-      <div className="absolute inset-x-0 bottom-full h-[50vh]" style={{ background: c.paper }} />
+      <div className="absolute inset-x-0 bottom-full h-[50vh]" style={{ background: SKY }} />
       <div className="absolute inset-0" style={{ WebkitMaskImage: mask, maskImage: mask }}>
-        <Art src={`${art}/kailash-arches.jpg`} />
+        <Art src={`${art}/kailash-frame.jpg`} />
       </div>
-      <div className="absolute inset-x-0 top-full h-[50vh]" style={{ background: c.paper }} />
+      <div className="absolute inset-x-0 top-full h-[50vh]" style={{ background: "#f4f7fb" }} />
     </motion.div>
   );
 }
 
+/** Sky, clouds and snow peaks that stay still behind everything after the cover. */
 function Backdrop() {
-  return <div className="pointer-events-none absolute inset-0" style={{ background: `linear-gradient(${c.paper}, #f4e6d6)` }} />;
+  return (
+    <div className="pointer-events-none absolute inset-0" style={{ background: SKY }}>
+      <div className="sticky top-0 h-[var(--screen-h,100svh)] w-full">
+        <Art src={`${art}/kailash-sky.jpg`} />
+        <div className="absolute inset-0" style={{ background: "radial-gradient(70% 55% at 50% 45%, rgba(255,255,255,.45), transparent 80%)" }} />
+      </div>
+    </div>
+  );
 }
 
 export const kailash: InviteTheme = {
@@ -392,7 +399,7 @@ export const kailash: InviteTheme = {
   id: "kailash",
   vars: { ...base.vars, "--inv-accent": c.rose } as CSSProperties,
   accent: c.rose,
-  // Shared sections (scratch card, countdown, photos, RSVP) stay inside the arches' opening.
+  // Shared sections (scratch card, countdown, photos, RSVP) stay inside the garland frame.
   ui: { ...base.ui, section: "relative px-[11cqw] py-[12cqw]" },
   Hero,
   Blessing,
