@@ -1,4 +1,4 @@
-export type TemplateId = "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram";
+export type TemplateId = "kailash" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram";
 export type CategoryId = "hindu" | "muslim" | "sikh" | "south-indian";
 
 export type TemplateMeta = {
@@ -56,6 +56,34 @@ export const templates: TemplateMeta[] = [
     tint: "#fbeada",
     icon: { bg: "#a8573a", fg: "#fbeada" },
     addedOn: "2026-10-27",
+  },
+  {
+    id: "kailash",
+    category: "hindu",
+    name: "Kailash",
+    native: "कैलाश",
+    nativeFont: DEVA,
+    mood: "Illustrated · Mahadev's blessings",
+    tagline: "The two of you, hands folded at the Shivling before a Himalayan temple, then every function in its own painted scene.",
+    description: [
+      "Kailash opens on a gold lotus seal over the clouds. Tap it and you are standing before a Himalayan stone temple, the two of you praying at a garlanded Shivling, with your names in the sky.",
+      "Scroll and you step towards the temple as the scene gives way to the invitation, with both families named above your names.",
+      "Each function then gets its own painting: carved arches with a veena player, the mandap for the wedding, and a glowing night stage for the reception. Scratch-to-reveal date, countdown, RSVP and music are included.",
+    ],
+    price: 299,
+    mrp: 999,
+    demoSlug: "shivansh-weds-parvati",
+    palette: [
+      { name: "Himalayan sky", hex: "#bcd4ec" },
+      { name: "Rose", hex: "#b2385a" },
+      { name: "Marigold", hex: "#e8973a" },
+      { name: "Night", hex: "#1a2140" },
+    ],
+    suits: ["Shiv bhakt families", "Hindu weddings across India", "Couples who want a devotional, painted invite"],
+    signature: ["Couple at the Shivling", "Walk-in zoom to your names", "A painted scene per function", "Night reception stage"],
+    tint: "#e8eef6",
+    icon: { bg: "#2a3a6a", fg: "#f1dca8" },
+    addedOn: "2026-10-28",
   },
   {
     id: "khat",

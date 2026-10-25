@@ -15,7 +15,7 @@ const cta = { rest: { opacity: 0, y: 10 }, hover: { opacity: 1, y: 0 } };
 // Designs whose world is dark get white type over a dark fade; light ones fade to white
 // and take the design's own accent for the name.
 const darkStage = new Set(["rajwada", "noor", "phulkari"]);
-const lightGround: Record<string, string> = { mandir: "#fbeada", gulmohar: "#fdf6f2", agni: "#f5ede1", kolam: "#fbf6ea", bagh: "#ebe0cc", mahal: "#f7ecd9", khat: "#fbf3ea", gopuram: "#fbf5e8" };
+const lightGround: Record<string, string> = { kailash: "#e8eef6", mandir: "#fbeada", gulmohar: "#fdf6f2", agni: "#f5ede1", kolam: "#fbf6ea", bagh: "#ebe0cc", mahal: "#f7ecd9", khat: "#fbf3ea", gopuram: "#fbf5e8" };
 
 /**
  * A design shown as a poster in its own world: its backdrop, its typeface, two live phones
