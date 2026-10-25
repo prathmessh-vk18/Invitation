@@ -191,7 +191,7 @@ function Blessing({ invite }: { invite: Invite }) {
     </div>
   );
   return (
-    <section ref={ref} className="relative z-10 -mt-[55svh] px-[18cqw] pt-[24cqw] pb-[12cqw] text-center">
+    <section ref={ref} className="relative z-10 -mt-[55svh] px-[12cqw] pt-[20cqw] pb-[12cqw] text-center">
       <motion.div style={{ scale, opacity, filter: blur, transformOrigin: "50% 30%" }}>
         <p className="text-[9cqw] leading-none" style={{ color: c.gold, fontFamily: "var(--font-deva)" }}>
           ॐ
@@ -285,7 +285,7 @@ function FlowerCard({ e, invite }: { e: InviteEvent; invite: Invite }) {
 
 function Events({ invite }: { invite: Invite }) {
   return (
-    <section className="relative px-[17cqw] py-[12cqw]">
+    <section className="relative px-[12cqw] py-[12cqw]">
       <Reveal>
         <Title kicker="Join us for">The celebrations</Title>
       </Reveal>
@@ -304,9 +304,17 @@ function Events({ invite }: { invite: Invite }) {
 
 function Closing({ invite }: { invite: Invite }) {
   const [a, b] = couple(invite);
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "start start"] });
+  const show = useTransform(scrollYProgress, [0.05, 0.6], [0, 1]);
+  const zoom = useTransform(scrollYProgress, [0, 1], [1.12, 1]);
   return (
-    <section id="kailash-closing" className="relative w-full overflow-hidden" style={{ aspectRatio: "864 / 1536" }}>
-      <Art src={`${art}/kailash-mandap.jpg`} alt={`${a.first} and ${b.first} walking into the mandap`} />
+    <section id="kailash-closing" ref={ref} className="relative w-full overflow-hidden" style={{ aspectRatio: "864 / 1536" }}>
+      <motion.div className="absolute inset-0" style={{ opacity: show, scale: zoom }}>
+        <Art src={`${art}/kailash-mandap.jpg`} alt={`${a.first} and ${b.first} walking into the mandap`} />
+      </motion.div>
+      {/* The painting rises out of the paper rather than starting at a hard edge. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[18%]" style={{ background: `linear-gradient(${c.paper}, transparent)` }} />
       <div className="absolute inset-x-0 top-0 h-[50%]" style={{ background: "radial-gradient(70% 60% at 50% 30%, rgba(255,250,244,.75), transparent 75%)" }} />
       <Mist />
       <div className="absolute inset-x-[12%] top-[7%] text-center">
@@ -335,7 +343,7 @@ function Closing({ invite }: { invite: Invite }) {
 /* ───────── The arches frame the invite scrolls inside ───────── */
 
 // How much of each edge of the arches painting is ornament (%), so content scrolls underneath it.
-const FRAME = { top: 15, bottom: 6, side: 17 };
+const FRAME = { top: 9, bottom: 4, side: 9 };
 
 /** Fades in as the temple dissolves, and out again as the mandap closing scene arrives. */
 function Frame() {
@@ -357,7 +365,7 @@ function Frame() {
     };
   }, []);
   const vh = edges.start / 0.8;
-  const opacity = useTransform(scrollY, (y: number) => Math.min(Math.max(0, Math.min(1, (y - edges.start) / (vh * 0.28))), Math.max(0, Math.min(1, (edges.end + vh * 0.55 - y) / (vh * 0.35)))));
+  const opacity = useTransform(scrollY, (y: number) => Math.min(Math.max(0, Math.min(1, (y - edges.start) / (vh * 0.28))), Math.max(0, Math.min(1, (edges.end + vh * 0.75 - y) / (vh * 0.55)))));
   const f = FRAME;
   const soft = 4;
   const mask = [
@@ -385,7 +393,7 @@ export const kailash: InviteTheme = {
   vars: { ...base.vars, "--inv-accent": c.rose } as CSSProperties,
   accent: c.rose,
   // Shared sections (scratch card, countdown, photos, RSVP) stay inside the arches' opening.
-  ui: { ...base.ui, section: "relative px-[18cqw] py-[12cqw]" },
+  ui: { ...base.ui, section: "relative px-[11cqw] py-[12cqw]" },
   Hero,
   Blessing,
   Events,
