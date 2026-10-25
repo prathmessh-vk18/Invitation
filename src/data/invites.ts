@@ -1,3 +1,4 @@
+import type { SectionId } from "@/config/customise";
 import { songs } from "@/config/music";
 import type { TemplateId } from "./templates";
 
@@ -42,6 +43,9 @@ export type Invite = {
   music?: string;
   rsvp: { phone: string; by: string; contact: string };
   closing: string;
+  // Optional sections the couple turned off, and their font style (none = the design's own).
+  hide?: SectionId[];
+  font?: string;
 };
 
 export const invites: Invite[] = [

@@ -2,7 +2,9 @@
 
 import { useInView } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { fontVars } from "@/config/customise";
 import { getInvite, type Invite } from "@/data/invites";
+import { useFitScript } from "./fit";
 import { OpenedContext } from "./opened";
 import { themes } from "./registry";
 
@@ -41,6 +43,7 @@ export function InvitePreview({
   const [cycle, setCycle] = useState(0);
   const [opened, setOpened] = useState(stage === "open");
   const [gone, setGone] = useState(stage === "open");
+  useFitScript(ref, [invite, cycle, opened]);
 
   useEffect(() => {
     if (!loop || !inView) return;
@@ -60,7 +63,7 @@ export function InvitePreview({
     <OpenedContext.Provider value={opened}>
       <div
         ref={ref}
-        style={{ ...theme.vars, ["--screen-h" as string]: "100%" }}
+        style={{ ...theme.vars, ...fontVars(invite.font), ["--screen-h" as string]: "100%" }}
         className={`@container pointer-events-none relative h-full w-full overflow-hidden select-none ${theme.root}`}
         aria-hidden
       >

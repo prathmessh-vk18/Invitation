@@ -1,4 +1,5 @@
 import {
+  Alex_Brush,
   Amiri,
   Baloo_Paaji_2,
   Marcellus,
@@ -12,6 +13,7 @@ import {
   Fraunces,
   Geist,
   Inter,
+  Italiana,
   Parisienne,
   Manrope,
   Pinyon_Script,
@@ -60,6 +62,10 @@ export const yeseva = Yeseva_One({ subsets: ["latin"], variable: "--font-yeseva"
 
 export const dancing = Dancing_Script({ subsets: ["latin"], variable: "--font-dancing", weight: ["500", "700"] });
 
-export const fontVars = [dancing, amiri, marcellus, gurmukhi, rozha, tamil, yeseva, fraunces, geist, inter, manrope, cinzel, cormorant, parisienne, pinyon, bodoni, devanagari]
+// Extra faces for the font styles couples can pick (src/config/customise.ts)
+export const alexBrush = Alex_Brush({ subsets: ["latin"], variable: "--font-alex-brush", weight: "400" });
+export const italiana = Italiana({ subsets: ["latin"], variable: "--font-italiana", weight: "400" });
+
+export const fontVars = [alexBrush, italiana, dancing, amiri, marcellus, gurmukhi, rozha, tamil, yeseva, fraunces, geist, inter, manrope, cinzel, cormorant, parisienne, pinyon, bodoni, devanagari]
   .map((f) => f.variable)
   .join(" ");

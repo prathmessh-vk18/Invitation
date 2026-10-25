@@ -1,3 +1,4 @@
+import type { SectionId } from "@/config/customise";
 import type { EventKind, Invite } from "@/data/invites";
 
 /* ───────── State ───────── */
@@ -24,6 +25,9 @@ export type FormState = {
   customer: { name: string; phone: string; email: string };
   // A chosen Aavjoo track ("synth:…"); an uploaded song replaces it.
   music: string;
+  // Optional sections turned off, and the font style ("" = the design's own fonts).
+  hide: SectionId[];
+  font: string;
 };
 
 export const LIMITS = { name: 40, fullName: 80, parents: 160, city: 80, message: 400, closing: 240, venue: 120, address: 200 };
@@ -55,6 +59,8 @@ export function initialState(demo: Invite): FormState {
     rsvpBy: "",
     customer: { name: "", phone: "", email: "" },
     music: demo.music ?? "synth:bhupali",
+    hide: [],
+    font: "",
   };
 }
 
@@ -65,6 +71,7 @@ export const steps = [
   { id: "wedding", title: "Date & place", note: "The countdown on the invite runs to this time." },
   { id: "functions", title: "Functions", note: "Each one gets its own card with directions and a save-the-date button." },
   { id: "wording", title: "Wording", note: "We've started you with lines that suit this design. Change anything, or keep them.", optional: true },
+  { id: "style", title: "Look & sections", note: "Try a different font style, and turn off any part of the invite you don't want.", optional: true },
   { id: "photos", title: "Our moments", note: "Add up to 8 photos of the two of you. Guests see them as polaroids they can swipe through.", optional: true },
   { id: "music", title: "Your song", note: "It plays softly when guests open the invite. Pick one of ours or upload your own.", optional: true },
   { id: "contact", title: "Your contact", note: "We'll message you here with payment details and your invite link." },
@@ -147,11 +154,13 @@ export function validate(s: FormState, today: string): Record<string, string> {
   const phone = phoneError(s.customer.phone, "Enter your WhatsApp number. We'll send your link here.");
   if (phone) e["customer.phone"] = phone;
   if (s.customer.email.trim() && !EMAIL.test(s.customer.email.trim())) e["customer.email"] = "Check the email address, e.g. name@gmail.com.";
-  if (!s.rsvpSame) {
+  if (!s.hide.includes("rsvp") && !s.rsvpSame) {
     const rsvp = phoneError(s.rsvpPhone, "Enter the number guests should RSVP to.");
     if (rsvp) e.rsvpPhone = rsvp;
   }
-  if (s.rsvpBy && s.weddingDate && s.rsvpBy > s.weddingDate) e.rsvpBy = "Pick a date before the wedding.";
+  if (s.hide.includes("rsvp")) {
+    // No RSVP section, so its fields don't matter.
+  } else if (s.rsvpBy && s.weddingDate && s.rsvpBy > s.weddingDate) e.rsvpBy = "Pick a date before the wedding.";
   else if (s.rsvpBy && today && s.rsvpBy < today) e.rsvpBy = "This date has already passed.";
 
   return e;
@@ -185,6 +194,8 @@ export function toDetails(s: FormState) {
     rsvp: { phone: mobile10(rsvp), by: s.rsvpBy ? iso(s.rsvpBy, "00:00") : "", contact: s.hosts },
     closing: s.closing,
     music: s.music,
+    hide: s.hide,
+    font: s.font,
   };
 }
 
@@ -205,6 +216,8 @@ export function toPreview(s: FormState, demo: Invite): Invite {
     city: s.city || "Your city",
     hashtag: s.hashtag || undefined,
     closing: s.closing,
+    hide: s.hide,
+    font: s.font || undefined,
     events: s.events.map((e) => ({
       kind: e.kind,
       name: e.name || "Function",

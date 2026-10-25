@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getFontStyle, sections } from "@/config/customise";
 import { formatINR } from "@/config/site";
 import { getTemplate } from "@/data/templates";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -125,9 +126,13 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
                     </span>
                   ))}
                 </Row>
-                <Row k="RSVP to">+{d.rsvp.phone}</Row>
+                <Row k="RSVP to">{d.hide?.includes("rsvp") ? "Turned off" : `+${d.rsvp.phone}`}</Row>
+                <Row k="Fonts">{getFontStyle(d.font)?.name ?? "Design's own"}</Row>
+                <Row k="Hidden">{sections.filter((x) => d.hide?.includes(x.id)).map((x) => x.name).join(", ") || "Nothing"}</Row>
                 <Row k="Photos">
-                  {o.photo_paths?.length ? (
+                  {d.hide?.includes("gallery") ? (
+                    "Turned off"
+                  ) : o.photo_paths?.length ? (
                     <span className="grid grid-cols-4 gap-1.5">
                       {o.photo_paths.map((p) => (
                         <a key={p} href={photoPublicUrl(p)} target="_blank" rel="noreferrer">

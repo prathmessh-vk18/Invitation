@@ -9,7 +9,9 @@ import { getInvite } from "@/data/invites";
 import type { TemplateMeta } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
 import { fmtDate } from "@/lib/format";
+import { fontStyles, getFontStyle, sections, type SectionId } from "@/config/customise";
 import { instrumentals, songs, tracks, type Track } from "@/config/music";
+import { themes } from "@/invites/registry";
 import { useInviteMusic } from "@/invites/music";
 import { eventKinds } from "@/lib/orders";
 import { createOrder, createPhotoUpload, createSongUpload } from "@/lib/order-actions";
@@ -154,6 +156,21 @@ function Toggle({ options, value, onChange, label }: { options: { v: string; l: 
         </button>
       ))}
     </div>
+  );
+}
+
+function Switch({ id, on, onChange, label, note }: { id: string; on: boolean; onChange: (on: boolean) => void; label: string; note: string }) {
+  return (
+    <label htmlFor={id} className="flex cursor-pointer items-center justify-between gap-4 rounded-tile bg-surface p-4">
+      <span className="min-w-0">
+        <span className={`block text-[15px] font-semibold transition ${on ? "text-ink" : "text-subtle line-through decoration-1"}`}>{label}</span>
+        <span className="block text-caption text-muted">{note}</span>
+      </span>
+      <input id={id} type="checkbox" role="switch" checked={on} onChange={(e) => onChange(e.target.checked)} className="peer sr-only" />
+      <span aria-hidden className={`relative h-6 w-10 shrink-0 rounded-full transition peer-focus-visible:ring-2 peer-focus-visible:ring-ink/30 ${on ? "bg-ink" : "bg-line"}`}>
+        <span className={`absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform ${on ? "translate-x-4" : ""}`} />
+      </span>
+    </label>
   );
 }
 
@@ -347,6 +364,9 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
   const preview = useMemo(() => toPreview(s, demo), [s, demo]);
   const current = steps[step];
   const [a, b] = s.lead === "groom" ? [s.groom, s.bride] : [s.bride, s.groom];
+  const showing = (id: SectionId) => !s.hide.includes(id);
+  const setShowing = (id: SectionId, on: boolean) => setS((p) => ({ ...p, hide: on ? p.hide.filter((x) => x !== id) : [...p.hide, id] }));
+  const hidden = sections.filter((x) => !showing(x.id));
 
   function focusFirstError(id: StepId) {
     const first = Object.keys(errors).find((k) => stepOf(k) === id);
@@ -441,7 +461,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
         template: t.id,
         details: toDetails(s),
         songPath: song?.path ?? null,
-        photoPaths: photos.map((x) => x.path),
+        photoPaths: showing("gallery") ? photos.map((x) => x.path) : [],
         customer: { ...s.customer, phone: mobile10(s.customer.phone) },
       });
       if ("errors" in res) {
@@ -645,8 +665,48 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
     </div>
   );
 
-  const photosStep = (
-    <div className="space-y-4">
+  const designScript = String((themes[t.id].vars as Record<string, string>)["--inv-script"] ?? "serif");
+  const sample = `${a.first || (s.lead === "groom" ? "Aarav" : "Meera")} & ${b.first || (s.lead === "groom" ? "Meera" : "Aarav")}`;
+  const styleStep = (
+    <div className="space-y-8">
+      <div>
+        <p className="text-[14px] font-semibold">Font style</p>
+        <p className="mt-0.5 text-caption text-muted">Changes the lettering on every part of the invite. The colours and art stay the same.</p>
+        <div role="radiogroup" aria-label="Font style" className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {[{ id: "", name: `${t.name} original`, note: "The design's own lettering", script: designScript }, ...fontStyles].map((f) => {
+            const on = s.font === f.id;
+            return (
+              <button
+                key={f.id || "design"}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                onClick={() => set("font", f.id)}
+                className={`rounded-tile p-4 text-left transition ${on ? "bg-ink text-white" : "bg-surface hover:bg-panel-strong"}`}
+              >
+                <span className="block truncate text-[24px] leading-tight" style={{ fontFamily: f.script }}>
+                  {sample}
+                </span>
+                <span className="mt-2 block text-[14px] font-semibold">{f.name}</span>
+                <span className={`block text-caption ${on ? "text-white/70" : "text-muted"}`}>{f.note}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div>
+        <p className="text-[14px] font-semibold">Sections</p>
+        <p className="mt-0.5 text-caption text-muted">The cover, wording, functions and closing always show. Turn off anything else.</p>
+        <div className="mt-3 grid gap-2">
+          {sections.map((x) => (
+            <Switch key={x.id} id={`section-${x.id}`} on={showing(x.id)} onChange={(on) => setShowing(x.id, on)} label={x.name} note={x.note} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const photosStep = showing("gallery") ? (    <div className="space-y-4">
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
         {photos.map((ph, i) => (
           <div key={ph.path} className="group relative aspect-[4/5] overflow-hidden rounded-tile bg-panel">
@@ -682,6 +742,14 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
         {photos.length}/{MAX_PHOTOS} added · Pre-wedding shoots, candid moments, childhood photos. Photos are resized for fast loading.
       </p>
       {photoError && <p className="text-[13px] text-[#b42318]">{photoError}</p>}
+    </div>
+  ) : (
+    <div className="rounded-tile bg-surface p-5">
+      <p className="text-[15px] font-semibold">Our moments is turned off</p>
+      <p className="mt-0.5 text-body text-muted">Your invite won&rsquo;t have a photo section, so there&rsquo;s nothing to upload.</p>
+      <button type="button" onClick={() => setShowing("gallery", true)} className="mt-3 text-caption font-medium text-muted underline underline-offset-4 hover:text-ink">
+        Turn it back on
+      </button>
     </div>
   );
 
@@ -776,6 +844,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
         maxLength={120}
         autoComplete="email"
       />
+      {showing("rsvp") && (
       <div className="rounded-tile bg-surface p-5">
         <p className="text-[15px] font-semibold">RSVPs</p>
         <p className="mt-0.5 text-body text-muted">Guests&rsquo; replies go straight to a WhatsApp number.</p>
@@ -812,6 +881,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
           />
         </div>
       </div>
+      )}
     </div>
   );
 
@@ -848,8 +918,14 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
       <ReviewBlock title="Wording" onEdit={() => goTo(stepIndex("wording"))}>
         <p className="line-clamp-2">{s.message}</p>
       </ReviewBlock>
-      <ReviewBlock title={`Our moments · ${photos.length}`} onEdit={() => goTo(stepIndex("photos"))}>
-        {photos.length ? (
+      <ReviewBlock title="Look & sections" onEdit={() => goTo(stepIndex("style"))}>
+        <p>Fonts: {getFontStyle(s.font)?.name ?? `${t.name} original`}</p>
+        <p>{hidden.length ? `Turned off: ${hidden.map((x) => x.name).join(", ")}` : "All sections on"}</p>
+      </ReviewBlock>
+      <ReviewBlock title={showing("gallery") ? `Our moments · ${photos.length}` : "Our moments"} onEdit={() => goTo(stepIndex(showing("gallery") ? "photos" : "style"))}>
+        {!showing("gallery") ? (
+          <p>Turned off</p>
+        ) : photos.length ? (
           <div className="mt-1 flex gap-1.5">
             {photos.map((ph) => (
               // eslint-disable-next-line @next/next/no-img-element
@@ -867,13 +943,13 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
         <p className="text-ink">
           {s.customer.name} · +91 {mobile10(s.customer.phone)}
         </p>
-        <p>RSVPs to +91 {mobile10(s.rsvpSame ? s.customer.phone : s.rsvpPhone)}</p>
+        <p>{showing("rsvp") ? `RSVPs to +91 ${mobile10(s.rsvpSame ? s.customer.phone : s.rsvpPhone)}` : "No RSVP section"}</p>
       </ReviewBlock>
       <p className="pt-2 text-caption text-subtle">No payment now. After you submit, we&rsquo;ll message you on WhatsApp with the payment details.</p>
     </div>
   );
 
-  const bodies: Record<StepId, ReactNode> = { couple, wedding, functions, wording, photos: photosStep, music, contact, review };
+  const bodies: Record<StepId, ReactNode> = { couple, wedding, functions, wording, style: styleStep, photos: photosStep, music, contact, review };
   const isLast = step === steps.length - 1;
 
   const phone = (

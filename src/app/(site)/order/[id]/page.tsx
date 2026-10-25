@@ -130,7 +130,7 @@ async function OrderView({ params }: { params: PageProps<"/order/[id]">["params"
             <span className="text-[28px] font-semibold tracking-[-0.03em]">{formatINR(order.amount)}</span>
           </p>
           <div className="mt-6 space-y-1 border-t border-line pt-4 text-caption text-muted">
-            <p>{d.events.length} functions · RSVPs to +{d.rsvp.phone}</p>
+            <p>{d.events.length} functions · {d.hide?.includes("rsvp") ? "No RSVP section" : `RSVPs to +${d.rsvp.phone}`}</p>
             <p>{order.song_path ? "Your song is uploaded" : "Design's own music"}</p>
             <p>
               Live until {site.inviteDaysAfterWedding} days after the wedding

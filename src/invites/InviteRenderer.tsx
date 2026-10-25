@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { fontVars, shows } from "@/config/customise";
 import type { Invite } from "@/data/invites";
+import { useFitScript } from "./fit";
 import { useInviteMusic } from "./music";
 import { OpenedContext } from "./opened";
 import { themes } from "./registry";
@@ -13,6 +15,8 @@ export function InviteRenderer({ invite }: { invite: Invite }) {
   const [opened, setOpened] = useState(false);
   const [gone, setGone] = useState(false);
   const music = useInviteMusic(invite.music);
+  const rootRef = useRef<HTMLDivElement>(null);
+  useFitScript(rootRef, [invite, opened]);
 
   useEffect(() => {
     document.documentElement.style.overflow = opened ? "" : "hidden";
@@ -28,19 +32,19 @@ export function InviteRenderer({ invite }: { invite: Invite }) {
 
   return (
     <OpenedContext.Provider value={opened}>
-      <div style={theme.vars} className={`${theme.root} min-h-svh`}>
+      <div ref={rootRef} style={{ ...theme.vars, ...fontVars(invite.font) }} className={`${theme.root} min-h-svh`}>
         <main className="@container relative mx-auto w-full max-w-[480px] overflow-x-clip shadow-[0_0_80px_rgba(0,0,0,.25)]">
           <theme.Backdrop />
           <div className="relative">
             <theme.Hero invite={invite} />
             <theme.Blessing invite={invite} />
             <theme.Divider />
-            <ScratchDate invite={invite} theme={theme} />
-            <Countdown invite={invite} theme={theme} />
+            {shows(invite, "scratch") && <ScratchDate invite={invite} theme={theme} />}
+            {shows(invite, "countdown") && <Countdown invite={invite} theme={theme} />}
             <theme.Events invite={invite} />
             <Story invite={invite} theme={theme} />
-            <Gallery invite={invite} theme={theme} />
-            <Rsvp invite={invite} theme={theme} />
+            {shows(invite, "gallery") && <Gallery invite={invite} theme={theme} />}
+            {shows(invite, "rsvp") && <Rsvp invite={invite} theme={theme} />}
             <theme.Closing invite={invite} />
           </div>
         </main>

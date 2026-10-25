@@ -1,5 +1,6 @@
 import type { EventKind, Invite, InviteEvent } from "@/data/invites";
 import { getTemplate, type TemplateId } from "@/data/templates";
+import { getFontStyle, isSectionId } from "@/config/customise";
 import { isTrackId } from "@/config/music";
 
 export type OrderStatus = "awaiting_payment" | "payment_submitted" | "paid" | "live" | "cancelled";
@@ -132,9 +133,10 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
     if (!e.venue) errors.push(`Add the venue for ${n}.`);
   });
 
+  const hide = Array.isArray(d.hide) ? [...new Set(d.hide.filter(isSectionId))] : [];
   const rsvp = (d.rsvp ?? {}) as Record<string, unknown>;
   const rsvpPhone = str(rsvp.phone, 20).replace(/\D/g, "");
-  if (rsvpPhone.length < 10) errors.push("Add the WhatsApp number guests should RSVP to.");
+  if (rsvpPhone.length < 10 && !hide.includes("rsvp")) errors.push("Add the WhatsApp number guests should RSVP to.");
   const rsvpBy = str(rsvp.by, 40);
 
   if (errors.length) return { ok: false, errors };
@@ -160,6 +162,8 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       },
       closing: str(d.closing, 240),
       ...(isTrackId(d.music) ? { music: d.music } : {}),
+      ...(hide.length ? { hide } : {}),
+      ...(getFontStyle(d.font) ? { font: d.font as string } : {}),
     },
   };
 }
