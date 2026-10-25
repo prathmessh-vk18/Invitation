@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef, type CSSProperties, type ReactNode } from "react";
+import Link from "next/link";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { site } from "@/config/site";
 import type { Invite, InviteEvent } from "@/data/invites";
 import { fmtDate, monthName, time, weekday, yearNum } from "@/lib/format";
 import { makeIllustrated } from "./illustrated";
@@ -13,8 +15,8 @@ import type { InviteTheme } from "./types";
 /**
  * Kailash: a gold seal over the clouds opens onto the couple praying at a Shivling before a
  * Himalayan temple. Guests scroll into the scene, which dissolves as the invitation zooms in.
- * Each function then has its own painted scene: arches for most, the mandap for the wedding,
- * a night stage for the reception. Art: public/art/illus/kailash-*.
+ * The rest scrolls inside a fixed frame of carved arches, with every function on a flower-shaped
+ * card, and ends on the couple walking into the mandap. Art: public/art/illus/kailash-*.
  */
 
 const art = "/art/illus";
@@ -63,7 +65,7 @@ function Title({ kicker, children }: { kicker?: string; children: ReactNode }) {
           {kicker}
         </p>
       )}
-      <h2 className="mt-[1cqw] text-[11cqw] leading-[1.1]" style={{ color: c.rose, fontFamily: HAND }}>
+      <h2 className="mt-[1cqw] text-[8.5cqw] leading-[1.1]" style={{ color: c.rose, fontFamily: HAND }}>
         {children}
       </h2>
       <Divider className="mt-[1.5cqw]" />
@@ -189,7 +191,7 @@ function Blessing({ invite }: { invite: Invite }) {
     </div>
   );
   return (
-    <section ref={ref} className="relative z-10 -mt-[55svh] px-[11cqw] pt-[20cqw] pb-[12cqw] text-center">
+    <section ref={ref} className="relative z-10 -mt-[55svh] px-[18cqw] pt-[24cqw] pb-[12cqw] text-center">
       <motion.div style={{ scale, opacity, filter: blur, transformOrigin: "50% 30%" }}>
         <p className="text-[9cqw] leading-none" style={{ color: c.gold, fontFamily: "var(--font-deva)" }}>
           ॐ
@@ -222,82 +224,154 @@ function Blessing({ invite }: { invite: Invite }) {
   );
 }
 
-/* ───────── Functions: a painted scene each ───────── */
+/* ───────── Functions on flower-shaped cards ───────── */
 
-const WEDDING = new Set(["phere", "anandkaraj", "muhurtham", "nikah"]);
+// A rosette: petals round an ellipse, in a 100 × 135 box, so it fits a tall card without stretching.
+const PETALS = Array.from({ length: 26 }, (_, i) => {
+  const a = (i / 26) * Math.PI * 2;
+  // Rounded so the server and browser render identical numbers.
+  return { x: Math.round((50 + Math.cos(a) * 40) * 100) / 100, y: Math.round((67.5 + Math.sin(a) * 57) * 100) / 100 };
+});
 
-function sceneFor(e: InviteEvent) {
-  if (WEDDING.has(e.kind)) return { src: `${art}/kailash-mandap.jpg`, top: "7%", dark: false };
-  if (e.kind === "reception") return { src: `${art}/kailash-night.jpg`, top: "17%", dark: true };
-  return { src: `${art}/kailash-arches.jpg`, top: "13%", dark: false };
-}
-
-function EventScene({ e, invite, i }: { e: InviteEvent; invite: Invite; i: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], ["-5%", "5%"]);
-  const s = sceneFor(e);
-  const ink = s.dark ? "#fbf3e6" : c.ink;
-  const accent = s.dark ? "#f1dca8" : c.rose;
+function FlowerCard({ e, invite }: { e: InviteEvent; invite: Invite }) {
   return (
-    <div ref={ref} className="relative w-full overflow-hidden" style={{ aspectRatio: "864 / 1536" }}>
-      <motion.div className="absolute -inset-y-[5%] inset-x-0" style={{ y }}>
-        <Art src={s.src} alt="" />
-      </motion.div>
-      {!s.dark && <div className="absolute inset-x-0 top-0 h-[55%]" style={{ background: "radial-gradient(70% 60% at 50% 35%, rgba(255,250,244,.7), transparent 75%)" }} />}
-      <Mist />
-      <motion.div
-        className="absolute inset-x-[12%] text-center"
-        style={{ top: s.top }}
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.4 }}
-        transition={{ duration: 1, ease, delay: 0.05 * i }}
-      >
-        <h3 className="text-[12cqw] leading-[1.05]" style={{ color: accent, fontFamily: HAND }}>
-          {e.name}
-        </h3>
-        {e.note && (
-          <p className="inv-serif mt-[1cqw] text-[3.8cqw] italic" style={{ color: ink }}>
-            {e.note}
+    <div>
+      <div className="relative mx-auto w-full" style={{ aspectRatio: "100 / 135" }}>
+        <svg viewBox="0 0 100 135" className="absolute inset-0 h-full w-full drop-shadow-[0_10px_18px_rgba(120,40,60,.18)]" aria-hidden>
+          {PETALS.map((p, i) => <circle key={`o${i}`} cx={p.x} cy={p.y} r={9.4} fill={c.gold} opacity={0.75} />)}
+          {PETALS.map((p, i) => <circle key={`i${i}`} cx={p.x} cy={p.y} r={8.9} fill="#fffaf3" />)}
+          <ellipse cx={50} cy={67.5} rx={40} ry={57} fill="#fffaf3" />
+          <ellipse cx={50} cy={67.5} rx={35.5} ry={52} fill="none" stroke={c.gold} strokeWidth={0.35} strokeDasharray="1.2 1.2" opacity={0.8} />
+          {PETALS.map((p, i) => <circle key={`d${i}`} cx={Math.round((50 + (p.x - 50) * 1.02) * 100) / 100} cy={Math.round((67.5 + (p.y - 67.5) * 1.02) * 100) / 100} r={0.9} fill={c.rose} opacity={0.55} />)}
+        </svg>
+        <div className="absolute inset-x-[19%] inset-y-[14%] flex flex-col items-center justify-center text-center">
+          <svg viewBox="0 0 24 24" className="w-[6cqw]" fill="none" stroke={c.gold} strokeWidth={1.3} aria-hidden>
+            <path d="M12 21c-3-2-5-5-5-8 2 0 4 1 5 3 1-2 3-3 5-3 0 3-2 6-5 8zM12 16V9M12 9c-2-2-2-4 0-6 2 2 2 4 0 6z" />
+          </svg>
+          <h3 className="mt-[1cqw] text-[10cqw] leading-[1.05]" style={{ color: c.rose, fontFamily: HAND }}>
+            {e.name}
+          </h3>
+          {e.note && (
+            <p className="inv-serif mt-[0.5cqw] text-[3.3cqw] leading-snug italic" style={{ color: c.soft }}>
+              {e.note}
+            </p>
+          )}
+          <p className="inv-label mt-[2cqw] text-[3.6cqw] leading-snug" style={{ color: c.rose, letterSpacing: "0.06em" }}>
+            {weekday(e.start).slice(0, 3)} · {fmtDate(e.start, { day: "numeric", month: "short", year: "numeric" })}
+            <br />
+            {time(e.start)}
           </p>
-        )}
-        <p className="inv-label mt-[3cqw] text-[5.2cqw] leading-snug" style={{ color: accent, letterSpacing: "0.08em" }}>
-          {weekday(e.start).slice(0, 3)} · {fmtDate(e.start, { day: "numeric", month: "short", year: "numeric" })}
-          <br />
-          {time(e.start)}
-        </p>
-        <p className="inv-serif mt-[2.5cqw] text-[4.4cqw] leading-tight font-semibold" style={{ color: ink }}>
-          {e.venue}
-        </p>
-        {e.address && (
-          <p className="inv-serif mt-[0.5cqw] text-[3.6cqw]" style={{ color: ink, opacity: 0.85 }}>
-            {e.address}
+          <p className="inv-serif mt-[2cqw] text-[4cqw] leading-tight font-semibold" style={{ color: c.ink }}>
+            {e.venue}
           </p>
-        )}
-        {e.dress && (
-          <p className="inv-serif mt-[1.5cqw] text-[3.6cqw] italic" style={{ color: accent }}>
-            Dress: {e.dress}
-          </p>
-        )}
+          {e.address && (
+            <p className="inv-serif mt-[0.5cqw] line-clamp-2 text-[3cqw] leading-snug" style={{ color: c.soft }}>
+              {e.address}
+            </p>
+          )}
+          {e.dress && (
+            <p className="inv-serif mt-[1cqw] text-[3.2cqw] italic" style={{ color: c.rose }}>
+              Dress: {e.dress}
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="-mt-[2cqw] flex justify-center">
         <EventActions event={e} invite={invite} theme={kailash} />
-      </motion.div>
+      </div>
     </div>
   );
 }
 
 function Events({ invite }: { invite: Invite }) {
   return (
-    <section className="relative pt-[10cqw]">
-      <div className="px-[10cqw] pb-[8cqw]">
+    <section className="relative px-[17cqw] py-[12cqw]">
+      <Reveal>
+        <Title kicker="Join us for">The celebrations</Title>
+      </Reveal>
+      <ol className="mt-[8cqw] space-y-[9cqw]">
+        {invite.events.map((e, i) => (
+          <motion.li key={e.name + i} initial={{ opacity: 0, y: 30, scale: 0.94 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.9, ease }}>
+            <FlowerCard e={e} invite={invite} />
+          </motion.li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+/* ───────── Closing: the mandap ───────── */
+
+function Closing({ invite }: { invite: Invite }) {
+  const [a, b] = couple(invite);
+  return (
+    <section id="kailash-closing" className="relative w-full overflow-hidden" style={{ aspectRatio: "864 / 1536" }}>
+      <Art src={`${art}/kailash-mandap.jpg`} alt={`${a.first} and ${b.first} walking into the mandap`} />
+      <div className="absolute inset-x-0 top-0 h-[50%]" style={{ background: "radial-gradient(70% 60% at 50% 30%, rgba(255,250,244,.75), transparent 75%)" }} />
+      <Mist />
+      <div className="absolute inset-x-[12%] top-[7%] text-center">
         <Reveal>
-          <Title kicker="Join us for">The celebrations</Title>
+          <Divider />
+          <p className="inv-serif mt-[4cqw] text-[5cqw] leading-snug italic" style={{ color: c.ink }}>
+            {invite.closing}
+          </p>
+          <p className="mt-[3cqw] text-[12cqw] leading-none" style={{ color: c.rose, fontFamily: HAND }}>
+            {a.first} &amp; {b.first}
+          </p>
+          {invite.hashtag && (
+            <p className="inv-label mt-[3cqw] text-[2.8cqw]" style={{ color: c.gold }}>
+              {invite.hashtag}
+            </p>
+          )}
+          <Link href="/" className="inv-label mt-[5cqw] inline-block text-[2.2cqw] opacity-70" style={{ color: c.ink }}>
+            Crafted with love by {site.name}
+          </Link>
         </Reveal>
       </div>
-      {invite.events.map((e, i) => (
-        <EventScene key={e.name + i} e={e} invite={invite} i={i} />
-      ))}
     </section>
+  );
+}
+
+/* ───────── The arches frame the invite scrolls inside ───────── */
+
+// How much of each edge of the arches painting is ornament (%), so content scrolls underneath it.
+const FRAME = { top: 15, bottom: 6, side: 17 };
+
+/** Fades in as the temple dissolves, and out again as the mandap closing scene arrives. */
+function Frame() {
+  const { scrollY } = useScroll();
+  const [edges, setEdges] = useState({ start: 800, end: 1e9 });
+  useEffect(() => {
+    const measure = () => {
+      const vh = window.innerHeight;
+      const closing = document.getElementById("kailash-closing");
+      const end = closing ? closing.getBoundingClientRect().top + window.scrollY - vh : 1e9;
+      setEdges({ start: vh * 0.8, end });
+    };
+    measure();
+    const t = window.setTimeout(measure, 1500);
+    window.addEventListener("resize", measure);
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+  const vh = edges.start / 0.8;
+  const opacity = useTransform(scrollY, (y: number) => Math.min(Math.max(0, Math.min(1, (y - edges.start) / (vh * 0.28))), Math.max(0, Math.min(1, (edges.end + vh * 0.55 - y) / (vh * 0.35)))));
+  const f = FRAME;
+  const soft = 4;
+  const mask = [
+    `linear-gradient(to bottom, #000 0%, #000 ${f.top}%, transparent ${f.top + soft}%, transparent ${100 - f.bottom - soft}%, #000 ${100 - f.bottom}%, #000 100%)`,
+    `linear-gradient(to right, #000 0%, #000 ${f.side}%, transparent ${f.side + soft / 2}%, transparent ${100 - f.side - soft / 2}%, #000 ${100 - f.side}%, #000 100%)`,
+  ].join(", ");
+  return (
+    <motion.div className="absolute inset-0" style={{ opacity }} aria-hidden>
+      <div className="absolute inset-x-0 bottom-full h-[50vh]" style={{ background: c.paper }} />
+      <div className="absolute inset-0" style={{ WebkitMaskImage: mask, maskImage: mask }}>
+        <Art src={`${art}/kailash-arches.jpg`} />
+      </div>
+      <div className="absolute inset-x-0 top-full h-[50vh]" style={{ background: c.paper }} />
+    </motion.div>
   );
 }
 
@@ -310,11 +384,14 @@ export const kailash: InviteTheme = {
   id: "kailash",
   vars: { ...base.vars, "--inv-accent": c.rose } as CSSProperties,
   accent: c.rose,
+  // Shared sections (scratch card, countdown, photos, RSVP) stay inside the arches' opening.
+  ui: { ...base.ui, section: "relative px-[18cqw] py-[12cqw]" },
   Hero,
   Blessing,
   Events,
+  Closing,
   Backdrop,
-  Frame: undefined,
+  Frame,
   Divider,
   Title,
 };
