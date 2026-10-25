@@ -2,21 +2,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "framer-motion";
-import { Children, createContext, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { AnimatePresence, motion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { site } from "@/config/site";
 import type { Invite } from "@/data/invites";
 import { fmtDate, monthName, time, weekday, yearNum } from "@/lib/format";
 import { makeIllustrated } from "./illustrated";
 import { useOpened, usePreview } from "./opened";
-import { couple, EventActions } from "./shared";
+import { couple, EventActions, Reveal } from "./shared";
 import type { InviteTheme } from "./types";
 
 /**
  * Mandir: a walk into a temple. Guests open carved doors, then scroll up the carpet towards the
- * temple until it dissolves into a painted arch. From there the arch stays fixed and every section
- * is a scene that comes towards you from the distance, settles inside the arch, and flies past as
- * the next one arrives. Art: public/art/illus/mandir-*.
+ * temple until it dissolves into a painted arch and the invitation zooms in. From there the arch
+ * stays fixed and the rest scrolls inside it, like the other illustrated designs. Art: public/art/illus/mandir-*.
  */
 
 const art = "/art/illus";
@@ -31,13 +30,16 @@ const c = {
 const HAND = "var(--font-alex-brush), cursive";
 const ease = [0.22, 1, 0.36, 1] as const;
 
+// How much of each edge of the arch painting is ornament (%), so content can scroll underneath it.
+const FRAME = { top: 16, bottom: 22, side: 6 };
+
 // Doors and seal, and the painted arch as the page backdrop, come from the shared illustrated engine.
 const base = makeIllustrated({
   id: "mandir",
   images: { opening: `${art}/mandir-gate.jpg`, hero: `${art}/mandir-temple.jpg`, card: `${art}/mandir-card.jpg` },
   opening: "doors",
   heroTextTop: 8,
-  frame: { top: 16, bottom: 22, side: 6 },
+  frame: FRAME,
   colors: { ink: c.ink, accent: c.name, soft: c.soft, paper: c.paper, onAccent: "#fff" },
   fonts: { script: "var(--font-bodoni), serif", serif: "var(--font-cormorant), serif", label: "var(--font-marcellus), serif" },
 });
@@ -189,152 +191,70 @@ function Walk({ invite }: { invite: Invite }) {
   );
 }
 
-/* ───────── The stage: scenes that walk towards you through the arch ───────── */
-
-// How far each scene is from the viewer, in scene steps: <0 still ahead, 0–1 here, >1 walked past.
-const SceneContext = createContext<MotionValue<number> | null>(null);
-const STEP = 95; // svh of scrolling per scene
-
-function Stage({ children }: { children: ReactNode }) {
-  const items = Children.toArray(children);
-  const [empty, setEmpty] = useState<Record<number, boolean>>({});
-  const order: number[] = [];
-  let n = 0;
-  items.forEach((_, i) => (order[i] = empty[i] ? -1 : n++));
-  const spacer = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: spacer, offset: ["start end", "end end"] });
-  const span = Math.max(n - 0.45, 0.6);
-  // Scene i arrives as u goes from i-0.35 to i, rests until i+0.6, and passes the viewer by i+1.2.
-  const u = useTransform(scrollYProgress, (v) => -0.35 + v * (span + 0.35));
-  const [at, setAt] = useState(0);
-  useMotionValueEvent(u, "change", (v) => setAt(Math.max(-1, Math.min(n - 1, Math.round(v - 0.1)))));
-  return (
-    <>
-      <div ref={spacer} style={{ height: `${(span + 0.35) * STEP}svh` }} aria-hidden />
-      <div className="pointer-events-none fixed inset-y-0 left-1/2 z-20 w-full max-w-[480px] -translate-x-1/2 @container">
-        {items.map((child, i) => (
-          <Slot key={i} index={order[i]} u={u} onEmpty={(e) => setEmpty((p) => (p[i] === e ? p : { ...p, [i]: e }))}>
-            {child}
-          </Slot>
-        ))}
-        {/* Where you are on the walk */}
-        <motion.div className="absolute top-1/2 right-[2.5%] flex -translate-y-1/2 flex-col gap-[1.6cqw]" animate={{ opacity: at >= 0 ? 1 : 0 }} aria-hidden>
-          {Array.from({ length: n }, (_, i) => (
-            <span key={i} className="block w-[1.4cqw] rounded-full transition-all duration-500" style={{ height: i === at ? "4.5cqw" : "1.4cqw", background: i === at ? c.name : `${c.gold}88` }} />
-          ))}
-        </motion.div>
-      </div>
-    </>
-  );
-}
-
-function Slot({ index, u, onEmpty, children }: { index: number; u: MotionValue<number>; onEmpty: (empty: boolean) => void; children: ReactNode }) {
-  const box = useRef<HTMLDivElement>(null);
-  const inner = useRef<HTMLDivElement>(null);
-  const [fit, setFit] = useState(1);
-  const [live, setLive] = useState(false);
-  const report = useRef(onEmpty);
-  useEffect(() => {
-    report.current = onEmpty;
-  });
-
-  // Shrink a scene that is taller than the arch's opening so nothing hides behind the frame.
-  useEffect(() => {
-    const el = inner.current;
-    const area = box.current;
-    if (!el || !area) return;
-    const ro = new ResizeObserver(() => {
-      const h = el.offsetHeight;
-      report.current(h < 4);
-      setFit(Math.min(1, area.clientHeight / Math.max(h, 1)));
-    });
-    ro.observe(el);
-    ro.observe(area);
-    return () => ro.disconnect();
-  }, []);
-
-  const s = useTransform(u, (v) => (index < 0 ? -9 : v - index));
-  const scale = useTransform(s, [-0.35, 0, 0.6, 1.2], [0.42, 1, 1, 2.1]);
-  const opacity = useTransform(s, [-0.35, -0.08, 0.68, 1.08], [0, 1, 1, 0]);
-  const blur = useTransform(s, [-0.35, -0.05, 0.7, 1.15], ["blur(3px)", "blur(0px)", "blur(0px)", "blur(4px)"]);
-  // A gold arch you pass under on the way to the next scene.
-  const archScale = useTransform(s, [0.55, 1.25], [1, 2.6]);
-  const archOpacity = useTransform(s, [0.5, 0.7, 1.2], [0, 0.55, 0]);
-  useMotionValueEvent(s, "change", (v) => setLive(v > -0.12 && v < 0.75));
-
-  return (
-    <div ref={box} className="absolute inset-x-0 top-[17%] bottom-[20%] flex items-center justify-center" style={{ pointerEvents: live ? "auto" : "none", visibility: index < 0 ? "hidden" : undefined }}>
-      <motion.svg viewBox="0 -1 100 131" className="pointer-events-none absolute w-[86%]" style={{ scale: archScale, opacity: archOpacity }} aria-hidden>
-        <path d={`M0.5,130 L0.5,20 ${CUSP} L99.5,130`} fill="none" stroke={c.gold} strokeWidth={0.6} />
-      </motion.svg>
-      <motion.div className="w-full" style={{ scale, opacity, filter: blur }}>
-        <div ref={inner} style={{ transform: `scale(${fit})` }}>
-          <SceneContext.Provider value={s}>{children}</SceneContext.Provider>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-/* ───────── The invitation: each name with their parents above it ───────── */
+/* ───────── The invitation: zooms in as the walk ends ───────── */
 
 function Blessing({ invite }: { invite: Invite }) {
   const [a, b] = couple(invite);
+  const ref = useRef<HTMLElement>(null);
+  // From far inside the temple to full size, as the walk finishes; ordinary scrolling after that.
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "start 15%"] });
+  const scale = useTransform(scrollYProgress, [0, 1], [0.4, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.45], [0, 1]);
+  const blur = useTransform(scrollYProgress, [0, 0.7], ["blur(4px)", "blur(0px)"]);
   const person = (p: typeof a) => (
     <div>
       {p.parents && (
-        <p className="mx-auto max-w-[62cqw] text-[3.2cqw] leading-snug font-semibold" style={{ color: c.name }}>
+        <p className="mx-auto max-w-[62cqw] text-[3.3cqw] leading-snug font-semibold" style={{ color: c.name }}>
           {p.parents}
         </p>
       )}
-      <p className="inv-script mt-[1.5cqw] text-[12.5cqw] leading-[0.95]" style={{ color: c.name }}>
+      <p className="inv-script mt-[2cqw] text-[13.5cqw] leading-[0.95]" style={{ color: c.name }}>
         {p.full || p.first}
       </p>
     </div>
   );
   return (
-    <section className="px-[13cqw] text-center">
-      <p className="inv-label text-[2.6cqw] leading-relaxed" style={{ color: c.gold }}>
-        {invite.hosts || "Together with their families"}
-      </p>
-      <p className="inv-serif mt-[2.5cqw] text-[4.4cqw] leading-snug" style={{ color: c.ink }}>
-        {invite.message}
-      </p>
-      <Divider className="my-[5cqw]" />
-      {person(a)}
-      <p className="my-[2.5cqw] text-[7.5cqw] leading-none" style={{ color: c.ink, fontFamily: HAND }}>
-        and
-      </p>
-      {person(b)}
+    // Starts while the walk is still pinned, so it rises out of the dissolving temple.
+    <section ref={ref} className="relative z-10 -mt-[55svh] px-[13cqw] pt-[24cqw] pb-[12cqw] text-center">
+      <motion.div style={{ scale, opacity, filter: blur, transformOrigin: "50% 30%" }}>
+        <Divider />
+        <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed" style={{ color: c.gold }}>
+          {invite.hosts || "Together with their families"}
+        </p>
+        <p className="inv-serif mt-[3cqw] text-[4.6cqw] leading-snug" style={{ color: c.ink }}>
+          {invite.message}
+        </p>
+        <Divider className="my-[6cqw]" />
+        {person(a)}
+        <p className="my-[3cqw] text-[8cqw] leading-none" style={{ color: c.ink, fontFamily: HAND }}>
+          and
+        </p>
+        {person(b)}
+        {invite.invocationMeaning && (
+          <p className="inv-serif mt-[7cqw] text-[3.6cqw] italic" style={{ color: c.soft }}>
+            {invite.invocationMeaning}
+          </p>
+        )}
+      </motion.div>
     </section>
   );
 }
 
-/* ───────── Functions: a row of arch cards to swipe through ───────── */
+/* ───────── Functions on arch cards ───────── */
 
 function Events({ invite }: { invite: Invite }) {
-  const [at, setAt] = useState(0);
-  const row = useRef<HTMLDivElement>(null);
-  const go = (i: number) => row.current?.scrollTo({ left: i * row.current.clientWidth, behavior: "smooth" });
-  const many = invite.events.length > 1;
   return (
-    <section>
-      <div className="px-[12cqw]">
+    <section className="relative px-[11cqw] py-[12cqw]">
+      <Reveal>
         <Title kicker="Mark your calendar">On the following events</Title>
-      </div>
-      <div
-        ref={row}
-        onScroll={(e) => setAt(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}
-        className="mt-[5cqw] flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
+      </Reveal>
+      <ol className="mt-[8cqw] space-y-[7cqw]">
         {invite.events.map((e, i) => (
-          <div key={e.name + i} className="w-full shrink-0 snap-center px-[14cqw]">
+          <motion.li key={e.name + i} initial={{ opacity: 0, y: 30, scale: 0.96 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.9, ease }}>
             <ArchCard>
-              <div className="-mt-[8cqw] px-[5cqw] pb-[5cqw] text-center">
-                <p className="inv-label text-[2.4cqw]" style={{ color: c.gold }}>
-                  {many ? `${i + 1} of ${invite.events.length}` : " "}
-                </p>
-                <h3 className="inv-script mt-[1.5cqw] text-[8.5cqw] leading-none" style={{ color: c.name }}>
+              <div className="-mt-[9cqw] px-[5cqw] pb-[6cqw] text-center">
+                <Sunburst className="mx-auto block w-[16cqw]" />
+                <h3 className="inv-script mt-[2cqw] text-[8.5cqw] leading-none" style={{ color: c.name }}>
                   {e.name}
                 </h3>
                 <p className="inv-label mt-[2.5cqw] text-[2.5cqw]" style={{ color: c.ink }}>
@@ -343,7 +263,7 @@ function Events({ invite }: { invite: Invite }) {
                 <p className="inv-serif mt-[1cqw] text-[4cqw] italic" style={{ color: c.soft }}>
                   {time(e.start)} onwards
                 </p>
-                <p className="inv-serif mt-[2.5cqw] text-[4.4cqw] leading-tight" style={{ color: c.ink }}>
+                <p className="inv-serif mt-[3cqw] text-[4.4cqw] leading-tight" style={{ color: c.ink }}>
                   {e.venue}
                 </p>
                 {e.address && (
@@ -352,36 +272,21 @@ function Events({ invite }: { invite: Invite }) {
                   </p>
                 )}
                 {(e.dress || e.note) && (
-                  <p className="inv-serif mt-[1.5cqw] text-[3.6cqw] italic" style={{ color: c.name }}>
+                  <p className="inv-serif mt-[2cqw] text-[3.6cqw] italic" style={{ color: c.name }}>
                     {[e.dress && `Dress: ${e.dress}`, e.note].filter(Boolean).join(" · ")}
                   </p>
                 )}
                 <EventActions event={e} invite={invite} theme={mandir} />
               </div>
             </ArchCard>
-          </div>
+          </motion.li>
         ))}
-      </div>
-      {many && (
-        <div className="mt-[4cqw] flex items-center justify-center gap-[3cqw]">
-          <button type="button" onClick={() => go(Math.max(0, at - 1))} disabled={at === 0} aria-label="Previous function" className="grid size-[8cqw] place-items-center rounded-full border disabled:opacity-30" style={{ borderColor: c.gold, color: c.name }}>
-            ‹
-          </button>
-          <div className="flex gap-[1.5cqw]">
-            {invite.events.map((e, i) => (
-              <button key={e.name + i} type="button" onClick={() => go(i)} aria-label={`Show ${e.name}`} className="h-[1.6cqw] rounded-full transition-all" style={{ width: i === at ? "5cqw" : "1.6cqw", background: i === at ? c.name : `${c.gold}88` }} />
-            ))}
-          </div>
-          <button type="button" onClick={() => go(Math.min(invite.events.length - 1, at + 1))} disabled={at === invite.events.length - 1} aria-label="Next function" className="grid size-[8cqw] place-items-center rounded-full border disabled:opacity-30" style={{ borderColor: c.gold, color: c.name }}>
-            ›
-          </button>
-        </div>
-      )}
+      </ol>
     </section>
   );
 }
 
-/* ───────── Photos: an arc that gathers as the scene arrives ───────── */
+/* ───────── Photos: an arc that gathers as you scroll ───────── */
 
 function ArcPhoto({ src, i, n, p, onOpen }: { src: string; i: number; n: number; p: MotionValue<number>; onOpen: () => void }) {
   const angle = n > 1 ? -70 + (140 * i) / (n - 1) : 0;
@@ -407,19 +312,18 @@ function ArcPhoto({ src, i, n, p, onOpen }: { src: string; i: number; n: number;
 
 function Moments({ invite }: { invite: Invite }) {
   const photos = (invite.gallery ?? []).slice(0, 7);
-  const s = useContext(SceneContext);
-  const fallback = useRef<HTMLDivElement>(null);
-  const own = useScroll({ target: s ? undefined : fallback, offset: ["start end", "center center"] }).scrollYProgress;
-  const gather = useTransform(s ?? own, s ? [-0.3, 0.25] : [0, 1], [0, 1]);
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
   const [open, setOpen] = useState<number | null>(null);
-  if (!photos.length) return null;
   return (
-    <section className="px-[11cqw]">
-      <Title kicker="Our moments">Before the big day</Title>
-      <div ref={fallback} className="relative h-[72cqw] w-full">
+    <section className="relative px-[11cqw] py-[10cqw]">
+      <Reveal>
+        <Title kicker="Our moments">Before the big day</Title>
+      </Reveal>
+      <div ref={ref} className="relative h-[72cqw] w-full">
         <div className="absolute inset-x-0 top-[62%]">
           {photos.map((src, i) => (
-            <ArcPhoto key={src + i} src={src} i={i} n={photos.length} p={gather} onOpen={() => setOpen(i)} />
+            <ArcPhoto key={src + i} src={src} i={i} n={photos.length} p={scrollYProgress} onOpen={() => setOpen(i)} />
           ))}
         </div>
         <p className="inv-script absolute inset-x-0 top-[66%] text-center text-[7.5cqw] leading-[1.1]" style={{ color: c.ink }}>
@@ -439,28 +343,60 @@ function Moments({ invite }: { invite: Invite }) {
   );
 }
 
-/* ───────── The last scene ───────── */
+/* ───────── Closing ───────── */
 
 function Closing({ invite }: { invite: Invite }) {
   const [a, b] = couple(invite);
   return (
-    <section className="px-[13cqw] text-center">
-      <Divider />
-      <p className="inv-serif mt-[5cqw] text-[5cqw] leading-snug italic" style={{ color: c.ink }}>
-        {invite.closing}
-      </p>
-      <p className="inv-script mt-[4cqw] text-[11cqw] leading-none" style={{ color: c.name }}>
-        {a.first} &amp; {b.first}
-      </p>
-      {invite.hashtag && (
-        <p className="inv-label mt-[3cqw] text-[2.8cqw]" style={{ color: c.gold }}>
-          {invite.hashtag}
+    <section className="relative px-[13cqw] pt-[10cqw] text-center" style={{ paddingBottom: `calc(${FRAME.bottom}vh + 16cqw)` }}>
+      <Reveal>
+        <Divider />
+        <p className="inv-serif mt-[5cqw] text-[5cqw] leading-snug italic" style={{ color: c.ink }}>
+          {invite.closing}
         </p>
-      )}
-      <Link href="/" className="inv-label mt-[8cqw] inline-block text-[2.2cqw] opacity-60" style={{ color: c.ink }}>
-        Crafted with love by {site.name}
-      </Link>
+        <p className="inv-script mt-[4cqw] text-[11cqw] leading-none" style={{ color: c.name }}>
+          {a.first} &amp; {b.first}
+        </p>
+        {invite.hashtag && (
+          <p className="inv-label mt-[3cqw] text-[2.8cqw]" style={{ color: c.gold }}>
+            {invite.hashtag}
+          </p>
+        )}
+        <Link href="/" className="inv-label mt-[8cqw] inline-block text-[2.2cqw] opacity-60" style={{ color: c.ink }}>
+          Crafted with love by {site.name}
+        </Link>
+      </Reveal>
     </section>
+  );
+}
+
+/* ───────── The arch frame the invite scrolls inside ───────── */
+
+/** The painted arch's edges above the content, fading in as the temple dissolves at the end of the walk. */
+function Frame() {
+  const { scrollY } = useScroll();
+  const [vh, setVh] = useState(800);
+  useEffect(() => {
+    const measure = () => setVh(window.innerHeight);
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+  const opacity = useTransform(scrollY, [vh * 0.8, vh * 1.08], [0, 1]);
+  const f = FRAME;
+  const soft = 4;
+  const mask = [
+    `linear-gradient(to bottom, #000 0%, #000 ${f.top}%, transparent ${f.top + soft}%, transparent ${100 - f.bottom - soft}%, #000 ${100 - f.bottom}%, #000 100%)`,
+    `linear-gradient(to right, #000 0%, #000 ${f.side}%, transparent ${f.side + soft / 2}%, transparent ${100 - f.side - soft / 2}%, #000 ${100 - f.side}%, #000 100%)`,
+  ].join(", ");
+  return (
+    <motion.div className="absolute inset-0" style={{ opacity }} aria-hidden>
+      <div className="absolute inset-x-0 bottom-full h-[50vh]" style={{ background: c.paper }} />
+      <div className="absolute inset-0" style={{ WebkitMaskImage: mask, maskImage: mask }}>
+        <Image src={`${art}/mandir-card.jpg`} alt="" fill sizes="(max-width: 480px) 100vw, 480px" className="object-cover" />
+      </div>
+      <div className="absolute inset-x-0 top-full h-[50vh]" style={{ background: c.paper }} />
+    </motion.div>
   );
 }
 
@@ -469,14 +405,12 @@ export const mandir: InviteTheme = {
   id: "mandir",
   vars: { ...base.vars, "--inv-accent": c.name } as CSSProperties,
   accent: c.name,
-  ui: { ...base.ui, section: "relative px-[12cqw] py-[2cqw]" },
   Hero,
   Blessing,
   Events,
   Gallery: Moments,
   Closing,
-  Frame: undefined,
-  Stage,
+  Frame,
   Divider,
   Title,
 };

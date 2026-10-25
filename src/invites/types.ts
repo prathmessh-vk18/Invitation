@@ -29,8 +29,6 @@ export type InviteTheme = {
   Closing: FC<{ invite: Invite }>;
   // A design's own photo section in place of the shared one.
   Gallery?: FC<{ invite: Invite }>;
-  // Presents everything after the cover as full-screen scenes instead of one long page.
-  Stage?: FC<{ children: ReactNode }>;
   Backdrop: FC;
   // Optional ornamental frame drawn above the content; the invite scrolls underneath it.
   Frame?: FC;
