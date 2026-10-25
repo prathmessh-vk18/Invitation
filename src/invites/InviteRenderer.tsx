@@ -40,7 +40,7 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
     shows(invite, "countdown") && <Countdown key="countdown" invite={invite} theme={theme} />,
     <theme.Events key="events" invite={invite} />,
     <Story key="story" invite={invite} theme={theme} />,
-    shows(invite, "gallery") && (theme.Gallery ? <theme.Gallery key="gallery" invite={invite} /> : <Gallery key="gallery" invite={invite} theme={theme} />),
+    shows(invite, "gallery") && <Gallery key="gallery" invite={invite} theme={theme} />,
     shows(invite, "rsvp") && <Rsvp key="rsvp" invite={invite} theme={theme} />,
     <theme.Closing key="closing" invite={invite} />,
   ].filter(Boolean);

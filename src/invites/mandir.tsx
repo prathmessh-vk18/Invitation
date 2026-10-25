@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, motion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { site } from "@/config/site";
 import type { Invite } from "@/data/invites";
@@ -286,63 +286,6 @@ function Events({ invite }: { invite: Invite }) {
   );
 }
 
-/* ───────── Photos: an arc that gathers as you scroll ───────── */
-
-function ArcPhoto({ src, i, n, p, onOpen }: { src: string; i: number; n: number; p: MotionValue<number>; onOpen: () => void }) {
-  const angle = n > 1 ? -70 + (140 * i) / (n - 1) : 0;
-  const r = 31;
-  const rad = (angle * Math.PI) / 180;
-  const x = useTransform(p, [0, 1], ["0cqw", `${(Math.sin(rad) * r).toFixed(1)}cqw`]);
-  const y = useTransform(p, [0, 1], ["10cqw", `${(-Math.cos(rad) * r).toFixed(1)}cqw`]);
-  const rotate = useTransform(p, [0, 1], [(i % 2 ? 1 : -1) * 6, angle * 0.4]);
-  const scale = useTransform(p, [0, 1], [0.7, 1]);
-  return (
-    <motion.button
-      type="button"
-      onClick={onOpen}
-      aria-label={`Open photo ${i + 1}`}
-      className="absolute top-1/2 left-1/2 -mt-[9.5cqw] -ml-[9.5cqw] size-[19cqw] overflow-hidden rounded-[2.5cqw] border-[0.9cqw] border-white shadow-[0_10px_24px_-10px_rgba(60,25,10,.55)]"
-      style={{ x, y, rotate, scale, zIndex: i }}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt="" className="h-full w-full object-cover" />
-    </motion.button>
-  );
-}
-
-function Moments({ invite }: { invite: Invite }) {
-  const photos = (invite.gallery ?? []).slice(0, 7);
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
-  const [open, setOpen] = useState<number | null>(null);
-  return (
-    <section className="relative px-[11cqw] py-[10cqw]">
-      <Reveal>
-        <Title kicker="Our moments">Before the big day</Title>
-      </Reveal>
-      <div ref={ref} className="relative h-[72cqw] w-full">
-        <div className="absolute inset-x-0 top-[62%]">
-          {photos.map((src, i) => (
-            <ArcPhoto key={src + i} src={src} i={i} n={photos.length} p={scrollYProgress} onOpen={() => setOpen(i)} />
-          ))}
-        </div>
-        <p className="inv-script absolute inset-x-0 top-[66%] text-center text-[7.5cqw] leading-[1.1]" style={{ color: c.ink }}>
-          Almost time
-          <br />
-          to celebrate
-        </p>
-      </div>
-      <AnimatePresence>
-        {open !== null && (
-          <motion.div className="fixed inset-0 z-[70] grid place-items-center bg-black/85 p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(null)} role="dialog" aria-label="Photo">
-            <motion.img src={photos[open]} alt="" className="max-h-[85svh] max-w-full rounded-lg" initial={{ scale: 0.92 }} animate={{ scale: 1 }} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </section>
-  );
-}
-
 /* ───────── Closing ───────── */
 
 function Closing({ invite }: { invite: Invite }) {
@@ -408,7 +351,6 @@ export const mandir: InviteTheme = {
   Hero,
   Blessing,
   Events,
-  Gallery: Moments,
   Closing,
   Frame,
   Divider,

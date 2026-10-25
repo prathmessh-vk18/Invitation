@@ -37,7 +37,7 @@ export const templates: TemplateMeta[] = [
     tagline: "Carved temple doors open onto a temple at sunrise, with your names in the sky under hanging bells.",
     description: [
       "Mandir opens behind carved temple doors with brass bells. Tap the seal and they swing apart onto a temple at sunrise, the two of you walking a lamp-lined carpet towards it, and your names in the sky under a floral arch.",
-      "The rest of the invite scrolls inside a painted temple-arch frame, with both families named above your names, every function on its own arch-shaped card, and your photos gathering into an arc as guests scroll.",
+      "The rest of the invite scrolls inside a painted temple-arch frame, with both families named above your names, every function on its own arch-shaped card, and your photos as polaroids guests can swipe through.",
       "Scratch-to-reveal date, countdown, RSVP and music are all included.",
     ],
     price: 299,
@@ -50,7 +50,7 @@ export const templates: TemplateMeta[] = [
       { name: "Bridal red", hex: "#b3261e" },
     ],
     suits: ["Hindu weddings across North & West India", "Temple and heritage venues", "Couples who want a painted, traditional look"],
-    signature: ["Carved temple doors", "Temple at sunrise", "Temple-arch frame", "Photos that gather into an arc"],
+    signature: ["Carved temple doors", "Temple at sunrise", "Temple-arch frame", "Walk-in zoom to your names"],
     tint: "#fbeada",
     icon: { bg: "#a8573a", fg: "#fbeada" },
     addedOn: "2026-10-27",
