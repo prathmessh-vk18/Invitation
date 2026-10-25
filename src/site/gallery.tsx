@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import { PriceTag } from "./offer";
+import { PriceTag, TopSeller } from "./offer";
 import { categories } from "@/data/categories";
 import { templates, type CategoryId, type TemplateMeta } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
@@ -36,6 +36,7 @@ export function TemplateTile({ t, index = 0, price }: { t: TemplateMeta; index?:
         {price && (
           <span className="absolute top-4 right-4 rounded-full bg-surface px-3 py-1 text-ink"><PriceTag price={t.price} mrp={t.mrp} size="sm" /></span>
         )}
+        {t.topSeller && <TopSeller className="absolute top-4 left-4" />}
       </div>
       <TileCaption icon={<TemplateIcon t={t} />} name={t.name} sub={t.mood} />
     </Link>
@@ -48,14 +49,15 @@ type Filter = typeof ALL | CategoryId;
 /** The full gallery: category pills, sort tabs and a tile grid, inside the grey frame. */
 export function Gallery({ initial = ALL }: { initial?: Filter }) {
   const [cat, setCat] = useState<Filter>(initial);
-  const [sort, setSort] = useState<"latest" | "price">("latest");
+  const [sort, setSort] = useState<"featured" | "latest" | "price">("featured");
   const labels = [ALL, ...categories.map((c) => c.label)] as const;
   const labelToId = (l: string): Filter => (l === ALL ? ALL : categories.find((c) => c.label === l)!.id);
   const idToLabel = (id: Filter) => (id === ALL ? ALL : categories.find((c) => c.id === id)!.label);
 
   const items = templates
     .filter((t) => cat === ALL || t.category === cat)
-    .sort((a, b) => (sort === "latest" ? b.addedOn.localeCompare(a.addedOn) : a.price - b.price));
+    // Featured keeps the order designs are listed in data/templates.
+    .sort((a, b) => (sort === "featured" ? 0 : sort === "latest" ? b.addedOn.localeCompare(a.addedOn) : a.price - b.price));
 
   return (
     <Frame>
@@ -63,6 +65,7 @@ export function Gallery({ initial = ALL }: { initial?: Filter }) {
       <div className="mt-6">
         <Tabs
           options={[
+            { id: "featured", label: "Featured" },
             { id: "latest", label: "Latest" },
             { id: "price", label: "Price" },
           ]}

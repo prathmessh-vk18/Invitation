@@ -121,3 +121,15 @@ export function PriceTag({
     </span>
   );
 }
+
+/** "Top seller" pill for designs marked topSeller in data/templates. */
+export function TopSeller({ className }: { className?: string }) {
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full bg-ink px-2.5 py-1 font-sans text-[12px] font-semibold text-white ${className ?? ""}`}>
+      <svg viewBox="0 0 20 20" className="size-3 text-[#f4a81d]" fill="currentColor" aria-hidden>
+        <path d="M10 1.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L10 14.9l-5.2 2.7 1-5.8L1.5 7.7l5.9-.9L10 1.5z" />
+      </svg>
+      Top seller
+    </span>
+  );
+}

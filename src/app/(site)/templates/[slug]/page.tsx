@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { site } from "@/config/site";
 import { categoryOf } from "@/data/categories";
 import { getTemplate, templates } from "@/data/templates";
-import { OfferCountdown, PriceTag } from "@/site/offer";
+import { OfferCountdown, PriceTag, TopSeller } from "@/site/offer";
 import { TemplateTile } from "@/site/gallery";
 import { ClosingCta, Faq, HowItWorks } from "@/site/sections";
 import { ButtonLink, Container, Eyebrow, Heading, Lead, Panel, PhoneFrame, Reveal, Section } from "@/ui";
@@ -84,7 +84,8 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
                 {cat.label}
               </Link>
             </Eyebrow>
-            <h1 className="mt-6 flex items-baseline gap-4 text-display text-ink">
+            {t.topSeller && <TopSeller className="mt-5" />}
+            <h1 className={`${t.topSeller ? "mt-3" : "mt-6"} flex items-baseline gap-4 text-display text-ink`}>
               {t.name}
               <span className="text-[0.4em] font-normal text-faint" style={{ fontFamily: t.nativeFont }}>
                 {t.native}
