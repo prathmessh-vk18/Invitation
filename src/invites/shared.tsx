@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, type HTMLMotionProps } from "framer-motion";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Invite, InviteEvent } from "@/data/invites";
-import { calendarLink, longDate, mapsLink } from "@/lib/format";
+import { calendarLink, directionsLink, longDate } from "@/lib/format";
 import { invites as demoInvites } from "@/data/invites";
 import { couple, initials } from "./people";
 
@@ -84,7 +84,7 @@ export function EventActions({ event, invite, theme }: { event: InviteEvent; inv
   const [a, b] = couple(invite);
   return (
     <div className="mt-[5cqw] flex flex-wrap justify-center gap-[2.5cqw]">
-      <a href={mapsLink(`${event.venue}, ${event.address}`)} target="_blank" rel="noreferrer" className={theme.ui.button}>
+      <a href={directionsLink(event)} target="_blank" rel="noreferrer" className={theme.ui.button}>
         <PinIcon /> Directions
       </a>
       <a

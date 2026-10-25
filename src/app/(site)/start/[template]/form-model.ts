@@ -1,10 +1,11 @@
 import type { SectionId } from "@/config/customise";
 import type { EventKind, Invite } from "@/data/invites";
+import { isMapUrl, splitMapLink } from "@/lib/format";
 
 /* ───────── State ───────── */
 
 export type Person = { first: string; full: string; parents: string };
-export type EventRow = { kind: EventKind; name: string; date: string; time: string; venue: string; address: string; dress: string; note: string };
+export type EventRow = { kind: EventKind; name: string; date: string; time: string; venue: string; address: string; mapUrl: string; dress: string; note: string };
 export type FormState = {
   lead: "bride" | "groom";
   bride: Person;
@@ -33,7 +34,7 @@ export type FormState = {
 export const LIMITS = { name: 40, fullName: 80, parents: 160, city: 80, message: 400, closing: 240, venue: 120, address: 200 };
 
 const emptyPerson: Person = { first: "", full: "", parents: "" };
-export const blankEvent = (kind: EventKind = "phere", name = ""): EventRow => ({ kind, name, date: "", time: "", venue: "", address: "", dress: "", note: "" });
+export const blankEvent = (kind: EventKind = "phere", name = ""): EventRow => ({ kind, name, date: "", time: "", venue: "", address: "", mapUrl: "", dress: "", note: "" });
 
 /** Ceremonies whose date and time usually match the wedding's own. */
 export const mainCeremonies: EventKind[] = ["phere", "nikah", "anandkaraj", "muhurtham"];
@@ -145,6 +146,7 @@ export function validate(s: FormState, today: string): Record<string, string> {
     else if (s.weddingDate && ev.date > addDays(s.weddingDate, 10)) e[`${k}.date`] = "This is well after the wedding. Check the date.";
     if (!ev.time) e[`${k}.time`] = "Add a time.";
     if (!ev.venue.trim()) e[`${k}.venue`] = "Enter the venue name.";
+    if (ev.mapUrl?.trim() && !isMapUrl(ev.mapUrl)) e[`${k}.mapUrl`] = "Paste a Google Maps link, e.g. https://maps.app.goo.gl/…";
   });
 
   if (s.message.length > LIMITS.message) e.message = `Keep it under ${LIMITS.message} characters.`;
@@ -190,7 +192,7 @@ export function toDetails(s: FormState) {
     date: iso(s.weddingDate, s.weddingTime),
     city: s.city,
     hashtag: s.hashtag,
-    events: s.events.map((e) => ({ kind: e.kind, name: e.name, start: iso(e.date, e.time), venue: e.venue, address: e.address, dress: e.dress, note: e.note })),
+    events: s.events.map((e) => ({ kind: e.kind, name: e.name, start: iso(e.date, e.time), venue: e.venue, address: e.address, mapUrl: splitMapLink(e.mapUrl ?? "").url, dress: e.dress, note: e.note })),
     rsvp: { phone: mobile10(rsvp), by: s.rsvpBy ? iso(s.rsvpBy, "00:00") : "", contact: s.hosts },
     closing: s.closing,
     music: s.music,

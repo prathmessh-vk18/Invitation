@@ -616,13 +616,25 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
                 placeholder="Lake Pichola, Udaipur 313001"
                 maxLength={LIMITS.address}
               />
+              <Input
+                k={`${k}.mapUrl`}
+                label="Google Maps link"
+                hint="optional"
+                help="In Google Maps, tap Share and copy the link. Guests' Directions button opens it."
+                value={e.mapUrl ?? ""}
+                onChange={(v) => setEvent(i, "mapUrl", v)}
+                onBlur={() => touch(`${k}.mapUrl`)}
+                error={shown(`${k}.mapUrl`)}
+                placeholder="https://maps.app.goo.gl/…"
+                maxLength={300}
+              />
               <Input k={`${k}.dress`} label="Dress code" hint="optional" value={e.dress} onChange={(v) => setEvent(i, "dress", v)} onBlur={() => touch(`${k}.dress`)} placeholder="Shades of yellow" maxLength={80} />
               <Input k={`${k}.note`} label="Note" hint="optional" value={e.note} onChange={(v) => setEvent(i, "note", v)} onBlur={() => touch(`${k}.note`)} placeholder="Lunch to follow" maxLength={160} />
             </div>
             {prev && prev.venue && !e.venue && (
               <button
                 type="button"
-                onClick={() => setS((p) => ({ ...p, events: p.events.map((x, j) => (j === i ? { ...x, venue: prev.venue, address: prev.address } : x)) }))}
+                onClick={() => setS((p) => ({ ...p, events: p.events.map((x, j) => (j === i ? { ...x, venue: prev.venue, address: prev.address, mapUrl: prev.mapUrl } : x)) }))}
                 className="mt-3 text-caption font-medium text-muted underline underline-offset-4 hover:text-ink"
               >
                 Same venue as {prev.name || `function ${i}`}

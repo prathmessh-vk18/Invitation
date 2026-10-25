@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fontVars, shows } from "@/config/customise";
 import type { Invite } from "@/data/invites";
+import { withMapLinks } from "@/lib/format";
 import { useFitScript } from "./fit";
 import { useInviteMusic } from "./music";
 import { OpenedContext } from "./opened";
@@ -10,7 +11,8 @@ import { themes } from "./registry";
 import { ScratchDate } from "./scratch";
 import { Countdown, Gallery, MusicToggle, Rsvp, Story } from "./shared";
 
-export function InviteRenderer({ invite }: { invite: Invite }) {
+export function InviteRenderer({ invite: given }: { invite: Invite }) {
+  const invite = useMemo(() => withMapLinks(given), [given]);
   const theme = themes[invite.template];
   const [opened, setOpened] = useState(false);
   const [gone, setGone] = useState(false);

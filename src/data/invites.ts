@@ -15,6 +15,8 @@ export type InviteEvent = {
   address: string;
   dress?: string;
   note?: string;
+  // The couple's own Google Maps link; Directions opens it instead of searching the address.
+  mapUrl?: string;
 };
 
 export type Person = {

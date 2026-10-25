@@ -2,6 +2,7 @@ import type { EventKind, Invite, InviteEvent } from "@/data/invites";
 import { getTemplate, type TemplateId } from "@/data/templates";
 import { getFontStyle, isSectionId } from "@/config/customise";
 import { isTrackId } from "@/config/music";
+import { splitMapLink } from "@/lib/format";
 
 export type OrderStatus = "awaiting_payment" | "payment_submitted" | "paid" | "live" | "cancelled";
 
@@ -113,6 +114,10 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
   const events: InviteEvent[] = rawEvents.map((e) => {
     const o = (e ?? {}) as Record<string, unknown>;
     const kind = (kinds.has(o.kind as EventKind) ? o.kind : "phere") as EventKind;
+    // A map link typed into the address moves to mapUrl.
+    const { url, rest } = splitMapLink(str(o.address, 300));
+    const given = str(o.mapUrl, 300);
+    const mapUrl = splitMapLink(given).url || url;
     return {
       kind,
       name: str(o.name, 40),
@@ -120,9 +125,10 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       start: str(o.start, 40),
       end: str(o.end, 40) || undefined,
       venue: str(o.venue, 120),
-      address: str(o.address, 200),
+      address: rest.slice(0, 200),
       dress: str(o.dress, 80) || undefined,
       note: str(o.note, 160) || undefined,
+      ...(mapUrl ? { mapUrl } : {}),
     };
   });
   if (!events.length) errors.push("Add at least one function.");
