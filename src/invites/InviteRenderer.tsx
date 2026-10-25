@@ -32,6 +32,19 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
     music.play();
   };
 
+  // Everything after the cover, in order. Designs with a Stage present these as scenes.
+  const sections = [
+    <theme.Blessing key="blessing" invite={invite} />,
+    !theme.Stage && <theme.Divider key="divider" />,
+    shows(invite, "scratch") && <ScratchDate key="scratch" invite={invite} theme={theme} />,
+    shows(invite, "countdown") && <Countdown key="countdown" invite={invite} theme={theme} />,
+    <theme.Events key="events" invite={invite} />,
+    <Story key="story" invite={invite} theme={theme} />,
+    shows(invite, "gallery") && (theme.Gallery ? <theme.Gallery key="gallery" invite={invite} /> : <Gallery key="gallery" invite={invite} theme={theme} />),
+    shows(invite, "rsvp") && <Rsvp key="rsvp" invite={invite} theme={theme} />,
+    <theme.Closing key="closing" invite={invite} />,
+  ].filter(Boolean);
+
   return (
     <OpenedContext.Provider value={opened}>
       <div ref={rootRef} style={{ ...theme.vars, ...fontVars(invite.font) }} className={`${theme.root} min-h-svh`}>
@@ -39,15 +52,7 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
           <theme.Backdrop />
           <div className="relative">
             <theme.Hero invite={invite} />
-            <theme.Blessing invite={invite} />
-            <theme.Divider />
-            {shows(invite, "scratch") && <ScratchDate invite={invite} theme={theme} />}
-            {shows(invite, "countdown") && <Countdown invite={invite} theme={theme} />}
-            <theme.Events invite={invite} />
-            <Story invite={invite} theme={theme} />
-            {shows(invite, "gallery") && (theme.Gallery ? <theme.Gallery invite={invite} /> : <Gallery invite={invite} theme={theme} />)}
-            {shows(invite, "rsvp") && <Rsvp invite={invite} theme={theme} />}
-            <theme.Closing invite={invite} />
+            {theme.Stage ? <theme.Stage>{sections}</theme.Stage> : sections}
           </div>
         </main>
 
