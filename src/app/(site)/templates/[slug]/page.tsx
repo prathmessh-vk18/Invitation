@@ -17,7 +17,7 @@ export const instant = false;
 
 /** The design's own artwork as its share preview (illustrated designs), else the site card. */
 const illustrated = new Set(["mandir", "mahal", "khat", "gopuram", "bagh"]);
-const shareImage = (id: string) => (illustrated.has(id) ? `/art/illus/${id}-hero.jpg` : "/opengraph-image");
+const shareImage = (id: string) => (id === "mandir" ? "/art/illus/mandir-temple.jpg" : illustrated.has(id) ? `/art/illus/${id}-hero.jpg` : "/opengraph-image");
 
 export function generateStaticParams() {
   return templates.map((t) => ({ slug: t.id }));
