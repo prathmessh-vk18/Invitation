@@ -1,4 +1,4 @@
-export type TemplateId = "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram";
+export type TemplateId = "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram";
 export type CategoryId = "hindu" | "muslim" | "sikh" | "south-indian";
 
 export type TemplateMeta = {
@@ -27,6 +27,34 @@ export type TemplateMeta = {
 const DEVA = "var(--font-deva)";
 
 export const templates: TemplateMeta[] = [
+  {
+    id: "mandir",
+    category: "hindu",
+    name: "Mandir",
+    native: "मंदिर",
+    nativeFont: DEVA,
+    mood: "Illustrated · Temple sunrise",
+    tagline: "Temple doors open at sunrise, and your guests walk the carpet into your invitation, one painted scene at a time.",
+    description: [
+      "Mandir is a painted journey. Guests tap the seal on carved sandstone temple doors, then scroll up a lamp-lined carpet towards a temple at sunrise as your names rise into the sky.",
+      "A scalloped temple arch grows into the invitation card, and the story carries on through a palace garden for your functions, a rose-covered mandap with a swing to meet the bride and groom, and your photos gathering into an arc.",
+      "It ends at a lotus pond with a decorated elephant, after venue tabs with Google Maps, RSVP and the countdown.",
+    ],
+    price: 299,
+    mrp: 999,
+    demoSlug: "advait-weds-naina",
+    palette: [
+      { name: "Sunrise peach", hex: "#f9ceab" },
+      { name: "Terracotta", hex: "#a8573a" },
+      { name: "Sandstone", hex: "#d8b48a" },
+      { name: "Bridal red", hex: "#b3261e" },
+    ],
+    suits: ["Hindu weddings across North & West India", "Temple and heritage venues", "Couples who want a cinematic, story-like invite"],
+    signature: ["Scroll-through temple journey", "Scalloped arch cards", "Mandap with a swing", "Photos that gather into an arc"],
+    tint: "#fbeada",
+    icon: { bg: "#a8573a", fg: "#fbeada" },
+    addedOn: "2026-10-27",
+  },
   {
     id: "mahal",
     category: "hindu",

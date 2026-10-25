@@ -44,8 +44,9 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
             {shows(invite, "scratch") && <ScratchDate invite={invite} theme={theme} />}
             {shows(invite, "countdown") && <Countdown invite={invite} theme={theme} />}
             <theme.Events invite={invite} />
+            {theme.AfterEvents && <theme.AfterEvents invite={invite} />}
             <Story invite={invite} theme={theme} />
-            {shows(invite, "gallery") && <Gallery invite={invite} theme={theme} />}
+            {shows(invite, "gallery") && (theme.Gallery ? <theme.Gallery invite={invite} /> : <Gallery invite={invite} theme={theme} />)}
             {shows(invite, "rsvp") && <Rsvp invite={invite} theme={theme} />}
             <theme.Closing invite={invite} />
           </div>

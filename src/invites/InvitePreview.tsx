@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { fontVars } from "@/config/customise";
 import { getInvite, type Invite } from "@/data/invites";
 import { useFitScript } from "./fit";
-import { OpenedContext } from "./opened";
+import { OpenedContext, PreviewContext } from "./opened";
 import { themes } from "./registry";
 
 /**
@@ -60,6 +60,7 @@ export function InvitePreview({
   }, [loop, inView, cycle, offset]);
 
   return (
+    <PreviewContext.Provider value={true}>
     <OpenedContext.Provider value={opened}>
       <div
         ref={ref}
@@ -78,5 +79,6 @@ export function InvitePreview({
         )}
       </div>
     </OpenedContext.Provider>
+    </PreviewContext.Provider>
   );
 }

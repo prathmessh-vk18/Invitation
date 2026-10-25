@@ -27,6 +27,9 @@ export type InviteTheme = {
   Blessing: FC<{ invite: Invite }>;
   Events: FC<{ invite: Invite }>;
   Closing: FC<{ invite: Invite }>;
+  // Optional extra scene after the functions, and a design's own photo section in place of the shared one.
+  AfterEvents?: FC<{ invite: Invite }>;
+  Gallery?: FC<{ invite: Invite }>;
   Backdrop: FC;
   // Optional ornamental frame drawn above the content; the invite scrolls underneath it.
   Frame?: FC;
