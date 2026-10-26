@@ -25,6 +25,8 @@ export type Order = {
   utr: string | null;
   admin_notes: string | null;
   invite_slug: string | null;
+  partner_code?: string | null;
+  partner_commission?: number | null;
   created_at: string;
   updated_at: string;
   payment_submitted_at: string | null;

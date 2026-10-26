@@ -14,7 +14,8 @@ import { instrumentals, songs, tracks, type Track } from "@/config/music";
 import { themes } from "@/invites/registry";
 import { useInviteMusic } from "@/invites/music";
 import { eventKinds } from "@/lib/orders";
-import { createOrder, createPhotoUpload, createSongUpload } from "@/lib/order-actions";
+import { checkPartnerCode, createOrder, createPhotoUpload, createSongUpload } from "@/lib/order-actions";
+import { cleanPartnerCode, readRefCookie } from "@/config/partners";
 import { browserSupabase } from "@/lib/supabase-browser";
 import { OfferCountdown, PriceTag } from "@/site/offer";
 import { Button, Panel, PhoneFrame, ease } from "@/ui";
@@ -307,6 +308,10 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
   const [opening, setOpening] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [pending, start] = useTransition();
+  // A partner's code: filled in from their share link, or typed by the couple.
+  const [refCode, setRefCode] = useState("");
+  const [partner, setPartner] = useState<{ code: string; name: string } | null>(null);
+  const [refState, setRefState] = useState<"idle" | "checking" | "unknown">("idle");
   const restored = useRef(false);
   const topRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -447,6 +452,30 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
     );
   }
 
+  async function applyRef(input: string) {
+    const code = cleanPartnerCode(input);
+    setRefCode(code);
+    if (!code) {
+      setPartner(null);
+      setRefState("idle");
+      return;
+    }
+    if (partner?.code === code) return;
+    setRefState("checking");
+    const found = await checkPartnerCode(code).catch(() => null);
+    setPartner(found);
+    setRefState(found ? "idle" : "unknown");
+  }
+
+  // Arrived through a partner's link: apply their code straight away.
+  useEffect(() => {
+    const code = readRefCookie();
+    if (!code) return;
+    const t0 = window.setTimeout(() => applyRef(code), 0);
+    return () => window.clearTimeout(t0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function submit() {
     const bad = steps.find((st) => stepHasErrors(st.id));
     if (bad) {
@@ -463,6 +492,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
         songPath: song?.path ?? null,
         photoPaths: showing("gallery") ? photos.map((x) => x.path) : [],
         customer: { ...s.customer, phone: mobile10(s.customer.phone) },
+        ...(refCode ? { partnerCode: refCode } : {}),
       });
       if ("errors" in res) {
         setServerErrors(res.errors);
@@ -856,6 +886,28 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
         maxLength={120}
         autoComplete="email"
       />
+      <Input
+        k="partnerCode"
+        label="Partner code"
+        hint="optional"
+        value={refCode}
+        onChange={(v) => {
+          setRefCode(cleanPartnerCode(v));
+          setRefState("idle");
+          setPartner(null);
+        }}
+        onBlur={() => applyRef(refCode)}
+        error={refState === "unknown" ? "We don't recognise this code. Check it, or clear it." : undefined}
+        help={
+          partner
+            ? `✓ Code ${partner.code} applied · referred by ${partner.name}`
+            : refState === "checking"
+              ? "Checking the code…"
+              : "Did a friend or creator send you here? Add their code so they get the credit."
+        }
+        placeholder="e.g. PRIYA"
+        maxLength={20}
+      />
       {showing("rsvp") && (
       <div className="rounded-tile bg-surface p-5">
         <p className="text-[15px] font-semibold">RSVPs</p>
@@ -956,6 +1008,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
           {s.customer.name} · +91 {mobile10(s.customer.phone)}
         </p>
         <p>{showing("rsvp") ? `RSVPs to +91 ${mobile10(s.rsvpSame ? s.customer.phone : s.rsvpPhone)}` : "No RSVP section"}</p>
+        {refCode && <p>{partner ? `Partner code ${partner.code} · ${partner.name}` : `Partner code ${refCode}`}</p>}
       </ReviewBlock>
       <p className="pt-2 text-caption text-subtle">No payment now. After you submit, we&rsquo;ll message you on WhatsApp with the payment details.</p>
     </div>

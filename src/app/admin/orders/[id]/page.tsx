@@ -96,6 +96,15 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
                   </a>
                 </Row>
                 <Row k="Email">{o.customer_email ?? "—"}</Row>
+                <Row k="Partner">
+                  {o.partner_code ? (
+                    <Link href="/admin/partners" className="underline underline-offset-4">
+                      {o.partner_code} · {formatINR(o.partner_commission ?? 0)} once paid
+                    </Link>
+                  ) : (
+                    "—"
+                  )}
+                </Row>
                 <Row k="Placed">{fmtDate(o.created_at, { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" })}</Row>
                 <Row k="Order page">
                   <Link href={`/order/${o.id}`} target="_blank" className="underline underline-offset-4">
