@@ -160,7 +160,7 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
             <Panel className="p-6">
               <p className="text-title">Notes</p>
               <div className="mt-4">
-                <NotesAndCancel id={o.id} notes={o.admin_notes ?? ""} status={o.status} />
+                <NotesAndCancel id={o.id} notes={o.admin_notes ?? ""} status={o.status} slug={o.invite_slug} />
               </div>
             </Panel>
           </div>

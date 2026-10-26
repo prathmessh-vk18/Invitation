@@ -23,17 +23,21 @@ type Props = {
 
 export function PaymentActions({ id, status, amount, code, customerPhone }: Pick<Props, "id" | "status" | "code" | "customerPhone"> & { amount: string }) {
   const [pending, start] = useTransition();
-  const ask = `Hi! Thank you for your order ${code} with ${site.name} 🌸\n\nThe total is ${amount}. I'm sending the payment QR code here. Once you've paid, please share the screenshot and we'll publish your invite.`;
-  if (status === "live" || status === "cancelled") return <p className="text-body text-muted">{status === "live" ? "Paid." : "Cancelled."}</p>;
+  const ask =
+    status === "live"
+      ? `Hi! Your ${site.name} invite for order ${code} is live 🎉\n\nThe total is ${amount}. I'm sending the payment QR code here. Once you've paid, please share the screenshot.`
+      : `Hi! Thank you for your order ${code} with ${site.name} 🌸\n\nThe total is ${amount}. I'm sending the payment QR code here. Once you've paid, please share the screenshot and we'll publish your invite.`;
+  if (status === "cancelled") return <p className="text-body text-muted">Cancelled.</p>;
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2">
-        {status !== "paid" && (
-          <a href={`https://wa.me/${customerPhone}?text=${encodeURIComponent(ask)}`} target="_blank" rel="noreferrer" className="rounded-full bg-whatsapp px-4 py-2.5 text-[15px] font-medium text-white">
-            Message for payment
-          </a>
-        )}
-        {status !== "paid" ? (
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Stays available after the invite is live, for couples who pay later. */}
+        <a href={`https://wa.me/${customerPhone}?text=${encodeURIComponent(ask)}`} target="_blank" rel="noreferrer" className="rounded-full bg-whatsapp px-4 py-2.5 text-[15px] font-medium text-white">
+          Message for payment
+        </a>
+        {status === "live" ? (
+          <span className="text-body text-muted">Marked paid ✓</span>
+        ) : status !== "paid" ? (
           <Button size="md" disabled={pending} onClick={() => start(() => setPaymentVerified(id, true))}>
             Mark as paid ✓
           </Button>
@@ -150,7 +154,7 @@ export function DetailsEditor({ id, detailsJson }: Pick<Props, "id" | "detailsJs
   );
 }
 
-export function NotesAndCancel({ id, notes, status }: Pick<Props, "id" | "notes" | "status">) {
+export function NotesAndCancel({ id, notes, status, slug }: Pick<Props, "id" | "notes" | "status" | "slug">) {
   const [text, setText] = useState(notes);
   const [pending, start] = useTransition();
   const [confirm, setConfirm] = useState(false);
@@ -168,7 +172,7 @@ export function NotesAndCancel({ id, notes, status }: Pick<Props, "id" | "notes"
         <Button size="md" variant="secondary" disabled={pending} onClick={() => start(() => saveNotes(id, text))}>
           Save notes
         </Button>
-        {status !== "cancelled" && status !== "live" && (
+        {status !== "cancelled" && (
           <>
             {!confirm ? (
               <Button size="md" variant="ghost" onClick={() => setConfirm(true)}>
@@ -176,9 +180,11 @@ export function NotesAndCancel({ id, notes, status }: Pick<Props, "id" | "notes"
               </Button>
             ) : (
               <>
-                <span className="text-body text-muted">Cancel this order?</span>
+                <span className="text-body text-muted">
+                  {slug ? `Cancel it and delete the invite at /i/${slug}? Guests' link stops working. This can't be undone.` : "Cancel this order?"}
+                </span>
                 <Button size="md" variant="ghost" className="text-[#8a1c1c]" disabled={pending} onClick={() => start(() => cancelOrder(id))}>
-                  Yes, cancel
+                  {slug ? "Yes, cancel and delete invite" : "Yes, cancel"}
                 </Button>
                 <Button size="md" variant="ghost" onClick={() => setConfirm(false)}>
                   Keep it

@@ -39,9 +39,18 @@ export async function setPaymentVerified(id: string, verified: boolean) {
   refresh(id);
 }
 
+/**
+ * Cancels an order. A live one also loses its invite: the row is deleted, so the address stops
+ * working at once and is free to use again. The order itself stays, marked cancelled, for the records.
+ */
 export async function cancelOrder(id: string) {
   await requireAdmin();
-  await db().from("orders").update({ status: "cancelled" }).eq("id", id);
+  const order = await loadOrder(id);
+  if (order.invite_slug) {
+    await db().from("invites").delete().eq("slug", order.invite_slug);
+    updateTag(`invite:${order.invite_slug}`);
+  }
+  await db().from("orders").update({ status: "cancelled", invite_slug: null }).eq("id", id);
   refresh(id);
 }
 
