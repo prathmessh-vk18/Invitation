@@ -1,5 +1,6 @@
 import { Footer, Header, WhatsAppFab } from "@/site/chrome";
 import { OfferBar } from "@/site/offer";
+import { ReferralWhatsApp } from "@/site/referral";
 
 export default function SiteLayout({ children }: LayoutProps<"/">) {
   return (
@@ -9,6 +10,7 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
       <main className="overflow-x-clip">{children}</main>
       <Footer />
       <WhatsAppFab />
+      <ReferralWhatsApp />
     </>
   );
 }

@@ -13,6 +13,9 @@ export function AdminHeader() {
           <Link href="/admin" className="text-[15px] font-medium text-muted hover:text-ink">
             Orders
           </Link>
+          <Link href="/admin/partners" className="text-[15px] font-medium text-muted hover:text-ink">
+            Partners
+          </Link>
         </div>
         <div className="flex items-center gap-4 text-[15px]">
           <Link href="/" target="_blank" className="text-muted hover:text-ink">

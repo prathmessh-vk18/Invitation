@@ -79,7 +79,10 @@ export default async function AdminOrders({ searchParams }: PageProps<"/admin">)
                     </td>
                     <td className="px-4 py-3">
                       {d.groom.first} &amp; {d.bride.first}
-                      <span className="block text-caption text-subtle">{o.customer_name}</span>
+                      <span className="block text-caption text-subtle">
+                        {o.customer_name}
+                        {o.partner_code && ` · via ${o.partner_code}`}
+                      </span>
                     </td>
                     <td className="px-4 py-3">{getTemplate(o.template)?.name ?? o.template}</td>
                     <td className="px-4 py-3 tabular-nums">{fmtDate(d.date, { day: "numeric", month: "short", year: "numeric" })}</td>

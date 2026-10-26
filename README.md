@@ -33,6 +33,16 @@ npm run build    # production build
    **Create invite**. The invite goes live at `/i/<address>` until 15 days after the wedding.
 4. Press **Send link on WhatsApp** to message the couple.
 
+### Partners
+
+Friends and creators earn a commission (₹100 by default, `src/config/partners.ts`) on every paid order
+they send. Run `supabase/migrations/0004_partners.sql`, then add partners in `/admin/partners`.
+
+- Their share link is `/r/<CODE>`: it remembers the code for 30 days, the order form shows it as applied,
+  and WhatsApp chats from the site carry it. Couples can also type the code at checkout.
+- Commission counts once the order is marked paid. Pay them on GPay, then press **Mark paid**.
+- Each partner sees their sales and balance at a private `/p/<token>` page.
+
 ## What's where
 
 | Path | What |

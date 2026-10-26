@@ -3,7 +3,8 @@
 import { randomUUID } from "node:crypto";
 import { getTemplate } from "@/data/templates";
 import { cleanPhone, orderTotal, validateDetails } from "@/lib/orders";
-import { db, MAX_PHOTOS, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
+import { findActivePartner } from "@/lib/partners";
+import { db, isSupabaseConfigured, MAX_PHOTOS, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
 
 const AUDIO = /^(audio\/(mpeg|mp3|mp4|x-m4a|aac|wav|x-wav|ogg))$/;
 const MAX_SONG_BYTES = 15 * 1024 * 1024;
@@ -39,7 +40,15 @@ export type CreateOrderInput = {
   songPath: string | null;
   photoPaths?: string[];
   customer: { name: string; phone: string; email: string };
+  partnerCode?: string;
 };
+
+/** Checks a partner code for the order form, so the couple sees it applied. */
+export async function checkPartnerCode(code: string): Promise<{ code: string; name: string } | null> {
+  if (!isSupabaseConfigured()) return null;
+  const p = await findActivePartner(code);
+  return p ? { code: p.code, name: p.name } : null;
+}
 
 export async function createOrder(input: CreateOrderInput): Promise<{ id: string } | { errors: string[] }> {
   const t = getTemplate(input.template);
@@ -55,6 +64,11 @@ export async function createOrder(input: CreateOrderInput): Promise<{ id: string
   if (phone.length < 12) errors.push("Add your WhatsApp number so we can send your link.");
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("Check your email address.");
   if (errors.length || !checked.ok) return { errors };
+
+  // A partner can't earn on their own order.
+  const partner = input.partnerCode ? await findActivePartner(input.partnerCode) : null;
+  if (input.partnerCode && !partner) return { errors: ["We don't recognise that partner code. Check it, or clear it to continue."] };
+  const credited = partner && partner.phone !== phone ? partner : null;
 
   const songPath = typeof input.songPath === "string" && /^uploads\/[0-9a-f-]{36}\.[a-z0-9]{1,5}$/.test(input.songPath) ? input.songPath : null;
 
@@ -72,6 +86,7 @@ export async function createOrder(input: CreateOrderInput): Promise<{ id: string
       song_path: songPath,
       // Only sent when there are photos, so orders still save on a database without the photos column.
       ...(photoPaths.length ? { photo_paths: photoPaths } : {}),
+      ...(credited ? { partner_code: credited.code, partner_commission: credited.commission } : {}),
     })
     .select("id")
     .single();
