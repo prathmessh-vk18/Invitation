@@ -134,13 +134,13 @@ export function validate(s: FormState, today: string): Record<string, string> {
   if (!s.weddingDate) e.weddingDate = "Pick the wedding date.";
   else if (today && s.weddingDate < today) e.weddingDate = "This date has already passed.";
   else if (today && s.weddingDate > `${Number(today.slice(0, 4)) + 3}${today.slice(4)}`) e.weddingDate = "That's more than 3 years away. Check the year.";
-  if (!s.weddingTime) e.weddingTime = "Add the ceremony time. Approximate is fine.";
+  if (!s.weddingTime) e.weddingTime = "Add the wedding time. Approximate is fine.";
   if (!s.city.trim()) e.city = "Enter the city, e.g. Udaipur, Rajasthan.";
 
   if (!s.events.length) e.events = "Add at least one function.";
   s.events.forEach((ev, i) => {
     const k = `events.${i}`;
-    if (!ev.name.trim()) e[`${k}.name`] = "Give this function a name, e.g. Haldi.";
+    if (!ev.name.trim()) e[`${k}.name`] = ev.kind === "other" ? "Name this function, e.g. Cocktail night." : "Pick which function this is.";
     if (!ev.date) e[`${k}.date`] = "Pick a date.";
     else if (today && ev.date < today) e[`${k}.date`] = "This date has already passed.";
     else if (s.weddingDate && ev.date > addDays(s.weddingDate, 10)) e[`${k}.date`] = "This is well after the wedding. Check the date.";

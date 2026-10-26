@@ -4,16 +4,18 @@ import { offer } from "@/config/offer";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
-import { formatINR } from "@/config/site";
 import { getInvite } from "@/data/invites";
 import type { TemplateMeta } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
+import { SectionPreview, type PreviewPart } from "@/invites/SectionPreview";
+import { PREVIEW_INVITE, PREVIEW_READY } from "@/app/preview/FullPreview";
 import { fmtDate } from "@/lib/format";
 import { fontStyles, getFontStyle, sections, type SectionId } from "@/config/customise";
 import { instrumentals, songs, tracks, type Track } from "@/config/music";
 import { themes } from "@/invites/registry";
 import { useInviteMusic } from "@/invites/music";
-import { eventKinds } from "@/lib/orders";
+import type { EventKind } from "@/data/invites";
+import { eventKinds, kindName } from "@/lib/orders";
 import { checkPartnerCode, createOrder, createPhotoUpload, createSongUpload } from "@/lib/order-actions";
 import { cleanPartnerCode, readRefCookie } from "@/config/partners";
 import { browserSupabase } from "@/lib/supabase-browser";
@@ -306,7 +308,10 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
   const [serverErrors, setServerErrors] = useState<string[]>([]);
   const [today, setToday] = useState("");
   const [opening, setOpening] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const [fullOpen, setFullOpen] = useState(false);
+  // The function the couple is editing, so the preview can show its card.
+  const [focusEvent, setFocusEvent] = useState<number | undefined>(undefined);
+  const fullRef = useRef<HTMLIFrameElement>(null);
   const [pending, start] = useTransition();
   // A partner's code: filled in from their share link, or typed by the couple.
   const [refCode, setRefCode] = useState("");
@@ -365,6 +370,10 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setS((p) => ({ ...p, [k]: v }));
   const setPerson = (who: "bride" | "groom", k: keyof Person, v: string) => setS((p) => ({ ...p, [who]: { ...p[who], [k]: v } }));
   const setEvent = (i: number, k: keyof EventRow, v: string) => setS((p) => ({ ...p, events: p.events.map((e, j) => (j === i ? { ...e, [k]: v } : e)) }));
+
+  // Picking a function fills in its usual name; "Other" leaves the name for the couple to write.
+  const setKind = (i: number, kind: EventKind) =>
+    setS((p) => ({ ...p, events: p.events.map((e, j) => (j === i ? { ...e, kind, name: kind === "other" ? "" : kindName(kind) } : e)) }));
 
   const preview = useMemo(() => toPreview(s, demo), [s, demo]);
   const current = steps[step];
@@ -507,6 +516,38 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
 
   const songUrl = song ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/songs/${song.path}` : "";
 
+  // The preview with the couple's own song and photos, when they've added them.
+  const live = useMemo(
+    () => ({
+      ...preview,
+      music: songUrl || s.music || preview.music,
+      ...(photos.length ? { gallery: photos.map((x) => photoUrl(x.path)) } : {}),
+      events: preview.events.map((e, i) => ({ ...e, ...(s.events[i]?.mapUrl ? { mapUrl: s.events[i].mapUrl } : {}) })),
+    }),
+    [preview, songUrl, s.music, s.events, photos],
+  );
+
+  // Which part of the invite this step fills in. The cover covers everything else.
+  const part: PreviewPart | null =
+    current.id === "functions" ? "events" : current.id === "wording" ? "wording" : current.id === "photos" && showing("gallery") ? "gallery" : current.id === "contact" && showing("rsvp") ? "rsvp" : null;
+
+  // The full-invite popup: its page asks for the invite once it has loaded.
+  useEffect(() => {
+    if (!fullOpen) return;
+    const onMessage = (e: MessageEvent) => {
+      const frame = fullRef.current?.contentWindow;
+      if (!frame || e.source !== frame || e.data?.type !== PREVIEW_READY) return;
+      frame.postMessage({ type: PREVIEW_INVITE, invite: live }, window.location.origin);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setFullOpen(false);
+    window.addEventListener("message", onMessage);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("message", onMessage);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [fullOpen, live]);
+
   /* ───── Step bodies ───── */
 
   const couple = (
@@ -563,6 +604,22 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
           ]}
         />
       </div>
+      <div className="rounded-tile bg-surface p-5">
+        <p className="text-[15px] font-semibold">Opening blessing</p>
+        <p className="mt-0.5 text-body text-muted">The blessing at the very top of your invite. We&rsquo;ve suggested one that suits this design.</p>
+        <div className="mt-3">
+          <Input k="invocation" label="Opening line" hint="optional" value={s.invocation} onChange={(v) => set("invocation", v)} onBlur={() => touch("invocation")} maxLength={120} />
+        </div>
+        {s.invocation !== demo.invocation && (
+          <button
+            type="button"
+            onClick={() => setS((p) => ({ ...p, invocation: demo.invocation }))}
+            className="mt-3 text-caption font-medium text-muted underline underline-offset-4 hover:text-ink"
+          >
+            Use the suggested line
+          </button>
+        )}
+      </div>
     </div>
   );
 
@@ -572,15 +629,15 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
       <Input
         k="weddingTime"
         type="time"
-        label="Ceremony time"
-        help="The muhurat or main ceremony time."
+        label="Wedding time"
+        help="The muhurat or main wedding time. Approximate is fine."
         value={s.weddingTime}
         onChange={(v) => set("weddingTime", v)}
         onBlur={() => touch("weddingTime")}
         error={shown("weddingTime")}
       />
       <div className="sm:col-span-2">
-        <Input k="city" label="City" value={s.city} onChange={(v) => set("city", v)} onBlur={() => touch("city")} error={shown("city")} placeholder="Udaipur, Rajasthan" maxLength={LIMITS.city} autoComplete="address-level2" />
+        <Input k="city" label="City where the wedding will be held" value={s.city} onChange={(v) => set("city", v)} onBlur={() => touch("city")} error={shown("city")} placeholder="Udaipur, Rajasthan" maxLength={LIMITS.city} autoComplete="address-level2" />
       </div>
     </div>
   );
@@ -592,7 +649,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
         const prev = s.events[i - 1];
         const hasErr = Object.keys(errors).some((x) => x.startsWith(`${k}.`) && shown(x));
         return (
-          <div key={i} className={`rounded-tile bg-surface p-5 ${hasErr ? "ring-1 ring-[#d64545]/40" : ""}`}>
+          <div key={i} onFocus={() => setFocusEvent(i)} className={`rounded-tile bg-surface p-5 ${hasErr ? "ring-1 ring-[#d64545]/40" : ""}`}>
             <div className="flex items-center justify-between gap-3">
               <p className="text-[15px] font-semibold">
                 {i + 1}. {e.name || "New function"}
@@ -604,8 +661,8 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
               )}
             </div>
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
-              <FieldShell k={`${k}.kind`} label="Type">
-                <select id={idOf(`${k}.kind`)} value={e.kind} onChange={(ev) => setEvent(i, "kind", ev.target.value)} className={`${inputBase} ${inputTone()}`}>
+              <FieldShell k={`${k}.kind`} label="Function">
+                <select id={idOf(`${k}.kind`)} value={e.kind} onChange={(ev) => setKind(i, ev.target.value as EventKind)} className={`${inputBase} ${inputTone()}`}>
                   {eventKinds.map((x) => (
                     <option key={x.kind} value={x.kind}>
                       {x.label}
@@ -613,7 +670,9 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
                   ))}
                 </select>
               </FieldShell>
-              <Input k={`${k}.name`} label="Name on the card" value={e.name} onChange={(v) => setEvent(i, "name", v)} onBlur={() => touch(`${k}.name`)} error={shown(`${k}.name`)} placeholder="Haldi" maxLength={40} />
+              {e.kind === "other" && (
+                <Input k={`${k}.name`} label="Its name" value={e.name} onChange={(v) => setEvent(i, "name", v)} onBlur={() => touch(`${k}.name`)} error={shown(`${k}.name`)} placeholder="Cocktail night" maxLength={40} />
+              )}
               <Input
                 k={`${k}.date`}
                 type="date"
@@ -635,16 +694,6 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
                 error={shown(`${k}.venue`)}
                 placeholder="The Courtyard, Jagmandir Palace"
                 maxLength={LIMITS.venue}
-              />
-              <Input
-                k={`${k}.address`}
-                label="Address"
-                hint="for Google Maps"
-                value={e.address}
-                onChange={(v) => setEvent(i, "address", v)}
-                onBlur={() => touch(`${k}.address`)}
-                placeholder="Lake Pichola, Udaipur 313001"
-                maxLength={LIMITS.address}
               />
               <Input
                 k={`${k}.mapUrl`}
@@ -676,7 +725,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
       {s.events.length < 12 && (
         <button
           type="button"
-          onClick={() => set("events", [...s.events, { ...blankEvent("reception", ""), date: s.weddingDate }])}
+          onClick={() => set("events", [...s.events, { ...blankEvent("reception", kindName("reception")), date: s.weddingDate }])}
           className="w-full rounded-tile border-2 border-dashed border-line py-4 text-[15px] font-medium transition hover:border-faint"
         >
           + Add a function
@@ -687,10 +736,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
 
   const wording = (
     <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Input k="invocation" label="Opening line" value={s.invocation} onChange={(v) => set("invocation", v)} onBlur={() => touch("invocation")} maxLength={120} />
-        <Input k="invocationMeaning" label="Its meaning" hint="shown small" value={s.invocationMeaning} onChange={(v) => set("invocationMeaning", v)} onBlur={() => touch("invocationMeaning")} maxLength={120} />
-      </div>
+      <Input k="invocationMeaning" label="Meaning of the opening line" hint="shown small, with the blessing" value={s.invocationMeaning} onChange={(v) => set("invocationMeaning", v)} onBlur={() => touch("invocationMeaning")} placeholder="With the blessings of Lord Ganesha" maxLength={120} />
       <Input k="hosts" label="Hosted by" hint="optional" value={s.hosts} onChange={(v) => set("hosts", v)} onBlur={() => touch("hosts")} placeholder={demo.hosts} maxLength={160} />
       <TextArea k="message" label="Invitation message" value={s.message} onChange={(v) => set("message", v)} onBlur={() => touch("message")} error={shown("message")} maxLength={LIMITS.message} />
       <div className="grid gap-4 sm:grid-cols-[1fr_220px]">
@@ -699,7 +745,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
       </div>
       <button
         type="button"
-        onClick={() => setS((p) => ({ ...p, invocation: demo.invocation, invocationMeaning: demo.invocationMeaning, message: demo.message, closing: demo.closing }))}
+        onClick={() => setS((p) => ({ ...p, invocationMeaning: demo.invocationMeaning, message: demo.message, closing: demo.closing }))}
         className="text-caption font-medium text-muted underline underline-offset-4 hover:text-ink"
       >
         Reset to the suggested wording
@@ -1019,10 +1065,24 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
 
   const phone = (
     <PhoneFrame className="shadow-phone">
-      <InvitePreview key={opening ? "open-anim" : "static"} invite={preview} stage={opening ? "closed" : "open"} loop={opening} />
+      {part ? (
+        <SectionPreview invite={live} part={part} eventIndex={focusEvent} />
+      ) : (
+        <InvitePreview key={opening ? "open-anim" : "static"} invite={live} stage={opening ? "closed" : "open"} loop={opening} />
+      )}
     </PhoneFrame>
   );
-  const previewToggle = (
+  const fullButton = (
+    <button type="button" onClick={() => setFullOpen(true)} className="mx-auto mt-3 flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-[14px] font-medium text-white transition hover:bg-ink/85">
+      Preview your full invite
+      <svg viewBox="0 0 20 20" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
+        <path d="M7 4h9v9M16 4 5 15" />
+      </svg>
+    </button>
+  );
+  const previewToggle = part ? (
+    <p className="text-center text-caption font-medium text-ink/70">Live preview · {current.title}</p>
+  ) : (
     <div className="flex justify-center gap-1.5">
       {[
         [false, "Invite"],
@@ -1095,6 +1155,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
         <div className="rounded-frame p-6" style={{ background: t.tint }}>
           <div className="mx-auto w-[230px]">{phone}</div>
           <div className="mt-4">{previewToggle}</div>
+          {fullButton}
         </div>
         <Panel className="mt-4 p-6">
           <p className="text-caption font-medium text-subtle">{t.name} design · everything included</p>
@@ -1105,37 +1166,42 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
         </Panel>
       </aside>
 
-      {/* Mobile: preview on demand */}
+      {/* Mobile: the full invite on demand */}
       <button
         type="button"
-        onClick={() => setPreviewOpen(true)}
+        onClick={() => setFullOpen(true)}
         className="fixed bottom-4 left-4 z-40 flex items-center gap-2 rounded-full bg-ink py-2.5 pr-4 pl-3 text-[15px] font-medium text-white shadow-lg lg:hidden"
       >
         <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
           <rect x="6" y="2.5" width="12" height="19" rx="2.5" />
           <path d="M10.5 18.5h3" />
         </svg>
-        Preview · {formatINR(t.price)}
+        Preview your invite
       </button>
+
       <AnimatePresence>
-        {previewOpen && (
+        {fullOpen && (
           <motion.div
-            className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-4 bg-black/70 p-6 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm sm:p-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setPreviewOpen(false)}
+            onClick={() => setFullOpen(false)}
             role="dialog"
             aria-modal="true"
-            aria-label="Invite preview"
+            aria-label="Your full invite"
           >
-            <motion.div initial={{ y: 30 }} animate={{ y: 0 }} className="w-[min(70vw,280px)]" onClick={(e) => e.stopPropagation()}>
-              {phone}
-              <div className="mt-4">{previewToggle}</div>
+            <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="relative h-full w-full sm:h-[min(860px,92svh)] sm:w-[400px]" onClick={(e) => e.stopPropagation()}>
+              <iframe ref={fullRef} src="/preview" title="Your full invite" className="h-full w-full bg-black sm:rounded-[32px] sm:shadow-phone" allow="autoplay" />
+              <button
+                type="button"
+                onClick={() => setFullOpen(false)}
+                className="absolute top-3 right-3 z-10 rounded-full bg-white px-4 py-2 text-[14px] font-medium text-ink shadow-lg sm:-top-2 sm:-right-24"
+              >
+                Close ✕
+              </button>
             </motion.div>
-            <button type="button" onClick={() => setPreviewOpen(false)} className="rounded-full bg-white px-5 py-2.5 text-[15px] font-medium text-ink">
-              Back to the form
-            </button>
+            <p className="pointer-events-none absolute bottom-4 left-1/2 hidden -translate-x-1/2 text-caption text-white/70 sm:block">This is exactly what guests will see. Press Esc to close.</p>
           </motion.div>
         )}
       </AnimatePresence>

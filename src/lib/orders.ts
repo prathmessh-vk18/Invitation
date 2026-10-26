@@ -54,7 +54,11 @@ export const eventKinds: { kind: EventKind; label: string }[] = [
   { kind: "muhurtham", label: "Muhurtham" },
   { kind: "walima", label: "Walima" },
   { kind: "reception", label: "Reception" },
+  { kind: "other", label: "Other – add your own" },
 ];
+
+/** The usual name on a function's card: "Haldi / Maiyan" → "Haldi". */
+export const kindName = (kind: EventKind) => eventKinds.find((k) => k.kind === kind)?.label.split(" / ")[0] ?? "";
 
 export function orderTotal(template: TemplateId) {
   const t = getTemplate(template);

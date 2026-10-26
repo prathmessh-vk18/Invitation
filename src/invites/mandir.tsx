@@ -201,6 +201,8 @@ function Blessing({ invite }: { invite: Invite }) {
   const scale = useTransform(scrollYProgress, [0, 1], [0.4, 1]);
   const opacity = useTransform(scrollYProgress, [0, 0.45], [0, 1]);
   const blur = useTransform(scrollYProgress, [0, 0.7], ["blur(4px)", "blur(0px)"]);
+  // In a phone preview there's no walk to rise out of: show it still, at full size.
+  const still = usePreview();
   const person = (p: typeof a) => (
     <div>
       {p.parents && (
@@ -215,8 +217,8 @@ function Blessing({ invite }: { invite: Invite }) {
   );
   return (
     // Starts while the walk is still pinned, so it rises out of the dissolving temple.
-    <section ref={ref} className="relative z-10 -mt-[55svh] px-[13cqw] pt-[24cqw] pb-[12cqw] text-center">
-      <motion.div style={{ scale, opacity, filter: blur, transformOrigin: "50% 30%" }}>
+    <section ref={ref} className={`relative z-10 px-[13cqw] pt-[24cqw] pb-[12cqw] text-center ${still ? "" : "-mt-[55svh]"}`}>
+      <motion.div style={still ? undefined : { scale, opacity, filter: blur, transformOrigin: "50% 30%" }}>
         <Divider />
         <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed" style={{ color: c.gold }}>
           {invite.hosts || "Together with their families"}

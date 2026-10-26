@@ -290,7 +290,7 @@ function Events({ invite }: { invite: Invite }) {
                 {weekday(e.start)} · {dayNum(e.start)} {monthName(e.start)} · {time(e.start)}
               </p>
               <p className="inv-serif mt-[3cqw] text-[5cqw] leading-tight text-[#5a2236]">{e.venue}</p>
-              <p className="mt-[1cqw] text-[3.2cqw] text-[#5a2236]/60">{e.address}</p>
+              {e.address && <p className="mt-[1cqw] text-[3.2cqw] text-[#5a2236]/60">{e.address}</p>}
               {e.dress && (
                 <p className="mt-[3cqw] inline-block rounded-full bg-[#eef2e8] px-[3.5cqw] py-[1.2cqw] text-[3cqw] text-[#5d7552]">Dress · {e.dress}</p>
               )}

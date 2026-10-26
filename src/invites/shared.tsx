@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, type HTMLMotionProps } from "framer-motion";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Invite, InviteEvent } from "@/data/invites";
-import { calendarLink, directionsLink, longDate } from "@/lib/format";
+import { calendarLink, directionsLink, longDate, placeOf } from "@/lib/format";
 import { invites as demoInvites } from "@/data/invites";
 import { couple, initials } from "./people";
 
@@ -83,12 +83,12 @@ export function Countdown({ invite, theme }: { invite: Invite; theme: InviteThem
 export function EventActions({ event, invite, theme }: { event: InviteEvent; invite: Invite; theme: InviteTheme }) {
   const [a, b] = couple(invite);
   return (
-    <div className="mt-[5cqw] flex flex-wrap justify-center gap-[2.5cqw]">
-      <a href={directionsLink(event)} target="_blank" rel="noreferrer" className={theme.ui.button}>
+    <div data-event-actions className="mt-[5cqw] flex flex-wrap justify-center gap-[2.5cqw]">
+      <a href={directionsLink(event, invite.city)} target="_blank" rel="noreferrer" className={theme.ui.button}>
         <PinIcon /> Directions
       </a>
       <a
-        href={calendarLink(`${event.name} · ${a.first} & ${b.first}`, event.start, event.end, `${event.venue}, ${event.address}`)}
+        href={calendarLink(`${event.name} · ${a.first} & ${b.first}`, event.start, event.end, placeOf(event, invite.city))}
         target="_blank"
         rel="noreferrer"
         className={theme.ui.ghost}

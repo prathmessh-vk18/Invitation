@@ -2,7 +2,7 @@ import type { SectionId } from "@/config/customise";
 import { songs } from "@/config/music";
 import type { TemplateId } from "./templates";
 
-export type EventKind = "haldi" | "mehndi" | "sangeet" | "baraat" | "phere" | "reception" | "nikah" | "walima" | "jaggo" | "anandkaraj" | "muhurtham";
+export type EventKind = "haldi" | "mehndi" | "sangeet" | "baraat" | "phere" | "reception" | "nikah" | "walima" | "jaggo" | "anandkaraj" | "muhurtham" | "other";
 
 export type InviteEvent = {
   kind: EventKind;

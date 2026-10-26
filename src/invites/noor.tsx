@@ -326,7 +326,7 @@ function Events({ invite }: { invite: Invite }) {
                 {weekday(e.start)} · {dayNum(e.start)} {monthName(e.start).slice(0, 3)} · {time(e.start)}
               </p>
               <p className="inv-serif relative mt-[3cqw] text-[5cqw] leading-tight text-[#f4efe2]">{e.venue}</p>
-              <p className="relative mt-[1cqw] text-[3.2cqw] text-[#f4efe2]/60">{e.address}</p>
+              {e.address && <p className="relative mt-[1cqw] text-[3.2cqw] text-[#f4efe2]/60">{e.address}</p>}
               {(e.dress || e.note) && <p className="inv-serif relative mt-[3cqw] text-[3.6cqw] text-[#e3b964] italic">{[e.dress && `Dress: ${e.dress}`, e.note].filter(Boolean).join(" · ")}</p>}
               <div className="relative">
                 <EventActions event={e} invite={invite} theme={noor} />
