@@ -366,7 +366,7 @@ function Events({ invite }: { invite: Invite }) {
                     </div>
                   </div>
                   <p className="inv-serif mt-[5cqw] text-[5cqw] leading-tight font-semibold">{e.venue}</p>
-                  <p className="mt-[1cqw] text-[3.2cqw] opacity-70">{e.address}</p>
+                  {e.address && <p className="mt-[1cqw] text-[3.2cqw] opacity-70">{e.address}</p>}
                   {(e.dress || e.note) && <p className="inv-serif mt-[3cqw] text-[3.8cqw] italic opacity-90">{[e.dress && `Dress: ${e.dress}`, e.note].filter(Boolean).join(" · ")}</p>}
                   <div className="[&>div]:justify-start">
                     <EventActions event={e} invite={invite} theme={kolam} />

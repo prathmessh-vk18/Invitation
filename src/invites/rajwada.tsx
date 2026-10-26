@@ -218,7 +218,7 @@ function Events({ invite }: { invite: Invite }) {
                 <span className="inv-label px-[3cqw] py-[2cqw] text-[2.4cqw]">{time(e.start)}</span>
               </div>
               <p className="inv-serif relative mt-[5cqw] text-[5.2cqw] leading-tight text-[#fbf1dc]">{e.venue}</p>
-              <p className="inv-serif relative mt-[1cqw] text-[3.4cqw] text-[#fbf1dc]/65">{e.address}</p>
+              {e.address && <p className="inv-serif relative mt-[1cqw] text-[3.4cqw] text-[#fbf1dc]/65">{e.address}</p>}
               {(e.dress || e.note) && (
                 <p className="inv-serif relative mt-[3cqw] text-[3.6cqw] text-[#f6d987] italic">{[e.dress && `Dress: ${e.dress}`, e.note].filter(Boolean).join(" · ")}</p>
               )}

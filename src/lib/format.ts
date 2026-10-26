@@ -35,9 +35,14 @@ export function splitMapLink(address: string) {
   return { url: m[0], rest };
 }
 
+/** Where a function is, in words: the venue plus its address, or the wedding city when there's no address. */
+export function placeOf(e: { venue: string; address?: string }, city?: string) {
+  return [e.venue, e.address || city].filter(Boolean).join(", ");
+}
+
 /** Where a function's Directions button goes: the couple's own map link, else a search for the venue. */
-export function directionsLink(e: { venue: string; address: string; mapUrl?: string }) {
-  return e.mapUrl || mapsLink(`${e.venue}, ${e.address}`);
+export function directionsLink(e: { venue: string; address?: string; mapUrl?: string }, city?: string) {
+  return e.mapUrl || mapsLink(placeOf(e, city));
 }
 
 /** Moves map links pasted into addresses into `mapUrl`, so cards show a clean address. */

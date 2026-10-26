@@ -94,6 +94,15 @@ const paths: Record<EventKind, React.ReactNode> = {
       <path d="M18 30 H30" strokeOpacity={0.6} />
     </>
   ),
+  // Any function the couple names themselves: a small diya with a spark.
+  other: (
+    <>
+      <path d="M10 30 C10 37 16 41 24 41 C32 41 38 37 38 30 Z" />
+      <path d="M24 30 C20 26 20 21 24 15 C28 21 28 26 24 30 Z" />
+      <path d="M24 6 V9 M15 10 L17 12 M33 10 L31 12" />
+      <path d="M18 45 H30" />
+    </>
+  ),
 };
 
 export function EventGlyph({ kind, className }: { kind: EventKind; className?: string }) {

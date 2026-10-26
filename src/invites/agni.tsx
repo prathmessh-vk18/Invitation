@@ -181,8 +181,12 @@ function Events({ invite }: { invite: Invite }) {
                 <dt className="text-[2.3cqw] tracking-[0.25em] text-[#2a1c15]/50 uppercase">Where</dt>
                 <dd>
                   <span className="font-semibold">{e.venue}</span>
-                  <br />
-                  <span className="text-[#2a1c15]/60">{e.address}</span>
+                  {e.address && (
+                    <>
+                      <br />
+                      <span className="text-[#2a1c15]/60">{e.address}</span>
+                    </>
+                  )}
                 </dd>
                 {e.dress && (
                   <>

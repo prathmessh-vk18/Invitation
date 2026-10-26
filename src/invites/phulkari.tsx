@@ -345,9 +345,11 @@ function Events({ invite }: { invite: Invite }) {
                   <p className="mt-[2cqw] text-[4.4cqw] leading-tight font-bold" style={gurmukhi}>
                     {e.venue}
                   </p>
-                  <p className="mt-[1cqw] text-[3.2cqw] opacity-80" style={gurmukhi}>
-                    {e.address}
-                  </p>
+                  {e.address && (
+                    <p className="mt-[1cqw] text-[3.2cqw] opacity-80" style={gurmukhi}>
+                      {e.address}
+                    </p>
+                  )}
                   {(e.dress || e.note) && (
                     <p className="mt-[3cqw] inline-block rounded-full bg-black/10 px-[3cqw] py-[1cqw] text-[3cqw] font-semibold" style={gurmukhi}>
                       {[e.dress && `Wear: ${e.dress}`, e.note].filter(Boolean).join(" · ")}
