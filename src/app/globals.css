@@ -168,3 +168,29 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* A soft light that sweeps across the main call to action every few seconds. */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.45) 50%, transparent 70%);
+  transform: translateX(-120%);
+  animation: btn-shine 3.6s ease-in-out infinite;
+}
+@keyframes btn-shine {
+  0%, 55% { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-shine::after { display: none; }
+}
+
+/* The WhatsApp bubble steps up while a page's sticky action bar is showing. */
+body:has([data-sticky-cta="on"]) .wa-fab { bottom: 88px; }

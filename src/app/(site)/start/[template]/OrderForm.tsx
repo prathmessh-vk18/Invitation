@@ -3,12 +3,12 @@
 import { offer } from "@/config/offer";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { getInvite } from "@/data/invites";
 import type { TemplateMeta } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
 import { SectionPreview, type PreviewPart } from "@/invites/SectionPreview";
-import { PREVIEW_INVITE, PREVIEW_READY } from "@/app/preview/FullPreview";
+import { FullInvitePreview } from "@/invites/FullInvitePreview";
 import { fmtDate } from "@/lib/format";
 import { fontStyles, getFontStyle, sections, type SectionId } from "@/config/customise";
 import { instrumentals, songs, tracks, type Track } from "@/config/music";
@@ -16,7 +16,9 @@ import { themes } from "@/invites/registry";
 import { useInviteMusic } from "@/invites/music";
 import type { EventKind } from "@/data/invites";
 import { eventKinds, kindName } from "@/lib/orders";
-import { checkPartnerCode, createOrder, createPhotoUpload, createSongUpload } from "@/lib/order-actions";
+import { checkPartnerCode, createOrder, createPhotoUpload, createSongUpload, saveChanges } from "@/lib/order-actions";
+import { adminSaveOrder, approveChange } from "@/app/admin/actions";
+import type { InviteDetails } from "@/lib/orders";
 import { cleanPartnerCode, readRefCookie } from "@/config/partners";
 import { browserSupabase } from "@/lib/supabase-browser";
 import { OfferCountdown, PriceTag } from "@/site/offer";
@@ -24,6 +26,7 @@ import { Button, Panel, PhoneFrame, ease } from "@/ui";
 import {
   addDays,
   blankEvent,
+  fromDetails,
   idOf,
   initialState,
   LIMITS,
@@ -288,17 +291,34 @@ async function shrink(file: File): Promise<Blob> {
   }
 }
 
-export function OrderForm({ t }: { t: TemplateMeta }) {
+/**
+ * What the form is for: a new order; a couple changing their order (applied straight away before
+ * payment, else sent to us for approval); or an admin editing an order or a change request.
+ */
+export type FormMode =
+  | { kind: "new" }
+  | { kind: "change"; orderId: string; prepaid: boolean }
+  | { kind: "admin"; orderId: string; requestId?: string; back: string };
+
+/** The order being edited, as saved. */
+export type FormStart = { details: InviteDetails; customer: FormState["customer"]; songPath: string | null; photoPaths: string[] };
+
+export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: TemplateMeta; mode?: FormMode; start?: FormStart }) {
   const demo = getInvite(t.demoSlug)!;
   const router = useRouter();
-  const draftKey = `nim-draft-${t.id}`;
+  const isNew = mode.kind === "new";
+  // Only new orders keep a draft; edits always start from the order as saved.
+  const draftKey = isNew ? `nim-draft-${t.id}` : "";
 
-  const [s, setS] = useState<FormState>(() => initialState(demo));
+  const [s, setS] = useState<FormState>(() => (given ? fromDetails(given.details, demo, given.customer) : initialState(demo)));
   const [step, setStep] = useState(0);
-  const [furthest, setFurthest] = useState(0);
-  const [song, setSong] = useState<Song | null>(null);
+  // Editing: every step is open from the start, so people can jump straight to what they want to change.
+  const [furthest, setFurthest] = useState(isNew ? 0 : steps.length - 1);
+  const [song, setSong] = useState<Song | null>(given?.songPath ? { path: given.songPath, name: "Your uploaded song" } : null);
   const [previewing, setPreviewing] = useState<string | null>(null);
-  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [photos, setPhotos] = useState<Photo[]>(() => (given?.photoPaths ?? []).map((path) => ({ path })));
+  // A note for us with a change request.
+  const [note, setNote] = useState("");
   const [photoBusy, setPhotoBusy] = useState(0);
   const [photoError, setPhotoError] = useState("");
   const [songState, setSongState] = useState<"idle" | "uploading" | "error">("idle");
@@ -311,7 +331,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
   const [fullOpen, setFullOpen] = useState(false);
   // The function the couple is editing, so the preview can show its card.
   const [focusEvent, setFocusEvent] = useState<number | undefined>(undefined);
-  const fullRef = useRef<HTMLIFrameElement>(null);
+  const closeFull = useCallback(() => setFullOpen(false), []);
   const [pending, start] = useTransition();
   // A partner's code: filled in from their share link, or typed by the couple.
   const [refCode, setRefCode] = useState("");
@@ -327,7 +347,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
     const t0 = window.setTimeout(() => {
       setToday(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()));
       try {
-        const raw = window.localStorage.getItem(draftKey);
+        const raw = draftKey ? window.localStorage.getItem(draftKey) : null;
         const saved = raw ? JSON.parse(raw) : null;
         if (saved?.v === 2) {
           const d = saved as Draft;
@@ -345,7 +365,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
   }, [draftKey]);
 
   useEffect(() => {
-    if (!restored.current) return;
+    if (!restored.current || !draftKey) return;
     try {
       const d: Draft = { v: 2, s, step, furthest, song, photos };
       window.localStorage.setItem(draftKey, JSON.stringify(d));
@@ -362,7 +382,8 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
     headingRef.current?.focus({ preventScroll: true });
   }, [step]);
 
-  const errors = useMemo(() => validate(s, today), [s, today]);
+  // Edits skip the "already passed" checks: a Haldi that's over shouldn't block changing the Reception.
+  const errors = useMemo(() => validate(s, isNew ? today : ""), [s, today, isNew]);
   const shown = (k: string) => (touched.has(k) || attempted.has(stepOf(k)) ? errors[k] : undefined);
   const touch = (k: string) => setTouched((p) => (p.has(k) ? p : new Set(p).add(k)));
   const stepHasErrors = (id: StepId) => Object.keys(errors).some((k) => stepOf(k) === id);
@@ -478,7 +499,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
 
   // Arrived through a partner's link: apply their code straight away.
   useEffect(() => {
-    const code = readRefCookie();
+    const code = isNew ? readRefCookie() : "";
     if (!code) return;
     const t0 = window.setTimeout(() => applyRef(code), 0);
     return () => window.clearTimeout(t0);
@@ -494,6 +515,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
       return;
     }
     setServerErrors([]);
+    if (!isNew) return saveEdit();
     start(async () => {
       const res = await createOrder({
         template: t.id,
@@ -514,6 +536,21 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
     });
   }
 
+  function saveEdit() {
+    const input = { details: toDetails(s), songPath: song?.path ?? null, photoPaths: showing("gallery") ? photos.map((x) => x.path) : [], note };
+    start(async () => {
+      if (mode.kind === "change") {
+        const res = await saveChanges(mode.orderId, input);
+        if ("errors" in res) return setServerErrors(res.errors);
+        router.push(`/order/${mode.orderId}${"pending" in res ? "?sent=1" : ""}`);
+      } else if (mode.kind === "admin") {
+        const res = mode.requestId ? await approveChange(mode.requestId, input) : await adminSaveOrder(mode.orderId, input);
+        if ("errors" in res) return setServerErrors(res.errors);
+        router.push(mode.back);
+      }
+    });
+  }
+
   const songUrl = song ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/songs/${song.path}` : "";
 
   // The preview with the couple's own song and photos, when they've added them.
@@ -531,22 +568,6 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
   const part: PreviewPart | null =
     current.id === "functions" ? "events" : current.id === "wording" ? "wording" : current.id === "photos" && showing("gallery") ? "gallery" : current.id === "contact" && showing("rsvp") ? "rsvp" : null;
 
-  // The full-invite popup: its page asks for the invite once it has loaded.
-  useEffect(() => {
-    if (!fullOpen) return;
-    const onMessage = (e: MessageEvent) => {
-      const frame = fullRef.current?.contentWindow;
-      if (!frame || e.source !== frame || e.data?.type !== PREVIEW_READY) return;
-      frame.postMessage({ type: PREVIEW_INVITE, invite: live }, window.location.origin);
-    };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setFullOpen(false);
-    window.addEventListener("message", onMessage);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("message", onMessage);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [fullOpen, live]);
 
   /* ───── Step bodies ───── */
 
@@ -893,6 +914,8 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
 
   const contact = (
     <div className="space-y-4">
+      {isNew && (
+      <>
       <div className="grid gap-4 sm:grid-cols-2">
         <Input
           k="customer.name"
@@ -954,6 +977,9 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
         placeholder="e.g. PRIYA"
         maxLength={20}
       />
+      </>
+      )}
+      {!isNew && <p className="text-body text-muted">We&rsquo;ll keep messaging you at +91 {mobile10(s.customer.phone)}. To change that number, message us on WhatsApp.</p>}
       {showing("rsvp") && (
       <div className="rounded-tile bg-surface p-5">
         <p className="text-[15px] font-semibold">RSVPs</p>
@@ -1056,12 +1082,27 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
         <p>{showing("rsvp") ? `RSVPs to +91 ${mobile10(s.rsvpSame ? s.customer.phone : s.rsvpPhone)}` : "No RSVP section"}</p>
         {refCode && <p>{partner ? `Partner code ${partner.code} · ${partner.name}` : `Partner code ${refCode}`}</p>}
       </ReviewBlock>
-      <p className="pt-2 text-caption text-subtle">No payment now. After you submit, we&rsquo;ll message you on WhatsApp with the payment details.</p>
+      {mode.kind === "change" && !mode.prepaid && (
+        <TextArea k="note" label="Anything else we should know?" hint="optional" value={note} onChange={setNote} onBlur={() => {}} placeholder="e.g. Please make the Haldi card yellow" maxLength={1000} rows={3} />
+      )}
+      <p className="pt-2 text-caption text-subtle">
+        {mode.kind === "new"
+          ? "No payment now. After you submit, we\u2019ll message you on WhatsApp with the payment details."
+          : mode.kind === "change"
+            ? mode.prepaid
+              ? "Your invite isn\u2019t published yet, so these changes save straight away."
+              : "We\u2019ll check your changes and update your invite, usually within a day. Your current invite stays live meanwhile."
+            : mode.requestId
+              ? "Saving approves the couple\u2019s request with your edits. A live invite updates straight away."
+              : "Saving updates the order. A live invite updates straight away."}
+      </p>
     </div>
   );
 
   const bodies: Record<StepId, ReactNode> = { couple, wedding, functions, wording, style: styleStep, photos: photosStep, music, contact, review };
   const isLast = step === steps.length - 1;
+  const submitLabel =
+    mode.kind === "new" ? "Submit order" : mode.kind === "change" ? (mode.prepaid ? "Save changes" : "Send changes") : mode.requestId ? "Save and approve" : "Save changes";
 
   const phone = (
     <PhoneFrame className="shadow-phone">
@@ -1139,7 +1180,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
                       </button>
                     )}
                     <Button type="submit" disabled={pending || songState === "uploading" || photoBusy > 0}>
-                      {isLast ? (pending ? "Sending…" : "Submit order") : `Continue to ${steps[step + 1].title.toLowerCase()} →`}
+                      {isLast ? (pending ? "Sending…" : submitLabel) : `Continue to ${steps[step + 1].title.toLowerCase()} →`}
                     </Button>
                   </div>
                 </div>
@@ -1147,7 +1188,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
             </motion.div>
           </AnimatePresence>
         </Panel>
-        <p className="mt-3 text-center text-caption text-subtle">Saved in this browser as you type, so you can come back later.</p>
+        {isNew && <p className="mt-3 text-center text-caption text-subtle">Saved in this browser as you type, so you can come back later.</p>}
       </div>
 
       {/* Desktop: live preview + total */}
@@ -1157,13 +1198,15 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
           <div className="mt-4">{previewToggle}</div>
           {fullButton}
         </div>
-        <Panel className="mt-4 p-6">
-          <p className="text-caption font-medium text-subtle">{t.name} design · everything included</p>
-          <PriceTag price={t.price} mrp={t.mrp} size="lg" className="mt-1" />
-          <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#fff1e6] px-3 py-1 text-[13px] font-medium text-[#b4410f]">
-            {offer.emoji} {offer.name} · {offer.endsAt ? <OfferCountdown /> : "introductory prices"}
-          </p>
-        </Panel>
+        {isNew && (
+          <Panel className="mt-4 p-6">
+            <p className="text-caption font-medium text-subtle">{t.name} design · everything included</p>
+            <PriceTag price={t.price} mrp={t.mrp} size="lg" className="mt-1" />
+            <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#fff1e6] px-3 py-1 text-[13px] font-medium text-[#b4410f]">
+              {offer.emoji} {offer.name} · {offer.endsAt ? <OfferCountdown /> : "introductory prices"}
+            </p>
+          </Panel>
+        )}
       </aside>
 
       {/* Mobile: the full invite on demand */}
@@ -1179,32 +1222,7 @@ export function OrderForm({ t }: { t: TemplateMeta }) {
         Preview your invite
       </button>
 
-      <AnimatePresence>
-        {fullOpen && (
-          <motion.div
-            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm sm:p-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setFullOpen(false)}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Your full invite"
-          >
-            <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="relative h-full w-full sm:h-[min(860px,92svh)] sm:w-[400px]" onClick={(e) => e.stopPropagation()}>
-              <iframe ref={fullRef} src="/preview" title="Your full invite" className="h-full w-full bg-black sm:rounded-[32px] sm:shadow-phone" allow="autoplay" />
-              <button
-                type="button"
-                onClick={() => setFullOpen(false)}
-                className="absolute top-3 right-3 z-10 rounded-full bg-white px-4 py-2 text-[14px] font-medium text-ink shadow-lg sm:-top-2 sm:-right-24"
-              >
-                Close ✕
-              </button>
-            </motion.div>
-            <p className="pointer-events-none absolute bottom-4 left-1/2 hidden -translate-x-1/2 text-caption text-white/70 sm:block">This is exactly what guests will see. Press Esc to close.</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <FullInvitePreview invite={live} open={fullOpen} onClose={closeFull} />
     </div>
   );
 }

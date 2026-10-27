@@ -1,8 +1,17 @@
 import Link from "next/link";
+import { db, isSupabaseConfigured } from "@/lib/supabase";
 import { Wordmark } from "@/site/chrome";
 import { logout } from "./actions";
 
-export function AdminHeader() {
+/** How many change requests are waiting, for the badge. 0 if the table isn't set up yet. */
+async function waitingChanges() {
+  if (!isSupabaseConfigured()) return 0;
+  const { count } = await db().from("change_requests").select("id", { count: "exact", head: true }).eq("status", "pending");
+  return count ?? 0;
+}
+
+export async function AdminHeader() {
+  const waiting = await waitingChanges();
   return (
     <header className="border-b border-line">
       <div className="mx-auto flex h-16 max-w-wide items-center justify-between px-5">
@@ -12,6 +21,10 @@ export function AdminHeader() {
           </Link>
           <Link href="/admin" className="text-[15px] font-medium text-muted hover:text-ink">
             Orders
+          </Link>
+          <Link href="/admin/changes" className="flex items-center gap-1.5 text-[15px] font-medium text-muted hover:text-ink">
+            Changes
+            {waiting > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#d64545] px-1.5 text-[12px] font-semibold text-white tabular-nums">{waiting}</span>}
           </Link>
           <Link href="/admin/partners" className="text-[15px] font-medium text-muted hover:text-ink">
             Partners

@@ -34,6 +34,7 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
   const { data: inv } = o.invite_slug ? await db().from("invites").select("is_published, live_until").eq("slug", o.invite_slug).maybeSingle() : { data: null };
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const couple = `${d.groom.first} & ${d.bride.first}`;
+  const { data: waiting } = await db().from("change_requests").select("id").eq("order_id", o.id).eq("status", "pending").maybeSingle();
 
   return (
     <>
@@ -49,6 +50,11 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
         <p className="mt-2 text-lead text-muted">
           {couple} · {t?.name} · {formatINR(o.amount)}
         </p>
+        {waiting && (
+          <Link href={`/admin/changes/${waiting.id}`} className="mt-4 flex items-center justify-between gap-3 rounded-tile bg-[#fff3c4] px-5 py-4 text-body font-medium text-[#7a5b00]">
+            The couple asked for changes. Review them →
+          </Link>
+        )}
 
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
           <div className="space-y-4">
@@ -80,8 +86,16 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
             </Panel>
             <Panel className="p-6">
               <p className="text-title">Details</p>
-              <p className="mt-1 mb-4 text-body text-muted">Fix typos or missing info here, then update the invite.</p>
-              <DetailsEditor id={o.id} detailsJson={JSON.stringify(d, null, 2)} />
+              <p className="mt-1 text-body text-muted">Fix typos or missing info in the same form the couple used. A live invite updates when you save.</p>
+              <Link href={`/admin/orders/${o.id}/edit`} className="mt-4 inline-flex rounded-full bg-ink px-5 py-2.5 text-[15px] font-medium text-white">
+                Edit details
+              </Link>
+              <details className="mt-5">
+                <summary className="cursor-pointer text-caption text-subtle">Advanced: edit as JSON</summary>
+                <div className="mt-3">
+                  <DetailsEditor id={o.id} detailsJson={JSON.stringify(d, null, 2)} />
+                </div>
+              </details>
             </Panel>
           </div>
 

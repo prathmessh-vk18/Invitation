@@ -4,8 +4,10 @@ import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { site } from "@/config/site";
 import { endAdminSession, passwordMatches, requireAdmin, startAdminSession } from "@/lib/admin-auth";
-import { isValidSlug, liveUntil, validateDetails, type Order } from "@/lib/orders";
-import { db, photoPublicUrl, songPublicUrl } from "@/lib/supabase";
+import { cleanPhotoPaths, cleanSongPath, isValidSlug, liveUntil, validateDetails, type Order } from "@/lib/orders";
+import type { ChangesInput } from "@/lib/order-actions";
+import { inviteFromOrder } from "@/lib/order-invite";
+import { db } from "@/lib/supabase";
 import { getInvite as getDemoInvite } from "@/data/invites";
 
 export async function login(_: unknown, form: FormData) {
@@ -93,13 +95,7 @@ export async function publishInvite(id: string, slugInput: string): Promise<{ ok
   const { data: taken } = await db().from("invites").select("order_id").eq("slug", slug).maybeSingle();
   if (taken && taken.order_id !== order.id) return { error: "That address is already taken. Try adding a year or city." };
 
-  const invite = {
-    ...order.details,
-    slug,
-    template: order.template,
-    ...(order.song_path ? { music: songPublicUrl(order.song_path) } : {}),
-    ...(order.photo_paths?.length ? { gallery: order.photo_paths.map(photoPublicUrl) } : {}),
-  };
+  const invite = inviteFromOrder(order, slug);
   const { error } = await db()
     .from("invites")
     .upsert({
@@ -127,4 +123,51 @@ export async function setInvitePublished(id: string, slug: string, published: bo
   await db().from("invites").update({ is_published: published }).eq("slug", slug);
   updateTag(`invite:${slug}`);
   refresh(id);
+}
+
+/** Writes new details, song and photos to an order and, if its invite is live, updates the invite too. */
+async function applyToOrder(id: string, input: ChangesInput): Promise<{ ok: true } | { errors: string[] }> {
+  const checked = validateDetails(input.details);
+  if (!checked.ok) return { errors: checked.errors };
+  const { error } = await db()
+    .from("orders")
+    .update({ details: checked.details, song_path: cleanSongPath(input.songPath), photo_paths: cleanPhotoPaths(input.photoPaths) })
+    .eq("id", id);
+  if (error) return { errors: ["Saving failed. Please try again."] };
+  const order = await loadOrder(id);
+  if (order.status === "live" && order.invite_slug) {
+    const res = await publishInvite(id, order.invite_slug);
+    if ("error" in res) return { errors: [`Saved, but updating the live invite failed: ${res.error}`] };
+  }
+  refresh(id);
+  return { ok: true };
+}
+
+/** Admin edits an order in the form. A live invite updates straight away. */
+export async function adminSaveOrder(id: string, input: ChangesInput) {
+  await requireAdmin();
+  return applyToOrder(id, input);
+}
+
+/** Approves a couple's change request, optionally after the admin has adjusted it in the form. */
+export async function approveChange(requestId: string, edited?: ChangesInput): Promise<{ ok: true; orderId: string } | { errors: string[] }> {
+  await requireAdmin();
+  const { data: req } = await db().from("change_requests").select("*").eq("id", requestId).maybeSingle();
+  if (!req) return { errors: ["That request no longer exists."] };
+  if (req.status !== "pending") return { errors: ["This request was already handled."] };
+  const res = await applyToOrder(req.order_id, edited ?? { details: req.details, songPath: req.song_path, photoPaths: req.photo_paths });
+  if ("errors" in res) return res;
+  await db().from("change_requests").update({ status: "approved", decided_at: new Date().toISOString() }).eq("id", requestId);
+  revalidatePath("/admin/changes");
+  return { ok: true, orderId: req.order_id };
+}
+
+export async function declineChange(requestId: string, reply: string) {
+  await requireAdmin();
+  await db()
+    .from("change_requests")
+    .update({ status: "declined", reply: reply.trim().slice(0, 300) || null, decided_at: new Date().toISOString() })
+    .eq("id", requestId)
+    .eq("status", "pending");
+  revalidatePath("/admin/changes");
 }

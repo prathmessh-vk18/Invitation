@@ -4,12 +4,13 @@ import { JsonLd, pageMeta } from "@/lib/seo";
 import { site as siteConfig } from "@/config/site";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { site } from "@/config/site";
+import { formatINR, site } from "@/config/site";
 import { categoryOf } from "@/data/categories";
 import { getTemplate, templates } from "@/data/templates";
 import { OfferCountdown, PriceTag, TopSeller } from "@/site/offer";
 import { TemplateTile } from "@/site/gallery";
 import { ClosingCta, Faq, HowItWorks } from "@/site/sections";
+import { StickyCta } from "@/site/sticky-cta";
 import { ButtonLink, Container, Eyebrow, Heading, Lead, Panel, PhoneFrame, Reveal, Section } from "@/ui";
 
 // Every design is prerendered from generateStaticParams.
@@ -102,7 +103,11 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
                 One price, everything included: music, maps, countdown and RSVP.
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
-                <ButtonLink href={`/start/${t.id}`}>Customise this design</ButtonLink>
+                <span id="make-it-mine" className="inline-flex">
+                  <ButtonLink href={`/start/${t.id}`} className="btn-shine">
+                    Make this my invite · {formatINR(t.price)} <span aria-hidden>→</span>
+                  </ButtonLink>
+                </span>
                 <ButtonLink href={`/i/${t.demoSlug}`} variant="inverse" arrow newTab>
                   Open full demo
                 </ButtonLink>
@@ -193,6 +198,7 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
 
       <Faq />
       <ClosingCta />
+      <StickyCta href={`/start/${t.id}`} label={`Make this my invite · ${formatINR(t.price)}`} watchId="make-it-mine" />
     </>
   );
 }
