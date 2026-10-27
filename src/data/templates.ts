@@ -1,4 +1,4 @@
-export type TemplateId = "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram";
+export type TemplateId = "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli";
 export type CategoryId = "hindu" | "muslim" | "sikh" | "south-indian";
 
 export type TemplateMeta = {
@@ -341,8 +341,42 @@ export const templates: TemplateMeta[] = [
   },
 ];
 
+/**
+ * Designs made for one couple. They work everywhere a design does (ordering at /start/<id>,
+ * admin, publishing) but never appear in the gallery, footer, sitemap or counts.
+ */
+export const privateTemplates: TemplateMeta[] = [
+  {
+    id: "haveli",
+    category: "hindu",
+    name: "Haveli",
+    native: "हवेली",
+    nativeFont: DEVA,
+    mood: "Illustrated · Palace gatefold",
+    tagline: "A painted gatefold opens on the groom and bride enthroned, then a jaali arch over a pastel sky.",
+    description: [
+      "Haveli is a fully painted Rajput palace invitation. It opens like a gatefold card: the groom and bride sit on carved thrones on the two flaps, with your monogram on the seal between them.",
+      "Inside, a carved ivory jaali arch frames a powder-blue sky, with musicians in the jharokhas, the couple arriving on elephants and a lotus garden below.",
+    ],
+    price: 299,
+    mrp: 999,
+    demoSlug: "haveli-preview",
+    palette: [
+      { name: "Ivory", hex: "#f8f3e8" },
+      { name: "Powder blue", hex: "#cfe2f0" },
+      { name: "Maroon", hex: "#5a1f2b" },
+      { name: "Sage", hex: "#9aae8c" },
+    ],
+    suits: ["Rajasthani & Jain weddings", "Palace & heritage venues"],
+    signature: ["Gatefold with enthroned couple", "Monogram seal", "Jaali arch & jharokha musicians", "Elephant arrival"],
+    tint: "#eef1f0",
+    icon: { bg: "#5a1f2b", fg: "#f8f3e8" },
+    addedOn: "2026-10-27",
+  },
+];
+
 export function getTemplate(id: string) {
-  return templates.find((t) => t.id === id);
+  return templates.find((t) => t.id === id) ?? privateTemplates.find((t) => t.id === id);
 }
 
 export const templatesIn = (c: CategoryId) => templates.filter((t) => t.category === c);

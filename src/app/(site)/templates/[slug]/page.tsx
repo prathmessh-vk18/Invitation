@@ -17,7 +17,7 @@ import { ButtonLink, Container, Eyebrow, Heading, Lead, Panel, PhoneFrame, Revea
 export const instant = false;
 
 /** The design's own artwork as its share preview (illustrated designs), else the site card. */
-const illustrated = new Set(["mandir", "mahal", "khat", "gopuram", "bagh"]);
+const illustrated = new Set(["mandir", "mahal", "khat", "gopuram", "bagh", "haveli"]);
 const shareImage = (id: string) => (id === "mandir" ? "/art/illus/mandir-temple.jpg" : illustrated.has(id) ? `/art/illus/${id}-hero.jpg` : "/opengraph-image");
 
 export function generateStaticParams() {
@@ -28,7 +28,12 @@ export async function generateMetadata({ params }: PageProps<"/templates/[slug]"
   const t = getTemplate((await params).slug);
   if (!t) return {};
   const meta = pageMeta(`/templates/${t.id}`, `${t.name} · ${categoryOf(t.category).title}`, `${t.tagline} Animated digital invitation from ₹${t.price}, shared on WhatsApp.`);
-  return { ...meta, openGraph: { ...meta.openGraph, images: [{ url: shareImage(t.id), width: 864, height: 1536 }] } };
+  return {
+    ...meta,
+    openGraph: { ...meta.openGraph, images: [{ url: shareImage(t.id), width: 864, height: 1536 }] },
+    // Designs made for one couple open by link only.
+    ...(templates.some((x) => x.id === t.id) ? {} : { robots: { index: false, follow: false } }),
+  };
 }
 
 const highlights = [

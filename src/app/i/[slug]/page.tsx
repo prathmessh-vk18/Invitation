@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { site } from "@/config/site";
-import { getInvite, invites, type Invite } from "@/data/invites";
+import { getInvite, invites, isListedDemo, type Invite } from "@/data/invites";
 import { couple } from "@/invites/people";
 import { InviteRenderer } from "@/invites/InviteRenderer";
 import { getPublishedInvite } from "@/lib/invites-db";
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: PageProps<"/i/[slug]">): Prom
   return {
     title: { absolute: `${a.first} & ${b.first} · Wedding Invitation` },
     description: `You're invited to celebrate ${a.first} & ${b.first}, ${longDate(found.invite.date)}, ${found.invite.city}.`,
-    robots: getInvite(found.invite.slug) ? undefined : { index: false },
+    robots: isListedDemo(found.invite.slug) ? undefined : { index: false },
   };
 }
 

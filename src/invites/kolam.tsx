@@ -328,7 +328,7 @@ function Blessing({ invite }: { invite: Invite }) {
               <div className="px-[6cqw] py-[5cqw]">
                 <p className="inv-label text-[2.3cqw] text-[#3f8f3a]">{p === invite.bride ? "Manamagal · Bride" : "Manamagan · Groom"}</p>
                 <p className="inv-script mt-[1.5cqw] text-[9cqw] leading-none text-[#9c1650]">{p.full}</p>
-                <p className="inv-serif mt-[2cqw] text-[3.8cqw] text-[#3b0a1f]/70 italic">{p.parents}</p>
+                <p className="inv-serif mt-[2cqw] text-[3.8cqw] text-[#3b0a1f] italic">{p.parents}</p>
               </div>
             </div>
           </Reveal>

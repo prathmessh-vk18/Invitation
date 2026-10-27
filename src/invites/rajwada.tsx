@@ -179,7 +179,7 @@ function Blessing({ invite }: { invite: Invite }) {
               <Mandala color={GOLD} className="absolute -top-[10cqw] left-1/2 w-[40cqw] -translate-x-1/2 opacity-20" />
               <p className="inv-script relative text-[10cqw] leading-none text-[#f6d987]">{p.first}</p>
               <p className="inv-label relative mt-[3cqw] text-[2cqw] leading-relaxed text-[#fbf1dc]">{p.full}</p>
-              <p className="inv-serif relative mt-[2cqw] text-[3.2cqw] leading-snug text-[#fbf1dc]/65 italic">{p.parents}</p>
+              <p className="inv-serif relative mt-[2cqw] text-[3.2cqw] leading-snug text-[#fbf1dc] italic">{p.parents}</p>
             </div>
           </Reveal>
         ))}

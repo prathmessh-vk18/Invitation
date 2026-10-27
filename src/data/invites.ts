@@ -530,6 +530,39 @@ for (const i of invites) i.gallery ??= demoMoments;
 const demoTracks = songs.map((s) => s.id);
 invites.forEach((i, n) => (i.music ??= demoTracks[(n * 5 + 2) % demoTracks.length]));
 
+// Demos for private designs: they preview the design in its order form, but aren't listed or prerendered.
+export const privateInvites: Invite[] = [
+  {
+    slug: "haveli-preview",
+    template: "haveli",
+    groom: { first: "Arjun", full: "Arjun Singh Mertiya", parents: "Son of Mrs. Sunita & Mr. Rajendra Mertiya" },
+    bride: { first: "Vani", full: "Vani Kothari", parents: "Daughter of Mrs. Rekha & Mr. Pankaj Kothari" },
+    lead: "groom",
+    invocation: "॥ श्री गणेशाय नमः ॥",
+    invocationMeaning: "With the blessings of Lord Ganesha",
+    hosts: "The Mertiya & Kothari families",
+    message: "cordially invite you to the wedding of their children and seek your blessings as they begin a new life together.",
+    date: "2027-02-18T16:15:00+05:30",
+    city: "Jaipur, Rajasthan",
+    hashtag: "#ArjunWedsVani",
+    events: [
+      { kind: "other", name: "Ganesh Nimantran", start: "2027-02-14T08:00:00+05:30", venue: "Family residence, Lalkothi", address: "" },
+      { kind: "mehndi", name: "Sagai", start: "2027-02-17T18:00:00+05:30", venue: "Palace lawns, Vaishali Nagar", address: "", note: "Dinner before sunset" },
+      { kind: "sangeet", name: "Sangeet Sandhya", start: "2027-02-17T19:30:00+05:30", venue: "Palace lawns, Vaishali Nagar", address: "" },
+      { kind: "baraat", name: "Nikasi", start: "2027-02-18T11:00:00+05:30", venue: "Palace lawns, Vaishali Nagar", address: "" },
+      { kind: "phere", name: "Panigrahan Sanskar", start: "2027-02-18T16:15:00+05:30", venue: "Palace lawns, Vaishali Nagar", address: "" },
+      { kind: "reception", name: "Ashirwad Samaroh", start: "2027-02-18T19:30:00+05:30", venue: "Palace lawns, Vaishali Nagar", address: "", note: "Dinner before sunset" },
+    ],
+    rsvp: { phone: "919699711809", by: "2027-02-05T00:00:00+05:30", contact: "Mertiya family" },
+    closing: "Your presence and blessings will make our celebration complete.",
+    gallery: demoMoments,
+    music: "file:/music/sajna.m4a",
+  },
+];
+
 export function getInvite(slug: string) {
-  return invites.find((i) => i.slug === slug);
+  return invites.find((i) => i.slug === slug) ?? privateInvites.find((i) => i.slug === slug);
 }
+
+/** True for the demos shown on the site, which search engines may index. */
+export const isListedDemo = (slug: string) => invites.some((i) => i.slug === slug);

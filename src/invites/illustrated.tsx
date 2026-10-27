@@ -21,7 +21,9 @@ import type { InviteTheme, OpeningProps } from "./types";
  */
 export type IllustratedSpec = {
   id: TemplateId;
-  images: { opening: string; hero: string; card: string };
+  // `frame` (optional): the card with its plain middle cut out, so the whole ornament, curves
+  // and all, sits above the scrolling invite. Without it the frame is the card's straight edges.
+  images: { opening: string; hero: string; card: string; frame?: string };
   opening: "doors" | "envelope";
   // Where the wax seal sits in the envelope image, as % of width/height.
   sealAt?: { x: number; y: number };
@@ -35,6 +37,12 @@ export type IllustratedSpec = {
   frame: { top: number; bottom: number; side: number };
   // Shrinks the script face for wide display fonts (1 = default).
   scriptScale?: number;
+  // The couple's own monogram on the seal, in place of their initials.
+  sealImage?: string;
+  // Doors only: "You're invited" and the names across the top, like a card's cover.
+  openingTitle?: boolean;
+  // Doors only: false drops the shadow along the inner edges, for art with its own seam.
+  doorShade?: boolean;
 };
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -69,7 +77,11 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
 
   function Doors({ invite, opened, onOpen }: OpeningProps) {
     return (
-      <div className="absolute inset-0 overflow-hidden bg-black" style={{ pointerEvents: opened ? "none" : "auto", perspective: "140cqw" }}>
+      <div
+        className="absolute inset-0 overflow-hidden"
+        // Seamless art: paper behind the doors, so no dark hairline shows where the halves meet.
+        style={{ pointerEvents: opened ? "none" : "auto", perspective: "140cqw", background: spec.doorShade === false ? c.paper : "#000" }}
+      >
         {/* the hero waits behind the doors */}
         <motion.div className="absolute inset-0" initial={{ scale: 1.15 }} animate={{ scale: opened ? 1 : 1.15 }} transition={{ duration: 1.6, ease }}>
           <Art src={spec.images.hero} priority />
@@ -78,18 +90,31 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           {(["left", "right"] as const).map((side) => (
             <motion.div
               key={side}
-              className={`absolute inset-y-0 w-1/2 overflow-hidden ${side === "left" ? "left-0" : "right-0"}`}
+              // A pixel wider than half, so the two doors overlap instead of leaving a gap between them.
+              className={`absolute inset-y-0 w-[calc(50%+1px)] overflow-hidden ${side === "left" ? "left-0" : "right-0"}`}
               style={{ transformOrigin: side === "left" ? "left center" : "right center", transformStyle: "preserve-3d" }}
               animate={{ rotateY: opened ? (side === "left" ? -95 : 95) : 0 }}
               transition={{ duration: 1.25, ease: [0.7, 0, 0.3, 1] }}
             >
-              <div className="absolute inset-y-0 w-[200%]" style={{ left: side === "left" ? 0 : "-100%" }}>
+              <div className="absolute inset-y-0 w-[calc(200%-2px)]" style={{ left: side === "left" ? 0 : "calc(-100% + 2px)" }}>
                 <Art src={spec.images.opening} priority />
               </div>
-              <div className={`absolute inset-y-0 w-[6%] ${side === "left" ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} from-black/35 to-transparent`} />
+              {spec.doorShade !== false && (
+                <div className={`absolute inset-y-0 w-[6%] ${side === "left" ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} from-black/35 to-transparent`} />
+              )}
             </motion.div>
           ))}
         </motion.div>
+        {spec.openingTitle && (
+          <motion.div className="pointer-events-none absolute inset-x-0 top-[8%] z-10 text-center" animate={{ opacity: opened ? 0 : 1, y: opened ? -20 : 0 }} transition={{ duration: 0.4 }}>
+            <p className="inv-script text-[11cqw] leading-none" style={{ color: c.ink }}>
+              You&rsquo;re invited
+            </p>
+            <p className="inv-label mt-[2.5cqw] text-[2.7cqw]" style={{ color: c.ink }}>
+              {couple(invite)[0].first} &amp; {couple(invite)[1].first}
+            </p>
+          </motion.div>
+        )}
         <Seal invite={invite} opened={opened} onOpen={onOpen} className="top-1/2 left-1/2" />
         <Hint opened={opened} />
       </div>
@@ -149,7 +174,14 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           style={{ background: `radial-gradient(circle at 35% 30%, #f9e7ad, #d9aa4c 50%, #946a1f)` }}
         />
         <span className="absolute inset-[2cqw] rounded-full border border-[#7a5414]/40" />
-        <span className="inv-script relative text-[9cqw] leading-none text-[#4a2c08]">{initials(invite)}</span>
+        {spec.sealImage ? (
+          // The monogram's paper ground multiplies into the gold, leaving just the lettering.
+          <span className="absolute inset-[3.2cqw] overflow-hidden rounded-full">
+            <Image src={spec.sealImage} alt={initials(invite)} fill sizes="120px" className="object-cover mix-blend-multiply" />
+          </span>
+        ) : (
+          <span className="inv-script relative text-[9cqw] leading-none text-[#4a2c08]">{initials(invite)}</span>
+        )}
       </motion.button>
     );
   }
@@ -282,7 +314,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
                 {p.full || p.first}
               </p>
               {p.parents && (
-                <p className="inv-serif mt-[1.5cqw] text-[3.6cqw] italic" style={{ color: c.soft }}>
+                <p className="inv-serif mt-[1.5cqw] text-[3.6cqw] font-medium italic" style={{ color: c.soft }}>
                   {p.parents}
                 </p>
               )}
@@ -392,9 +424,15 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
     return (
       <motion.div className="absolute inset-0" style={{ opacity }} aria-hidden>
         <div className="absolute inset-x-0 bottom-full h-[50vh]" style={{ background: c.paper }} />
-        <div className="absolute inset-0" style={{ WebkitMaskImage: mask, maskImage: mask }}>
-          <Art src={spec.images.card} />
-        </div>
+        {spec.images.frame ? (
+          <div className="absolute inset-0">
+            <Art src={spec.images.frame} />
+          </div>
+        ) : (
+          <div className="absolute inset-0" style={{ WebkitMaskImage: mask, maskImage: mask }}>
+            <Art src={spec.images.card} />
+          </div>
+        )}
         <div className="absolute inset-x-0 top-full h-[50vh]" style={{ background: c.paper }} />
       </motion.div>
     );

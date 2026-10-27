@@ -306,7 +306,7 @@ function Blessing({ invite }: { invite: Invite }) {
                   {p === invite.bride ? "Kudi" : "Munda"}
                 </p>
                 <p className="inv-script mt-[1cqw] text-[9cqw] leading-none">{p.first}</p>
-                <p className="mt-[2cqw] text-[3cqw] leading-snug font-medium opacity-85" style={gurmukhi}>
+                <p className="mt-[2cqw] text-[3cqw] leading-snug font-medium" style={gurmukhi}>
                   {p.parents}
                 </p>
               </div>
