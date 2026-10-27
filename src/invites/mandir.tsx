@@ -108,10 +108,7 @@ function Names({ invite, show }: { invite: Invite; show: (d: number) => object }
       <motion.p {...show(0.3)} className="text-[3.4cqw]" style={{ color: c.name, fontFamily: "var(--font-deva)" }}>
         {invite.invocation}
       </motion.p>
-      <motion.p {...show(0.45)} className="inv-label mt-[2.5cqw] text-[2.5cqw]" style={{ color: c.ink }}>
-        The wedding of
-      </motion.p>
-      <motion.h1 {...show(0.7)} className="mt-[1.5cqw] flex flex-col items-center">
+      <motion.h1 {...show(0.6)} className="mt-[3cqw] flex flex-col items-center">
         <span className="inv-script text-[15cqw] leading-[0.95]" style={{ color: c.name }}>
           {a.first}
         </span>
