@@ -99,6 +99,7 @@ export const songs: Track[] = [
   { id: "file:/music/din-shagna-da.mp3", name: "Din Shagna Da", mood: "Phillauri · wedding classic" },
   { id: "file:/music/kabira-encore.mp3", name: "Kabira (Encore)", mood: "Yeh Jawaani Hai Deewani · emotional" },
   { id: "file:/music/aaj-sajeya.mp3", name: "Aaj Sajeya", mood: "Goldie Sohel · bridal entry" },
+  { id: "file:/music/sajna.m4a", name: "Sajna", mood: "Darshan Raval · soft and romantic" },
 ];
 
 export const instrumentals: Track[] = [
