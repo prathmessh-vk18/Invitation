@@ -7,8 +7,11 @@ import { getTemplate } from "@/data/templates";
 import { WaIcon } from "@/invites/shared";
 import { longDate } from "@/lib/format";
 import { statusLabel, type Order } from "@/lib/orders";
+import { changeSummary } from "@/lib/change-requests";
+import { inviteFromOrder } from "@/lib/order-invite";
 import { db } from "@/lib/supabase";
 import { Badge, ButtonLink, Container, Heading, Lead, Panel } from "@/ui";
+import { OrderPreview } from "./OrderPreview";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false } };
 export const instant = false;
@@ -28,8 +31,67 @@ function Step({ n, done, children }: { n: number; done?: boolean; children: Reac
   );
 }
 
-async function OrderView({ params }: { params: PageProps<"/order/[id]">["params"] }) {
+/** Asking for changes, and where the last request stands. */
+async function Changes({ order, sent }: { order: Order; sent: boolean }) {
+  if (order.status === "cancelled") return null;
+  const editHref = `/order/${order.id}/edit`;
+  // Before payment nothing is published yet, so edits save straight away.
+  if (order.status === "awaiting_payment" || order.status === "payment_submitted")
+    return (
+      <Panel className="p-6 sm:p-8">
+        <p className="text-title">Need to change something?</p>
+        <p className="mt-1 text-body text-muted">Your invite isn&rsquo;t published yet, so you can edit your details yourself. Changes save straight away.</p>
+        <ButtonLink href={editHref} variant="secondary" className="mt-5">
+          Edit your details
+        </ButtonLink>
+      </Panel>
+    );
+
+  const c = await changeSummary(order.id);
+  const latest = c?.latest;
+  const waiting = latest?.status === "pending";
+  const tell = whatsappLink(`Hi ${site.name}! I've sent changes for order ${order.code}. Please have a look.`);
+  return (
+    <Panel className="p-6 sm:p-8">
+      <p className="text-title">{waiting ? "Your changes are with us" : "Need to change something?"}</p>
+      {waiting ? (
+        <p className="mt-1 text-body text-muted">
+          Sent {longDate(latest.created_at)}. We&rsquo;ll check them and update your invite, usually within {site.publishWithin}. You can still edit them: sending again replaces this request.
+        </p>
+      ) : (
+        <p className="mt-1 text-body text-muted">
+          Change any detail, function, wording, photo or song in the same form you filled in. We check every change before it goes live on your invite.
+        </p>
+      )}
+      {latest?.status === "approved" && !waiting && <p className="mt-3 text-body font-medium text-[#1d6b35]">✓ Your last changes are live on your invite.</p>}
+      {latest?.status === "declined" && !waiting && (
+        <p className="mt-3 text-body text-[#8a1c1c]">We couldn&rsquo;t make your last changes{latest.reply ? `: ${latest.reply}` : "."} Message us if you&rsquo;d like to talk about it.</p>
+      )}
+      {sent && waiting && (
+        <div className="mt-4 rounded-tile bg-whatsapp-wash p-4">
+          <p className="text-body font-medium">Changes sent ✓ Let us know on WhatsApp so we see them sooner.</p>
+          <a href={tell} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-whatsapp px-4 py-2.5 text-[15px] font-medium text-white">
+            <WaIcon /> Tell Aavjoo on WhatsApp
+          </a>
+        </div>
+      )}
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <ButtonLink href={editHref} variant={waiting ? "secondary" : "primary"}>
+          {waiting ? "Edit your request" : "Ask for changes"}
+        </ButtonLink>
+        {c && (
+          <span className="text-caption text-subtle">
+            {c.used} of {c.free} free change rounds used{c.left === 0 ? ". More changes may carry a small fee." : ""}
+          </span>
+        )}
+      </div>
+    </Panel>
+  );
+}
+
+async function OrderView({ params, searchParams }: { params: PageProps<"/order/[id]">["params"]; searchParams: PageProps<"/order/[id]">["searchParams"] }) {
   const { id } = await params;
+  const sent = (await searchParams).sent === "1";
   const order = await loadOrder(id);
   if (!order) notFound();
   const t = getTemplate(order.template)!;
@@ -91,6 +153,8 @@ async function OrderView({ params }: { params: PageProps<"/order/[id]">["params"
           </Panel>
         )}
 
+        <Changes order={order} sent={sent} />
+
         <Panel className="p-6 sm:p-8">
           <p className="text-title">What happens next</p>
           <ol className="mt-4 space-y-3">
@@ -116,7 +180,8 @@ async function OrderView({ params }: { params: PageProps<"/order/[id]">["params"
         </Panel>
       </div>
 
-      <aside className="lg:sticky lg:top-24 lg:self-start">
+      <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+        <OrderPreview invite={inviteFromOrder(order, order.invite_slug ?? "preview")} tint={t.tint} />
         <Panel className="p-6">
           <p className="text-caption font-medium text-subtle">Order summary</p>
           <div className="mt-4 space-y-2 text-body">
@@ -145,12 +210,12 @@ async function OrderView({ params }: { params: PageProps<"/order/[id]">["params"
   );
 }
 
-export default function OrderPage({ params }: PageProps<"/order/[id]">) {
+export default function OrderPage({ params, searchParams }: PageProps<"/order/[id]">) {
   return (
     <section className="pt-12 pb-24">
       <Container wide>
         <Suspense fallback={<div className="h-[60vh] rounded-card bg-panel" />}>
-          <OrderView params={params} />
+          <OrderView params={params} searchParams={searchParams} />
         </Suspense>
       </Container>
     </section>

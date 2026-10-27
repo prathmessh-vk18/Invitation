@@ -1,11 +1,13 @@
 import type { SectionId } from "@/config/customise";
 import type { EventKind, Invite } from "@/data/invites";
+import type { InviteDetails } from "@/lib/orders";
 import { isMapUrl, splitMapLink } from "@/lib/format";
 
 /* ───────── State ───────── */
 
 export type Person = { first: string; full: string; parents: string };
-export type EventRow = { kind: EventKind; name: string; date: string; time: string; venue: string; address: string; mapUrl: string; dress: string; note: string };
+// `devanagari` and `end` aren't in the form, but are kept when editing an order that has them.
+export type EventRow = { kind: EventKind; name: string; date: string; time: string; venue: string; address: string; mapUrl: string; dress: string; note: string; devanagari?: string; end?: string };
 export type FormState = {
   lead: "bride" | "groom";
   bride: Person;
@@ -192,12 +194,79 @@ export function toDetails(s: FormState) {
     date: iso(s.weddingDate, s.weddingTime),
     city: s.city,
     hashtag: s.hashtag,
-    events: s.events.map((e) => ({ kind: e.kind, name: e.name, start: iso(e.date, e.time), venue: e.venue, address: e.address, mapUrl: splitMapLink(e.mapUrl ?? "").url, dress: e.dress, note: e.note })),
+    events: s.events.map((e) => ({
+      kind: e.kind,
+      name: e.name,
+      start: iso(e.date, e.time),
+      venue: e.venue,
+      address: e.address,
+      mapUrl: splitMapLink(e.mapUrl ?? "").url,
+      dress: e.dress,
+      note: e.note,
+      ...(e.devanagari ? { devanagari: e.devanagari } : {}),
+      ...(e.end ? { end: e.end } : {}),
+    })),
     rsvp: { phone: mobile10(rsvp), by: s.rsvpBy ? iso(s.rsvpBy, "00:00") : "", contact: s.hosts },
     closing: s.closing,
     music: s.music,
     hide: s.hide,
     font: s.font,
+  };
+}
+
+/** "2027-02-07T18:30:00+05:30" → { date: "2027-02-07", time: "18:30" }, read in India time. */
+function istParts(value?: string) {
+  if (!value || Number.isNaN(new Date(value).getTime())) return { date: "", time: "" };
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+      .formatToParts(new Date(value))
+      .map((x) => [x.type, x.value]),
+  );
+  return { date: `${p.year}-${p.month}-${p.day}`, time: `${p.hour}:${p.minute}` };
+}
+
+/** An order's saved details back as form fields, for editing it. */
+export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState["customer"]): FormState {
+  const wedding = istParts(d.date);
+  const rsvp = d.rsvp.phone.replace(/^91(?=\d{10}$)/, "");
+  const own = mobile10(customer.phone);
+  return {
+    ...initialState(demo),
+    lead: d.lead,
+    bride: { first: d.bride.first, full: d.bride.full === d.bride.first ? "" : d.bride.full, parents: d.bride.parents },
+    groom: { first: d.groom.first, full: d.groom.full === d.groom.first ? "" : d.groom.full, parents: d.groom.parents },
+    weddingDate: wedding.date,
+    weddingTime: wedding.time,
+    city: d.city,
+    invocation: d.invocation,
+    invocationMeaning: d.invocationMeaning,
+    hosts: d.hosts,
+    message: d.message,
+    closing: d.closing,
+    hashtag: d.hashtag ?? "",
+    events: d.events.map((e) => {
+      const start = istParts(e.start);
+      return {
+        kind: e.kind,
+        name: e.name,
+        date: start.date,
+        time: start.time,
+        venue: e.venue,
+        address: e.address ?? "",
+        mapUrl: e.mapUrl ?? "",
+        dress: e.dress ?? "",
+        note: e.note ?? "",
+        ...(e.devanagari ? { devanagari: e.devanagari } : {}),
+        ...(e.end ? { end: e.end } : {}),
+      };
+    }),
+    rsvpSame: !rsvp || rsvp === own,
+    rsvpPhone: rsvp === own ? "" : rsvp,
+    rsvpBy: d.rsvp.by && d.rsvp.by !== d.date ? istParts(d.rsvp.by).date : "",
+    customer,
+    music: d.music ?? initialState(demo).music,
+    hide: (d.hide ?? []) as FormState["hide"],
+    font: d.font ?? "",
   };
 }
 

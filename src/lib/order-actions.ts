@@ -2,9 +2,9 @@
 
 import { randomUUID } from "node:crypto";
 import { getTemplate } from "@/data/templates";
-import { cleanPhone, orderTotal, validateDetails } from "@/lib/orders";
+import { cleanPhone, cleanPhotoPaths, cleanSongPath, orderTotal, validateDetails } from "@/lib/orders";
 import { findActivePartner } from "@/lib/partners";
-import { db, isSupabaseConfigured, MAX_PHOTOS, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
+import { db, isSupabaseConfigured, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
 
 const AUDIO = /^(audio\/(mpeg|mp3|mp4|x-m4a|aac|wav|x-wav|ogg))$/;
 const MAX_SONG_BYTES = 15 * 1024 * 1024;
@@ -22,7 +22,6 @@ export async function createSongUpload(fileName: string, contentType: string, si
 
 const IMAGE = /^image\/(jpeg|png|webp)$/;
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
-const PHOTO_PATH = /^moments\/[0-9a-f-]{36}\.(jpg|png|webp)$/;
 
 /** A one-time URL the browser uploads one couple photo to (already resized in the browser). */
 export async function createPhotoUpload(contentType: string, size: number) {
@@ -70,9 +69,8 @@ export async function createOrder(input: CreateOrderInput): Promise<{ id: string
   if (input.partnerCode && !partner) return { errors: ["We don't recognise that partner code. Check it, or clear it to continue."] };
   const credited = partner && partner.phone !== phone ? partner : null;
 
-  const songPath = typeof input.songPath === "string" && /^uploads\/[0-9a-f-]{36}\.[a-z0-9]{1,5}$/.test(input.songPath) ? input.songPath : null;
-
-  const photoPaths = (input.photoPaths ?? []).filter((x) => typeof x === "string" && PHOTO_PATH.test(x)).slice(0, MAX_PHOTOS);
+  const songPath = cleanSongPath(input.songPath);
+  const photoPaths = cleanPhotoPaths(input.photoPaths);
 
   const { data, error } = await db()
     .from("orders")
@@ -112,4 +110,35 @@ export async function submitUtr(orderId: string, utr: string): Promise<{ ok: tru
   if (error) return { error: "We couldn't save that. Please try again." };
   if (!data) return { error: "This order isn't waiting for payment any more." };
   return { ok: true };
+}
+
+export type ChangesInput = { details: unknown; songPath: string | null; photoPaths: string[]; note?: string };
+
+/**
+ * A couple edits their order. Before payment nothing is published, so the edit saves straight
+ * to the order. After payment it becomes a change request for us to approve; a newer request
+ * replaces one still waiting.
+ */
+export async function saveChanges(orderId: string, input: ChangesInput): Promise<{ applied: true } | { pending: true } | { errors: string[] }> {
+  if (!/^[0-9a-f-]{36}$/.test(orderId)) return { errors: ["We couldn't find this order."] };
+  const checked = validateDetails(input.details);
+  if (!checked.ok) return { errors: checked.errors };
+
+  const { data: order } = await db().from("orders").select("id, status").eq("id", orderId).maybeSingle();
+  if (!order) return { errors: ["We couldn't find this order."] };
+  if (order.status === "cancelled") return { errors: ["This order is cancelled. Message us on WhatsApp if that's a mistake."] };
+
+  const songPath = cleanSongPath(input.songPath);
+  const photoPaths = cleanPhotoPaths(input.photoPaths);
+
+  if (order.status === "awaiting_payment" || order.status === "payment_submitted") {
+    const { error } = await db().from("orders").update({ details: checked.details, song_path: songPath, photo_paths: photoPaths }).eq("id", orderId);
+    return error ? { errors: ["We couldn't save your changes. Please try again."] } : { applied: true };
+  }
+
+  await db().from("change_requests").delete().eq("order_id", orderId).eq("status", "pending");
+  const { error } = await db()
+    .from("change_requests")
+    .insert({ order_id: orderId, details: checked.details, song_path: songPath, photo_paths: photoPaths, note: String(input.note ?? "").trim().slice(0, 1000) || null });
+  return error ? { errors: ["We couldn't send your changes. Please try again in a moment."] } : { pending: true };
 }

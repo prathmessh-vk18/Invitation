@@ -185,3 +185,8 @@ export function cleanPhone(v: unknown) {
   if (digits.length === 10) return `91${digits}`;
   return digits;
 }
+
+/** Only files uploaded through our signed URLs: a song in uploads/, photos in moments/ (at most 8). */
+export const cleanSongPath = (v: unknown) => (typeof v === "string" && /^uploads\/[0-9a-f-]{36}\.[a-z0-9]{1,5}$/.test(v) ? v : null);
+export const cleanPhotoPaths = (v: unknown) =>
+  (Array.isArray(v) ? v : []).filter((x): x is string => typeof x === "string" && /^moments\/[0-9a-f-]{36}\.(jpg|png|webp)$/.test(x)).slice(0, 8);
