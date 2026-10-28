@@ -10,6 +10,10 @@ import { db } from "@/lib/supabase";
 export const isRazorpayConfigured = () => Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
 export const razorpayKeyId = () => process.env.RAZORPAY_KEY_ID ?? "";
 
+// Orders placed before Razorpay went live were sent a UPI QR on WhatsApp; they keep that flow.
+export const RAZORPAY_FROM = "2026-10-28T23:38:32Z";
+export const paysOnline = (order: { created_at: string }) => new Date(order.created_at).getTime() >= new Date(RAZORPAY_FROM).getTime();
+
 function auth() {
   return "Basic " + Buffer.from(`${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`).toString("base64");
 }

@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { getTemplate } from "@/data/templates";
 import { cleanPhone, cleanPhotoPaths, cleanSongPath, orderTotal, validateDetails } from "@/lib/orders";
 import { findActivePartner } from "@/lib/partners";
-import { createRazorpayOrder, isRazorpayConfigured, isValidPaymentSignature, markPaidByRazorpayOrder, razorpayKeyId } from "@/lib/razorpay";
+import { createRazorpayOrder, isRazorpayConfigured, paysOnline, isValidPaymentSignature, markPaidByRazorpayOrder, razorpayKeyId } from "@/lib/razorpay";
 import { db, isSupabaseConfigured, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
 
 const AUDIO = /^(audio\/(mpeg|mp3|mp4|x-m4a|aac|wav|x-wav|ogg))$/;
@@ -105,11 +105,12 @@ export async function startPayment(orderId: string): Promise<PaymentStart | { er
   if (!isRazorpayConfigured()) return { error: "Online payment isn't set up yet. Please message us on WhatsApp." };
   const { data: order } = await db()
     .from("orders")
-    .select("id, code, status, amount, template, customer_name, customer_phone, customer_email, razorpay_order_id")
+    .select("id, code, status, amount, template, customer_name, customer_phone, customer_email, razorpay_order_id, created_at")
     .eq("id", orderId)
     .maybeSingle();
   if (!order) return { error: "We couldn't find this order." };
   if (order.status !== "awaiting_payment" && order.status !== "payment_submitted") return { error: "This order is already paid." };
+  if (!paysOnline(order)) return { error: "We've sent your payment details on WhatsApp. Please pay there." };
 
   let rzpId = order.razorpay_order_id as string | null;
   if (!rzpId) {
