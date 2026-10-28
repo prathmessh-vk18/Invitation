@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import { PriceTag, TopSeller } from "./offer";
+import { DesignBadge, PriceTag } from "./offer";
 import { categories } from "@/data/categories";
 import { templates, type CategoryId, type TemplateMeta } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
@@ -36,7 +36,7 @@ export function TemplateTile({ t, index = 0, price }: { t: TemplateMeta; index?:
         {price && (
           <span className="absolute top-4 right-4 rounded-full bg-surface px-3 py-1 text-ink"><PriceTag price={t.price} mrp={t.mrp} size="sm" /></span>
         )}
-        {t.topSeller && <TopSeller className="absolute top-4 left-4" />}
+        <DesignBadge t={t} className="absolute top-4 left-4" />
       </div>
       <TileCaption icon={<TemplateIcon t={t} />} name={t.name} sub={t.mood} />
     </Link>

@@ -122,6 +122,23 @@ export function PriceTag({
   );
 }
 
+/** "New" pill for designs marked isNew in data/templates. */
+export function NewBadge({ className }: { className?: string }) {
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full bg-[#fff1e6] px-2.5 py-1 font-sans text-[12px] font-semibold text-[#b4410f] ${className ?? ""}`}>
+      <span className="size-1.5 animate-pulse rounded-full bg-[#e8590c]" aria-hidden />
+      New
+    </span>
+  );
+}
+
+/** A design's badge, if it has one: "Top seller" first, else "New". */
+export function DesignBadge({ t, className }: { t: { topSeller?: boolean; isNew?: boolean }; className?: string }) {
+  if (t.topSeller) return <TopSeller className={className} />;
+  if (t.isNew) return <NewBadge className={className} />;
+  return null;
+}
+
 /** "Top seller" pill for designs marked topSeller in data/templates. */
 export function TopSeller({ className }: { className?: string }) {
   return (

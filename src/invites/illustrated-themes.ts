@@ -45,8 +45,8 @@ export const bagh = makeIllustrated({
   fonts: { script: "var(--font-dancing), cursive", serif: "var(--font-cormorant), serif", label: "var(--font-cinzel), serif" },
 });
 
-// Made for one couple first (Akshay & Vidhi): a Rajput palace gatefold. The couple arriving on
-// elephants opens like two flaps onto them enthroned, framed by a jaali arch with musicians.
+// A Rajput palace gatefold (first made for Akshay & Vidhi). The couple arriving on elephants
+// opens like two flaps onto them enthroned, framed by a jaali arch with musicians.
 export const haveli = makeIllustrated({
   id: "haveli",
   images: { opening: `${base}/haveli-arrival.jpg`, hero: `${base}/haveli-gate.jpg`, card: `${base}/haveli-card.jpg`, frame: `${base}/haveli-frame.png` },

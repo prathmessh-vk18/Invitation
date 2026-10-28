@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { formatINR, site } from "@/config/site";
 import { categoryOf } from "@/data/categories";
 import { getTemplate, templates } from "@/data/templates";
-import { OfferCountdown, PriceTag, TopSeller } from "@/site/offer";
+import { DesignBadge, OfferCountdown, PriceTag } from "@/site/offer";
 import { TemplateTile } from "@/site/gallery";
 import { ClosingCta, Faq, HowItWorks } from "@/site/sections";
 import { StickyCta } from "@/site/sticky-cta";
@@ -18,7 +18,8 @@ export const instant = false;
 
 /** The design's own artwork as its share preview (illustrated designs), else the site card. */
 const illustrated = new Set(["mandir", "mahal", "khat", "gopuram", "bagh", "haveli"]);
-const shareImage = (id: string) => (id === "mandir" ? "/art/illus/mandir-temple.jpg" : illustrated.has(id) ? `/art/illus/${id}-hero.jpg` : "/opengraph-image");
+const shareImage = (id: string) =>
+  id === "mandir" ? "/art/illus/mandir-temple.jpg" : id === "haveli" ? "/art/illus/haveli-arrival.jpg" : illustrated.has(id) ? `/art/illus/${id}-hero.jpg` : "/opengraph-image";
 
 export function generateStaticParams() {
   return templates.map((t) => ({ slug: t.id }));
@@ -90,8 +91,8 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
                 {cat.label}
               </Link>
             </Eyebrow>
-            {t.topSeller && <TopSeller className="mt-5" />}
-            <h1 className={`${t.topSeller ? "mt-3" : "mt-6"} flex items-baseline gap-4 text-display text-ink`}>
+            <DesignBadge t={t} className="mt-5" />
+            <h1 className={`${t.topSeller || t.isNew ? "mt-3" : "mt-6"} flex items-baseline gap-4 text-display text-ink`}>
               {t.name}
               <span className="text-[0.4em] font-normal text-faint" style={{ fontFamily: t.nativeFont }}>
                 {t.native}
