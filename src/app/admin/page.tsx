@@ -6,6 +6,16 @@ import { fmtDate } from "@/lib/format";
 import { statusLabel, type Order, type OrderStatus } from "@/lib/orders";
 import { db, isSupabaseConfigured } from "@/lib/supabase";
 import { AdminHeader, statusTone } from "./AdminHeader";
+import { paysOnline } from "@/lib/razorpay";
+
+/** "3 h ago" for how long an order has waited. */
+function ago(iso: string) {
+  const now = Date.now();
+  const m = Math.max(0, Math.round((now - new Date(iso).getTime()) / 60000));
+  if (m < 60) return `${m} min ago`;
+  const h = Math.round(m / 60);
+  return h < 48 ? `${h} h ago` : `${Math.round(h / 24)} days ago`;
+}
 
 export const instant = false;
 
@@ -90,8 +100,17 @@ export default async function AdminOrders({ searchParams }: PageProps<"/admin">)
                     <td className="px-4 py-3 text-caption tabular-nums">+{o.customer_phone}</td>
                     <td className="px-4 py-3">
                       <span className={`rounded-full px-2.5 py-1 text-[12px] font-medium ${statusTone[o.status]}`}>{statusLabel[o.status]}</span>
+                      {o.status === "awaiting_payment" && paysOnline(o) && (
+                        <span className="mt-1.5 block text-caption text-subtle">
+                          {o.razorpay_order_id ? "Opened checkout, didn't pay" : "Hasn't opened checkout"}
+                          {o.nudge_count ? ` · nudged ${o.nudge_count}×` : ""}
+                        </span>
+                      )}
                     </td>
-                    <td className="px-4 py-3 text-caption text-subtle tabular-nums">{fmtDate(o.created_at, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</td>
+                    <td className="px-4 py-3 text-caption text-subtle tabular-nums">
+                      {fmtDate(o.created_at, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
+                      {o.status === "awaiting_payment" && <span className="block font-medium text-[#b4410f]">{ago(o.created_at)}</span>}
+                    </td>
                   </tr>
                 );
               })}

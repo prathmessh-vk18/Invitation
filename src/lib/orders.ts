@@ -25,6 +25,8 @@ export type Order = {
   utr: string | null;
   razorpay_order_id?: string | null;
   razorpay_payment_id?: string | null;
+  nudge_count?: number | null;
+  nudged_at?: string | null;
   admin_notes: string | null;
   invite_slug: string | null;
   partner_code?: string | null;

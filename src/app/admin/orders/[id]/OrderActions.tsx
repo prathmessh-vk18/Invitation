@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { site } from "@/config/site";
 import { Button } from "@/ui";
 import type { OrderStatus } from "@/lib/orders";
-import { cancelOrder, publishInvite, saveDetails, saveNotes, setInvitePublished, setPaymentVerified } from "../../actions";
+import { cancelOrder, publishInvite, recordNudge, saveDetails, saveNotes, setInvitePublished, setPaymentVerified } from "../../actions";
 
 type Props = {
   id: string;
@@ -21,8 +21,39 @@ type Props = {
   siteUrl: string;
 };
 
-export function PaymentActions({ id, status, amount, code, customerPhone }: Pick<Props, "id" | "status" | "code" | "customerPhone"> & { amount: string }) {
+type Nudge = { message: string; count: number; last: string | null };
+
+export function PaymentActions({ id, status, amount, code, customerPhone, nudge }: Pick<Props, "id" | "status" | "code" | "customerPhone"> & { amount: string; nudge?: Nudge }) {
   const [pending, start] = useTransition();
+  // Orders that pay online through Razorpay get an urgent reminder with their pay link instead of the QR message.
+  if (nudge && status !== "cancelled" && status !== "paid" && status !== "live") {
+    return (
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={`https://wa.me/${customerPhone}?text=${encodeURIComponent(nudge.message)}`}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => start(() => recordNudge(id))}
+            className="rounded-full bg-whatsapp px-4 py-2.5 text-[15px] font-medium text-white"
+          >
+            {nudge.count ? "Send a follow-up nudge" : "Nudge on WhatsApp"}
+          </a>
+          <Button size="md" variant="secondary" disabled={pending} onClick={() => start(() => setPaymentVerified(id, true))}>
+            Mark as paid ✓
+          </Button>
+        </div>
+        <p className="text-caption text-subtle">
+          {nudge.count ? `Nudged ${nudge.count}× · last ${nudge.last}. ` : "Not nudged yet. "}
+          The message carries their pay link, which opens Razorpay straight away. Payments are marked paid automatically.
+        </p>
+        <details className="text-caption text-subtle">
+          <summary className="cursor-pointer">Preview message</summary>
+          <p className="mt-2 whitespace-pre-line rounded-tile bg-panel p-3 text-body text-ink">{nudge.message}</p>
+        </details>
+      </div>
+    );
+  }
   const ask =
     status === "live"
       ? `Hi! Your ${site.name} invite for order ${code} is live 🎉\n\nThe total is ${amount}. I'm sending the payment QR code here. Once you've paid, please share the screenshot.`

@@ -81,6 +81,16 @@ export function PayButton({ orderId, amount, autoOpen }: { orderId: string; amou
     rzp.open();
   }
 
+  // The sticky bar on phones asks this button to open the checkout.
+  useEffect(() => {
+    const onPay = () => {
+      if (state === "idle") pay();
+    };
+    window.addEventListener("aavjoo:pay", onPay);
+    return () => window.removeEventListener("aavjoo:pay", onPay);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
   useEffect(() => {
     if (!autoOpen || opened.current) return;
     opened.current = true;
@@ -101,12 +111,40 @@ export function PayButton({ orderId, amount, autoOpen }: { orderId: string; amou
       >
         {state === "opening" ? "Opening payment…" : state === "verifying" ? "Confirming payment…" : state === "done" ? "Paid ✓" : `Pay ${formatINR(amount)}`}
       </button>
-      <p className="mt-2.5 text-caption text-subtle">UPI, cards, netbanking and wallets · secured by Razorpay</p>
       {error && (
         <p role="alert" className="mt-3 text-[14px] text-[#b42318]">
           {error}
         </p>
       )}
+    </div>
+  );
+}
+
+/** On phones, keeps "Pay" on screen once the main button has scrolled away. */
+export function StickyPay({ amount, label }: { amount: number; label: string }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const el = document.getElementById("pay-now");
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setShow(!e.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <div
+      data-sticky-cta={show ? "on" : "off"}
+      className={`fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] backdrop-blur transition duration-300 lg:hidden ${show ? "translate-y-0" : "pointer-events-none translate-y-full"}`}
+    >
+      <button
+        type="button"
+        onClick={() => {
+          document.getElementById("pay-now")?.scrollIntoView({ behavior: "smooth", block: "center" });
+          window.dispatchEvent(new Event("aavjoo:pay"));
+        }}
+        className="btn-shine flex w-full items-center justify-center gap-2 rounded-full bg-ink py-3.5 text-[16px] font-medium text-white"
+      >
+        Pay {formatINR(amount)} <span className="font-normal opacity-70">· {label}</span>
+      </button>
     </div>
   );
 }
