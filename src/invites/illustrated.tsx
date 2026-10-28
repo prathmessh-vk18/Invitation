@@ -424,13 +424,13 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           <div className="mb-[14cqw] space-y-[9cqw]">
             {invite.extras.map((g, i) => (
               <Reveal key={g.title + i}>
-                <p className="text-[4.6cqw] font-semibold" style={{ color: c.accent, fontFamily: "var(--font-deva), var(--inv-serif)" }}>
+                <p className="text-[4.6cqw] font-semibold" style={{ color: c.accent, fontFamily: "var(--inv-serif), var(--font-deva)" }}>
                   {g.title}
                 </p>
                 <div className="mt-[2.5cqw] space-y-[1.2cqw]">
                   {g.lines.map((l, j) => {
                     const phone = l.match(/(\+?\d[\d\s-]{8,}\d)/)?.[1];
-                    const text = <span className="text-[4cqw] leading-snug" style={{ color: c.ink, fontFamily: "var(--font-deva), var(--inv-serif)" }}>{l}</span>;
+                    const text = <span className="text-[4cqw] leading-snug" style={{ color: c.ink, fontFamily: "var(--inv-serif), var(--font-deva)" }}>{l}</span>;
                     return (
                       <p key={j}>
                         {phone ? (
@@ -448,7 +448,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
             ))}
             {invite.welcome && (
               <Reveal>
-                <p className="text-[4.4cqw] font-medium" style={{ color: c.ink, fontFamily: "var(--font-deva), var(--inv-serif)" }}>
+                <p className="text-[4.4cqw] font-medium" style={{ color: c.ink, fontFamily: "var(--inv-serif), var(--font-deva)" }}>
                   {invite.welcome}
                 </p>
               </Reveal>
