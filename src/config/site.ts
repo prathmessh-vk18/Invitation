@@ -21,6 +21,10 @@ export const site = {
   publishWithin: "24 hours",
   // A published invite stays live until this many days after the wedding date.
   inviteDaysAfterWedding: 15,
+
+  // Google Analytics 4 measurement ID. Page changes inside the site are counted by GA's
+  // enhanced measurement ("page changes based on browser history"), which is on by default.
+  gaId: "G-XWCTML8XFJ",
 };
 
 /** UPI deep link with the amount and order code filled in. Opens GPay, PhonePe, Paytm etc. on phones. */
