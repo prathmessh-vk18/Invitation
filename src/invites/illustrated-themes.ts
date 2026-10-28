@@ -45,16 +45,19 @@ export const bagh = makeIllustrated({
   fonts: { script: "var(--font-dancing), cursive", serif: "var(--font-cormorant), serif", label: "var(--font-cinzel), serif" },
 });
 
-// Made for one couple first (Akshay & Vidhi): a Rajput palace gatefold. The groom and bride sit on
-// thrones on the two flaps; inside, a jaali arch over a pastel sky with musicians in the jharokhas.
+// Made for one couple first (Akshay & Vidhi): a Rajput palace gatefold. The couple arriving on
+// elephants opens like two flaps onto them enthroned, framed by a jaali arch with musicians.
 export const haveli = makeIllustrated({
   id: "haveli",
-  images: { opening: `${base}/haveli-gate.jpg`, hero: `${base}/haveli-hero.jpg`, card: `${base}/haveli-card.jpg`, frame: `${base}/haveli-frame.png` },
+  images: { opening: `${base}/haveli-arrival.jpg`, hero: `${base}/haveli-gate.jpg`, card: `${base}/haveli-card.jpg`, frame: `${base}/haveli-frame.png` },
   opening: "doors",
   openingTitle: true,
+  openingTitleTop: 15,
+  frameOverHero: true,
   doorShade: false,
   sealImage: `${base}/haveli-monogram.jpg`,
-  heroTextTop: 14,
+  heroTextTop: 18,
+  heroLead: 25,
   frame: { top: 12, bottom: 11, side: 6 },
   colors: { ink: "#5a1f2b", accent: "#9c4a3c", soft: "#6e564a", paper: "#f8f3e8", onAccent: "#fff" },
   fonts: { script: "var(--font-pinyon), cursive", serif: "var(--font-cormorant), serif", label: "var(--font-cinzel), serif" },

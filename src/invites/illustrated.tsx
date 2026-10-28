@@ -41,6 +41,14 @@ export type IllustratedSpec = {
   sealImage?: string;
   // Doors only: "You're invited" and the names across the top, like a card's cover.
   openingTitle?: boolean;
+  // Where that title sits, as % from the top (default 8).
+  openingTitleTop?: number;
+  // The frame surrounds the couple's scene too, from the moment the invite opens, instead of
+  // fading in once that scene has scrolled past.
+  frameOverHero?: boolean;
+  // Extra plain paper above the couple's scene, as % of the art's height, for a title that
+  // has to clear a frame drawn over the top of the scene.
+  heroLead?: number;
   // Doors only: false drops the shadow along the inner edges, for art with its own seam.
   doorShade?: boolean;
 };
@@ -80,12 +88,15 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
       <div
         className="absolute inset-0 overflow-hidden"
         // Seamless art: paper behind the doors, so no dark hairline shows where the halves meet.
-        style={{ pointerEvents: opened ? "none" : "auto", perspective: "140cqw", background: spec.doorShade === false ? c.paper : "#000" }}
+        // When the frame surrounds the couple's scene, the doors open straight onto the page itself
+        // (scene, frame and names already in place), so nothing behind them; otherwise a picture of the scene.
+        style={{ pointerEvents: opened ? "none" : "auto", perspective: "140cqw", background: spec.frameOverHero ? "transparent" : spec.doorShade === false ? c.paper : "#000" }}
       >
-        {/* the hero waits behind the doors */}
-        <motion.div className="absolute inset-0" initial={{ scale: 1.15 }} animate={{ scale: opened ? 1 : 1.15 }} transition={{ duration: 1.6, ease }}>
-          <Art src={spec.images.hero} priority />
-        </motion.div>
+        {!spec.frameOverHero && (
+          <motion.div className="absolute inset-0" initial={{ scale: 1.15 }} animate={{ scale: opened ? 1 : 1.15 }} transition={{ duration: 1.6, ease }}>
+            <Art src={spec.images.hero} priority />
+          </motion.div>
+        )}
         <motion.div className="absolute inset-0" animate={{ opacity: opened ? 0 : 1 }} transition={{ delay: opened ? 0.9 : 0, duration: 0.7 }}>
           {(["left", "right"] as const).map((side) => (
             <motion.div
@@ -106,7 +117,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           ))}
         </motion.div>
         {spec.openingTitle && (
-          <motion.div className="pointer-events-none absolute inset-x-0 top-[8%] z-10 text-center" animate={{ opacity: opened ? 0 : 1, y: opened ? -20 : 0 }} transition={{ duration: 0.4 }}>
+          <motion.div className="pointer-events-none absolute inset-x-0 z-10 text-center" style={{ top: `${spec.openingTitleTop ?? 8}%` }} animate={{ opacity: opened ? 0 : 1, y: opened ? -20 : 0 }} transition={{ duration: 0.4 }}>
             <p className="inv-script text-[11cqw] leading-none" style={{ color: c.ink }}>
               You&rsquo;re invited
             </p>
@@ -205,6 +216,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
   function Hero({ invite }: { invite: Invite }) {
     const opened = useOpened();
     const [a, b] = couple(invite);
+    const lead = (spec.heroLead ?? 0) / 100;
     const ref = useRef<HTMLElement>(null);
     const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
     const imgY = useTransform(scrollYProgress, [0, 1], ["0%", "8%"]);
@@ -213,9 +225,10 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
     const textFade = useTransform(scrollYProgress, [0, 0.4], [1, 0]);
     const show = (delay: number) => ({ initial: { opacity: 0, y: 14 }, animate: opened ? { opacity: 1, y: 0 } : {}, transition: { duration: 1, delay, ease } });
     return (
-      <section ref={ref} className="relative w-full overflow-hidden" style={{ aspectRatio: ART_RATIO }}>
-        <motion.div className="absolute inset-0" style={{ y: imgY, scale: imgScale }}>
+      <section ref={ref} className="relative w-full overflow-hidden" style={{ aspectRatio: lead ? `864 / ${1536 * (1 + lead)}` : ART_RATIO, background: c.paper }}>
+        <motion.div className="absolute inset-x-0 bottom-0" style={{ y: imgY, scale: imgScale, height: `${100 / (1 + lead)}%` }}>
           <Art src={spec.images.hero} alt={`Illustration of a couple for ${a.first} and ${b.first}'s wedding`} priority />
+          {lead > 0 && <div className="absolute inset-x-0 top-0 h-[12%]" style={{ background: `linear-gradient(${c.paper}, transparent)` }} />}
         </motion.div>
         <motion.div className="absolute inset-x-[10%] flex flex-col items-center text-center" style={{ top: `${spec.heroTextTop}%`, y: textY, opacity: textFade }}>
           {spec.heroGlow && <div className="absolute -inset-x-[8%] -inset-y-[18%] -z-0 rounded-[50%] bg-[radial-gradient(closest-side,rgba(255,250,240,.85),rgba(255,250,240,0))]" />}
@@ -412,7 +425,8 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
       window.addEventListener("resize", measure);
       return () => window.removeEventListener("resize", measure);
     }, []);
-    const opacity = useTransform(scrollY, [heroH * 0.35, heroH * 0.75], [0, 1]);
+    const fade = useTransform(scrollY, [heroH * 0.35, heroH * 0.75], [0, 1]);
+    const opacity = spec.frameOverHero ? 1 : fade;
     const f = spec.frame;
     const soft = 4;
     const mask = [
