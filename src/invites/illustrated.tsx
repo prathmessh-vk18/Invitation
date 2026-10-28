@@ -186,7 +186,12 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           style={{ background: `radial-gradient(circle at 35% 30%, #f9e7ad, #d9aa4c 50%, #946a1f)` }}
         />
         <span className="absolute inset-[2cqw] rounded-full border border-[#7a5414]/40" />
-        {spec.sealImage ? (
+        {invite.seal ? (
+          // The couple's own monogram, already ink on transparent.
+          <span className="absolute inset-[3.6cqw]">
+            <Image src={invite.seal} alt={initials(invite)} fill sizes="120px" className="object-contain" />
+          </span>
+        ) : spec.sealImage ? (
           // The monogram's paper ground multiplies into the gold, leaving just the lettering.
           <span className="absolute inset-[3.2cqw] overflow-hidden rounded-full">
             <Image src={spec.sealImage} alt={initials(invite)} fill sizes="120px" className="object-cover mix-blend-multiply" />

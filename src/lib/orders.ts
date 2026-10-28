@@ -176,6 +176,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(isTrackId(d.music) ? { music: d.music } : {}),
       ...(hide.length ? { hide } : {}),
       ...(getFontStyle(d.font) ? { font: d.font as string } : {}),
+      ...(typeof d.seal === "string" && /^\/art\/seals\/[\w-]+\.(png|jpg|webp)$/.test(d.seal) ? { seal: d.seal } : {}),
       ...(d.lang === "hi" ? { lang: "hi" as const } : {}),
     },
   };
