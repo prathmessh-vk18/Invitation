@@ -1,7 +1,7 @@
 const TZ = "Asia/Kolkata";
 
-export function fmtDate(iso: string, opts: Intl.DateTimeFormatOptions) {
-  return new Intl.DateTimeFormat("en-IN", { timeZone: TZ, ...opts }).format(new Date(iso));
+export function fmtDate(iso: string, opts: Intl.DateTimeFormatOptions, locale = "en-IN") {
+  return new Intl.DateTimeFormat(locale, { timeZone: TZ, ...opts }).format(new Date(iso));
 }
 
 export const longDate = (iso: string) =>
