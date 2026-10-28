@@ -120,6 +120,19 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
                   )}
                 </Row>
                 <Row k="Placed">{fmtDate(o.created_at, { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" })}</Row>
+                <Row k="Payment">
+                  {o.razorpay_payment_id ? (
+                    <a href={`https://dashboard.razorpay.com/app/payments/${o.razorpay_payment_id}`} target="_blank" rel="noreferrer" className="underline underline-offset-4">
+                      Razorpay {o.razorpay_payment_id}
+                    </a>
+                  ) : o.paid_at ? (
+                    "Marked paid by hand"
+                  ) : o.razorpay_order_id ? (
+                    "Checkout opened, not paid yet"
+                  ) : (
+                    "Not started"
+                  )}
+                </Row>
                 <Row k="Order page">
                   <Link href={`/order/${o.id}`} target="_blank" className="underline underline-offset-4">
                     Open ↗

@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { getTemplate } from "@/data/templates";
 import { cleanPhone, cleanPhotoPaths, cleanSongPath, orderTotal, validateDetails } from "@/lib/orders";
 import { findActivePartner } from "@/lib/partners";
+import { createRazorpayOrder, isRazorpayConfigured, isValidPaymentSignature, markPaidByRazorpayOrder, razorpayKeyId } from "@/lib/razorpay";
 import { db, isSupabaseConfigured, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
 
 const AUDIO = /^(audio\/(mpeg|mp3|mp4|x-m4a|aac|wav|x-wav|ogg))$/;
@@ -93,22 +94,58 @@ export async function createOrder(input: CreateOrderInput): Promise<{ id: string
   return { id: data.id as string };
 }
 
-/** The couple tells us the 12-digit UPI reference after paying. */
-export async function submitUtr(orderId: string, utr: string): Promise<{ ok: true } | { error: string }> {
-  const clean = String(utr ?? "").replace(/\s/g, "");
-  if (!/^\d{12}$/.test(clean)) return { error: "The UTR is the 12-digit number in your UPI app's payment details." };
+export type PaymentStart = { keyId: string; razorpayOrderId: string; amount: number; code: string; name: string; phone: string; email: string; label: string };
+
+/**
+ * Opens payment for an order: makes (or reuses) its Razorpay order for the order's own amount.
+ * The amount always comes from our database, never from the browser.
+ */
+export async function startPayment(orderId: string): Promise<PaymentStart | { error: string }> {
   if (!/^[0-9a-f-]{36}$/.test(orderId)) return { error: "We couldn't find this order." };
-
-  const { data, error } = await db()
+  if (!isRazorpayConfigured()) return { error: "Online payment isn't set up yet. Please message us on WhatsApp." };
+  const { data: order } = await db()
     .from("orders")
-    .update({ utr: clean, status: "payment_submitted", payment_submitted_at: new Date().toISOString() })
+    .select("id, code, status, amount, template, customer_name, customer_phone, customer_email, razorpay_order_id")
     .eq("id", orderId)
-    .in("status", ["awaiting_payment", "payment_submitted"])
-    .select("id")
     .maybeSingle();
+  if (!order) return { error: "We couldn't find this order." };
+  if (order.status !== "awaiting_payment" && order.status !== "payment_submitted") return { error: "This order is already paid." };
 
-  if (error) return { error: "We couldn't save that. Please try again." };
-  if (!data) return { error: "This order isn't waiting for payment any more." };
+  let rzpId = order.razorpay_order_id as string | null;
+  if (!rzpId) {
+    try {
+      const r = await createRazorpayOrder(order.amount, order.code, { order_id: order.id, code: order.code });
+      rzpId = r.id;
+    } catch {
+      return { error: "We couldn't start the payment. Please try again in a moment." };
+    }
+    await db().from("orders").update({ razorpay_order_id: rzpId }).eq("id", order.id);
+  }
+  const t = getTemplate(order.template);
+  return {
+    keyId: razorpayKeyId(),
+    razorpayOrderId: rzpId,
+    amount: order.amount,
+    code: order.code,
+    name: order.customer_name,
+    phone: order.customer_phone,
+    email: order.customer_email ?? "",
+    label: `${t?.name ?? "Invitation"} design · order ${order.code}`,
+  };
+}
+
+/** Checkout's success callback: verify Razorpay's signature, then mark the order paid. */
+export async function confirmPayment(
+  orderId: string,
+  r: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string },
+): Promise<{ ok: true } | { error: string }> {
+  if (!/^[0-9a-f-]{36}$/.test(orderId)) return { error: "We couldn't find this order." };
+  const { data: order } = await db().from("orders").select("razorpay_order_id, status").eq("id", orderId).maybeSingle();
+  if (!order || order.razorpay_order_id !== r.razorpay_order_id) return { error: "This payment doesn't match your order. Please message us on WhatsApp." };
+  if (!isValidPaymentSignature(r.razorpay_order_id, r.razorpay_payment_id, r.razorpay_signature)) {
+    return { error: "We couldn't verify this payment. If money was deducted, message us on WhatsApp with your order code." };
+  }
+  await markPaidByRazorpayOrder(r.razorpay_order_id, r.razorpay_payment_id);
   return { ok: true };
 }
 

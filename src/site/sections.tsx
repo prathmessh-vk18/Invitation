@@ -153,7 +153,7 @@ export function HowItWorks() {
     },
     {
       n: "Pay, then get your link",
-      b: `We send payment details on WhatsApp. Your invite goes live within ${site.publishWithin} of payment.`,
+      b: `You pay online right after the form, by UPI, card or netbanking. Your invite goes live within ${site.publishWithin} of payment.`,
       v: (
         <div className="flex h-full flex-col justify-center gap-2 bg-whatsapp-wash px-5">
           <ChatBubble>Is the invite ready? 👀</ChatBubble>

@@ -12,6 +12,7 @@ import { inviteFromOrder } from "@/lib/order-invite";
 import { db } from "@/lib/supabase";
 import { Badge, ButtonLink, Container, Heading, Lead, Panel } from "@/ui";
 import { OrderPreview } from "./OrderPreview";
+import { PayButton } from "./PayButton";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false } };
 export const instant = false;
@@ -91,7 +92,9 @@ async function Changes({ order, sent }: { order: Order; sent: boolean }) {
 
 async function OrderView({ params, searchParams }: { params: PageProps<"/order/[id]">["params"]; searchParams: PageProps<"/order/[id]">["searchParams"] }) {
   const { id } = await params;
-  const sent = (await searchParams).sent === "1";
+  const query = await searchParams;
+  const sent = query.sent === "1";
+  const payNow = query.pay === "1";
   const order = await loadOrder(id);
   if (!order) notFound();
   const t = getTemplate(order.template)!;
@@ -117,19 +120,22 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
 
         {(order.status === "awaiting_payment" || order.status === "payment_submitted") && (
           <Panel className="p-6 sm:p-8">
-            <p className="text-title">Order received. Thank you!</p>
+            <p className="text-title">Your details are saved. One step left.</p>
             <p className="mt-2 text-body text-muted">
-              We&rsquo;ll message you on WhatsApp at <span className="font-semibold text-ink">+{order.customer_phone}</span> with the payment details for{" "}
-              {formatINR(order.amount)}. As soon as payment is done, we&rsquo;ll publish your invite and send you the link.
+              Pay {formatINR(order.amount)} to confirm your order. We&rsquo;ll publish your invite within {site.publishWithin} and send the link to{" "}
+              <span className="font-semibold text-ink">+{order.customer_phone}</span> on WhatsApp.
             </p>
-            <p className="mt-4 text-caption text-subtle">Wrong number? Message us with your order code {order.code}.</p>
+            <div className="mt-6">
+              <PayButton orderId={order.id} amount={order.amount} autoOpen={payNow} />
+            </div>
+            <p className="mt-5 text-caption text-subtle">Wrong number? Message us with your order code {order.code}.</p>
           </Panel>
         )}
 
         {order.status === "paid" && (
           <Panel className="p-6 sm:p-8">
             <p className="text-title">Payment confirmed.</p>
-            <p className="mt-1 text-body text-muted">We&rsquo;re preparing your invite. You&rsquo;ll get the link on WhatsApp within {site.publishWithin}.</p>
+            <p className="mt-1 text-body text-muted">Thank you! We&rsquo;re preparing your invite. You&rsquo;ll get the link on WhatsApp within {site.publishWithin}.</p>
           </Panel>
         )}
 
@@ -162,7 +168,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
               Your details are saved
             </Step>
             <Step n={2} done={stage >= 3}>
-              We send payment details on WhatsApp and confirm your payment
+              You pay securely online
             </Step>
             <Step n={3} done={stage >= 4}>
               Your invite goes live and the link arrives on WhatsApp

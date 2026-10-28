@@ -23,6 +23,8 @@ export type Order = {
   song_path: string | null;
   photo_paths?: string[] | null;
   utr: string | null;
+  razorpay_order_id?: string | null;
+  razorpay_payment_id?: string | null;
   admin_notes: string | null;
   invite_slug: string | null;
   partner_code?: string | null;
