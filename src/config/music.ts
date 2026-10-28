@@ -110,9 +110,14 @@ export const instrumentals: Track[] = [
   { id: "synth:kafi", name: "Ehsaas", mood: "Raag Kafi · tender and slow" },
 ];
 
+// Songs added for one couple: an order can use them, but they aren't offered in the song picker.
+export const privateSongs: Track[] = [
+  { id: "file:/music/krishna-flute.m4a", name: "Krishna Flute Theme", mood: "Iftekharul x Stereo India · flute (Akshay & Vidhi)" },
+];
+
 export const tracks: Track[] = [...songs, ...instrumentals];
 
 /** The playable URL or synth id for a track id. */
 export const trackSrc = (id: string) => (id.startsWith("file:") ? id.slice(5) : id);
 
-export const isTrackId = (id: unknown): id is string => typeof id === "string" && tracks.some((t) => t.id === id);
+export const isTrackId = (id: unknown): id is string => typeof id === "string" && [...tracks, ...privateSongs].some((t) => t.id === id);

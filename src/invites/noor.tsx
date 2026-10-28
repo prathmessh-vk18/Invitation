@@ -296,7 +296,7 @@ function Blessing({ invite }: { invite: Invite }) {
               <Rosette className="absolute -top-[14cqw] left-1/2 w-[34cqw] -translate-x-1/2 opacity-30" />
               <p className="inv-label relative text-[2cqw] text-[#e3b964]">{p === invite.bride ? "The bride" : "The groom"}</p>
               <p className="inv-script relative mt-[2cqw] text-[8.5cqw] leading-none text-[#f4efe2]">{p.first}</p>
-              <p className="inv-serif relative mt-[3cqw] text-[3.4cqw] leading-snug text-[#f4efe2]/65 italic">{p.parents}</p>
+              <p className="inv-serif relative mt-[3cqw] text-[3.4cqw] leading-snug text-[#f4efe2] italic">{p.parents}</p>
             </div>
           </Reveal>
         ))}

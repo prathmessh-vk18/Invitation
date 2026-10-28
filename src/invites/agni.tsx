@@ -145,7 +145,7 @@ function Blessing({ invite }: { invite: Invite }) {
             <p className="text-[2.2cqw] tracking-[0.3em] text-[#2a1c15]/50 uppercase">{p === invite.bride ? "The bride" : "The groom"}</p>
             <p className="inv-script mt-[2cqw] text-[10cqw] leading-none">{p.first}</p>
             <p className="mt-[2cqw] text-[3.2cqw] font-semibold">{p.full}</p>
-            <p className="mt-[1cqw] text-[3cqw] leading-snug text-[#2a1c15]/60">{p.parents}</p>
+            <p className="mt-[1cqw] text-[3cqw] leading-snug text-[#2a1c15]">{p.parents}</p>
           </Reveal>
         ))}
       </div>
