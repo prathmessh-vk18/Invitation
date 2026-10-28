@@ -194,3 +194,6 @@ body {
 
 /* The WhatsApp bubble steps up while a page's sticky action bar is showing. */
 body:has([data-sticky-cta="on"]) .wa-fab { bottom: 88px; }
+
+/* Hindi invites: Devanagari breaks apart when letter-spaced or set in capitals. */
+[lang="hi"] .inv-label { letter-spacing: 0.02em; text-transform: none; }

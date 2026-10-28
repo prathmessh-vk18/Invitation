@@ -3,7 +3,8 @@
 import { AnimatePresence, motion, type HTMLMotionProps } from "framer-motion";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Invite, InviteEvent } from "@/data/invites";
-import { calendarLink, directionsLink, longDate, placeOf } from "@/lib/format";
+import { calendarLink, directionsLink, placeOf } from "@/lib/format";
+import { useT } from "./i18n";
 import { invites as demoInvites } from "@/data/invites";
 import { couple, initials } from "./people";
 
@@ -43,36 +44,30 @@ function useCountdown(target: string) {
   const diff = Math.max(0, new Date(target).getTime() - now);
   return {
     done: diff === 0,
-    parts: [
-      { label: "Days", value: Math.floor(diff / 86_400_000) },
-      { label: "Hours", value: Math.floor((diff / 3_600_000) % 24) },
-      { label: "Minutes", value: Math.floor((diff / 60_000) % 60) },
-      { label: "Seconds", value: Math.floor((diff / 1000) % 60) },
-    ],
+    values: [Math.floor(diff / 86_400_000), Math.floor((diff / 3_600_000) % 24), Math.floor((diff / 60_000) % 60), Math.floor((diff / 1000) % 60)],
   };
 }
 
 export function Countdown({ invite, theme }: { invite: Invite; theme: InviteTheme }) {
   const c = useCountdown(invite.date);
+  const { t, d } = useT();
   return (
     <section className={theme.ui.section}>
       <Reveal>
-        <theme.Title kicker="Counting down">Until we say “I do”</theme.Title>
+        <theme.Title kicker={t.countdownKicker}>{t.countdownTitle}</theme.Title>
         {c?.done ? (
-          <p className="inv-script mt-6 text-center text-[11cqw]">Just married!</p>
+          <p className="inv-script mt-6 text-center text-[11cqw]">{t.justMarried}</p>
         ) : (
           <div className="mt-8 grid grid-cols-4 gap-[2.5cqw]">
-            {(c?.parts ?? [{ label: "Days" }, { label: "Hours" }, { label: "Minutes" }, { label: "Seconds" }]).map((p) => (
-              <div key={p.label} className={`${theme.ui.tile} flex aspect-[4/5] flex-col items-center justify-center`}>
-                <span className="inv-serif text-[9cqw] leading-none tabular-nums">
-                  {"value" in p ? String(p.value).padStart(2, "0") : "--"}
-                </span>
-                <span className="inv-label mt-[2cqw] text-[2.2cqw] opacity-70">{p.label}</span>
+            {t.units.map((label, i) => (
+              <div key={label} className={`${theme.ui.tile} flex aspect-[4/5] flex-col items-center justify-center`}>
+                <span className="inv-serif text-[9cqw] leading-none tabular-nums">{c ? String(c.values[i]).padStart(2, "0") : "--"}</span>
+                <span className="inv-label mt-[2cqw] text-[2.2cqw] opacity-70">{label}</span>
               </div>
             ))}
           </div>
         )}
-        <p className={`mt-6 text-center text-[3.6cqw] ${theme.ui.muted}`}>{longDate(invite.date)} · {invite.city}</p>
+        <p className={`mt-6 text-center text-[3.6cqw] ${theme.ui.muted}`}>{d.long(invite.date)} · {invite.city}</p>
       </Reveal>
     </section>
   );
@@ -82,10 +77,11 @@ export function Countdown({ invite, theme }: { invite: Invite; theme: InviteThem
 
 export function EventActions({ event, invite, theme }: { event: InviteEvent; invite: Invite; theme: InviteTheme }) {
   const [a, b] = couple(invite);
+  const { t } = useT();
   return (
     <div data-event-actions className="mt-[5cqw] flex flex-wrap justify-center gap-[2.5cqw]">
       <a href={directionsLink(event, invite.city)} target="_blank" rel="noreferrer" className={theme.ui.button}>
-        <PinIcon /> Directions
+        <PinIcon /> {t.directions}
       </a>
       <a
         href={calendarLink(`${event.name} · ${a.first} & ${b.first}`, event.start, event.end, placeOf(event, invite.city))}
@@ -93,7 +89,7 @@ export function EventActions({ event, invite, theme }: { event: InviteEvent; inv
         rel="noreferrer"
         className={theme.ui.ghost}
       >
-        <CalIcon /> Save date
+        <CalIcon /> {t.saveDate}
       </a>
     </div>
   );
@@ -102,11 +98,12 @@ export function EventActions({ event, invite, theme }: { event: InviteEvent; inv
 /* ───────── Story ───────── */
 
 export function Story({ invite, theme }: { invite: Invite; theme: InviteTheme }) {
+  const { t } = useT();
   if (!invite.story?.length) return null;
   return (
     <section className={theme.ui.section}>
       <Reveal>
-        <theme.Title kicker="Our story">How it began</theme.Title>
+        <theme.Title kicker={t.storyKicker}>{t.storyTitle}</theme.Title>
       </Reveal>
       <ol className="relative mx-auto mt-10 max-w-[80cqw]">
         <span className="absolute top-2 bottom-2 left-[6cqw] w-px bg-current opacity-25" />
@@ -138,6 +135,7 @@ export function Gallery({ invite, theme }: { invite: Invite; theme: InviteTheme 
   const [open, setOpen] = useState<number | null>(null);
   const [active, setActive] = useState(0);
   const track = useRef<HTMLDivElement>(null);
+  const { t } = useT();
   if (!photos.length) return null;
 
   const onScroll = () => {
@@ -152,7 +150,7 @@ export function Gallery({ invite, theme }: { invite: Invite; theme: InviteTheme 
   return (
     <section className={`${theme.ui.section} !px-0`}>
       <Reveal className="px-[12cqw]">
-        <theme.Title kicker="Our moments">Before the big day</theme.Title>
+        <theme.Title kicker={t.momentsKicker}>{t.momentsTitle}</theme.Title>
       </Reveal>
       <Reveal delay={0.1}>
         <div
@@ -168,7 +166,7 @@ export function Gallery({ invite, theme }: { invite: Invite; theme: InviteTheme 
               className="w-[62cqw] shrink-0 snap-center rounded-[1.5cqw] bg-white p-[2.4cqw] pb-[9cqw] text-left shadow-[0_3cqw_8cqw_-3cqw_rgba(40,20,10,.45)]"
               style={{ rotate: `${tilts[i % tilts.length]}deg` }}
               whileTap={{ scale: 0.97 }}
-              aria-label={`Open photo ${i + 1} of ${photos.length}`}
+              aria-label={t.photoOf(i + 1, photos.length)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={src} alt="" loading="lazy" className="aspect-[4/5] w-full rounded-[0.6cqw] object-cover" />
@@ -222,7 +220,7 @@ export function Gallery({ invite, theme }: { invite: Invite; theme: InviteTheme 
                 </button>
               ))}
             <p className="absolute bottom-6 text-sm text-white/70">
-              {open + 1} / {photos.length} · tap outside to close
+              {open + 1} / {photos.length} · {t.tapOutside}
             </p>
           </motion.div>
         )}
@@ -241,6 +239,7 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
   const [note, setNote] = useState("");
   const [demoSent, setDemoSent] = useState(false);
   const [a, b] = couple(invite);
+  const { t, d } = useT();
   // Sample invites on the website don't belong to a real couple, so nothing is sent from them.
   const isDemo = demoSlugs.has(invite.slug);
 
@@ -252,26 +251,16 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
       setDemoSent(true);
       return;
     }
-    const lines =
-      attending === "yes"
-        ? [
-            `Namaste! RSVP for ${a.first} & ${b.first}'s wedding 🌸`,
-            `Name: ${name}`,
-            `Guests: ${guests}`,
-            `Attending: ${events.join(", ") || "—"}`,
-          ]
-        : [`Namaste! RSVP for ${a.first} & ${b.first}'s wedding`, `Name: ${name}`, `Sadly we can't make it, but sending all our love 🙏`];
-    if (note.trim()) lines.push(`Note: ${note.trim()}`);
+    const lines = attending === "yes" ? t.rsvpYes(a.first, b.first, name, guests, events.join(", ")) : t.rsvpNo(a.first, b.first, name);
+    if (note.trim()) lines.push(t.rsvpNote(note.trim()));
     window.open(`https://wa.me/${invite.rsvp.phone}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank");
   };
 
   return (
     <section className={theme.ui.section} id="rsvp">
       <Reveal>
-        <theme.Title kicker="RSVP">Will you join us?</theme.Title>
-        <p className={`mt-3 text-center text-[3.6cqw] ${theme.ui.muted}`}>
-          Kindly reply by {longDate(invite.rsvp.by).replace(/^\w+, /, "")}
-        </p>
+        <theme.Title kicker={t.rsvpKicker}>{t.rsvpTitle}</theme.Title>
+        <p className={`mt-3 text-center text-[3.6cqw] ${theme.ui.muted}`}>{t.replyBy(d.dayMonthYear(invite.rsvp.by))}</p>
       </Reveal>
       <Reveal delay={0.1}>
         <form onSubmit={submit} className={`${theme.ui.card} mt-8 space-y-[5cqw] p-[6cqw]`}>
@@ -283,18 +272,18 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
                 onClick={() => setAttending(v)}
                 className={`${attending === v ? theme.ui.chipOn : theme.ui.chip} py-[3cqw] text-[3.6cqw]`}
               >
-                {v === "yes" ? "Joyfully accept" : "Regretfully decline"}
+                {v === "yes" ? t.accept : t.decline}
               </button>
             ))}
           </div>
           <label className="block">
-            <span className="inv-label text-[2.5cqw] opacity-70">Your name</span>
-            <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sharma family" className={`${theme.ui.input} mt-2`} />
+            <span className="inv-label text-[2.5cqw] opacity-70">{t.yourName}</span>
+            <input required value={name} onChange={(e) => setName(e.target.value)} placeholder={t.namePlaceholder} className={`${theme.ui.input} mt-2`} />
           </label>
           {attending === "yes" && (
             <>
               <div className="flex items-center justify-between">
-                <span className="inv-label text-[2.5cqw] opacity-70">Number of guests</span>
+                <span className="inv-label text-[2.5cqw] opacity-70">{t.guests}</span>
                 <div className="flex items-center gap-[3cqw]">
                   <button type="button" aria-label="Fewer guests" onClick={() => setGuests((g) => Math.max(1, g - 1))} className={`${theme.ui.chip} size-[9cqw] text-[5cqw] leading-none`}>
                     −
@@ -306,7 +295,7 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
                 </div>
               </div>
               <div>
-                <span className="inv-label text-[2.5cqw] opacity-70">Celebrating with us at</span>
+                <span className="inv-label text-[2.5cqw] opacity-70">{t.attendingAt}</span>
                 <div className="mt-2 flex flex-wrap gap-[2cqw]">
                   {invite.events.map((e) => (
                     <button
@@ -323,11 +312,11 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
             </>
           )}
           <label className="block">
-            <span className="inv-label text-[2.5cqw] opacity-70">A note for the couple</span>
-            <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="Optional" className={`${theme.ui.input} mt-2 resize-none`} />
+            <span className="inv-label text-[2.5cqw] opacity-70">{t.note}</span>
+            <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder={t.optional} className={`${theme.ui.input} mt-2 resize-none`} />
           </label>
           <button type="submit" className={`${theme.ui.button} w-full justify-center py-[3.6cqw] text-[3.8cqw]`}>
-            <WaIcon /> Send RSVP on WhatsApp
+            <WaIcon /> {t.sendRsvp}
           </button>
           <AnimatePresence>
             {demoSent && (

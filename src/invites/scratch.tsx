@@ -6,14 +6,14 @@ import { createPortal } from "react-dom";
 import { MarigoldHead, PetalShape } from "@/art/ornaments";
 import { seeded } from "@/art/geometry";
 import type { Invite } from "@/data/invites";
-import { dayNum, monthName, weekday, yearNum } from "@/lib/format";
+import { useT } from "./i18n";
 import { Reveal } from "./shared";
 import type { InviteTheme } from "./types";
 
 const REVEAL_AT = 0.5; // share of the foil scratched before it clears itself
 
 /** Paints a gold foil with sparkle and a hint, sized to the canvas. */
-function paintFoil(ctx: CanvasRenderingContext2D, w: number, h: number, dpr: number) {
+function paintFoil(ctx: CanvasRenderingContext2D, w: number, h: number, dpr: number, hint: string) {
   const g = ctx.createLinearGradient(0, 0, w, h);
   g.addColorStop(0, "#b8862e");
   g.addColorStop(0.3, "#f3d98a");
@@ -37,7 +37,7 @@ function paintFoil(ctx: CanvasRenderingContext2D, w: number, h: number, dpr: num
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.font = `600 ${Math.round(13 * dpr)}px Georgia, serif`;
-  ctx.fillText("✦  SCRATCH TO REVEAL THE DATE  ✦", w / 2, h / 2);
+  ctx.fillText(hint, w / 2, h / 2);
 }
 
 type Bloom = { kind: "marigold" | "petal" | "jasmine"; color: string; size: number; x0: number; y0: number; burstX: number; burstY: number; fallX: number; spin: number; delay: number; dur: number };
@@ -128,6 +128,8 @@ export function ScratchDate({ invite, theme }: { invite: Invite; theme: InviteTh
   const last = useRef<{ x: number; y: number } | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [burst, setBurst] = useState<{ x: number; y: number } | null>(null);
+  const { t, d } = useT();
+  const hint = t.scratchFoil;
 
   // Reveal and celebrate: flowers burst from the middle of the card.
   function reveal() {
@@ -146,13 +148,13 @@ export function ScratchDate({ invite, theme }: { invite: Invite; theme: InviteTh
       cv.width = el.clientWidth * dpr;
       cv.height = el.clientHeight * dpr;
       const ctx = cv.getContext("2d");
-      if (ctx) paintFoil(ctx, cv.width, cv.height, dpr);
+      if (ctx) paintFoil(ctx, cv.width, cv.height, dpr, hint);
     };
     setup();
     const ro = new ResizeObserver(() => !revealed && setup());
     ro.observe(el);
     return () => ro.disconnect();
-  }, [revealed]);
+  }, [revealed, hint]);
 
   function scratched() {
     const cv = canvas.current;
@@ -197,15 +199,15 @@ export function ScratchDate({ invite, theme }: { invite: Invite; theme: InviteTh
   return (
     <section className={theme.ui.section}>
       <Reveal>
-        <theme.Title kicker="A little surprise">Save the date</theme.Title>
+        <theme.Title kicker={t.scratchKicker}>{t.scratchTitle}</theme.Title>
       </Reveal>
       <Reveal delay={0.1}>
         <div ref={box} className={`${theme.ui.card} relative mt-[8cqw] overflow-visible`}>
           <div className="flex flex-col items-center px-[6cqw] py-[9cqw] text-center">
-            <p className="inv-label text-[2.8cqw] opacity-70">{weekday(invite.date)}</p>
-            <p className="inv-serif mt-[2cqw] text-[18cqw] leading-none">{dayNum(invite.date).replace(/^0/, "")}</p>
+            <p className="inv-label text-[2.8cqw] opacity-70">{d.weekday(invite.date)}</p>
+            <p className="inv-serif mt-[2cqw] text-[18cqw] leading-none">{d.day(invite.date)}</p>
             <p className="inv-label mt-[2cqw] text-[3.4cqw]">
-              {monthName(invite.date)} · {yearNum(invite.date)}
+              {d.month(invite.date)} · {d.year(invite.date)}
             </p>
             <p className="inv-serif mt-[3cqw] text-[3.8cqw] italic opacity-80">{invite.city}</p>
           </div>
@@ -225,7 +227,7 @@ export function ScratchDate({ invite, theme }: { invite: Invite; theme: InviteTh
                 onPointerMove={scratch}
                 onPointerUp={end}
                 onPointerCancel={end}
-                aria-label="Scratch to reveal the wedding date"
+                aria-label={t.scratchAria}
                 role="img"
               />
             )}
@@ -233,7 +235,7 @@ export function ScratchDate({ invite, theme }: { invite: Invite; theme: InviteTh
         </div>
         {!revealed && (
           <button type="button" onClick={reveal} className={`mx-auto mt-[4cqw] block text-[3.2cqw] underline underline-offset-4 ${theme.ui.muted}`}>
-            Tap here to reveal instead
+            {t.revealInstead}
           </button>
         )}
       </Reveal>

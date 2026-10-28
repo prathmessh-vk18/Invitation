@@ -56,7 +56,7 @@ export const devanagari = Tiro_Devanagari_Hindi({
 export const amiri = Amiri({ subsets: ["arabic", "latin"], variable: "--font-amiri", weight: ["400", "700"] });
 export const marcellus = Marcellus({ subsets: ["latin"], variable: "--font-marcellus", weight: "400" });
 export const gurmukhi = Baloo_Paaji_2({ subsets: ["gurmukhi", "latin"], variable: "--font-gurmukhi" });
-export const rozha = Rozha_One({ subsets: ["latin"], variable: "--font-rozha", weight: "400" });
+export const rozha = Rozha_One({ subsets: ["latin", "devanagari"], variable: "--font-rozha", weight: "400" });
 export const tamil = Noto_Serif_Tamil({ subsets: ["tamil"], variable: "--font-tamil" });
 export const yeseva = Yeseva_One({ subsets: ["latin"], variable: "--font-yeseva", weight: "400" });
 
