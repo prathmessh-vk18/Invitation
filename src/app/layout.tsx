@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import Script from "next/script";
 import { fontVars } from "@/lib/fonts";
 import { site } from "@/config/site";
 import "./globals.css";
@@ -30,6 +31,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {children}
         <Analytics />
         <SpeedInsights />
+        {/* Google Analytics, on aavjoo.in only: local and preview builds don't report. */}
+        {process.env.VERCEL_ENV === "production" && (
+          <>
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${site.gaId}`} strategy="afterInteractive" />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${site.gaId}');`}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );
