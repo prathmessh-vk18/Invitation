@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { PriceTag, TopSeller } from "./offer";
+import { DesignBadge, PriceTag } from "./offer";
 import { templates, type TemplateMeta } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
 import { themes } from "@/invites/registry";
@@ -48,7 +48,7 @@ export function PosterTile({ t, index }: { t: TemplateMeta; index: number }) {
         <div className="relative flex aspect-[4/4.6] flex-col sm:aspect-[4/4.2]">
           {/* price */}
           <div className="flex items-start justify-end gap-2 p-[5cqw]">
-            {t.topSeller && <TopSeller className="mr-auto" />}
+            <DesignBadge t={t} className="mr-auto" />
             <span className="rounded-full bg-white/90 px-3 py-1 font-sans text-ink backdrop-blur"><PriceTag price={t.price} mrp={t.mrp} size="sm" /></span>
           </div>
 

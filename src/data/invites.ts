@@ -522,18 +522,6 @@ export const invites: Invite[] = [
     rsvp: { phone: "919699711809", by: "2027-01-28T00:00:00+05:30", contact: "Krishnan family" },
     closing: "Your blessings will make our day complete.",
   },
-];
-
-// Sample "Our moments" photos for the demos (illustrations of a fictional couple, see public/art/moments).
-const demoMoments = ["/art/moments/m1.jpg", "/art/moments/m2.jpg", "/art/moments/m3.jpg", "/art/moments/m4.jpg"];
-for (const i of invites) i.gallery ??= demoMoments;
-
-// Each demo plays one of the songs, shuffled across the designs (fixed per demo so server and browser agree).
-const demoTracks = songs.map((s) => s.id);
-invites.forEach((i, n) => (i.music ??= demoTracks[(n * 5 + 2) % demoTracks.length]));
-
-// Demos for private designs: they preview the design in its order form, but aren't listed or prerendered.
-export const privateInvites: Invite[] = [
   {
     slug: "haveli-preview",
     template: "haveli",
@@ -557,10 +545,20 @@ export const privateInvites: Invite[] = [
     ],
     rsvp: { phone: "919699711809", by: "2027-02-05T00:00:00+05:30", contact: "Mertiya family" },
     closing: "Your presence and blessings will make our celebration complete.",
-    gallery: ["/art/moments/haveli-1.jpg", "/art/moments/haveli-2.jpg", "/art/moments/haveli-3.jpg", "/art/moments/haveli-4.jpg"],
     music: "file:/music/krishna-flute.m4a",
   },
 ];
+
+// Sample "Our moments" photos for the demos (illustrations of a fictional couple, see public/art/moments).
+const demoMoments = ["/art/moments/m1.jpg", "/art/moments/m2.jpg", "/art/moments/m3.jpg", "/art/moments/m4.jpg"];
+for (const i of invites) i.gallery ??= demoMoments;
+
+// Each demo plays one of the songs, shuffled across the designs (fixed per demo so server and browser agree).
+const demoTracks = songs.map((s) => s.id);
+invites.forEach((i, n) => (i.music ??= demoTracks[(n * 5 + 2) % demoTracks.length]));
+
+// Demos for private designs: they preview the design in its order form, but aren't listed or prerendered.
+export const privateInvites: Invite[] = [];
 
 export function getInvite(slug: string) {
   return invites.find((i) => i.slug === slug) ?? privateInvites.find((i) => i.slug === slug);
