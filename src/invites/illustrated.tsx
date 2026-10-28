@@ -320,7 +320,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
     return (
       <section className="relative px-[14cqw] pt-[16cqw] pb-[14cqw] text-center">
         <Reveal>
-          <p className="inv-label text-[2.8cqw] leading-relaxed" style={{ color: c.accent }}>
+          <p className="inv-label text-[2.8cqw] leading-relaxed whitespace-pre-line" style={{ color: c.accent }}>
             {invite.hosts || "Together with their families"}
           </p>
           <p className="inv-serif mx-auto mt-[4cqw] text-[4.8cqw] leading-snug italic" style={{ color: c.ink }}>
@@ -379,9 +379,9 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
                     {e.address}
                   </p>
                 )}
-                {(e.dress || e.note) && (
+                {((e.dress && !invite.wardrobe) || e.note) && (
                   <p className="inv-serif mt-[2cqw] text-[3.4cqw] italic" style={{ color: c.accent }}>
-                    {[e.dress && `Dress: ${e.dress}`, e.note].filter(Boolean).join(" · ")}
+                    {[!invite.wardrobe && e.dress && `Dress: ${e.dress}`, e.note].filter(Boolean).join(" · ")}
                   </p>
                 )}
                 <EventActions event={e} invite={invite} theme={theme} />
@@ -389,6 +389,29 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
             );
           })}
         </ol>
+        {invite.wardrobe && invite.events.some((e) => e.dress) && (
+          <div className="mt-[16cqw]">
+            <Reveal>
+              <Title kicker="What to wear">Wardrobe</Title>
+            </Reveal>
+            <ul className="mt-[7cqw] space-y-[4cqw]">
+              {invite.events
+                .filter((e) => e.dress)
+                .map((e, i) => (
+                  <Reveal key={e.name + i} delay={0.05 * i}>
+                    <li className="text-center">
+                      <p className="inv-script leading-none" style={{ color: c.ink, ...sz(7.5) }}>
+                        {e.name}
+                      </p>
+                      <p className="inv-serif mt-[1.5cqw] text-[4.2cqw] italic" style={{ color: c.accent }}>
+                        {e.dress}
+                      </p>
+                    </li>
+                  </Reveal>
+                ))}
+            </ul>
+          </div>
+        )}
       </section>
     );
   }
@@ -397,6 +420,41 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
     const [a, b] = couple(invite);
     return (
       <section className="relative px-[14cqw] pt-[12cqw] text-center" style={{ paddingBottom: `calc(${spec.frame.bottom}vh + 18cqw)` }}>
+        {invite.extras?.length ? (
+          <div className="mb-[14cqw] space-y-[9cqw]">
+            {invite.extras.map((g, i) => (
+              <Reveal key={g.title + i}>
+                <p className="text-[4.6cqw] font-semibold" style={{ color: c.accent, fontFamily: "var(--font-deva), var(--inv-serif)" }}>
+                  {g.title}
+                </p>
+                <div className="mt-[2.5cqw] space-y-[1.2cqw]">
+                  {g.lines.map((l, j) => {
+                    const phone = l.match(/(\+?\d[\d\s-]{8,}\d)/)?.[1];
+                    const text = <span className="text-[4cqw] leading-snug" style={{ color: c.ink, fontFamily: "var(--font-deva), var(--inv-serif)" }}>{l}</span>;
+                    return (
+                      <p key={j}>
+                        {phone ? (
+                          <a href={`tel:+91${phone.replace(/\D/g, "").slice(-10)}`} className="underline decoration-1 underline-offset-4" style={{ textDecorationColor: `${c.accent}66` }}>
+                            {text}
+                          </a>
+                        ) : (
+                          text
+                        )}
+                      </p>
+                    );
+                  })}
+                </div>
+              </Reveal>
+            ))}
+            {invite.welcome && (
+              <Reveal>
+                <p className="text-[4.4cqw] font-medium" style={{ color: c.ink, fontFamily: "var(--font-deva), var(--inv-serif)" }}>
+                  {invite.welcome}
+                </p>
+              </Reveal>
+            )}
+          </div>
+        ) : null}
         <Reveal>
           <Divider />
           <p className="inv-serif mt-[6cqw] text-[5cqw] leading-snug italic" style={{ color: c.ink }}>

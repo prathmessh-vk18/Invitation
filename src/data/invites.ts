@@ -50,6 +50,12 @@ export type Invite = {
   font?: string;
   // The couple's own monogram for the opening seal, a file in public/art/seals.
   seal?: string;
+  // Dress codes gathered into their own "Wardrobe" section instead of on each function card.
+  wardrobe?: boolean;
+  // Extra name lists printed near the end, as on a printed card (family, contacts, firms…).
+  extras?: { title: string; lines: string[] }[];
+  // A welcome line from the family, under those lists.
+  welcome?: string;
   // "hi" prints the invite's own words (headings, buttons, dates) in Hindi. Set by an admin for now.
   lang?: "hi";
 };

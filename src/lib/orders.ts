@@ -161,7 +161,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       lead: d.lead === "bride" ? "bride" : "groom",
       invocation: str(d.invocation, 120),
       invocationMeaning: str(d.invocationMeaning, 120),
-      hosts: str(d.hosts, 160),
+      hosts: str(d.hosts, 400),
       message: str(d.message, 400),
       date,
       city,
@@ -176,6 +176,16 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(isTrackId(d.music) ? { music: d.music } : {}),
       ...(hide.length ? { hide } : {}),
       ...(getFontStyle(d.font) ? { font: d.font as string } : {}),
+      ...(d.wardrobe === true ? { wardrobe: true } : {}),
+      ...(Array.isArray(d.extras) && d.extras.length
+        ? {
+            extras: d.extras.slice(0, 8).map((g) => {
+              const o = (g ?? {}) as Record<string, unknown>;
+              return { title: str(o.title, 60), lines: (Array.isArray(o.lines) ? o.lines : []).slice(0, 20).map((l) => str(l, 120)).filter(Boolean) };
+            }),
+          }
+        : {}),
+      ...(str(d.welcome, 200) ? { welcome: str(d.welcome, 200) } : {}),
       ...(typeof d.seal === "string" && /^\/art\/seals\/[\w-]+\.(png|jpg|webp)$/.test(d.seal) ? { seal: d.seal } : {}),
       ...(d.lang === "hi" ? { lang: "hi" as const } : {}),
     },
