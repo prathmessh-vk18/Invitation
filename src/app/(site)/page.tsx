@@ -1,11 +1,10 @@
-import { offer } from "@/config/offer";
 import { JsonLd, organizationLd } from "@/lib/seo";
-import Link from "next/link";
 import { Diya, MarigoldHead } from "@/art/ornaments";
 import { formatINR } from "@/config/site";
 import { stats } from "@/data/social-proof";
 import { getTemplate } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
+import { RecentOrders } from "@/site/recent-orders";
 import { Showcase } from "@/site/showcase";
 import { ClosingCta, Comparison, Faq, Features, HowItWorks, Testimonials } from "@/site/sections";
 import { Badge, ButtonLink, Container, Display, Heading, InlineIcon, Lead, PhoneFrame, Reveal } from "@/ui";
@@ -26,15 +25,7 @@ export default function Home() {
       <section className="pt-20 pb-16 text-center sm:pt-28">
         <Container>
           <Reveal>
-            <Link
-              href="/designs"
-              className="mb-7 inline-flex items-center gap-2 rounded-full bg-[#fff1e6] py-1.5 pr-4 pl-1.5 text-[14px] font-medium text-[#b4410f] transition hover:bg-[#ffe6d2]"
-            >
-              <span className="rounded-full bg-[#e8582a] px-2.5 py-0.5 text-[12px] font-semibold whitespace-nowrap text-white">{offer.emoji} {offer.name}</span>
-              <span className="whitespace-nowrap">
-                From ₹249<span className="max-sm:hidden">, up to 75% off</span> →
-              </span>
-            </Link>
+            <RecentOrders />
             <Display className="mx-auto max-w-[1040px]">
               Wedding invites
               <InlineIcon bg="var(--color-icon-maroon)" rotate={-6}>
