@@ -113,6 +113,7 @@ export const instrumentals: Track[] = [
 // Songs added for one couple: an order can use them, but they aren't offered in the song picker.
 export const privateSongs: Track[] = [
   { id: "file:/music/krishna-flute.m4a", name: "Krishna Flute Theme", mood: "Iftekharul x Stereo India · flute (Akshay & Vidhi)" },
+  { id: "file:/music/vaaroon.m4a", name: "Vaaroon", mood: "Anand Bhaskar · from Mirzapur (Meet & Vanshika, AAV-1038)" },
 ];
 
 export const tracks: Track[] = [...songs, ...instrumentals];
