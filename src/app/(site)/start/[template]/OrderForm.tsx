@@ -11,7 +11,7 @@ import { SectionPreview, type PreviewPart } from "@/invites/SectionPreview";
 import { FullInvitePreview } from "@/invites/FullInvitePreview";
 import { fmtDate } from "@/lib/format";
 import { fontStyles, getFontStyle, sections, type SectionId } from "@/config/customise";
-import { instrumentals, songs, tracks, type Track } from "@/config/music";
+import { instrumentals, privateSongs, songs, tracks, type Track } from "@/config/music";
 import { themes } from "@/invites/registry";
 import { useInviteMusic } from "@/invites/music";
 import type { EventKind } from "@/data/invites";
@@ -1073,7 +1073,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
         )}
       </ReviewBlock>
       <ReviewBlock title="Song" onEdit={() => goTo(stepIndex("music"))}>
-        <p>{song ? `Your upload: ${song.name}` : (tracks.find((x) => x.id === s.music)?.name ?? "Aavjoo track")}</p>
+        <p>{song ? `Your upload: ${song.name}` : ([...tracks, ...privateSongs].find((x) => x.id === s.music)?.name ?? "Aavjoo track")}</p>
       </ReviewBlock>
       <ReviewBlock title="Your contact" onEdit={() => goTo(stepIndex("contact"))}>
         <p className="text-ink">

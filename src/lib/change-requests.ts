@@ -1,7 +1,7 @@
 import "server-only";
 import { site } from "@/config/site";
 import { fontStyles, sections } from "@/config/customise";
-import { tracks } from "@/config/music";
+import { privateSongs, tracks } from "@/config/music";
 import { fmtDate, time } from "@/lib/format";
 import type { InviteDetails } from "@/lib/orders";
 import { db } from "@/lib/supabase";
@@ -36,7 +36,7 @@ export type Change = { label: string; before: string; after: string };
 
 const when = (iso?: string) => (iso ? `${fmtDate(iso, { day: "numeric", month: "short", year: "numeric" })}, ${time(iso)}` : "");
 const day = (iso?: string) => (iso ? fmtDate(iso, { day: "numeric", month: "short", year: "numeric" }) : "");
-const track = (id?: string) => tracks.find((t) => t.id === id)?.name ?? id ?? "";
+const track = (id?: string) => [...tracks, ...privateSongs].find((t) => t.id === id)?.name ?? id ?? "";
 const font = (id?: string) => fontStyles.find((f) => f.id === id)?.name ?? "Design's own";
 const hidden = (ids?: string[]) => sections.filter((x) => ids?.includes(x.id)).map((x) => x.name).join(", ") || "Nothing";
 

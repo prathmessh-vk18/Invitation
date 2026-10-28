@@ -556,7 +556,7 @@ export const privateInvites: Invite[] = [
     rsvp: { phone: "919699711809", by: "2027-02-05T00:00:00+05:30", contact: "Mertiya family" },
     closing: "Your presence and blessings will make our celebration complete.",
     gallery: ["/art/moments/haveli-1.jpg", "/art/moments/haveli-2.jpg", "/art/moments/haveli-3.jpg", "/art/moments/haveli-4.jpg"],
-    music: "file:/music/sajna.m4a",
+    music: "file:/music/krishna-flute.m4a",
   },
 ];
 
