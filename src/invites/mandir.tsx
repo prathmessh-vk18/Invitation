@@ -6,7 +6,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { site } from "@/config/site";
 import type { Invite } from "@/data/invites";
-import { fmtDate, monthName, time, weekday, yearNum } from "@/lib/format";
+import { useT } from "./i18n";
 import { makeIllustrated } from "./illustrated";
 import { useOpened, usePreview } from "./opened";
 import { couple, EventActions, Reveal } from "./shared";
@@ -103,6 +103,7 @@ function ArchCard({ children }: { children: ReactNode }) {
 
 function Names({ invite, show }: { invite: Invite; show: (d: number) => object }) {
   const [a, b] = couple(invite);
+  const { t, d, lang } = useT();
   return (
     <div className="flex flex-col items-center text-center [text-shadow:0_0_16px_rgba(255,240,228,.9)]">
       <motion.p {...show(0.3)} className="text-[3.4cqw]" style={{ color: c.name, fontFamily: "var(--font-deva)" }}>
@@ -112,15 +113,15 @@ function Names({ invite, show }: { invite: Invite; show: (d: number) => object }
         <span className="inv-script text-[15cqw] leading-[0.95]" style={{ color: c.name }}>
           {a.first}
         </span>
-        <span className="-my-[1cqw] text-[8.5cqw] leading-none" style={{ color: c.ink, fontFamily: HAND }}>
-          weds
+        <span className={`text-[8.5cqw] leading-none ${lang === "hi" ? "my-[2cqw]" : "-my-[1cqw]"}`} style={{ color: c.ink, fontFamily: lang === "hi" ? "var(--inv-script)" : HAND }}>
+          {t.weds}
         </span>
         <span className="inv-script text-[15cqw] leading-[0.95]" style={{ color: c.name }}>
           {b.first}
         </span>
       </motion.h1>
       <motion.p {...show(1)} className="inv-label mt-[3cqw] text-[2.6cqw]" style={{ color: c.ink }}>
-        {weekday(invite.date)} · {fmtDate(invite.date, { day: "numeric" })} {monthName(invite.date)} {yearNum(invite.date)}
+        {d.weekday(invite.date)} · {d.day(invite.date)} {d.month(invite.date)} {d.year(invite.date)}
       </motion.p>
       <motion.p {...show(1.15)} className="inv-serif mt-[1.5cqw] text-[4cqw] italic" style={{ color: c.ink }}>
         {invite.city}
@@ -148,6 +149,7 @@ function Hero({ invite }: { invite: Invite }) {
 
 function Walk({ invite }: { invite: Invite }) {
   const opened = useOpened();
+  const { t } = useT();
   const [a, b] = couple(invite);
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start start", "end end"] });
@@ -176,9 +178,9 @@ function Walk({ invite }: { invite: Invite }) {
           animate={opened ? { opacity: 1, y: [0, 6, 0] } : {}}
           transition={{ opacity: { delay: 1.8, duration: 0.6 }, y: { delay: 1.8, duration: 1.8, repeat: Infinity } }}
           style={{ opacity: cue }}
-          aria-label="Scroll to walk in"
+          aria-label={t.scrollToWalkIn}
         >
-          <span className="inv-label text-[2.3cqw]">Scroll to walk in</span>
+          <span className="inv-label text-[2.3cqw]">{t.scrollToWalkIn}</span>
           <svg viewBox="0 0 24 24" className="size-[4cqw]" fill="none" stroke="currentColor" strokeWidth={1.6}>
             <path d="M6 9l6 6 6-6" />
           </svg>
@@ -200,6 +202,7 @@ function Blessing({ invite }: { invite: Invite }) {
   const blur = useTransform(scrollYProgress, [0, 0.7], ["blur(4px)", "blur(0px)"]);
   // In a phone preview there's no walk to rise out of: show it still, at full size.
   const still = usePreview();
+  const { t, lang } = useT();
   const person = (p: typeof a) => (
     <div>
       {p.parents && (
@@ -218,15 +221,15 @@ function Blessing({ invite }: { invite: Invite }) {
       <motion.div style={still ? undefined : { scale, opacity, filter: blur, transformOrigin: "50% 30%" }}>
         <Divider />
         <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed" style={{ color: c.gold }}>
-          {invite.hosts || "Together with their families"}
+          {invite.hosts || t.togetherWithFamilies}
         </p>
         <p className="inv-serif mt-[3cqw] text-[4.6cqw] leading-snug" style={{ color: c.ink }}>
           {invite.message}
         </p>
         <Divider className="my-[6cqw]" />
         {person(a)}
-        <p className="my-[3cqw] text-[8cqw] leading-none" style={{ color: c.ink, fontFamily: HAND }}>
-          and
+        <p className="my-[3cqw] text-[8cqw] leading-none" style={{ color: c.ink, fontFamily: lang === "hi" ? "var(--inv-script)" : HAND }}>
+          {t.and}
         </p>
         {person(b)}
         {invite.invocationMeaning && (
@@ -242,10 +245,11 @@ function Blessing({ invite }: { invite: Invite }) {
 /* ───────── Functions on arch cards ───────── */
 
 function Events({ invite }: { invite: Invite }) {
+  const { t, d } = useT();
   return (
     <section className="relative px-[11cqw] py-[12cqw]">
       <Reveal>
-        <Title kicker="Mark your calendar">On the following events</Title>
+        <Title kicker={t.eventsKicker}>{t.eventsTitle}</Title>
       </Reveal>
       <ol className="mt-[8cqw] space-y-[7cqw]">
         {invite.events.map((e, i) => (
@@ -257,10 +261,10 @@ function Events({ invite }: { invite: Invite }) {
                   {e.name}
                 </h3>
                 <p className="inv-label mt-[2.5cqw] text-[2.5cqw]" style={{ color: c.ink }}>
-                  {weekday(e.start)} · {fmtDate(e.start, { day: "numeric", month: "short", year: "numeric" })}
+                  {d.weekday(e.start)} · {d.shortMonthDate(e.start)}
                 </p>
                 <p className="inv-serif mt-[1cqw] text-[4cqw] italic" style={{ color: c.soft }}>
-                  {time(e.start)} onwards
+                  {t.onwards(d.time(e.start))}
                 </p>
                 <p className="inv-serif mt-[3cqw] text-[4.4cqw] leading-tight" style={{ color: c.ink }}>
                   {e.venue}
@@ -272,7 +276,7 @@ function Events({ invite }: { invite: Invite }) {
                 )}
                 {(e.dress || e.note) && (
                   <p className="inv-serif mt-[2cqw] text-[3.6cqw] italic" style={{ color: c.name }}>
-                    {[e.dress && `Dress: ${e.dress}`, e.note].filter(Boolean).join(" · ")}
+                    {[e.dress && t.dress(e.dress), e.note].filter(Boolean).join(" · ")}
                   </p>
                 )}
                 <EventActions event={e} invite={invite} theme={mandir} />
@@ -289,6 +293,7 @@ function Events({ invite }: { invite: Invite }) {
 
 function Closing({ invite }: { invite: Invite }) {
   const [a, b] = couple(invite);
+  const { t, lang } = useT();
   return (
     <section className="relative px-[13cqw] pt-[10cqw] text-center" style={{ paddingBottom: `calc(${FRAME.bottom}vh + 16cqw)` }}>
       <Reveal>
@@ -297,7 +302,7 @@ function Closing({ invite }: { invite: Invite }) {
           {invite.closing}
         </p>
         <p className="inv-script mt-[4cqw] text-[11cqw] leading-none" style={{ color: c.name }}>
-          {a.first} &amp; {b.first}
+          {a.first} {lang === "hi" ? t.and : "&"} {b.first}
         </p>
         {invite.hashtag && (
           <p className="inv-label mt-[3cqw] text-[2.8cqw]" style={{ color: c.gold }}>

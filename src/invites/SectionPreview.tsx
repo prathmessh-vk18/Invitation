@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { fontVars } from "@/config/customise";
 import type { Invite } from "@/data/invites";
 import { useFitScript } from "./fit";
+import { LangContext, langOf, langVars } from "./i18n";
 import { OpenedContext, PreviewContext } from "./opened";
 import { themes } from "./registry";
 import { Gallery, Rsvp } from "./shared";
@@ -60,11 +61,13 @@ export function SectionPreview({ invite, part, eventIndex }: { invite: Invite; p
   }[part];
 
   return (
+    <LangContext.Provider value={langOf(invite)}>
     <PreviewContext.Provider value={true}>
     <OpenedContext.Provider value={true}>
       <div
         ref={ref}
-        style={{ ...theme.vars, ...fontVars(invite.font), ...(screenH ? { ["--screen-h" as string]: `${screenH}px` } : {}) }}
+        lang={langOf(invite)}
+        style={{ ...theme.vars, ...fontVars(invite.font), ...langVars(langOf(invite)), ...(screenH ? { ["--screen-h" as string]: `${screenH}px` } : {}) }}
         className={`@container no-scrollbar relative h-full w-full overflow-x-hidden overflow-y-auto overscroll-contain select-none ${theme.root}`}
         aria-hidden
       >
@@ -76,5 +79,6 @@ export function SectionPreview({ invite, part, eventIndex }: { invite: Invite; p
       </div>
     </OpenedContext.Provider>
     </PreviewContext.Provider>
+    </LangContext.Provider>
   );
 }

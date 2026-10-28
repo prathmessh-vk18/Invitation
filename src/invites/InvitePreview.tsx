@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { fontVars } from "@/config/customise";
 import { getInvite, type Invite } from "@/data/invites";
 import { useFitScript } from "./fit";
+import { LangContext, langOf, langVars } from "./i18n";
 import { OpenedContext, PreviewContext } from "./opened";
 import { themes } from "./registry";
 
@@ -60,11 +61,13 @@ export function InvitePreview({
   }, [loop, inView, cycle, offset]);
 
   return (
+    <LangContext.Provider value={langOf(invite)}>
     <PreviewContext.Provider value={true}>
     <OpenedContext.Provider value={opened}>
       <div
         ref={ref}
-        style={{ ...theme.vars, ...fontVars(invite.font), ["--screen-h" as string]: "100%" }}
+        lang={langOf(invite)}
+        style={{ ...theme.vars, ...fontVars(invite.font), ...langVars(langOf(invite)), ["--screen-h" as string]: "100%" }}
         className={`@container pointer-events-none relative h-full w-full overflow-hidden select-none ${theme.root}`}
         aria-hidden
       >
@@ -80,5 +83,6 @@ export function InvitePreview({
       </div>
     </OpenedContext.Provider>
     </PreviewContext.Provider>
+    </LangContext.Provider>
   );
 }

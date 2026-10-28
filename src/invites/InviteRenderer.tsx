@@ -6,6 +6,7 @@ import type { Invite } from "@/data/invites";
 import { withMapLinks } from "@/lib/format";
 import { useFitScript } from "./fit";
 import { useInviteMusic } from "./music";
+import { LangContext, langOf, langVars } from "./i18n";
 import { OpenedContext } from "./opened";
 import { themes } from "./registry";
 import { ScratchDate } from "./scratch";
@@ -46,8 +47,9 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
   ].filter(Boolean);
 
   return (
+    <LangContext.Provider value={langOf(invite)}>
     <OpenedContext.Provider value={opened}>
-      <div ref={rootRef} style={{ ...theme.vars, ...fontVars(invite.font) }} className={`${theme.root} min-h-svh`}>
+      <div ref={rootRef} lang={langOf(invite)} style={{ ...theme.vars, ...fontVars(invite.font), ...langVars(langOf(invite)) }} className={`${theme.root} min-h-svh`}>
         <main className="@container relative mx-auto w-full max-w-[480px] overflow-x-clip shadow-[0_0_80px_rgba(0,0,0,.25)]">
           <theme.Backdrop />
           <div className="relative">
@@ -85,5 +87,6 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
         )}
       </div>
     </OpenedContext.Provider>
+    </LangContext.Provider>
   );
 }

@@ -31,6 +31,8 @@ export type FormState = {
   // Optional sections turned off, and the font style ("" = the design's own fonts).
   hide: SectionId[];
   font: string;
+  // Not in the form: kept so editing a Hindi invite doesn't turn it back into English.
+  lang?: "hi";
 };
 
 export const LIMITS = { name: 40, fullName: 80, parents: 160, city: 80, message: 400, closing: 240, venue: 120, address: 200 };
@@ -211,6 +213,7 @@ export function toDetails(s: FormState) {
     music: s.music,
     hide: s.hide,
     font: s.font,
+    ...(s.lang ? { lang: s.lang } : {}),
   };
 }
 
@@ -267,6 +270,7 @@ export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState[
     music: d.music ?? initialState(demo).music,
     hide: (d.hide ?? []) as FormState["hide"],
     font: d.font ?? "",
+    ...(d.lang === "hi" ? { lang: "hi" as const } : {}),
   };
 }
 
@@ -289,6 +293,7 @@ export function toPreview(s: FormState, demo: Invite): Invite {
     closing: s.closing,
     hide: s.hide,
     font: s.font || undefined,
+    ...(s.lang ? { lang: s.lang } : {}),
     events: s.events.map((e) => ({
       kind: e.kind,
       name: e.name || "Function",

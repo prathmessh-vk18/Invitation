@@ -9,6 +9,7 @@ import type { Invite } from "@/data/invites";
 import type { TemplateId } from "@/data/templates";
 import { dayNum, fmtDate, monthName, time, weekday, yearNum } from "@/lib/format";
 import { couple, EventActions, initials, Reveal } from "./shared";
+import { useT } from "./i18n";
 import { useOpened } from "./opened";
 import type { InviteTheme, OpeningProps } from "./types";
 
@@ -197,14 +198,15 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
     );
   }
 
-  function Hint({ opened, text = "Tap to open" }: { opened: boolean; text?: string }) {
+  function Hint({ opened, text }: { opened: boolean; text?: string }) {
+    const { t } = useT();
     return (
       <motion.p
         className="inv-label absolute inset-x-[16%] bottom-[7%] rounded-full bg-black/35 py-[1.8cqw] text-center text-[2.8cqw] text-white backdrop-blur-sm"
         animate={{ opacity: opened ? 0 : [0.7, 1, 0.7] }}
         transition={{ duration: 2.4, repeat: opened ? 0 : Infinity }}
       >
-        {text}
+        {text ?? t.tapToOpen}
       </motion.p>
     );
   }

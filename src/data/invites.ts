@@ -48,6 +48,8 @@ export type Invite = {
   // Optional sections the couple turned off, and their font style (none = the design's own).
   hide?: SectionId[];
   font?: string;
+  // "hi" prints the invite's own words (headings, buttons, dates) in Hindi. Set by an admin for now.
+  lang?: "hi";
 };
 
 export const invites: Invite[] = [
