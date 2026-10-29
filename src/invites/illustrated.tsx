@@ -71,6 +71,17 @@ function Art({ src, alt = "", pos, priority, className, style }: { src: string; 
   );
 }
 
+// Outfit paintings shown above a function in the Wardrobe section, for the couples who asked for them.
+const wardrobeArt: Record<string, Record<string, string>> = {
+  "akshay-weds-vidhi": {
+    Myra: "wardrobe-myra",
+    "Sagai & Sangeet": "wardrobe-sangeet",
+    Nikashi: "wardrobe-traditional",
+    Pheras: "wardrobe-traditional",
+    Reception: "wardrobe-reception",
+  },
+};
+
 function ordinal(iso: string) {
   const d = Number(fmtDate(iso, { day: "numeric" }));
   const s = d % 10 === 1 && d !== 11 ? "st" : d % 10 === 2 && d !== 12 ? "nd" : d % 10 === 3 && d !== 13 ? "rd" : "th";
@@ -402,6 +413,16 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
                 .map((e, i) => (
                   <Reveal key={e.name + i} delay={0.05 * i}>
                     <li className="text-center">
+                      {wardrobeArt[invite.slug]?.[e.name] && (
+                        <Image
+                          src={`/art/illus/${wardrobeArt[invite.slug][e.name]}.webp`}
+                          alt={`${e.name} outfits`}
+                          width={500}
+                          height={720}
+                          sizes="60vw"
+                          className="mx-auto mb-[3cqw] h-auto w-[40cqw]"
+                        />
+                      )}
                       <p className="inv-script leading-none" style={{ color: c.ink, ...sz(7.5) }}>
                         {e.name}
                       </p>
