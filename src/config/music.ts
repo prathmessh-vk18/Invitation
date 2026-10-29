@@ -100,6 +100,8 @@ export const songs: Track[] = [
   { id: "file:/music/kabira-encore.mp3", name: "Kabira (Encore)", mood: "Yeh Jawaani Hai Deewani · emotional" },
   { id: "file:/music/aaj-sajeya.mp3", name: "Aaj Sajeya", mood: "Goldie Sohel · bridal entry" },
   { id: "file:/music/sajna.m4a", name: "Sajna", mood: "Darshan Raval · soft and romantic" },
+  { id: "file:/music/vaaroon.m4a", name: "Vaaroon", mood: "Anand Bhaskar · from Mirzapur" },
+  { id: "file:/music/raah-mein-unse-mulaqat.m4a", name: "Raah Mein Unse Mulaqat", mood: "Vijaypath · instrumental" },
 ];
 
 export const instrumentals: Track[] = [
@@ -113,8 +115,6 @@ export const instrumentals: Track[] = [
 // Songs added for one couple: an order can use them, but they aren't offered in the song picker.
 export const privateSongs: Track[] = [
   { id: "file:/music/krishna-flute.m4a", name: "Krishna Flute Theme", mood: "Iftekharul x Stereo India · flute (Akshay & Vidhi)" },
-  { id: "file:/music/vaaroon.m4a", name: "Vaaroon", mood: "Anand Bhaskar · from Mirzapur (Meet & Vanshika, AAV-1038)" },
-  { id: "file:/music/raah-mein-unse-mulaqat.m4a", name: "Raah Mein Unse Mulaqat", mood: "Instrumental (Rishabh & Deepali, AAV-1060)" },
 ];
 
 export const tracks: Track[] = [...songs, ...instrumentals];
