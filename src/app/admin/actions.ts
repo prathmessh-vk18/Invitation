@@ -4,7 +4,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { site } from "@/config/site";
 import { endAdminSession, passwordMatches, requireAdmin, startAdminSession } from "@/lib/admin-auth";
-import { cleanPhotoPaths, cleanSongPath, isValidSlug, liveUntil, validateDetails, type Order } from "@/lib/orders";
+import { cleanPhotoPaths, cleanSongPath, isValidSlug, liveUntil, validateDetails, type Order, keepInviteSettings } from "@/lib/orders";
 import type { ChangesInput } from "@/lib/order-actions";
 import { inviteFromOrder } from "@/lib/order-invite";
 import { db } from "@/lib/supabase";
@@ -140,9 +140,10 @@ export async function setInvitePublished(id: string, slug: string, published: bo
 async function applyToOrder(id: string, input: ChangesInput): Promise<{ ok: true } | { errors: string[] }> {
   const checked = validateDetails(input.details);
   if (!checked.ok) return { errors: checked.errors };
+  const before = await loadOrder(id);
   const { error } = await db()
     .from("orders")
-    .update({ details: checked.details, song_path: cleanSongPath(input.songPath), photo_paths: cleanPhotoPaths(input.photoPaths) })
+    .update({ details: keepInviteSettings(before.details, checked.details), song_path: cleanSongPath(input.songPath), photo_paths: cleanPhotoPaths(input.photoPaths) })
     .eq("id", id);
   if (error) return { errors: ["Saving failed. Please try again."] };
   const order = await loadOrder(id);

@@ -2,7 +2,7 @@
 
 import { randomUUID } from "node:crypto";
 import { getTemplate } from "@/data/templates";
-import { cleanPhone, cleanPhotoPaths, cleanSongPath, orderTotal, validateDetails } from "@/lib/orders";
+import { cleanPhone, cleanPhotoPaths, cleanSongPath, keepInviteSettings, orderTotal, validateDetails, type InviteDetails } from "@/lib/orders";
 import { findActivePartner } from "@/lib/partners";
 import { createRazorpayOrder, isRazorpayConfigured, paysOnline, isValidPaymentSignature, markPaidByRazorpayOrder, razorpayKeyId } from "@/lib/razorpay";
 import { db, isSupabaseConfigured, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
@@ -162,21 +162,22 @@ export async function saveChanges(orderId: string, input: ChangesInput): Promise
   const checked = validateDetails(input.details);
   if (!checked.ok) return { errors: checked.errors };
 
-  const { data: order } = await db().from("orders").select("id, status").eq("id", orderId).maybeSingle();
+  const { data: order } = await db().from("orders").select("id, status, details").eq("id", orderId).maybeSingle();
   if (!order) return { errors: ["We couldn't find this order."] };
   if (order.status === "cancelled") return { errors: ["This order is cancelled. Message us on WhatsApp if that's a mistake."] };
 
   const songPath = cleanSongPath(input.songPath);
   const photoPaths = cleanPhotoPaths(input.photoPaths);
+  const details = keepInviteSettings(order.details as InviteDetails, checked.details);
 
   if (order.status === "awaiting_payment" || order.status === "payment_submitted") {
-    const { error } = await db().from("orders").update({ details: checked.details, song_path: songPath, photo_paths: photoPaths }).eq("id", orderId);
+    const { error } = await db().from("orders").update({ details, song_path: songPath, photo_paths: photoPaths }).eq("id", orderId);
     return error ? { errors: ["We couldn't save your changes. Please try again."] } : { applied: true };
   }
 
   await db().from("change_requests").delete().eq("order_id", orderId).eq("status", "pending");
   const { error } = await db()
     .from("change_requests")
-    .insert({ order_id: orderId, details: checked.details, song_path: songPath, photo_paths: photoPaths, note: String(input.note ?? "").trim().slice(0, 1000) || null });
+    .insert({ order_id: orderId, details, song_path: songPath, photo_paths: photoPaths, note: String(input.note ?? "").trim().slice(0, 1000) || null });
   return error ? { errors: ["We couldn't send your changes. Please try again in a moment."] } : { pending: true };
 }

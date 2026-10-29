@@ -199,6 +199,22 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
   };
 }
 
+// Invite settings set by us for one couple that the order form doesn't show. A form save would
+// otherwise drop them, so they carry over from the order's previous details.
+const KEPT = ["joiner", "plainCover", "seal", "wardrobe", "extras", "welcome", "lang"] as const;
+
+/** `next` from a form, with the invite-only settings from `prev` it couldn't have known about. */
+export function keepInviteSettings(prev: InviteDetails | null | undefined, next: InviteDetails): InviteDetails {
+  if (!prev) return next;
+  const out = { ...next } as Record<string, unknown>;
+  const old = prev as unknown as Record<string, unknown>;
+  for (const k of KEPT) if (out[k] === undefined && old[k] !== undefined) out[k] = old[k];
+  for (const who of ["bride", "groom"] as const) {
+    if (!next[who].elders && prev[who]?.elders) out[who] = { ...next[who], elders: prev[who].elders };
+  }
+  return out as InviteDetails;
+}
+
 export function cleanPhone(v: unknown) {
   const digits = str(v, 20).replace(/\D/g, "");
   if (digits.length === 10) return `91${digits}`;
