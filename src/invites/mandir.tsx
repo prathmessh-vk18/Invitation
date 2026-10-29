@@ -309,6 +309,20 @@ function Closing({ invite }: { invite: Invite }) {
             {invite.hashtag}
           </p>
         )}
+        {invite.extras?.map((g, i) => (
+          <div key={g.title + i} className="mt-[8cqw]">
+            <p className="text-[4.4cqw] font-semibold" style={{ color: c.name, fontFamily: "var(--inv-serif), var(--font-deva)" }}>
+              {g.title}
+            </p>
+            <div className="mt-[2cqw] space-y-[1cqw]">
+              {g.lines.map((l, j) => (
+                <p key={j} className="text-[4.2cqw] leading-snug" style={{ color: c.ink, fontFamily: "var(--inv-serif), var(--font-deva)" }}>
+                  {l}
+                </p>
+              ))}
+            </div>
+          </div>
+        ))}
         <Link href="/" className="inv-label mt-[8cqw] inline-block text-[2.2cqw] opacity-60" style={{ color: c.ink }}>
           Crafted with love by {site.name}
         </Link>
