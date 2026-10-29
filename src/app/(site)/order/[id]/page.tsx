@@ -127,7 +127,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
             {paysOnline(order) ? (
               <>
                 <p className="inline-flex items-center gap-1.5 rounded-full bg-[#fff1e6] px-3 py-1 text-[13px] font-medium text-[#b4410f]">✨ Your invite is ready to publish</p>
-                <p className="mt-3 text-title">One step left: pay and it goes live</p>
+                <p className="mt-3 text-title">One step left: pay and it goes live within {LINK_IN}</p>
                 {s && (
                   <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
                     <span className="text-[30px] font-semibold tracking-[-0.03em]">{formatINR(order.amount)}</span>
@@ -146,7 +146,6 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
                 </div>
                 <ul className="mt-5 grid gap-2 text-body text-ink sm:grid-cols-2">
                   {[
-                    `Your link usually arrives within ${LINK_IN}`,
                     `${site.revisionRounds} rounds of changes included`,
                     "UPI, cards or netbanking, secured by Razorpay",
                     "Full refund if you cancel before we start",
