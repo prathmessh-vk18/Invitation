@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  // Invite addresses that were renamed after being shared, so old links keep working.
+  async redirects() {
+    return [{ source: "/i/vidhi-weds-akshay", destination: "/i/akshay-weds-vidhi", permanent: false }];
+  },
   turbopack: {
     rules: {
       "*.css": {
