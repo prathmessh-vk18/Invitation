@@ -193,6 +193,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(str(d.welcome, 200) ? { welcome: str(d.welcome, 200) } : {}),
       ...(typeof d.joiner === "string" && d.joiner.trim() ? { joiner: str(d.joiner, 12) } : {}),
       ...(d.plainCover === true ? { plainCover: true } : {}),
+      ...(typeof d.monogram === "string" && d.monogram.trim() ? { monogram: str(d.monogram, 6) } : {}),
       ...(typeof d.seal === "string" && /^\/art\/seals\/[\w-]+\.(png|jpg|webp)$/.test(d.seal) ? { seal: d.seal } : {}),
       ...(d.lang === "hi" ? { lang: "hi" as const } : {}),
     },
@@ -201,7 +202,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
 
 // Invite settings set by us for one couple that the order form doesn't show. A form save would
 // otherwise drop them, so they carry over from the order's previous details.
-const KEPT = ["joiner", "plainCover", "seal", "wardrobe", "extras", "welcome", "lang"] as const;
+const KEPT = ["monogram", "joiner", "plainCover", "seal", "wardrobe", "extras", "welcome", "lang"] as const;
 
 /** `next` from a form, with the invite-only settings from `prev` it couldn't have known about. */
 export function keepInviteSettings(prev: InviteDetails | null | undefined, next: InviteDetails): InviteDetails {

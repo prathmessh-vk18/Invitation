@@ -6,6 +6,8 @@ export function couple(invite: Invite) {
 }
 
 export function initials(invite: Invite) {
+  // A couple can ask for their own letters on the seal (e.g. English initials on a Hindi invite).
+  if (invite.monogram) return invite.monogram;
   const [a, b] = couple(invite);
   return `${a.first[0]}${b.first[0]}`;
 }
