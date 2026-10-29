@@ -206,14 +206,18 @@ function Hero({ invite }: { invite: Invite }) {
           </motion.h1>
           <motion.div {...show(1.3)}>
             <p className="inv-serif mx-auto mt-[3cqw] max-w-[56cqw] text-[3.8cqw] leading-snug text-[#5a2236]/80 italic">{invite.message}</p>
-            <div className="mt-[6cqw] flex items-center justify-center gap-[3cqw] text-[#5a2236]">
-              <span className="inv-label border-y border-[#a2405f]/30 py-[1.5cqw] text-[2.4cqw]">{weekday(invite.date)}</span>
-              <span className="inv-serif text-[11cqw] leading-none text-[#a2405f]">{dayNum(invite.date)}</span>
-              <span className="inv-label border-y border-[#a2405f]/30 py-[1.5cqw] text-[2.4cqw]">
-                {monthName(invite.date).slice(0, 3)} {yearNum(invite.date)}
-              </span>
-            </div>
-            <p className="inv-label mt-[3cqw] text-[2.4cqw] text-[#869d7a]">{invite.city}</p>
+            {!invite.plainCover && (
+              <>
+                <div className="mt-[6cqw] flex items-center justify-center gap-[3cqw] text-[#5a2236]">
+                  <span className="inv-label border-y border-[#a2405f]/30 py-[1.5cqw] text-[2.4cqw]">{weekday(invite.date)}</span>
+                  <span className="inv-serif text-[11cqw] leading-none text-[#a2405f]">{dayNum(invite.date)}</span>
+                  <span className="inv-label border-y border-[#a2405f]/30 py-[1.5cqw] text-[2.4cqw]">
+                    {monthName(invite.date).slice(0, 3)} {yearNum(invite.date)}
+                  </span>
+                </div>
+                <p className="inv-label mt-[3cqw] text-[2.4cqw] text-[#869d7a]">{invite.city}</p>
+              </>
+            )}
           </motion.div>
         </div>
         <motion.div

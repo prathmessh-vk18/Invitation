@@ -50,6 +50,8 @@ export type Invite = {
   font?: string;
   // The couple's own monogram for the opening seal, a file in public/art/seals.
   seal?: string;
+  // Cover shows only the names and wording, with no date or city (when functions are in different places).
+  plainCover?: boolean;
   // The word between the two names on the cover, when "weds" doesn't fit (an engagement uses "&").
   joiner?: string;
   // Dress codes gathered into their own "Wardrobe" section instead of on each function card.
