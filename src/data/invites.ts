@@ -50,6 +50,8 @@ export type Invite = {
   font?: string;
   // The couple's own monogram for the opening seal, a file in public/art/seals.
   seal?: string;
+  // The word between the two names on the cover, when "weds" doesn't fit (an engagement uses "&").
+  joiner?: string;
   // Dress codes gathered into their own "Wardrobe" section instead of on each function card.
   wardrobe?: boolean;
   // Extra name lists printed near the end, as on a printed card (family, contacts, firms…).

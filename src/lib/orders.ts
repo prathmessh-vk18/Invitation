@@ -190,6 +190,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
           }
         : {}),
       ...(str(d.welcome, 200) ? { welcome: str(d.welcome, 200) } : {}),
+      ...(typeof d.joiner === "string" && d.joiner.trim() ? { joiner: str(d.joiner, 12) } : {}),
       ...(typeof d.seal === "string" && /^\/art\/seals\/[\w-]+\.(png|jpg|webp)$/.test(d.seal) ? { seal: d.seal } : {}),
       ...(d.lang === "hi" ? { lang: "hi" as const } : {}),
     },

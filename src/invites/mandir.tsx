@@ -114,7 +114,7 @@ function Names({ invite, show }: { invite: Invite; show: (d: number) => object }
           {a.first}
         </span>
         <span className={`text-[8.5cqw] leading-none ${lang === "hi" ? "my-[2cqw]" : "-my-[1cqw]"}`} style={{ color: c.ink, fontFamily: lang === "hi" ? "var(--inv-script)" : HAND }}>
-          {t.weds}
+          {invite.joiner ?? t.weds}
         </span>
         <span className="inv-script text-[15cqw] leading-[0.95]" style={{ color: c.name }}>
           {b.first}
