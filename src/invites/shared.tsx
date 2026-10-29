@@ -231,12 +231,18 @@ export function Gallery({ invite, theme }: { invite: Invite; theme: InviteTheme 
 
 /* ───────── RSVP ───────── */
 
+// Couples whose RSVP also asks guests whether they need a place to stay, and for how many days.
+const askStaySlugs = ["kartheek-weds-sahithi"];
+
 export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) {
   const [name, setName] = useState("");
   const [guests, setGuests] = useState(2);
   const [attending, setAttending] = useState<"yes" | "no">("yes");
   const [events, setEvents] = useState<string[]>(() => invite.events.map((e) => e.name));
   const [note, setNote] = useState("");
+  const [stay, setStay] = useState<"yes" | "no">("no");
+  const [stayDays, setStayDays] = useState(1);
+  const askStay = askStaySlugs.includes(invite.slug);
   const [demoSent, setDemoSent] = useState(false);
   const [a, b] = couple(invite);
   const { t, d } = useT();
@@ -252,6 +258,7 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
       return;
     }
     const lines = attending === "yes" ? t.rsvpYes(a.first, b.first, name, guests, events.join(", ")) : t.rsvpNo(a.first, b.first, name);
+    if (askStay && attending === "yes") lines.push(stay === "yes" ? t.rsvpStay(stayDays) : t.rsvpNoStay);
     if (note.trim()) lines.push(t.rsvpNote(note.trim()));
     window.open(`https://wa.me/${invite.rsvp.phone}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank");
   };
@@ -309,6 +316,37 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
                   ))}
                 </div>
               </div>
+              {askStay && (
+                <div>
+                  <span className="inv-label text-[2.5cqw] opacity-70">{t.stayNeeded}</span>
+                  <div className="mt-2 grid grid-cols-2 gap-[2.5cqw]">
+                    {(["yes", "no"] as const).map((v) => (
+                      <button
+                        type="button"
+                        key={v}
+                        onClick={() => setStay(v)}
+                        className={`${stay === v ? theme.ui.chipOn : theme.ui.chip} py-[2.4cqw] text-[3.4cqw]`}
+                      >
+                        {v === "yes" ? t.yes : t.no}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {askStay && stay === "yes" && (
+                <div className="flex items-center justify-between">
+                  <span className="inv-label text-[2.5cqw] opacity-70">{t.stayDays}</span>
+                  <div className="flex items-center gap-[3cqw]">
+                    <button type="button" aria-label="Fewer days" onClick={() => setStayDays((n) => Math.max(1, n - 1))} className={`${theme.ui.chip} size-[9cqw] text-[5cqw] leading-none`}>
+                      −
+                    </button>
+                    <span className="inv-serif w-[6cqw] text-center text-[6cqw] tabular-nums">{stayDays}</span>
+                    <button type="button" aria-label="More days" onClick={() => setStayDays((n) => Math.min(10, n + 1))} className={`${theme.ui.chip} size-[9cqw] text-[5cqw] leading-none`}>
+                      +
+                    </button>
+                  </div>
+                </div>
+              )}
             </>
           )}
           <label className="block">
