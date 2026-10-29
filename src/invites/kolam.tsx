@@ -311,8 +311,12 @@ function Hero({ invite }: { invite: Invite }) {
 
 /* ───────── Blessing ───────── */
 
+// Couples who asked for just "Bride" and "Groom", without the Tamil words.
+const plainRoleSlugs = ["kartheek-weds-sahithi"];
+
 function Blessing({ invite }: { invite: Invite }) {
   const [a, b] = couple(invite);
+  const plainRoles = plainRoleSlugs.includes(invite.slug);
   return (
     <section className="relative px-[7cqw] py-[14cqw] text-center">
       <Reveal>
@@ -326,7 +330,7 @@ function Blessing({ invite }: { invite: Invite }) {
             <div className="overflow-hidden rounded-[4cqw] bg-white shadow-[0_2cqw_6cqw_-4cqw_rgba(59,10,31,.35)]">
               <SilkBorder className="h-[7cqw] w-full" />
               <div className="px-[6cqw] py-[5cqw]">
-                <p className="inv-label text-[2.3cqw] text-[#3f8f3a]">{p === invite.bride ? "Manamagal · Bride" : "Manamagan · Groom"}</p>
+                <p className="inv-label text-[2.3cqw] text-[#3f8f3a]">{p === invite.bride ? (plainRoles ? "Bride" : "Manamagal · Bride") : plainRoles ? "Groom" : "Manamagan · Groom"}</p>
                 <p className="inv-script mt-[1.5cqw] text-[9cqw] leading-none text-[#9c1650]">{p.full}</p>
                 <p className="inv-serif mt-[2cqw] text-[3.8cqw] text-[#3b0a1f] italic">{p.parents}</p>
               </div>
