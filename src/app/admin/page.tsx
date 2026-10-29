@@ -41,12 +41,11 @@ export default async function AdminOrders({ searchParams }: PageProps<"/admin">)
   const raw = (await searchParams).status;
   const active = (filters.find((f) => f.id === raw)?.id ?? "awaiting_payment") as OrderStatus | "all";
 
-  const { data: counts } = await db().from("orders").select("status");
-  const count = (s: string) => (counts ?? []).filter((r) => s === "all" || r.status === s).length;
-
   let q = db().from("orders").select("*").order("created_at", { ascending: false }).limit(200);
   if (active !== "all") q = q.eq("status", active);
-  const { data } = await q;
+  // The tab counts and the list don't depend on each other, so fetch them together.
+  const [{ data: counts }, { data }] = await Promise.all([db().from("orders").select("status"), q]);
+  const count = (s: string) => (counts ?? []).filter((r) => s === "all" || r.status === s).length;
   const orders = (data ?? []) as Order[];
 
   return (

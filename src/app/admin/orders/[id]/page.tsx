@@ -33,10 +33,13 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
   const o = data as Order;
   const d = o.details;
   const t = getTemplate(o.template);
-  const { data: inv } = o.invite_slug ? await db().from("invites").select("is_published, live_until").eq("slug", o.invite_slug).maybeSingle() : { data: null };
+  // Both lookups only need the order, so run them together rather than one after the other.
+  const [{ data: inv }, { data: waiting }] = await Promise.all([
+    o.invite_slug ? db().from("invites").select("is_published, live_until").eq("slug", o.invite_slug).maybeSingle() : Promise.resolve({ data: null }),
+    db().from("change_requests").select("id").eq("order_id", o.id).eq("status", "pending").maybeSingle(),
+  ]);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const couple = `${d.groom.first} & ${d.bride.first}`;
-  const { data: waiting } = await db().from("change_requests").select("id").eq("order_id", o.id).eq("status", "pending").maybeSingle();
 
   return (
     <>
