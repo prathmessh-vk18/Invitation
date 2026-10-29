@@ -114,6 +114,7 @@ export const instrumentals: Track[] = [
 export const privateSongs: Track[] = [
   { id: "file:/music/krishna-flute.m4a", name: "Krishna Flute Theme", mood: "Iftekharul x Stereo India · flute (Akshay & Vidhi)" },
   { id: "file:/music/vaaroon.m4a", name: "Vaaroon", mood: "Anand Bhaskar · from Mirzapur (Meet & Vanshika, AAV-1038)" },
+  { id: "file:/music/raah-mein-unse-mulaqat.m4a", name: "Raah Mein Unse Mulaqat", mood: "Instrumental (Rishabh & Deepali, AAV-1060)" },
 ];
 
 export const tracks: Track[] = [...songs, ...instrumentals];
