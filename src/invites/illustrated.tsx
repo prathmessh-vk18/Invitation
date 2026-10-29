@@ -334,7 +334,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
                 {p.full || p.first}
               </p>
               {p.parents && (
-                <p className="inv-serif mt-[1.5cqw] text-[3.6cqw] font-medium italic" style={{ color: c.soft }}>
+                <p className="inv-serif mt-[1.5cqw] text-[3.6cqw] font-medium whitespace-pre-line italic" style={{ color: c.soft }}>
                   {p.parents}
                 </p>
               )}
