@@ -79,7 +79,7 @@ export const steps = [
   { id: "style", title: "Look & sections", note: "Try a different font style, and turn off any part of the invite you don't want.", optional: true },
   { id: "photos", title: "Our moments", note: "Add up to 8 photos of the two of you. Guests see them as polaroids they can swipe through.", optional: true },
   { id: "music", title: "Your song", note: "It plays softly when guests open the invite. Pick one of ours or upload your own.", optional: true },
-  { id: "contact", title: "Your contact", note: "We'll message you here with payment details and your invite link." },
+  { id: "contact", title: "Your contact", note: "We'll send your invite link here on WhatsApp." },
   { id: "review", title: "Review", note: "Check everything once. You can go back to any step." },
 ] as const;
 

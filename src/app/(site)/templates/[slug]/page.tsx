@@ -121,7 +121,7 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
               <ol className="mt-8 space-y-4 border-t border-line pt-6">
                 {[
                   ["Fill in your details", "Names, functions, venues and your song, with a live preview."],
-                  ["We message you on WhatsApp", "With payment details. Pay by UPI from any app."],
+                  ["Pay securely online", "UPI, cards or netbanking, right after the form."],
                   ["Your link arrives", `Within ${site.publishWithin} of payment, on WhatsApp.`],
                 ].map(([h, b], i) => (
                   <li key={h} className="flex gap-3">

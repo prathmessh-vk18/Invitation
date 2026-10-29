@@ -32,6 +32,17 @@ const refresh = (id: string) => {
   revalidatePath(`/admin/orders/${id}`);
 };
 
+/** Notes a WhatsApp payment reminder, so admin shows who was nudged and when. */
+export async function recordNudge(id: string) {
+  await requireAdmin();
+  const { data } = await db().from("orders").select("nudge_count").eq("id", id).maybeSingle();
+  await db()
+    .from("orders")
+    .update({ nudge_count: (data?.nudge_count ?? 0) + 1, nudged_at: new Date().toISOString() })
+    .eq("id", id);
+  refresh(id);
+}
+
 export async function setPaymentVerified(id: string, verified: boolean) {
   await requireAdmin();
   const patch = verified

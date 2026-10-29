@@ -532,7 +532,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
       try {
         window.localStorage.removeItem(draftKey);
       } catch {}
-      router.push(`/order/${res.id}`);
+      router.push(`/order/${res.id}?pay=1`);
     });
   }
 
@@ -1087,7 +1087,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
       )}
       <p className="pt-2 text-caption text-subtle">
         {mode.kind === "new"
-          ? "No payment now. After you submit, we\u2019ll message you on WhatsApp with the payment details."
+          ? "After you submit, you\u2019ll pay securely online by UPI, card or netbanking."
           : mode.kind === "change"
             ? mode.prepaid
               ? "Your invite isn\u2019t published yet, so these changes save straight away."

@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFontStyle, sections } from "@/config/customise";
-import { formatINR } from "@/config/site";
+import { formatINR, site } from "@/config/site";
 import { getTemplate } from "@/data/templates";
 import { requireAdmin } from "@/lib/admin-auth";
 import { fmtDate, longDate, time } from "@/lib/format";
 import { statusLabel, suggestSlug, type Order } from "@/lib/orders";
 import { db, photoPublicUrl, songPublicUrl } from "@/lib/supabase";
 import { Panel } from "@/ui";
+import { paysOnline } from "@/lib/razorpay";
+import { nudgeMessage } from "@/lib/urgency";
 import { AdminHeader, statusTone } from "../../AdminHeader";
 import { DetailsEditor, NotesAndCancel, PaymentActions, PublishActions } from "./OrderActions";
 
@@ -61,7 +63,22 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
             <Panel className="p-6">
               <p className="text-title">1 · Payment</p>
               <div className="mt-4">
-                <PaymentActions id={o.id} status={o.status} code={o.code} customerPhone={o.customer_phone} amount={formatINR(o.amount)} />
+                <PaymentActions
+                  id={o.id}
+                  status={o.status}
+                  code={o.code}
+                  customerPhone={o.customer_phone}
+                  amount={formatINR(o.amount)}
+                  nudge={
+                    paysOnline(o)
+                      ? {
+                          message: nudgeMessage(o, t, `${site.url}/order/${o.id}?pay=1`, o.nudge_count ?? 0),
+                          count: o.nudge_count ?? 0,
+                          last: o.nudged_at ? fmtDate(o.nudged_at, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : null,
+                        }
+                      : undefined
+                  }
+                />
               </div>
             </Panel>
             <Panel className="p-6">
@@ -120,6 +137,19 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
                   )}
                 </Row>
                 <Row k="Placed">{fmtDate(o.created_at, { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" })}</Row>
+                <Row k="Payment">
+                  {o.razorpay_payment_id ? (
+                    <a href={`https://dashboard.razorpay.com/app/payments/${o.razorpay_payment_id}`} target="_blank" rel="noreferrer" className="underline underline-offset-4">
+                      Razorpay {o.razorpay_payment_id}
+                    </a>
+                  ) : o.paid_at ? (
+                    "Marked paid by hand"
+                  ) : o.razorpay_order_id ? (
+                    "Checkout opened, not paid yet"
+                  ) : (
+                    "Not started"
+                  )}
+                </Row>
                 <Row k="Order page">
                   <Link href={`/order/${o.id}`} target="_blank" className="underline underline-offset-4">
                     Open ↗

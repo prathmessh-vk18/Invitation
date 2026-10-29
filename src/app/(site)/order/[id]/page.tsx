@@ -12,6 +12,9 @@ import { inviteFromOrder } from "@/lib/order-invite";
 import { db } from "@/lib/supabase";
 import { Badge, ButtonLink, Container, Heading, Lead, Panel } from "@/ui";
 import { OrderPreview } from "./OrderPreview";
+import { PayButton, StickyPay } from "./PayButton";
+import { dateLine, daysToWedding, LINK_IN, saving } from "@/lib/urgency";
+import { paysOnline } from "@/lib/razorpay";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false } };
 export const instant = false;
@@ -91,7 +94,9 @@ async function Changes({ order, sent }: { order: Order; sent: boolean }) {
 
 async function OrderView({ params, searchParams }: { params: PageProps<"/order/[id]">["params"]; searchParams: PageProps<"/order/[id]">["searchParams"] }) {
   const { id } = await params;
-  const sent = (await searchParams).sent === "1";
+  const query = await searchParams;
+  const sent = query.sent === "1";
+  const payNow = query.pay === "1";
   const order = await loadOrder(id);
   if (!order) notFound();
   const t = getTemplate(order.template)!;
@@ -99,6 +104,8 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
   const [a, b] = d.lead === "groom" ? [d.groom, d.bride] : [d.bride, d.groom];
   const inviteUrl = order.invite_slug ? `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/i/${order.invite_slug}` : null;
   const stage = { awaiting_payment: 1, payment_submitted: 1, paid: 3, live: 4, cancelled: 0 }[order.status];
+  const s = saving(order, t);
+  const soon = dateLine(daysToWedding(d.date));
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
@@ -117,19 +124,60 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
 
         {(order.status === "awaiting_payment" || order.status === "payment_submitted") && (
           <Panel className="p-6 sm:p-8">
-            <p className="text-title">Order received. Thank you!</p>
-            <p className="mt-2 text-body text-muted">
-              We&rsquo;ll message you on WhatsApp at <span className="font-semibold text-ink">+{order.customer_phone}</span> with the payment details for{" "}
-              {formatINR(order.amount)}. As soon as payment is done, we&rsquo;ll publish your invite and send you the link.
-            </p>
-            <p className="mt-4 text-caption text-subtle">Wrong number? Message us with your order code {order.code}.</p>
+            {paysOnline(order) ? (
+              <>
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-[#fff1e6] px-3 py-1 text-[13px] font-medium text-[#b4410f]">✨ Your invite is ready to publish</p>
+                <p className="mt-3 text-title">One step left: pay and it goes live within {LINK_IN}</p>
+                {s && (
+                  <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <span className="text-[30px] font-semibold tracking-[-0.03em]">{formatINR(order.amount)}</span>
+                    <span className="text-lead text-faint line-through decoration-[1.5px]">{formatINR(s.mrp)}</span>
+                    <span className="self-center rounded-full bg-[#e8582a] px-2 py-0.5 text-[12px] font-semibold text-white">You save {formatINR(s.off)}</span>
+                  </p>
+                )}
+                <p className="mt-1 text-body text-muted">Launch price, held on your order.</p>
+                {soon && (
+                  <p className={`mt-4 rounded-tile px-4 py-3 text-body ${soon.strong ? "bg-[#fdecec] font-medium text-[#8a1c1c]" : "bg-[#fff8e6] text-[#7a5b00]"}`}>
+                    ⏳ {soon.text}
+                  </p>
+                )}
+                <div id="pay-now" className="mt-6">
+                  <PayButton orderId={order.id} amount={order.amount} autoOpen={payNow} />
+                </div>
+                <ul className="mt-5 grid gap-2 text-body text-ink sm:grid-cols-2">
+                  {[
+                    `${site.revisionRounds} rounds of changes included`,
+                    "UPI, cards or netbanking, secured by Razorpay",
+                    "Full refund if you cancel before we start",
+                  ].map((x) => (
+                    <li key={x} className="flex gap-2">
+                      <span className="text-[#1f8a4c]">✓</span>
+                      {x}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-4 text-caption text-subtle">
+                  Your link goes to <span className="font-medium text-ink">+{order.customer_phone}</span> on WhatsApp.
+                </p>
+                <StickyPay amount={order.amount} label={s ? `save ${formatINR(s.off)}` : "goes live in minutes"} />
+              </>
+            ) : (
+              <>
+                <p className="text-title">Order received. Thank you!</p>
+                <p className="mt-2 text-body text-muted">
+                  We&rsquo;ll message you on WhatsApp at <span className="font-semibold text-ink">+{order.customer_phone}</span> with the payment details for{" "}
+                  {formatINR(order.amount)}. As soon as payment is done, we&rsquo;ll publish your invite and send you the link.
+                </p>
+              </>
+            )}
+            <p className="mt-5 text-caption text-subtle">Wrong number? Message us with your order code {order.code}.</p>
           </Panel>
         )}
 
         {order.status === "paid" && (
           <Panel className="p-6 sm:p-8">
             <p className="text-title">Payment confirmed.</p>
-            <p className="mt-1 text-body text-muted">We&rsquo;re preparing your invite. You&rsquo;ll get the link on WhatsApp within {site.publishWithin}.</p>
+            <p className="mt-1 text-body text-muted">Thank you! We&rsquo;re preparing your invite. You&rsquo;ll get the link on WhatsApp within {site.publishWithin}.</p>
           </Panel>
         )}
 
@@ -162,7 +210,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
               Your details are saved
             </Step>
             <Step n={2} done={stage >= 3}>
-              We send payment details on WhatsApp and confirm your payment
+              {paysOnline(order) ? "You pay securely online" : "We send payment details on WhatsApp and confirm your payment"}
             </Step>
             <Step n={3} done={stage >= 4}>
               Your invite goes live and the link arrives on WhatsApp
