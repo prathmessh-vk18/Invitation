@@ -52,6 +52,8 @@ export type Invite = {
   font?: string;
   // The couple's own monogram for the opening seal, a file in public/art/seals.
   seal?: string;
+  // A couple's own RSVP heading in place of the design's.
+  rsvpHeading?: { kicker: string; title: string; lead?: string };
   // Letters on the opening seal instead of the names' first letters.
   monogram?: string;
   // Cover shows only the names and wording, with no date or city (when functions are in different places).

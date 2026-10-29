@@ -266,8 +266,24 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
   return (
     <section className={theme.ui.section} id="rsvp">
       <Reveal>
-        <theme.Title kicker={t.rsvpKicker}>{t.rsvpTitle}</theme.Title>
-        <p className={`mt-3 text-center text-[3.6cqw] ${theme.ui.muted}`}>{t.replyBy(d.dayMonthYear(invite.rsvp.by))}</p>
+        {invite.rsvpHeading ? (
+          // A couple's own heading: a small label, a script title and a line of their wording.
+          <div className="text-center">
+            <p className="text-[3.4cqw] font-semibold tracking-[0.18em] uppercase" style={{ color: theme.accent, fontFamily: "var(--font-manrope), sans-serif" }}>
+              {invite.rsvpHeading.kicker}
+            </p>
+            <h2 className="mt-[1cqw] text-[13cqw] leading-[1.1]" style={{ color: theme.accent, fontFamily: "var(--font-pinyon), cursive" }}>
+              {invite.rsvpHeading.title}
+            </h2>
+            {invite.rsvpHeading.lead && <p className="inv-serif mx-auto mt-[3cqw] max-w-[70cqw] text-[4.6cqw] leading-snug italic">{invite.rsvpHeading.lead}</p>}
+            <p className={`mt-[3cqw] text-center text-[3.4cqw] ${theme.ui.muted}`}>{t.replyBy(d.dayMonthYear(invite.rsvp.by))}</p>
+          </div>
+        ) : (
+          <>
+            <theme.Title kicker={t.rsvpKicker}>{t.rsvpTitle}</theme.Title>
+            <p className={`mt-3 text-center text-[3.6cqw] ${theme.ui.muted}`}>{t.replyBy(d.dayMonthYear(invite.rsvp.by))}</p>
+          </>
+        )}
       </Reveal>
       <Reveal delay={0.1}>
         <form onSubmit={submit} className={`${theme.ui.card} mt-8 space-y-[5cqw] p-[6cqw]`}>
