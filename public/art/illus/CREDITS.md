@@ -6,3 +6,5 @@ No existing artwork was referenced or copied. Full-size source PNGs are in `/art
 `haveli-*` (October 2026) were generated the same way, as original paintings in the style of a Rajasthani
 palace gatefold card a couple shared with us; nothing from that card was traced or copied.
 `haveli-monogram.jpg` is the couple's own A&V monogram, used with their permission.
+
+`wardrobe-*` (October 2026) are four couple-outfit paintings for Akshay & Vidhi's Wardrobe section, generated the same way, with the white background removed.
