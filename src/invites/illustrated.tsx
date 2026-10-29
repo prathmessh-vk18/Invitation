@@ -331,18 +331,26 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
     return (
       <section className="relative px-[14cqw] pt-[16cqw] pb-[14cqw] text-center">
         <Reveal>
-          <div className="inv-label space-y-[1.8cqw] text-[2.8cqw] leading-relaxed" style={{ color: c.accent }}>
-            {(invite.hosts || "Together with their families").split("\n").map((line, i) => (
-              <p key={i}>{line}</p>
-            ))}
-          </div>
-          <p className="inv-serif mx-auto mt-[4cqw] text-[4.8cqw] leading-snug italic" style={{ color: c.ink }}>
+          {/* With elders printed above each name, the families' line moves there and the wording leads. */}
+          {!(a.elders || b.elders) || invite.hosts ? (
+            <div className="inv-label mb-[4cqw] space-y-[1.8cqw] text-[2.8cqw] leading-relaxed" style={{ color: c.accent }}>
+              {(invite.hosts || "Together with their families").split("\n").map((line, i) => (
+                <p key={i}>{line}</p>
+              ))}
+            </div>
+          ) : null}
+          <p className="inv-serif mx-auto text-[4.8cqw] leading-snug italic" style={{ color: c.ink }}>
             {invite.message}
           </p>
         </Reveal>
         <div className="mt-[8cqw] space-y-[6cqw]">
           {[a, b].map((p, i) => (
             <Reveal key={p === invite.bride ? "bride" : "groom"} delay={0.1 + i * 0.12}>
+              {p.elders && (
+                <p className="inv-label mb-[3cqw] text-[2.8cqw] leading-relaxed" style={{ color: c.accent }}>
+                  {p.elders}
+                </p>
+              )}
               <p className="inv-script leading-none" style={{ color: c.ink, ...sz(10) }}>
                 {p.full || p.first}
               </p>

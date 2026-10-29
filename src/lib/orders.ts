@@ -107,7 +107,8 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
   const person = (p: unknown) => {
     const o = (p ?? {}) as Record<string, unknown>;
     const first = str(o.first, 40);
-    return { first, full: str(o.full, 80) || first, parents: str(o.parents, 160) };
+    const elders = str(o.elders, 160);
+    return { first, full: str(o.full, 80) || first, parents: str(o.parents, 160), ...(elders ? { elders } : {}) };
   };
   const bride = person(d.bride);
   const groom = person(d.groom);

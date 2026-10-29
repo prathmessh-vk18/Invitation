@@ -23,6 +23,8 @@ export type Person = {
   first: string;
   full: string;
   parents: string;
+  // An elder's line printed above the name, e.g. a grandmother who invites on the family's behalf.
+  elders?: string;
 };
 
 export type Invite = {
