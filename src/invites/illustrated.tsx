@@ -320,9 +320,11 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
     return (
       <section className="relative px-[14cqw] pt-[16cqw] pb-[14cqw] text-center">
         <Reveal>
-          <p className="inv-label text-[2.8cqw] leading-relaxed whitespace-pre-line" style={{ color: c.accent }}>
-            {invite.hosts || "Together with their families"}
-          </p>
+          <div className="inv-label space-y-[1.8cqw] text-[2.8cqw] leading-relaxed" style={{ color: c.accent }}>
+            {(invite.hosts || "Together with their families").split("\n").map((line, i) => (
+              <p key={i}>{line}</p>
+            ))}
+          </div>
           <p className="inv-serif mx-auto mt-[4cqw] text-[4.8cqw] leading-snug italic" style={{ color: c.ink }}>
             {invite.message}
           </p>
