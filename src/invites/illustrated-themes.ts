@@ -37,7 +37,7 @@ export const gopuram = makeIllustrated({
 
 export const bagh = makeIllustrated({
   id: "bagh",
-  images: { opening: `${base}/bagh-gate.jpg`, hero: `${base}/bagh-hero.jpg`, heroPlain: `${base}/bagh-hero-plain.jpg`, card: `${base}/bagh-card.jpg` },
+  images: { opening: `${base}/bagh-gate.jpg`, hero: `${base}/bagh-hero.jpg`, card: `${base}/bagh-card.jpg` },
   opening: "doors",
   heroTextTop: 7,
   frame: { top: 14, bottom: 21, side: 3 },
