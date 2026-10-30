@@ -195,23 +195,32 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
         transition={opened ? { duration: 0.3 } : { duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
       >
         <span className="absolute inset-0 animate-ping rounded-full bg-[#f3d98a]/30 [animation-duration:2.4s]" />
-        <span
-          className="absolute inset-0 rounded-full shadow-[0_10px_30px_-6px_rgba(0,0,0,.6)]"
-          style={{ background: `radial-gradient(circle at 35% 30%, #f9e7ad, #d9aa4c 50%, #946a1f)` }}
-        />
-        <span className="absolute inset-[2cqw] rounded-full border border-[#7a5414]/40" />
-        {invite.seal ? (
-          // The couple's own monogram, already ink on transparent.
-          <span className="absolute inset-[3.6cqw]">
-            <Image src={invite.seal} alt={initials(invite)} fill sizes="120px" className="object-contain" />
-          </span>
-        ) : spec.sealImage && (!spec.sealImageFor || spec.sealImageFor.includes(invite.slug)) ? (
-          // The monogram's paper ground multiplies into the gold, leaving just the lettering.
-          <span className="absolute inset-[3.2cqw] overflow-hidden rounded-full">
-            <Image src={spec.sealImage} alt={initials(invite)} fill sizes="120px" className="object-cover mix-blend-multiply" />
+        {invite.seal && invite.sealFull ? (
+          // The couple's own seal, whole: it replaces the gold one entirely.
+          <span className="absolute -inset-[3cqw] drop-shadow-[0_10px_18px_rgba(0,0,0,.45)]">
+            <Image src={invite.seal} alt={initials(invite)} fill sizes="160px" className="object-contain" />
           </span>
         ) : (
-          <span className="inv-script relative text-[9cqw] leading-none text-[#4a2c08]">{initials(invite)}</span>
+          <>
+          <span
+            className="absolute inset-0 rounded-full shadow-[0_10px_30px_-6px_rgba(0,0,0,.6)]"
+            style={{ background: `radial-gradient(circle at 35% 30%, #f9e7ad, #d9aa4c 50%, #946a1f)` }}
+          />
+          <span className="absolute inset-[2cqw] rounded-full border border-[#7a5414]/40" />
+          {invite.seal ? (
+            // The couple's own monogram, already ink on transparent.
+            <span className="absolute inset-[3.6cqw]">
+              <Image src={invite.seal} alt={initials(invite)} fill sizes="120px" className="object-contain" />
+            </span>
+          ) : spec.sealImage && (!spec.sealImageFor || spec.sealImageFor.includes(invite.slug)) ? (
+            // The monogram's paper ground multiplies into the gold, leaving just the lettering.
+            <span className="absolute inset-[3.2cqw] overflow-hidden rounded-full">
+              <Image src={spec.sealImage} alt={initials(invite)} fill sizes="120px" className="object-cover mix-blend-multiply" />
+            </span>
+          ) : (
+            <span className="inv-script relative text-[9cqw] leading-none text-[#4a2c08]">{initials(invite)}</span>
+          )}
+          </>
         )}
       </motion.button>
     );

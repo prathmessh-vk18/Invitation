@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { site } from "@/config/site";
-import type { Invite } from "@/data/invites";
+import type { Invite, InviteEvent } from "@/data/invites";
 import { useT } from "./i18n";
 import { makeIllustrated } from "./illustrated";
 import { useOpened, usePreview } from "./opened";
@@ -244,8 +244,97 @@ function Blessing({ invite }: { invite: Invite }) {
 
 /* ───────── Functions on arch cards ───────── */
 
+/** One arch card for a day: its functions and times, then the venue and directions once. */
+function DayCard({ invite, events }: { invite: Invite; events: InviteEvent[] }) {
+  const { t, d } = useT();
+  const first = events[0];
+  const oneVenue = events.every((e) => e.venue === first.venue);
+  const place = (e: InviteEvent) => (
+    <>
+      <p className="inv-serif text-[4.4cqw] leading-tight" style={{ color: c.ink }}>
+        {e.venue}
+      </p>
+      {e.address && (
+        <p className="mt-[1cqw] text-[3cqw]" style={{ color: c.soft }}>
+          {e.address}
+        </p>
+      )}
+    </>
+  );
+  return (
+    <ArchCard>
+      <div className="-mt-[9cqw] px-[5cqw] pb-[6cqw] text-center">
+        <Sunburst className="mx-auto block w-[16cqw]" />
+        <p className="inv-label mt-[2cqw] text-[2.5cqw]" style={{ color: c.ink }}>
+          {d.weekday(first.start)}
+        </p>
+        <h3 className="inv-script mt-[1.5cqw] text-[8.5cqw] leading-none" style={{ color: c.name }}>
+          {d.day(first.start)} {d.month(first.start)}
+        </h3>
+        <ul className="mt-[5cqw] space-y-[4cqw]">
+          {events.map((e, i) => (
+            <li key={e.name + i}>
+              <p className="inv-serif text-[5.2cqw] leading-tight font-semibold" style={{ color: c.ink }}>
+                {e.name}
+              </p>
+              <p className="inv-serif mt-[0.5cqw] text-[4cqw] italic" style={{ color: c.soft }}>
+                {t.onwards(d.time(e.start))}
+              </p>
+              {(e.dress || e.note) && (
+                <p className="inv-serif mt-[0.5cqw] text-[3.6cqw] italic" style={{ color: c.name }}>
+                  {[e.dress && t.dress(e.dress), e.note].filter(Boolean).join(" · ")}
+                </p>
+              )}
+              {!oneVenue && (
+                <div className="mt-[2cqw]">
+                  {place(e)}
+                  <EventActions event={e} invite={invite} theme={mandir} />
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+        {oneVenue && (
+          <>
+            <div className="mx-auto mt-[5cqw] h-px w-[30cqw]" style={{ background: c.gold }} />
+            <div className="mt-[4cqw]">{place(first)}</div>
+            <EventActions event={first} invite={invite} theme={mandir} />
+          </>
+        )}
+      </div>
+    </ArchCard>
+  );
+}
+
+/** The invite's functions, one card per day, in order. */
+function byDay(events: InviteEvent[]) {
+  const days: InviteEvent[][] = [];
+  for (const e of events) {
+    const last = days[days.length - 1];
+    if (last && last[0].start.slice(0, 10) === e.start.slice(0, 10)) last.push(e);
+    else days.push([e]);
+  }
+  return days;
+}
+
 function Events({ invite }: { invite: Invite }) {
   const { t, d } = useT();
+  if (invite.eventsByDay) {
+    return (
+      <section className="relative px-[11cqw] py-[12cqw]">
+        <Reveal>
+          <Title kicker={t.eventsKicker}>{t.eventsTitle}</Title>
+        </Reveal>
+        <ol className="mt-[8cqw] space-y-[7cqw]">
+          {byDay(invite.events).map((day) => (
+            <motion.li key={day[0].start} initial={{ opacity: 0, y: 30, scale: 0.96 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.9, ease }}>
+              <DayCard invite={invite} events={day} />
+            </motion.li>
+          ))}
+        </ol>
+      </section>
+    );
+  }
   return (
     <section className="relative px-[11cqw] py-[12cqw]">
       <Reveal>
