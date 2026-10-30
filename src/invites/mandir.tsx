@@ -276,11 +276,11 @@ function DayCard({ invite, events }: { invite: Invite; events: InviteEvent[] }) 
           {events.map((e, i) => (
             <li key={e.name + i}>
               <p className="inv-serif text-[5cqw] leading-tight" style={{ color: c.ink }}>
-                <span className="font-bold">{e.name}</span>
                 <span className="font-semibold" style={{ color: c.name }}>
-                  {" · "}
                   {d.time(e.start)}
+                  {" · "}
                 </span>
+                <span className="font-bold">{e.name}</span>
               </p>
               {(e.dress || e.note) && (
                 <p className="inv-serif mt-[0.5cqw] text-[3.6cqw] italic" style={{ color: c.name }}>
