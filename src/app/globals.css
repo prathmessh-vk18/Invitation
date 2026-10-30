@@ -155,6 +155,8 @@ body {
 .inv-script { font-family: var(--inv-script); font-weight: 400; }
 .inv-serif { font-family: var(--inv-serif); }
 .inv-label { font-family: var(--inv-label); letter-spacing: 0.28em; text-transform: uppercase; }
+/* Mandir's labels (families, RSVP fields…) in a slightly heavier stroke; its label face has one weight. */
+.inv-mandir .inv-label { -webkit-text-stroke: 0.35px currentColor; }
 .inv-deva { font-family: var(--font-deva), serif; }
 
 .no-scrollbar { scrollbar-width: none; }

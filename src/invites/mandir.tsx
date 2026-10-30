@@ -457,6 +457,7 @@ function Frame() {
 export const mandir: InviteTheme = {
   ...base,
   id: "mandir",
+  root: "inv-mandir",
   vars: { ...base.vars, "--inv-accent": c.name } as CSSProperties,
   accent: c.name,
   Hero,

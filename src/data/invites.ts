@@ -64,6 +64,8 @@ export type Invite = {
   sealFull?: boolean;
   // Functions grouped into one card per day, instead of a card each.
   eventsByDay?: boolean;
+  // With eventsByDay: a name for each day, in order ("Sagai", "Shaadi"…), shown beside its date in the RSVP.
+  dayNames?: string[];
   // Cover shows only the names and wording, with no date or city (when functions are in different places).
   plainCover?: boolean;
   // The word between the two names on the cover, when "weds" doesn't fit (an engagement uses "&").
