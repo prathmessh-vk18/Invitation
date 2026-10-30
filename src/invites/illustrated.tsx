@@ -407,19 +407,20 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
   }
 
   function Blessing({ invite }: { invite: Invite }) {
+    const L = invite.largeText;
     const [a, b] = couple(invite);
     return (
       <section className="relative px-[14cqw] pt-[16cqw] pb-[14cqw] text-center">
         <Reveal>
           {/* With elders printed above each name, the families' line moves there and the wording leads. */}
           {!(a.elders || b.elders) || invite.hosts ? (
-            <div className="inv-label mb-[4cqw] space-y-[1.8cqw] text-[2.8cqw] leading-relaxed" style={{ color: c.accent }}>
+            <div className={`inv-label mb-[4cqw] space-y-[1.8cqw] leading-relaxed ${L ? "text-[3.4cqw] font-semibold" : "text-[2.8cqw]"}`} style={{ color: c.accent }}>
               {(invite.hosts || "Together with their families").split("\n").map((line, i) => (
                 <p key={i}>{line}</p>
               ))}
             </div>
           ) : null}
-          <p className="inv-serif mx-auto text-[4.8cqw] leading-snug italic" style={{ color: c.ink }}>
+          <p className={`inv-serif mx-auto leading-snug italic ${L ? "text-[5.4cqw] font-medium" : "text-[4.8cqw]"}`} style={{ color: c.ink }}>
             {invite.message}
           </p>
         </Reveal>
@@ -427,7 +428,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           {[a, b].map((p, i) => (
             <Reveal key={p === invite.bride ? "bride" : "groom"} delay={0.1 + i * 0.12}>
               {p.elders && (
-                <p className="inv-label mb-[3cqw] text-[2.8cqw] leading-relaxed" style={{ color: c.accent }}>
+                <p className={`inv-label mb-[3cqw] leading-relaxed ${L ? "text-[3.4cqw] font-semibold" : "text-[2.8cqw]"}`} style={{ color: c.accent }}>
                   {p.elders}
                 </p>
               )}
@@ -435,7 +436,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
                 {p.full || p.first}
               </p>
               {p.parents && (
-                <p className="inv-serif mt-[1.5cqw] text-[3.6cqw] font-medium whitespace-pre-line italic" style={{ color: c.soft }}>
+                <p className={`inv-serif mt-[1.5cqw] whitespace-pre-line italic ${L ? "text-[4.4cqw] font-semibold" : "text-[3.6cqw] font-medium"}`} style={{ color: L ? c.ink : c.soft }}>
                   {p.parents}
                 </p>
               )}
@@ -447,6 +448,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
   }
 
   function Events({ invite }: { invite: Invite }) {
+    const L = invite.largeText;
     return (
       <section className="relative px-[12cqw] py-[14cqw]">
         <Reveal>
@@ -465,23 +467,23 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
                 className="rounded-[4cqw] border px-[5cqw] py-[5cqw] text-center backdrop-blur-[2px]"
                 style={{ borderColor: `${c.accent}55`, background: `${c.paper}d9` }}
               >
-                <p className="inv-label text-[2.6cqw]" style={{ color: c.accent }}>
+                <p className={`inv-label ${L ? "text-[3.3cqw] font-semibold" : "text-[2.6cqw]"}`} style={{ color: c.accent }}>
                   {weekday(e.start)} · {o.d}
                   <sup>{o.s}</sup> {o.m} · {time(e.start)}
                 </p>
                 <h3 className="inv-script mt-[1.5cqw] leading-none" style={{ color: c.ink, ...sz(9) }}>
                   {e.name}
                 </h3>
-                <p className="inv-serif mt-[2.5cqw] text-[4.2cqw] leading-tight" style={{ color: c.ink }}>
+                <p className={`inv-serif mt-[2.5cqw] leading-tight ${L ? "text-[5cqw] font-semibold" : "text-[4.2cqw]"}`} style={{ color: c.ink }}>
                   {e.venue}
                 </p>
                 {e.address && (
-                  <p className="mt-[1cqw] text-[3cqw]" style={{ color: c.soft }}>
+                  <p className={`mt-[1cqw] ${L ? "text-[3.8cqw] font-medium" : "text-[3cqw]"}`} style={{ color: L ? c.ink : c.soft }}>
                     {e.address}
                   </p>
                 )}
                 {((e.dress && !invite.wardrobe) || e.note) && (
-                  <p className="inv-serif mt-[2cqw] text-[3.4cqw] italic" style={{ color: c.accent }}>
+                  <p className={`inv-serif mt-[2cqw] italic ${L ? "text-[4.4cqw] font-semibold" : "text-[3.4cqw]"}`} style={{ color: L ? c.ink : c.accent }}>
                     {[!invite.wardrobe && e.dress && `Dress: ${e.dress}`, e.note].filter(Boolean).join(" · ")}
                   </p>
                 )}
@@ -514,7 +516,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
                       <p className="inv-script leading-none" style={{ color: c.ink, ...sz(7.5) }}>
                         {e.name}
                       </p>
-                      <p className="inv-serif mt-[1.5cqw] text-[4.2cqw] italic" style={{ color: c.accent }}>
+                      <p className={`inv-serif mt-[1.5cqw] italic ${L ? "text-[4.8cqw] font-semibold" : "text-[4.2cqw]"}`} style={{ color: L ? c.ink : c.accent }}>
                         {e.dress}
                       </p>
                     </li>
@@ -528,6 +530,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
   }
 
   function Closing({ invite }: { invite: Invite }) {
+    const L = invite.largeText;
     const [a, b] = couple(invite);
     return (
       <section className="relative px-[14cqw] pt-[12cqw] text-center" style={{ paddingBottom: `calc(${spec.frame.bottom}vh + 18cqw)` }}>
@@ -584,14 +587,14 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
         ) : null}
         <Reveal>
           <Divider />
-          <p className="inv-serif mt-[6cqw] text-[5cqw] leading-snug italic" style={{ color: c.ink }}>
+          <p className={`inv-serif mt-[6cqw] leading-snug italic ${L ? "text-[5.6cqw] font-medium" : "text-[5cqw]"}`} style={{ color: c.ink }}>
             {invite.closing}
           </p>
           <p className="inv-script mt-[4cqw] leading-none" style={{ color: c.ink, ...sz(12) }}>
             {a.first} &amp; {b.first}
           </p>
           {invite.hashtag && (
-            <p className="inv-label mt-[3cqw] text-[2.8cqw]" style={{ color: c.accent }}>
+            <p className={`inv-label mt-[3cqw] ${L ? "text-[3.4cqw] font-semibold" : "text-[2.8cqw]"}`} style={{ color: c.accent }}>
               {invite.hashtag}
             </p>
           )}

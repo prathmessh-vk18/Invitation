@@ -204,3 +204,7 @@ body:has([data-sticky-cta="on"]) .wa-fab { bottom: 88px; }
 
 /* Hindi invites: Devanagari breaks apart when letter-spaced or set in capitals. */
 [lang="hi"] .inv-label { letter-spacing: 0.02em; text-transform: none; }
+
+/* Invites set to large text (for older guests): the shared sections drop their faded "muted" look. */
+[data-large-text] .opacity-70,
+[data-large-text] .opacity-80 { opacity: 1; }
