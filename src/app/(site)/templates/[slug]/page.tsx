@@ -11,6 +11,7 @@ import { DesignBadge, OfferCountdown, PriceTag } from "@/site/offer";
 import { TemplateTile } from "@/site/gallery";
 import { ClosingCta, Faq, HowItWorks } from "@/site/sections";
 import { StickyCta } from "@/site/sticky-cta";
+import { autoPublishOn } from "@/lib/publish";
 import { ButtonLink, Container, Eyebrow, Heading, Lead, Panel, PhoneFrame, Reveal, Section } from "@/ui";
 
 // Every design is prerendered from generateStaticParams.
@@ -37,9 +38,12 @@ export async function generateMetadata({ params }: PageProps<"/templates/[slug]"
   };
 }
 
+// Orders paid online go live on their own; the words say so while auto-publish is on.
+const liveRightAway = autoPublishOn();
+
 const highlights = [
   ["Opens in seconds", "On any phone, straight from WhatsApp. No app to install."],
-  [`Live within ${site.publishWithin}`, "Once your UPI payment is confirmed."],
+  liveRightAway ? ["Live right after you pay", "Your link is ready as soon as the payment goes through."] : [`Live within ${site.publishWithin}`, "Once your payment is confirmed."],
   [`${site.revisionRounds} rounds of changes`, "Venue moved or a name misspelt? We update the same link."],
   ["One tap to the venue", "Google Maps directions on every function card."],
   ["Live through the wedding", `Your link works until ${site.inviteDaysAfterWedding} days after the big day.`],
@@ -75,6 +79,11 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
                   <iframe src={`/i/${t.demoSlug}`} title={`${t.name} live demo`} className="h-full w-full border-0" loading="lazy" />
                 </PhoneFrame>
               </div>
+              <div className="mt-5 flex justify-center lg:hidden">
+                <ButtonLink href={`/i/${t.demoSlug}`} variant="inverse" arrow newTab>
+                  Open full demo
+                </ButtonLink>
+              </div>
             </div>
             <p className="mt-4 flex items-center justify-center gap-2 text-caption text-muted">
               <span className="size-2 animate-pulse rounded-full bg-live" /> Live demo. Tap to open, then scroll inside the phone.
@@ -108,8 +117,9 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
               <p className="mt-1 text-body text-muted">
                 One price, everything included: music, maps, countdown and RSVP.
               </p>
-              <div className="mt-6 flex flex-wrap gap-2">
-                <span id="make-it-mine" className="inline-flex">
+              {/* Phones get one button, the bar along the bottom; the demo opens from the preview above. */}
+              <div className="mt-6 flex flex-wrap gap-2 max-lg:hidden">
+                <span className="inline-flex">
                   <ButtonLink href={`/start/${t.id}`} className="btn-shine">
                     Make this my invite · {formatINR(t.price)} <span aria-hidden>→</span>
                   </ButtonLink>
@@ -122,7 +132,9 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
                 {[
                   ["Fill in your details", "Names, functions, venues and your song, with a live preview."],
                   ["Pay securely online", "UPI, cards or netbanking, right after the form."],
-                  ["Your link arrives", `Within ${site.publishWithin} of payment, on WhatsApp.`],
+                  liveRightAway
+                    ? ["Your link is ready", "Right after you pay. Share it on WhatsApp in one tap."]
+                    : ["Your link arrives", `Within ${site.publishWithin} of payment, on WhatsApp.`],
                 ].map(([h, b], i) => (
                   <li key={h} className="flex gap-3">
                     <span className="grid size-6 shrink-0 place-items-center rounded-full bg-ink text-[12px] font-semibold text-white">{i + 1}</span>
@@ -204,7 +216,7 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
 
       <Faq />
       <ClosingCta />
-      <StickyCta href={`/start/${t.id}`} label={`Make this my invite · ${formatINR(t.price)}`} watchId="make-it-mine" />
+      <StickyCta href={`/start/${t.id}`} label={`Make this my invite · ${formatINR(t.price)}`} />
     </>
   );
 }
