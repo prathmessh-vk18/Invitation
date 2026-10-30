@@ -25,6 +25,8 @@ const c = {
   ink: "#5b2615",
   name: "#a8573a",
   gold: "#b9853f",
+  // The same gold, deeper, for small text that has to read on the paper.
+  goldDeep: "#8c5f26",
   soft: "#86553f",
 };
 const HAND = "var(--font-alex-brush), cursive";
@@ -220,7 +222,7 @@ function Blessing({ invite }: { invite: Invite }) {
     <section ref={ref} className={`relative z-10 px-[13cqw] pt-[24cqw] pb-[12cqw] text-center ${still ? "" : "-mt-[55svh]"}`}>
       <motion.div style={still ? undefined : { scale, opacity, filter: blur, transformOrigin: "50% 30%" }}>
         <Divider />
-        <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed" style={{ color: c.gold }}>
+        <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed" style={{ color: c.goldDeep }}>
           {invite.hosts || t.togetherWithFamilies}
         </p>
         <p className="inv-serif mt-[3cqw] text-[4.6cqw] leading-snug" style={{ color: c.ink }}>
