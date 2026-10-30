@@ -24,7 +24,8 @@ export type IllustratedSpec = {
   id: TemplateId;
   // `frame` (optional): the card with its plain middle cut out, so the whole ornament, curves
   // and all, sits above the scrolling invite. Without it the frame is the card's straight edges.
-  images: { opening: string; hero: string; card: string; frame?: string };
+  // `heroPlain` (optional): the couple's scene without the couple, for invites with `plainCover`.
+  images: { opening: string; hero: string; heroPlain?: string; card: string; frame?: string };
   opening: "doors" | "envelope";
   // Where the wax seal sits in the envelope image, as % of width/height.
   sealAt?: { x: number; y: number };
@@ -98,6 +99,42 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
 
   /* ───────── Opening ───────── */
 
+  // The couple's scene, or the same place without them when the couple asked for a plain cover.
+  const heroArt = (invite: Invite) => (invite.plainCover && spec.images.heroPlain) || spec.images.hero;
+
+  /** A late parent's photo in a plain gold ring. */
+  function MemorialPhoto({ photo, alt, className }: { photo: string; alt: string; className: string }) {
+    return (
+      <span className={`block rounded-full bg-[linear-gradient(135deg,#f6e3a1,#c99a3c_35%,#f3d98a_60%,#a9782a)] p-[0.9cqw] shadow-[0_1.5cqw_4cqw_-1.5cqw_rgba(60,35,10,.45)] ${className}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- the family's own upload, shown as is */}
+        <img src={photo} alt={alt} className="block aspect-square w-full rounded-full object-cover" />
+      </span>
+    );
+  }
+
+  /** On the doors: the late parent's blessing, inviting guests in. It fades as the doors open. */
+  function MemorialWelcome({ invite, opened }: { invite: Invite; opened: boolean }) {
+    const m = invite.memorial;
+    if (!m) return null;
+    const glow = { textShadow: "0 0 2.5cqw rgba(255,252,245,.95), 0 0 1cqw rgba(255,252,245,.95)" };
+    return (
+      <motion.div className="pointer-events-none absolute inset-x-[14%] top-[9%] z-10 flex flex-col items-center text-center" animate={{ opacity: opened ? 0 : 1, y: opened ? -16 : 0 }} transition={{ duration: 0.6 }}>
+        <MemorialPhoto photo={m.photo} alt={m.name ?? "In loving memory"} className="w-[27cqw]" />
+        <p className="inv-serif mt-[3cqw] text-[3.4cqw] italic leading-snug" style={{ color: c.ink, ...glow }}>
+          With the blessings of our beloved
+        </p>
+        {m.name && (
+          <p className="inv-script mt-[1cqw] text-[6.4cqw] leading-tight" style={{ color: c.ink, ...glow }}>
+            {m.name}
+          </p>
+        )}
+        <p className="inv-serif mt-[1.5cqw] text-[3.4cqw] italic leading-snug" style={{ color: c.ink, ...glow }}>
+          In her loving presence, we invite you
+        </p>
+      </motion.div>
+    );
+  }
+
   function Doors({ invite, opened, onOpen }: OpeningProps) {
     return (
       <div
@@ -109,7 +146,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
       >
         {!spec.frameOverHero && (
           <motion.div className="absolute inset-0" initial={{ scale: 1.15 }} animate={{ scale: opened ? 1 : 1.15 }} transition={{ duration: 1.6, ease }}>
-            <Art src={spec.images.hero} priority />
+            <Art src={heroArt(invite)} priority />
           </motion.div>
         )}
         <motion.div className="absolute inset-0" animate={{ opacity: opened ? 0 : 1 }} transition={{ delay: opened ? 0.9 : 0, duration: 0.7 }}>
@@ -141,6 +178,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
             </p>
           </motion.div>
         )}
+        <MemorialWelcome invite={invite} opened={opened} />
         <Seal invite={invite} opened={opened} onOpen={onOpen} className="top-1/2 left-1/2" />
         <Hint opened={opened} text={invite.openHint} />
       </div>
@@ -248,7 +286,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
     return (
       <section ref={ref} className="relative w-full overflow-hidden" style={{ aspectRatio: lead ? `864 / ${1536 * (1 + lead)}` : ART_RATIO, background: c.paper }}>
         <motion.div className="absolute inset-x-0 bottom-0" style={{ y: imgY, scale: imgScale, height: `${100 / (1 + lead)}%` }}>
-          <Art src={spec.images.hero} alt={`Illustration of a couple for ${a.first} and ${b.first}'s wedding`} priority />
+          <Art src={heroArt(invite)} alt={invite.plainCover ? "" : `Illustration of a couple for ${a.first} and ${b.first}'s wedding`} priority />
           {lead > 0 && <div className="absolute inset-x-0 top-0 h-[12%]" style={{ background: `linear-gradient(${c.paper}, transparent)` }} />}
         </motion.div>
         <motion.div className="absolute inset-x-[10%] flex flex-col items-center text-center" style={{ top: `${spec.heroTextTop}%`, y: textY, opacity: textFade }}>
@@ -454,6 +492,22 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
     const [a, b] = couple(invite);
     return (
       <section className="relative px-[14cqw] pt-[12cqw] text-center" style={{ paddingBottom: `calc(${spec.frame.bottom}vh + 18cqw)` }}>
+        {invite.memorial && (
+          <Reveal className="mb-[14cqw] flex flex-col items-center">
+            <MemorialPhoto photo={invite.memorial.photo} alt={invite.memorial.name ?? "In loving memory"} className="w-[24cqw]" />
+            <p className="inv-label mt-[4cqw] text-[2.6cqw]" style={{ color: c.accent }}>
+              In loving memory
+            </p>
+            {invite.memorial.name && (
+              <p className="inv-script mt-[1.5cqw] text-[6.4cqw] leading-tight" style={{ color: c.ink }}>
+                {invite.memorial.name}
+              </p>
+            )}
+            <p className="inv-serif mt-[2cqw] text-[3.8cqw] italic" style={{ color: c.soft }}>
+              Her blessings are always with us.
+            </p>
+          </Reveal>
+        )}
         {invite.extras?.length ? (
           <div className="mb-[14cqw] space-y-[9cqw]">
             {invite.extras.map((g, i) => (
