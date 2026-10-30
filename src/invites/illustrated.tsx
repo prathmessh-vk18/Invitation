@@ -131,6 +131,10 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
             </motion.div>
           ))}
         </motion.div>
+        {invite.tapAnywhere && !opened && (
+          // The whole screen opens the invite, not only the seal.
+          <button type="button" onClick={onOpen} aria-label="Open invitation" className="absolute inset-0 z-[5] cursor-pointer" />
+        )}
         {spec.openingTitle && (
           <motion.div className="pointer-events-none absolute inset-x-0 z-10 text-center" style={{ top: `${spec.openingTitleTop ?? 8}%` }} animate={{ opacity: opened ? 0 : 1, y: opened ? -20 : 0 }} transition={{ duration: 0.4 }}>
             <p className="inv-script text-[11cqw] leading-none" style={{ color: c.ink }}>
@@ -427,7 +431,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
         <div className="mt-[8cqw] space-y-[6cqw]">
           {[a, b].map((p, i) => (
             <Reveal key={p === invite.bride ? "bride" : "groom"} delay={0.1 + i * 0.12}>
-              {p.elders && (
+              {p.elders && !p.eldersBelow && (
                 <p className={`inv-label mb-[3cqw] leading-relaxed ${L ? "text-[3.4cqw] font-semibold" : "text-[2.8cqw]"}`} style={{ color: c.accent }}>
                   {p.elders}
                 </p>
@@ -438,6 +442,11 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
               {p.parents && (
                 <p className={`inv-serif mt-[1.5cqw] whitespace-pre-line italic ${L ? "text-[4.4cqw] font-semibold" : "text-[3.6cqw] font-medium"}`} style={{ color: L ? c.ink : c.soft }}>
                   {p.parents}
+                </p>
+              )}
+              {p.elders && p.eldersBelow && (
+                <p className={`inv-label mt-[3cqw] leading-relaxed ${L ? "text-[3.4cqw] font-semibold" : "text-[2.8cqw]"}`} style={{ color: c.accent }}>
+                  {p.elders}
                 </p>
               )}
             </Reveal>

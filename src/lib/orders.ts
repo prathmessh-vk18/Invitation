@@ -110,7 +110,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
     const o = (p ?? {}) as Record<string, unknown>;
     const first = str(o.first, 40);
     const elders = str(o.elders, 160);
-    return { first, full: str(o.full, 80) || first, parents: str(o.parents, 160), ...(elders ? { elders } : {}) };
+    return { first, full: str(o.full, 80) || first, parents: str(o.parents, 160), ...(elders ? { elders } : {}), ...(elders && o.eldersBelow === true ? { eldersBelow: true } : {}) };
   };
   const bride = person(d.bride);
   const groom = person(d.groom);
@@ -212,6 +212,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
           })()
         : {}),
       ...(d.largeText === true ? { largeText: true } : {}),
+      ...(d.tapAnywhere === true ? { tapAnywhere: true } : {}),
       ...(typeof d.seal === "string" && /^\/art\/seals\/[\w-]+\.(png|jpg|webp)$/.test(d.seal) ? { seal: d.seal } : {}),
       ...(d.sealFull === true ? { sealFull: true } : {}),
       ...(d.eventsByDay === true ? { eventsByDay: true } : {}),
@@ -223,7 +224,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
 
 // Invite settings set by us for one couple that the order form doesn't show. A form save would
 // otherwise drop them, so they carry over from the order's previous details.
-const KEPT = ["largeText", "rsvpHeading", "monogram", "openHint", "memorial", "sealFull", "eventsByDay", "dayNames", "joiner", "plainCover", "seal", "wardrobe", "extras", "welcome", "lang"] as const;
+const KEPT = ["tapAnywhere", "largeText", "rsvpHeading", "monogram", "openHint", "memorial", "sealFull", "eventsByDay", "dayNames", "joiner", "plainCover", "seal", "wardrobe", "extras", "welcome", "lang"] as const;
 
 /** `next` from a form, with the invite-only settings from `prev` it couldn't have known about. */
 export function keepInviteSettings(prev: InviteDetails | null | undefined, next: InviteDetails): InviteDetails {
@@ -232,7 +233,7 @@ export function keepInviteSettings(prev: InviteDetails | null | undefined, next:
   const old = prev as unknown as Record<string, unknown>;
   for (const k of KEPT) if (out[k] === undefined && old[k] !== undefined) out[k] = old[k];
   for (const who of ["bride", "groom"] as const) {
-    if (!next[who].elders && prev[who]?.elders) out[who] = { ...next[who], elders: prev[who].elders };
+    if (!next[who].elders && prev[who]?.elders) out[who] = { ...next[who], elders: prev[who].elders, ...(prev[who].eldersBelow ? { eldersBelow: true } : {}) };
   }
   return out as InviteDetails;
 }

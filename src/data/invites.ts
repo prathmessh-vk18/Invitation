@@ -25,6 +25,8 @@ export type Person = {
   parents: string;
   // An elder's line printed above the name, e.g. a grandmother who invites on the family's behalf.
   elders?: string;
+  // Print the elder's line under the parents instead of above the name.
+  eldersBelow?: boolean;
 };
 
 export type Invite = {
@@ -52,6 +54,8 @@ export type Invite = {
   font?: string;
   // The couple's own monogram for the opening seal, a file in public/art/seals.
   seal?: string;
+  // Tapping anywhere on the opening screen opens the invite, not only the seal.
+  tapAnywhere?: boolean;
   // Bigger, darker text throughout, for families whose guests are mostly older.
   largeText?: boolean;
   // A couple's own RSVP heading in place of the design's.
