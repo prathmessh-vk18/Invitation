@@ -164,7 +164,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
                   {[
                     `${site.revisionRounds} rounds of changes included`,
                     "UPI, cards or netbanking, secured by Razorpay",
-                    "Full refund if you cancel before we start",
+                    "Ask for changes anytime from this page",
                   ].map((x) => (
                     <li key={x} className="flex gap-2">
                       <span className="text-[#1f8a4c]">✓</span>
