@@ -1,3 +1,5 @@
+import { revalidateTag } from "next/cache";
+import { autoPublish } from "@/lib/publish";
 import { isValidWebhookSignature, markPaidByRazorpayOrder } from "@/lib/razorpay";
 
 /**
@@ -13,7 +15,10 @@ export async function POST(request: Request) {
   const event = JSON.parse(raw) as { event?: string; payload?: { payment?: { entity?: { id?: string; order_id?: string; status?: string } } } };
   const payment = event.payload?.payment?.entity;
   if ((event.event === "payment.captured" || event.event === "order.paid") && payment?.order_id && payment.id) {
-    await markPaidByRazorpayOrder(payment.order_id, payment.id);
+    // The couple may have closed the page before Checkout reported back; publish here instead.
+    const orderId = await markPaidByRazorpayOrder(payment.order_id, payment.id);
+    const slug = orderId ? await autoPublish(orderId) : null;
+    if (slug) revalidateTag(`invite:${slug}`, { expire: 0 });
   }
   // Always 200 for a signed request, so Razorpay doesn't keep retrying events we don't act on.
   return Response.json({ ok: true });

@@ -2,13 +2,11 @@
 
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import { site } from "@/config/site";
 import { endAdminSession, passwordMatches, requireAdmin, startAdminSession } from "@/lib/admin-auth";
-import { cleanPhotoPaths, cleanSongPath, isValidSlug, liveUntil, validateDetails, type Order, keepInviteSettings } from "@/lib/orders";
+import { cleanPhotoPaths, cleanSongPath, validateDetails, type Order, keepInviteSettings } from "@/lib/orders";
 import type { ChangesInput } from "@/lib/order-actions";
-import { inviteFromOrder } from "@/lib/order-invite";
+import { publishOrder } from "@/lib/publish";
 import { db } from "@/lib/supabase";
-import { getInvite as getDemoInvite } from "@/data/invites";
 
 export async function login(_: unknown, form: FormData) {
   if (!passwordMatches(String(form.get("password") ?? ""))) return { error: "That password isn't right." };
@@ -95,38 +93,11 @@ export async function saveDetails(id: string, json: string): Promise<{ ok: true 
  */
 export async function publishInvite(id: string, slugInput: string): Promise<{ ok: true; slug: string } | { error: string }> {
   await requireAdmin();
-  const order = await loadOrder(id);
-  if (order.status === "awaiting_payment" || order.status === "payment_submitted") return { error: "Mark the order as paid before publishing." };
-  if (order.status === "cancelled") return { error: "This order is cancelled." };
-
-  const slug = (order.invite_slug ?? slugInput).trim().toLowerCase();
-  if (!isValidSlug(slug)) return { error: "Use lowercase letters, numbers and single hyphens, e.g. aarav-weds-meera." };
-  if (getDemoInvite(slug)) return { error: "That address is used by a demo. Pick another." };
-
-  const { data: taken } = await db().from("invites").select("order_id").eq("slug", slug).maybeSingle();
-  if (taken && taken.order_id !== order.id) return { error: "That address is already taken. Try adding a year or city." };
-
-  const invite = inviteFromOrder(order, slug);
-  const { error } = await db()
-    .from("invites")
-    .upsert({
-      slug,
-      order_id: order.id,
-      template: order.template,
-      data: invite,
-      music_url: invite.music ?? null,
-      live_until: liveUntil(order.details.date, site.inviteDaysAfterWedding),
-      is_published: true,
-    });
-  if (error) return { error: "Saving the invite failed. Please try again." };
-
-  await db()
-    .from("orders")
-    .update({ status: "live", invite_slug: slug, published_at: order.published_at ?? new Date().toISOString() })
-    .eq("id", id);
-  updateTag(`invite:${slug}`);
+  const res = await publishOrder(await loadOrder(id), slugInput);
+  if ("error" in res) return res;
+  updateTag(`invite:${res.slug}`);
   refresh(id);
-  return { ok: true, slug };
+  return res;
 }
 
 export async function setInvitePublished(id: string, slug: string, published: boolean) {

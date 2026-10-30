@@ -1,9 +1,11 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
+import { revalidatePath, updateTag } from "next/cache";
 import { getTemplate } from "@/data/templates";
 import { cleanPhone, cleanPhotoPaths, cleanSongPath, keepInviteSettings, orderTotal, validateDetails, type InviteDetails } from "@/lib/orders";
 import { findActivePartner } from "@/lib/partners";
+import { autoPublish } from "@/lib/publish";
 import { createRazorpayOrder, isRazorpayConfigured, paysOnline, isValidPaymentSignature, markPaidByRazorpayOrder, razorpayKeyId } from "@/lib/razorpay";
 import { db, isSupabaseConfigured, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
 
@@ -146,7 +148,11 @@ export async function confirmPayment(
   if (!isValidPaymentSignature(r.razorpay_order_id, r.razorpay_payment_id, r.razorpay_signature)) {
     return { error: "We couldn't verify this payment. If money was deducted, message us on WhatsApp with your order code." };
   }
-  await markPaidByRazorpayOrder(r.razorpay_order_id, r.razorpay_payment_id);
+  if (await markPaidByRazorpayOrder(r.razorpay_order_id, r.razorpay_payment_id)) {
+    const slug = await autoPublish(orderId);
+    if (slug) updateTag(`invite:${slug}`);
+    revalidatePath("/admin");
+  }
   return { ok: true };
 }
 

@@ -7,7 +7,7 @@ import { fmtDate } from "@/lib/format";
 import { earns, tally, type Partner, type PartnerOrder, type Payout } from "@/lib/partners";
 import { db, isSupabaseConfigured } from "@/lib/supabase";
 import { Badge, Container, Heading, Lead, Panel } from "@/ui";
-import { CopyLink } from "./CopyLink";
+import { CopyLink } from "@/site/copy-link";
 
 export const metadata: Metadata = { title: "Your partner earnings", robots: { index: false, follow: false } };
 export const instant = false;

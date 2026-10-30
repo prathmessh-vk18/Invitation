@@ -70,17 +70,19 @@ export function orderTotal(template: TemplateId) {
   return t.price;
 }
 
-/** "Aarav", "Meera" → "aarav-weds-meera"; ASCII letters, digits and hyphens only. */
+/** "New Delhi" → "new-delhi"; ASCII letters, digits and hyphens only. */
+export const slugPart = (s: string) =>
+  s
+    .normalize("NFKD")
+    .replace(/[^\w\s-]/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-");
+
+/** "Aarav", "Meera" → "aarav-weds-meera". */
 export function suggestSlug(d: InviteDetails) {
   const [a, b] = d.lead === "groom" ? [d.groom.first, d.bride.first] : [d.bride.first, d.groom.first];
-  const clean = (s: string) =>
-    s
-      .normalize("NFKD")
-      .replace(/[^\w\s-]/g, "")
-      .trim()
-      .toLowerCase()
-      .replace(/[\s_]+/g, "-");
-  return [clean(a), "weds", clean(b)].filter(Boolean).join("-").replace(/-+/g, "-");
+  return [slugPart(a), "weds", slugPart(b)].filter(Boolean).join("-").replace(/-+/g, "-");
 }
 
 export const isValidSlug = (s: string) => /^[a-z0-9]+(-[a-z0-9]+)*$/.test(s) && s.length <= 60;
