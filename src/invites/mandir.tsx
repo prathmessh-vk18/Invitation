@@ -249,12 +249,13 @@ function DayCard({ invite, events }: { invite: Invite; events: InviteEvent[] }) 
   const { t, d } = useT();
   const first = events[0];
   const oneVenue = events.every((e) => e.venue === first.venue);
+  // The address only when it adds something beyond the venue's own name.
   const place = (e: InviteEvent) => (
     <>
       <p className="inv-serif text-[4.4cqw] leading-tight" style={{ color: c.ink }}>
         {e.venue}
       </p>
-      {e.address && (
+      {e.address && !e.address.toLowerCase().includes(e.venue.toLowerCase()) && (
         <p className="mt-[1cqw] text-[3cqw]" style={{ color: c.soft }}>
           {e.address}
         </p>
@@ -271,14 +272,15 @@ function DayCard({ invite, events }: { invite: Invite; events: InviteEvent[] }) 
         <h3 className="inv-script mt-[1.5cqw] text-[8.5cqw] leading-none" style={{ color: c.name }}>
           {d.day(first.start)} {d.month(first.start)}
         </h3>
-        <ul className="mt-[5cqw] space-y-[4cqw]">
+        <ul className="mt-[5cqw] space-y-[2.5cqw]">
           {events.map((e, i) => (
             <li key={e.name + i}>
-              <p className="inv-serif text-[5.2cqw] leading-tight font-semibold" style={{ color: c.ink }}>
-                {e.name}
-              </p>
-              <p className="inv-serif mt-[0.5cqw] text-[4cqw] italic" style={{ color: c.soft }}>
-                {t.onwards(d.time(e.start))}
+              <p className="inv-serif text-[5cqw] leading-tight" style={{ color: c.ink }}>
+                <span className="font-bold">{e.name}</span>
+                <span className="font-semibold" style={{ color: c.name }}>
+                  {" · "}
+                  {d.time(e.start)}
+                </span>
               </p>
               {(e.dress || e.note) && (
                 <p className="inv-serif mt-[0.5cqw] text-[3.6cqw] italic" style={{ color: c.name }}>
