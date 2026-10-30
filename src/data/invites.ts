@@ -56,6 +56,8 @@ export type Invite = {
   rsvpHeading?: { kicker: string; title: string; lead?: string };
   // Letters on the opening seal instead of the names' first letters.
   monogram?: string;
+  // The opening screen's "Tap to open", in a couple's own words.
+  openHint?: string;
   // Cover shows only the names and wording, with no date or city (when functions are in different places).
   plainCover?: boolean;
   // The word between the two names on the cover, when "weds" doesn't fit (an engagement uses "&").

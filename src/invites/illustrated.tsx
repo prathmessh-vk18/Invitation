@@ -82,6 +82,7 @@ const wardrobeArt: Record<string, Record<string, string>> = {
     Pheras: "wardrobe-traditional",
     Reception: "wardrobe-reception",
   },
+  "akshay-weds-vidhi-reception": { Reception: "wardrobe-reception" },
 };
 
 function ordinal(iso: string) {
@@ -141,7 +142,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           </motion.div>
         )}
         <Seal invite={invite} opened={opened} onOpen={onOpen} className="top-1/2 left-1/2" />
-        <Hint opened={opened} />
+        <Hint opened={opened} text={invite.openHint} />
       </div>
     );
   }
@@ -179,7 +180,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
         >
           <span className="absolute inset-0 animate-ping rounded-full bg-white/40 [animation-duration:2.2s]" />
         </motion.button>
-        <Hint opened={opened} text="Tap the seal to open" />
+        <Hint opened={opened} text={invite.openHint ?? "Tap the seal to open"} />
       </div>
     );
   }

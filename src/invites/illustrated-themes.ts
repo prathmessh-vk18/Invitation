@@ -56,8 +56,8 @@ export const haveli = makeIllustrated({
   frameOverHero: true,
   doorShade: false,
   sealImage: `${base}/haveli-monogram.jpg`,
-  // The A&V monogram belongs to Akshay & Vidhi alone.
-  sealImageFor: ["akshay-weds-vidhi"],
+  // The A&V monogram belongs to Akshay & Vidhi alone (their full invite and the reception-only one).
+  sealImageFor: ["akshay-weds-vidhi", "akshay-weds-vidhi-reception"],
   heroTextTop: 18,
   heroLead: 25,
   frame: { top: 12, bottom: 11, side: 6 },
