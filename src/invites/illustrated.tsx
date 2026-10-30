@@ -112,23 +112,25 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
     );
   }
 
-  /** On the doors: the late parent's blessing, inviting guests in. It fades as the doors open. */
+  /** On the doors, above the photo: the late parent's blessing, inviting guests in. It fades as the doors open. */
   function MemorialWelcome({ invite, opened }: { invite: Invite; opened: boolean }) {
     const m = invite.memorial;
     if (!m) return null;
-    const glow = { textShadow: "0 0 2.5cqw rgba(255,252,245,.95), 0 0 1cqw rgba(255,252,245,.95)" };
     return (
-      <motion.div className="pointer-events-none absolute inset-x-[14%] top-[9%] z-10 flex flex-col items-center text-center" animate={{ opacity: opened ? 0 : 1, y: opened ? -16 : 0 }} transition={{ duration: 0.6 }}>
-        <MemorialPhoto photo={m.photo} alt={m.name ?? "In loving memory"} className="w-[27cqw]" />
-        <p className="inv-serif mt-[3cqw] text-[3.4cqw] italic leading-snug" style={{ color: c.ink, ...glow }}>
+      <motion.div
+        className="pointer-events-none absolute inset-x-[15%] top-[13%] z-10 rounded-[5cqw] bg-[rgba(255,250,242,.88)] px-[5cqw] py-[4.5cqw] text-center shadow-[0_2cqw_6cqw_-3cqw_rgba(60,35,10,.35)] backdrop-blur-sm"
+        animate={{ opacity: opened ? 0 : 1, y: opened ? -16 : 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <p className="inv-serif text-[4.2cqw] leading-snug italic" style={{ color: c.ink }}>
           With the blessings of our beloved
         </p>
         {m.name && (
-          <p className="inv-script mt-[1cqw] text-[6.4cqw] leading-tight" style={{ color: c.ink, ...glow }}>
+          <p className="inv-script mt-[1.5cqw] text-[7.4cqw] leading-tight" style={{ color: c.ink }}>
             {m.name}
           </p>
         )}
-        <p className="inv-serif mt-[1.5cqw] text-[3.4cqw] italic leading-snug" style={{ color: c.ink, ...glow }}>
+        <p className="inv-serif mt-[1.5cqw] text-[4.2cqw] leading-snug italic" style={{ color: c.ink }}>
           In her loving presence, we invite you
         </p>
       </motion.div>
@@ -224,6 +226,20 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
   }
 
   function Seal({ invite, opened, onOpen, className }: OpeningProps & { className: string }) {
+    if (invite.memorial) {
+      return (
+        <motion.button
+          onClick={onOpen}
+          aria-label="Open invitation"
+          className={`absolute z-10 w-[36cqw] -translate-x-1/2 -translate-y-1/2 rounded-full ${className}`}
+          animate={{ scale: opened ? 0.85 : [1, 1.03, 1], opacity: opened ? 0 : 1 }}
+          transition={opened ? { duration: 0.5 } : { duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <span className="absolute -inset-[2cqw] animate-ping rounded-full bg-[#f3d98a]/30 [animation-duration:2.6s]" />
+          <MemorialPhoto photo={invite.memorial.photo} alt={invite.memorial.name ?? "In loving memory"} className="relative w-full" />
+        </motion.button>
+      );
+    }
     return (
       <motion.button
         onClick={onOpen}
