@@ -194,6 +194,11 @@ body {
 
 /* The WhatsApp bubble steps up while a page's sticky action bar is showing. */
 body:has([data-sticky-cta="on"]) .wa-fab { bottom: 88px; }
+/* Phones on a page whose only button is the sticky bar: no WhatsApp chip, and room so the bar never covers the footer. */
+@media (width < 64rem) {
+  body:has([data-sticky-only]) .wa-fab { display: none; }
+  body:has([data-sticky-only]) { padding-bottom: 80px; }
+}
 
 /* Hindi invites: Devanagari breaks apart when letter-spaced or set in capitals. */
 [lang="hi"] .inv-label { letter-spacing: 0.02em; text-transform: none; }

@@ -133,7 +133,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
             {paysOnline(order) ? (
               <>
                 <p className="inline-flex items-center gap-1.5 rounded-full bg-[#fff1e6] px-3 py-1 text-[13px] font-medium text-[#b4410f]">✨ Your invite is ready to publish</p>
-                <p className="mt-3 text-title">One step left: pay and it goes live {goesLiveNow ? "instantly" : `within ${LINK_IN}`}</p>
+                <p className="mt-3 text-title">One step left: {goesLiveNow ? "your invite goes live right after you pay" : `pay and it goes live within ${LINK_IN}`}</p>
                 {yourLink && (
                   <p className="mt-3 rounded-tile bg-surface px-4 py-3 text-body">
                     <span className="text-muted">Your link is ready</span>
@@ -175,7 +175,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
                 <p className="mt-4 text-caption text-subtle">
                   Your link goes to <span className="font-medium text-ink">+{order.customer_phone}</span> on WhatsApp.
                 </p>
-                <StickyPay amount={order.amount} label={s ? `save ${formatINR(s.off)}` : goesLiveNow ? "goes live instantly" : "goes live in minutes"} />
+                <StickyPay amount={order.amount} label={s ? `save ${formatINR(s.off)}` : goesLiveNow ? "live right after you pay" : "goes live in minutes"} />
               </>
             ) : (
               <>
@@ -230,7 +230,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
               {paysOnline(order) ? "You pay securely online" : "We send payment details on WhatsApp and confirm your payment"}
             </Step>
             <Step n={3} done={stage >= 4}>
-              {goesLiveNow ? "Your invite goes live instantly, with your link right here" : "Your invite goes live and the link arrives on WhatsApp"}
+              {goesLiveNow ? "Your invite goes live right after you pay, with your link right here" : "Your invite goes live and the link arrives on WhatsApp"}
             </Step>
           </ol>
           <p className="mt-6 text-caption text-subtle">Bookmark this page to check your order. Questions? Message us with your order code.</p>
