@@ -60,6 +60,10 @@ export type Invite = {
   openHint?: string;
   // A late parent's photo and name, on the opening screen and again at the end, in their memory.
   memorial?: { photo: string; name?: string };
+  // `seal` is a whole seal of its own (shape, colour and all), shown in place of the gold one.
+  sealFull?: boolean;
+  // Functions grouped into one card per day, instead of a card each.
+  eventsByDay?: boolean;
   // Cover shows only the names and wording, with no date or city (when functions are in different places).
   plainCover?: boolean;
   // The word between the two names on the cover, when "weds" doesn't fit (an engagement uses "&").
