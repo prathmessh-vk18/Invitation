@@ -258,7 +258,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
     return (
       <section ref={ref} className="relative w-full overflow-hidden" style={{ aspectRatio: ART_RATIO, background: c.paper }}>
         <Art src={spec.images.card} />
-        <div className="absolute inset-x-[12%] top-[16%] flex flex-col items-center text-center">
+        <div className="absolute inset-x-[12%] top-[21%] flex flex-col items-center text-center">
           <motion.p {...show(0.4)} className="inv-script leading-tight whitespace-nowrap" style={{ color: c.ink, ...sz(8.6) }}>
             In her loving presence
           </motion.p>
