@@ -197,6 +197,13 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.plainCover === true ? { plainCover: true } : {}),
       ...(typeof d.monogram === "string" && d.monogram.trim() ? { monogram: str(d.monogram, 6) } : {}),
       ...(typeof d.openHint === "string" && d.openHint.trim() ? { openHint: str(d.openHint, 40) } : {}),
+      ...(d.memorial && typeof d.memorial === "object" && /^https:\/\/[\w.-]+\/storage\/v1\/object\/public\/photos\/[\w/-]+\.(jpg|png|webp)$/.test(String((d.memorial as Record<string, unknown>).photo))
+        ? (() => {
+            const m = d.memorial as Record<string, unknown>;
+            const name = str(m.name, 80);
+            return { memorial: { photo: String(m.photo), ...(name ? { name } : {}) } };
+          })()
+        : {}),
       ...(d.rsvpHeading && typeof d.rsvpHeading === "object"
         ? (() => {
             const h = d.rsvpHeading as Record<string, unknown>;
@@ -212,7 +219,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
 
 // Invite settings set by us for one couple that the order form doesn't show. A form save would
 // otherwise drop them, so they carry over from the order's previous details.
-const KEPT = ["rsvpHeading", "monogram", "openHint", "joiner", "plainCover", "seal", "wardrobe", "extras", "welcome", "lang"] as const;
+const KEPT = ["rsvpHeading", "monogram", "openHint", "memorial", "joiner", "plainCover", "seal", "wardrobe", "extras", "welcome", "lang"] as const;
 
 /** `next` from a form, with the invite-only settings from `prev` it couldn't have known about. */
 export function keepInviteSettings(prev: InviteDetails | null | undefined, next: InviteDetails): InviteDetails {
