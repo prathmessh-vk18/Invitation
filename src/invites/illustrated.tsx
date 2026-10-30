@@ -40,6 +40,8 @@ export type IllustratedSpec = {
   scriptScale?: number;
   // The couple's own monogram on the seal, in place of their initials.
   sealImage?: string;
+  // Only these invites (by link name) get sealImage; everyone else gets their own initials.
+  sealImageFor?: string[];
   // Doors only: "You're invited" and the names across the top, like a card's cover.
   openingTitle?: boolean;
   // Where that title sits, as % from the top (default 8).
@@ -202,7 +204,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           <span className="absolute inset-[3.6cqw]">
             <Image src={invite.seal} alt={initials(invite)} fill sizes="120px" className="object-contain" />
           </span>
-        ) : spec.sealImage ? (
+        ) : spec.sealImage && (!spec.sealImageFor || spec.sealImageFor.includes(invite.slug)) ? (
           // The monogram's paper ground multiplies into the gold, leaving just the lettering.
           <span className="absolute inset-[3.2cqw] overflow-hidden rounded-full">
             <Image src={spec.sealImage} alt={initials(invite)} fill sizes="120px" className="object-cover mix-blend-multiply" />
