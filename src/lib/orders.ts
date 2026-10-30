@@ -140,7 +140,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       venue: str(o.venue, 120),
       address: rest.slice(0, 200),
       dress: str(o.dress, 80) || undefined,
-      note: str(o.note, 160) || undefined,
+      note: str(o.note, 240) || undefined,
       ...(mapUrl ? { mapUrl } : {}),
     };
   });
