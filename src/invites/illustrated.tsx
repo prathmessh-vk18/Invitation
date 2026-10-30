@@ -533,13 +533,16 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
       <section className="relative px-[14cqw] pt-[12cqw] text-center" style={{ paddingBottom: `calc(${spec.frame.bottom}vh + 18cqw)` }}>
         {invite.memorial && (
           <Reveal className="mb-[14cqw] flex flex-col items-center">
-            <MemorialPhoto photo={invite.memorial.photo} alt={invite.memorial.name ?? ""} className="w-[24cqw]" />
+            <MemorialPhoto photo={invite.memorial.photo} alt={invite.memorial.name ?? ""} className={invite.memorial.large ? "w-[38cqw]" : "w-[24cqw]"} />
             {invite.memorial.name && (
-              <p className="inv-script mt-[4cqw] text-[6.4cqw] leading-tight" style={{ color: c.ink }}>
+              <p className={`inv-script mt-[4cqw] leading-tight ${invite.memorial.large ? "text-[7.4cqw]" : "text-[6.4cqw]"}`} style={{ color: c.ink }}>
                 {invite.memorial.name}
               </p>
             )}
-            <p className="inv-serif mt-[2cqw] text-[3.8cqw] italic" style={{ color: c.soft }}>
+            <p
+              className={`inv-serif mt-[2cqw] italic ${invite.memorial.large ? "text-[4.6cqw] font-semibold" : "text-[3.8cqw]"}`}
+              style={{ color: invite.memorial.large ? c.ink : c.soft }}
+            >
               Her blessings are always with us.
             </p>
           </Reveal>

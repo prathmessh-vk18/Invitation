@@ -201,7 +201,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
         ? (() => {
             const m = d.memorial as Record<string, unknown>;
             const name = str(m.name, 80);
-            return { memorial: { photo: String(m.photo), ...(name ? { name } : {}) } };
+            return { memorial: { photo: String(m.photo), ...(name ? { name } : {}), ...(m.large === true ? { large: true } : {}) } };
           })()
         : {}),
       ...(d.rsvpHeading && typeof d.rsvpHeading === "object"
