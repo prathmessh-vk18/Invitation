@@ -73,6 +73,16 @@ export async function freeSlug(order: Pick<Order, "id" | "code" | "details">) {
  */
 export async function autoPublish(orderId: string): Promise<string | null> {
   if (!autoPublishOn()) return null;
+  // The payment is already recorded; a problem here must never surface as a failed payment.
+  try {
+    return await publishPaid(orderId);
+  } catch (e) {
+    console.error(`Auto-publish failed for order ${orderId}`, e);
+    return null;
+  }
+}
+
+async function publishPaid(orderId: string) {
   const { data } = await db().from("orders").select("*").eq("id", orderId).maybeSingle();
   const order = data as Order | null;
   if (!order || order.status !== "paid" || order.invite_slug || !paysOnline(order)) return null;
