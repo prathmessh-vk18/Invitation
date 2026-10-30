@@ -272,23 +272,23 @@ function DayCard({ invite, events }: { invite: Invite; events: InviteEvent[] }) 
         <h3 className="inv-script mt-[1.5cqw] text-[8.5cqw] leading-none" style={{ color: c.name }}>
           {d.day(first.start)} {d.month(first.start)}
         </h3>
-        <ul className="mt-[5cqw] space-y-[2.5cqw]">
+        {/* Times in one column, functions in the next, both left-aligned and the pair centred. */}
+        <ul className="mx-auto mt-[5cqw] grid w-fit grid-cols-[auto_auto] gap-x-[4cqw] gap-y-[2.5cqw] text-left">
           {events.map((e, i) => (
-            <li key={e.name + i}>
-              <p className="inv-serif text-[5cqw] leading-tight" style={{ color: c.ink }}>
-                <span className="font-semibold" style={{ color: c.name }}>
-                  {d.time(e.start)}
-                  {" · "}
-                </span>
-                <span className="font-bold">{e.name}</span>
-              </p>
+            <li key={e.name + i} className="col-span-2 grid grid-cols-subgrid">
+              <span className="inv-serif text-[5cqw] leading-tight font-semibold" style={{ color: c.name }}>
+                {d.time(e.start)}
+              </span>
+              <span className="inv-serif text-[5cqw] leading-tight font-bold" style={{ color: c.ink }}>
+                {e.name}
+              </span>
               {(e.dress || e.note) && (
-                <p className="inv-serif mt-[0.5cqw] text-[3.6cqw] italic" style={{ color: c.name }}>
+                <p className="inv-serif col-start-2 mt-[0.5cqw] text-[3.6cqw] italic" style={{ color: c.name }}>
                   {[e.dress && t.dress(e.dress), e.note].filter(Boolean).join(" · ")}
                 </p>
               )}
               {!oneVenue && (
-                <div className="mt-[2cqw]">
+                <div className="col-span-2 mt-[2cqw] text-center">
                   {place(e)}
                   <EventActions event={e} invite={invite} theme={mandir} />
                 </div>
