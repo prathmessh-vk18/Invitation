@@ -467,7 +467,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
                 className="rounded-[4cqw] border px-[5cqw] py-[5cqw] text-center backdrop-blur-[2px]"
                 style={{ borderColor: `${c.accent}55`, background: `${c.paper}d9` }}
               >
-                <p className={`inv-label ${L ? "text-[3.3cqw] font-semibold" : "text-[2.6cqw]"}`} style={{ color: c.accent }}>
+                <p className={`inv-label ${L ? "text-[3.3cqw] font-semibold tracking-[0.1em]" : "text-[2.6cqw]"}`} style={{ color: c.accent }}>
                   {weekday(e.start)} · {o.d}
                   <sup>{o.s}</sup> {o.m} · {time(e.start)}
                 </p>
