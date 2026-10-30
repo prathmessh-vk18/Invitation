@@ -1,26 +1,44 @@
 import { site } from "@/config/site";
 import { LegalPage } from "@/site/legal";
 
-export const metadata = { title: "Refund policy", description: "Aavjoo's refund and changes policy for digital wedding invitations.", alternates: { canonical: "/refunds" } };
+export const metadata = {
+  title: "Refund policy",
+  description:
+    "Aavjoo's refund policy for digital wedding invitations: all sales are final, with changes included.",
+  alternates: { canonical: "/refunds" },
+};
 
 export default function RefundsPage() {
   return (
-    <LegalPage title="Refund policy" updated="18 October 2026">
+    <LegalPage title="Refund policy" updated="30 October 2026">
       <div>
-        <h2>Before work starts</h2>
-        <p>If you cancel before we begin designing, we refund your payment in full.</p>
-      </div>
-      <div>
-        <h2>After work starts</h2>
+        <h2>All sales are final</h2>
         <p>
-          Once your first draft has been shared, the order can&rsquo;t be refunded, but your {site.revisionRounds} rounds of changes are always included and we&rsquo;ll keep
-          working until the details are right.
+          Your invite goes live the moment your payment is confirmed, so
+          payments can&rsquo;t be refunded or cancelled once made.
         </p>
       </div>
       <div>
-        <h2>How to ask</h2>
+        <h2>Changes instead</h2>
         <p>
-          Message us on WhatsApp at {site.whatsappDisplay} or email {site.email}. Approved refunds are returned to the original payment method within 7 working days.
+          Your {site.revisionRounds} rounds of changes are always included. Ask
+          for them from your order page and we&rsquo;ll keep working until the
+          details are right.
+        </p>
+      </div>
+      <div>
+        <h2>If something goes wrong with a payment</h2>
+        <p>
+          If you&rsquo;re charged twice for the same order, or we can&rsquo;t
+          deliver your invite after you&rsquo;ve paid, we return the extra or
+          full amount to the original payment method within 7 working days.
+        </p>
+      </div>
+      <div>
+        <h2>How to reach us</h2>
+        <p>
+          Message us on WhatsApp at {site.whatsappDisplay} or email {site.email}
+          .
         </p>
       </div>
     </LegalPage>

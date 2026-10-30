@@ -15,6 +15,8 @@ import { OrderPreview } from "./OrderPreview";
 import { PayButton, StickyPay } from "./PayButton";
 import { dateLine, daysToWedding, LINK_IN, saving } from "@/lib/urgency";
 import { paysOnline } from "@/lib/razorpay";
+import { autoPublishOn, freeSlug } from "@/lib/publish";
+import { CopyLink } from "@/site/copy-link";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false } };
 export const instant = false;
@@ -106,6 +108,10 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
   const stage = { awaiting_payment: 1, payment_submitted: 1, paid: 3, live: 4, cancelled: 0 }[order.status];
   const s = saving(order, t);
   const soon = dateLine(daysToWedding(d.date));
+  // Paid online, the invite goes live as the payment clears, at the address shown before paying.
+  const goesLiveNow = paysOnline(order) && autoPublishOn();
+  const unpaid = order.status === "awaiting_payment" || order.status === "payment_submitted";
+  const yourLink = goesLiveNow && unpaid ? await freeSlug(order) : null;
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
@@ -127,7 +133,17 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
             {paysOnline(order) ? (
               <>
                 <p className="inline-flex items-center gap-1.5 rounded-full bg-[#fff1e6] px-3 py-1 text-[13px] font-medium text-[#b4410f]">✨ Your invite is ready to publish</p>
-                <p className="mt-3 text-title">One step left: pay and it goes live within {LINK_IN}</p>
+                <p className="mt-3 text-title">One step left: pay and it goes live {goesLiveNow ? "instantly" : `within ${LINK_IN}`}</p>
+                {yourLink && (
+                  <p className="mt-3 rounded-tile bg-surface px-4 py-3 text-body">
+                    <span className="text-muted">Your link is ready</span>
+                    <span className="block font-semibold [overflow-wrap:anywhere] text-ink">
+                      {site.url.replace(/^https?:\/\//, "")}/i/<wbr />
+                      {yourLink}
+                    </span>
+                    <span className="mt-1 block text-caption text-muted">It opens for your guests the moment you pay.</span>
+                  </p>
+                )}
                 {s && (
                   <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
                     <span className="text-[30px] font-semibold tracking-[-0.03em]">{formatINR(order.amount)}</span>
@@ -148,7 +164,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
                   {[
                     `${site.revisionRounds} rounds of changes included`,
                     "UPI, cards or netbanking, secured by Razorpay",
-                    "Full refund if you cancel before we start",
+                    "Ask for changes anytime from this page",
                   ].map((x) => (
                     <li key={x} className="flex gap-2">
                       <span className="text-[#1f8a4c]">✓</span>
@@ -159,7 +175,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
                 <p className="mt-4 text-caption text-subtle">
                   Your link goes to <span className="font-medium text-ink">+{order.customer_phone}</span> on WhatsApp.
                 </p>
-                <StickyPay amount={order.amount} label={s ? `save ${formatINR(s.off)}` : "goes live in minutes"} />
+                <StickyPay amount={order.amount} label={s ? `save ${formatINR(s.off)}` : goesLiveNow ? "goes live instantly" : "goes live in minutes"} />
               </>
             ) : (
               <>
@@ -187,6 +203,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
             <p className="mt-2 break-all text-lead font-medium">{inviteUrl}</p>
             <div className="mt-5 flex flex-wrap gap-2">
               <ButtonLink href={`/i/${order.invite_slug}`} newTab>Open invite</ButtonLink>
+              <CopyLink text={inviteUrl} />
               <ButtonLink href={`https://wa.me/?text=${encodeURIComponent(`You're invited! ${inviteUrl}`)}`} variant="inverse">
                 <WaIcon /> Share on WhatsApp
               </ButtonLink>
@@ -213,7 +230,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
               {paysOnline(order) ? "You pay securely online" : "We send payment details on WhatsApp and confirm your payment"}
             </Step>
             <Step n={3} done={stage >= 4}>
-              Your invite goes live and the link arrives on WhatsApp
+              {goesLiveNow ? "Your invite goes live instantly, with your link right here" : "Your invite goes live and the link arrives on WhatsApp"}
             </Step>
           </ol>
           <p className="mt-6 text-caption text-subtle">Bookmark this page to check your order. Questions? Message us with your order code.</p>

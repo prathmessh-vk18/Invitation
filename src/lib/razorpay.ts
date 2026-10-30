@@ -51,7 +51,8 @@ export function isValidWebhookSignature(rawBody: string, signature: string) {
 
 /**
  * Marks the order paid through `razorpayOrderId`. Safe to call twice (Checkout and the webhook
- * both do): only an order still waiting for payment changes. Returns whether this call changed it.
+ * both do): only an order still waiting for payment changes. Returns the order's id when this
+ * call changed it, else null.
  */
 export async function markPaidByRazorpayOrder(razorpayOrderId: string, paymentId: string) {
   const { data } = await db()
@@ -61,5 +62,5 @@ export async function markPaidByRazorpayOrder(razorpayOrderId: string, paymentId
     .in("status", ["awaiting_payment", "payment_submitted"])
     .select("id")
     .maybeSingle();
-  return Boolean(data);
+  return (data?.id as string | undefined) ?? null;
 }
