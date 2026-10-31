@@ -204,6 +204,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
             return { memorial: { photo: String(m.photo), ...(name ? { name } : {}), ...(m.large === true ? { large: true } : {}) } };
           })()
         : {}),
+      ...(typeof d.rsvpTitle === "string" && d.rsvpTitle.trim() ? { rsvpTitle: str(d.rsvpTitle, 60) } : {}),
       ...(d.rsvpHeading && typeof d.rsvpHeading === "object"
         ? (() => {
             const h = d.rsvpHeading as Record<string, unknown>;
@@ -224,7 +225,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
 
 // Invite settings set by us for one couple that the order form doesn't show. A form save would
 // otherwise drop them, so they carry over from the order's previous details.
-const KEPT = ["tapAnywhere", "largeText", "rsvpHeading", "monogram", "openHint", "memorial", "sealFull", "eventsByDay", "dayNames", "joiner", "plainCover", "seal", "wardrobe", "extras", "welcome", "lang"] as const;
+const KEPT = ["rsvpTitle", "tapAnywhere", "largeText", "rsvpHeading", "monogram", "openHint", "memorial", "sealFull", "eventsByDay", "dayNames", "joiner", "plainCover", "seal", "wardrobe", "extras", "welcome", "lang"] as const;
 
 /** `next` from a form, with the invite-only settings from `prev` it couldn't have known about. */
 export function keepInviteSettings(prev: InviteDetails | null | undefined, next: InviteDetails): InviteDetails {

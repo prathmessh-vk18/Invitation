@@ -58,6 +58,8 @@ export type Invite = {
   tapAnywhere?: boolean;
   // Bigger, darker text throughout, for families whose guests are mostly older.
   largeText?: boolean;
+  // A couple's own RSVP title (e.g. "Please join us" instead of "Will you join us?").
+  rsvpTitle?: string;
   // A couple's own RSVP heading in place of the design's.
   rsvpHeading?: { kicker: string; title: string; lead?: string };
   // Letters on the opening seal instead of the names' first letters.

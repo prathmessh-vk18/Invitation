@@ -283,7 +283,7 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
           </div>
         ) : (
           <>
-            <theme.Title kicker={t.rsvpKicker}>{t.rsvpTitle}</theme.Title>
+            <theme.Title kicker={t.rsvpKicker}>{invite.rsvpTitle ?? t.rsvpTitle}</theme.Title>
             <p className={`mt-3 text-center text-[3.6cqw] ${theme.ui.muted}`}>{t.replyBy(d.dayMonthYear(invite.rsvp.by))}</p>
           </>
         )}
