@@ -729,7 +729,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
                 maxLength={300}
               />
               <Input k={`${k}.dress`} label="Dress code" hint="optional" value={e.dress} onChange={(v) => setEvent(i, "dress", v)} onBlur={() => touch(`${k}.dress`)} placeholder="Shades of yellow" maxLength={80} />
-              <Input k={`${k}.note`} label="Note" hint="optional" value={e.note} onChange={(v) => setEvent(i, "note", v)} onBlur={() => touch(`${k}.note`)} placeholder="Lunch to follow" maxLength={160} />
+              <Input k={`${k}.note`} label="Note" hint="optional" value={e.note} onChange={(v) => setEvent(i, "note", v)} onBlur={() => touch(`${k}.note`)} placeholder="Lunch to follow" maxLength={240} />
             </div>
             {prev && prev.venue && !e.venue && (
               <button

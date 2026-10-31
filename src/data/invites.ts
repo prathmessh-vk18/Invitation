@@ -25,6 +25,8 @@ export type Person = {
   parents: string;
   // An elder's line printed above the name, e.g. a grandmother who invites on the family's behalf.
   elders?: string;
+  // Print the elder's line under the parents instead of above the name.
+  eldersBelow?: boolean;
 };
 
 export type Invite = {
@@ -52,12 +54,25 @@ export type Invite = {
   font?: string;
   // The couple's own monogram for the opening seal, a file in public/art/seals.
   seal?: string;
+  // Tapping anywhere on the opening screen opens the invite, not only the seal.
+  tapAnywhere?: boolean;
+  // Bigger, darker text throughout, for families whose guests are mostly older.
+  largeText?: boolean;
   // A couple's own RSVP heading in place of the design's.
   rsvpHeading?: { kicker: string; title: string; lead?: string };
   // Letters on the opening seal instead of the names' first letters.
   monogram?: string;
   // The opening screen's "Tap to open", in a couple's own words.
   openHint?: string;
+  // A late parent's photo and name, on the opening screen and again at the end, in their memory.
+  // `large` makes the closing tribute bigger and darker, for families sharing with older guests.
+  memorial?: { photo: string; name?: string; large?: boolean };
+  // `seal` is a whole seal of its own (shape, colour and all), shown in place of the gold one.
+  sealFull?: boolean;
+  // Functions grouped into one card per day, instead of a card each.
+  eventsByDay?: boolean;
+  // With eventsByDay: a name for each day, in order ("Sagai", "Shaadi"…), shown beside its date in the RSVP.
+  dayNames?: string[];
   // Cover shows only the names and wording, with no date or city (when functions are in different places).
   plainCover?: boolean;
   // The word between the two names on the cover, when "weds" doesn't fit (an engagement uses "&").

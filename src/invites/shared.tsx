@@ -238,14 +238,17 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
   const [name, setName] = useState("");
   const [guests, setGuests] = useState(2);
   const [attending, setAttending] = useState<"yes" | "no">("yes");
-  const [events, setEvents] = useState<string[]>(() => invite.events.map((e) => e.name));
+  const { t, d } = useT();
+  // What guests tick: each function, or each day when the invite groups its functions by day.
+  const days = [...new Set(invite.events.map((e) => `${d.day(e.start)} ${d.month(e.start)}`))];
+  const choices = invite.eventsByDay ? days.map((day, i) => (invite.dayNames?.[i] ? `${day} · ${invite.dayNames[i]}` : day)) : invite.events.map((e) => e.name);
+  const [events, setEvents] = useState<string[]>(() => choices);
   const [note, setNote] = useState("");
   const [stay, setStay] = useState<"yes" | "no">("no");
   const [stayDays, setStayDays] = useState(1);
   const askStay = askStaySlugs.includes(invite.slug);
   const [demoSent, setDemoSent] = useState(false);
   const [a, b] = couple(invite);
-  const { t, d } = useT();
   // Sample invites on the website don't belong to a real couple, so nothing is sent from them.
   const isDemo = demoSlugs.has(invite.slug);
 
@@ -320,14 +323,14 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
               <div>
                 <span className="inv-label text-[2.5cqw] opacity-70">{t.attendingAt}</span>
                 <div className="mt-2 flex flex-wrap gap-[2cqw]">
-                  {invite.events.map((e) => (
+                  {choices.map((c) => (
                     <button
                       type="button"
-                      key={e.name}
-                      onClick={() => toggle(e.name)}
-                      className={`${events.includes(e.name) ? theme.ui.chipOn : theme.ui.chip} px-[3.5cqw] py-[1.8cqw] text-[3.2cqw]`}
+                      key={c}
+                      onClick={() => toggle(c)}
+                      className={`${events.includes(c) ? theme.ui.chipOn : theme.ui.chip} px-[3.5cqw] py-[1.8cqw] text-[3.2cqw]`}
                     >
-                      {e.name}
+                      {c}
                     </button>
                   ))}
                 </div>

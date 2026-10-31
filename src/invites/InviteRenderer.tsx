@@ -49,7 +49,7 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
   return (
     <LangContext.Provider value={langOf(invite)}>
     <OpenedContext.Provider value={opened}>
-      <div ref={rootRef} lang={langOf(invite)} style={{ ...theme.vars, ...fontVars(invite.font), ...langVars(langOf(invite)) }} className={`${theme.root} min-h-svh`}>
+      <div ref={rootRef} lang={langOf(invite)} data-large-text={invite.largeText ? "" : undefined} style={{ ...theme.vars, ...fontVars(invite.font), ...langVars(langOf(invite)) }} className={`${theme.root} min-h-svh`}>
         <main className="@container relative mx-auto w-full max-w-[480px] overflow-x-clip shadow-[0_0_80px_rgba(0,0,0,.25)]">
           <theme.Backdrop />
           <div className="relative">

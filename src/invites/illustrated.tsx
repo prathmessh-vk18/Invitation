@@ -109,7 +109,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
       >
         {!spec.frameOverHero && (
           <motion.div className="absolute inset-0" initial={{ scale: 1.15 }} animate={{ scale: opened ? 1 : 1.15 }} transition={{ duration: 1.6, ease }}>
-            <Art src={spec.images.hero} priority />
+            <Art src={invite.memorial ? spec.images.card : spec.images.hero} priority />
           </motion.div>
         )}
         <motion.div className="absolute inset-0" animate={{ opacity: opened ? 0 : 1 }} transition={{ delay: opened ? 0.9 : 0, duration: 0.7 }}>
@@ -131,6 +131,10 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
             </motion.div>
           ))}
         </motion.div>
+        {invite.tapAnywhere && !opened && (
+          // The whole screen opens the invite, not only the seal.
+          <button type="button" onClick={onOpen} aria-label="Open invitation" className="absolute inset-0 z-[5] cursor-pointer" />
+        )}
         {spec.openingTitle && (
           <motion.div className="pointer-events-none absolute inset-x-0 z-10 text-center" style={{ top: `${spec.openingTitleTop ?? 8}%` }} animate={{ opacity: opened ? 0 : 1, y: opened ? -20 : 0 }} transition={{ duration: 0.4 }}>
             <p className="inv-script text-[11cqw] leading-none" style={{ color: c.ink }}>
@@ -195,23 +199,32 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
         transition={opened ? { duration: 0.3 } : { duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
       >
         <span className="absolute inset-0 animate-ping rounded-full bg-[#f3d98a]/30 [animation-duration:2.4s]" />
-        <span
-          className="absolute inset-0 rounded-full shadow-[0_10px_30px_-6px_rgba(0,0,0,.6)]"
-          style={{ background: `radial-gradient(circle at 35% 30%, #f9e7ad, #d9aa4c 50%, #946a1f)` }}
-        />
-        <span className="absolute inset-[2cqw] rounded-full border border-[#7a5414]/40" />
-        {invite.seal ? (
-          // The couple's own monogram, already ink on transparent.
-          <span className="absolute inset-[3.6cqw]">
-            <Image src={invite.seal} alt={initials(invite)} fill sizes="120px" className="object-contain" />
-          </span>
-        ) : spec.sealImage && (!spec.sealImageFor || spec.sealImageFor.includes(invite.slug)) ? (
-          // The monogram's paper ground multiplies into the gold, leaving just the lettering.
-          <span className="absolute inset-[3.2cqw] overflow-hidden rounded-full">
-            <Image src={spec.sealImage} alt={initials(invite)} fill sizes="120px" className="object-cover mix-blend-multiply" />
+        {invite.seal && invite.sealFull ? (
+          // The couple's own seal, whole: it replaces the gold one entirely.
+          <span className="absolute -inset-[3cqw] drop-shadow-[0_10px_18px_rgba(0,0,0,.45)]">
+            <Image src={invite.seal} alt={initials(invite)} fill sizes="160px" className="object-contain" />
           </span>
         ) : (
-          <span className="inv-script relative text-[9cqw] leading-none text-[#4a2c08]">{initials(invite)}</span>
+          <>
+          <span
+            className="absolute inset-0 rounded-full shadow-[0_10px_30px_-6px_rgba(0,0,0,.6)]"
+            style={{ background: `radial-gradient(circle at 35% 30%, #f9e7ad, #d9aa4c 50%, #946a1f)` }}
+          />
+          <span className="absolute inset-[2cqw] rounded-full border border-[#7a5414]/40" />
+          {invite.seal ? (
+            // The couple's own monogram, already ink on transparent.
+            <span className="absolute inset-[3.6cqw]">
+              <Image src={invite.seal} alt={initials(invite)} fill sizes="120px" className="object-contain" />
+            </span>
+          ) : spec.sealImage && (!spec.sealImageFor || spec.sealImageFor.includes(invite.slug)) ? (
+            // The monogram's paper ground multiplies into the gold, leaving just the lettering.
+            <span className="absolute inset-[3.2cqw] overflow-hidden rounded-full">
+              <Image src={spec.sealImage} alt={initials(invite)} fill sizes="120px" className="object-cover mix-blend-multiply" />
+            </span>
+          ) : (
+            <span className="inv-script relative text-[9cqw] leading-none text-[#4a2c08]">{initials(invite)}</span>
+          )}
+          </>
         )}
       </motion.button>
     );
@@ -234,6 +247,71 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
 
   /* ───────── Hero ───────── */
 
+  /** A late parent's photo in a plain square gold frame. */
+  function MemorialPhoto({ photo, alt, className }: { photo: string; alt: string; className: string }) {
+    return (
+      <span className={`block rounded-[1cqw] bg-[linear-gradient(135deg,#f6e3a1,#c99a3c_35%,#f3d98a_60%,#a9782a)] p-[1.2cqw] shadow-[0_1.5cqw_4cqw_-1.5cqw_rgba(60,35,10,.45)] ${className}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- the family's own upload, shown as is */}
+        <img src={photo} alt={alt} className="block aspect-square w-full object-cover" />
+      </span>
+    );
+  }
+
+  /**
+   * The first page after the doors, for a couple honouring a late parent: her photo and blessing
+   * inside the card's arch, before the couple's scene.
+   */
+  function MemorialPage({ invite }: { invite: Invite }) {
+    const opened = useOpened();
+    const ref = useRef<HTMLElement>(null);
+    const m = invite.memorial;
+    if (!m) return null;
+    const [a, b] = couple(invite);
+    const show = (delay: number) => ({ initial: { opacity: 0, y: 14 }, animate: opened ? { opacity: 1, y: 0 } : {}, transition: { duration: 1, delay, ease } });
+    return (
+      <section ref={ref} className="relative w-full overflow-hidden" style={{ aspectRatio: ART_RATIO, background: c.paper }}>
+        <Art src={spec.images.card} />
+        <div className="absolute inset-x-[12%] top-[21%] flex flex-col items-center text-center">
+          <motion.p {...show(0.4)} className="inv-script leading-tight whitespace-nowrap" style={{ color: c.ink, ...sz(8.6) }}>
+            In her loving presence
+          </motion.p>
+          <motion.div {...show(0.5)} className="mt-[2cqw] w-full">
+            <Divider />
+          </motion.div>
+          <motion.div {...show(0.6)} className="mt-[5cqw]">
+            <MemorialPhoto photo={m.photo} alt={m.name ?? ""} className="w-[38cqw]" />
+          </motion.div>
+          <motion.p {...show(0.9)} className="inv-serif mt-[5cqw] text-[4.2cqw] leading-snug italic" style={{ color: c.ink }}>
+            With the blessings of our beloved
+          </motion.p>
+          {m.name && (
+            <motion.p {...show(1)} className="inv-script mt-[1.5cqw] leading-tight" style={{ color: c.ink, ...sz(7.4) }}>
+              {m.name}
+            </motion.p>
+          )}
+          <motion.p {...show(1.1)} className="inv-serif mt-[1.5cqw] text-[4.2cqw] leading-snug italic" style={{ color: c.ink }}>
+            we invite you to bless {a.first} &amp; {b.first}.
+          </motion.p>
+        </div>
+        <motion.button
+          type="button"
+          onClick={() => ref.current?.nextElementSibling?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          className="absolute bottom-[19%] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1 px-[6cqw] py-[2cqw]"
+          style={{ color: c.accent }}
+          initial={{ opacity: 0 }}
+          animate={opened ? { opacity: 1, y: [0, 6, 0] } : {}}
+          transition={{ opacity: { delay: 1.8, duration: 0.6 }, y: { delay: 1.8, duration: 1.8, repeat: Infinity } }}
+          aria-label="Scroll to the invitation"
+        >
+          <span className="inv-label text-[2.3cqw]">Scroll</span>
+          <svg viewBox="0 0 24 24" className="size-[4cqw]" fill="none" stroke="currentColor" strokeWidth={1.6}>
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </motion.button>
+      </section>
+    );
+  }
+
   function Hero({ invite }: { invite: Invite }) {
     const opened = useOpened();
     const [a, b] = couple(invite);
@@ -246,7 +324,9 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
     const textFade = useTransform(scrollYProgress, [0, 0.4], [1, 0]);
     const show = (delay: number) => ({ initial: { opacity: 0, y: 14 }, animate: opened ? { opacity: 1, y: 0 } : {}, transition: { duration: 1, delay, ease } });
     return (
-      <section ref={ref} className="relative w-full overflow-hidden" style={{ aspectRatio: lead ? `864 / ${1536 * (1 + lead)}` : ART_RATIO, background: c.paper }}>
+      <>
+      <MemorialPage invite={invite} />
+      <section ref={ref} data-hero className="relative w-full overflow-hidden" style={{ aspectRatio: lead ? `864 / ${1536 * (1 + lead)}` : ART_RATIO, background: c.paper }}>
         <motion.div className="absolute inset-x-0 bottom-0" style={{ y: imgY, scale: imgScale, height: `${100 / (1 + lead)}%` }}>
           <Art src={spec.images.hero} alt={`Illustration of a couple for ${a.first} and ${b.first}'s wedding`} priority />
           {lead > 0 && <div className="absolute inset-x-0 top-0 h-[12%]" style={{ background: `linear-gradient(${c.paper}, transparent)` }} />}
@@ -296,6 +376,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
         </motion.button>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[10%] bg-gradient-to-b from-transparent" style={{ backgroundImage: `linear-gradient(to bottom, transparent, ${c.paper})` }} />
       </section>
+      </>
     );
   }
 
@@ -330,27 +411,28 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
   }
 
   function Blessing({ invite }: { invite: Invite }) {
+    const L = invite.largeText;
     const [a, b] = couple(invite);
     return (
       <section className="relative px-[14cqw] pt-[16cqw] pb-[14cqw] text-center">
         <Reveal>
           {/* With elders printed above each name, the families' line moves there and the wording leads. */}
           {!(a.elders || b.elders) || invite.hosts ? (
-            <div className="inv-label mb-[4cqw] space-y-[1.8cqw] text-[2.8cqw] leading-relaxed" style={{ color: c.accent }}>
+            <div className={`inv-label mb-[4cqw] space-y-[1.8cqw] leading-relaxed ${L ? "text-[3.4cqw] font-semibold" : "text-[2.8cqw]"}`} style={{ color: c.accent }}>
               {(invite.hosts || "Together with their families").split("\n").map((line, i) => (
                 <p key={i}>{line}</p>
               ))}
             </div>
           ) : null}
-          <p className="inv-serif mx-auto text-[4.8cqw] leading-snug italic" style={{ color: c.ink }}>
+          <p className={`inv-serif mx-auto leading-snug italic ${L ? "text-[5.4cqw] font-medium" : "text-[4.8cqw]"}`} style={{ color: c.ink }}>
             {invite.message}
           </p>
         </Reveal>
         <div className="mt-[8cqw] space-y-[6cqw]">
           {[a, b].map((p, i) => (
             <Reveal key={p === invite.bride ? "bride" : "groom"} delay={0.1 + i * 0.12}>
-              {p.elders && (
-                <p className="inv-label mb-[3cqw] text-[2.8cqw] leading-relaxed" style={{ color: c.accent }}>
+              {p.elders && !p.eldersBelow && (
+                <p className={`inv-label mb-[3cqw] leading-relaxed ${L ? "text-[3.4cqw] font-semibold" : "text-[2.8cqw]"}`} style={{ color: c.accent }}>
                   {p.elders}
                 </p>
               )}
@@ -358,8 +440,13 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
                 {p.full || p.first}
               </p>
               {p.parents && (
-                <p className="inv-serif mt-[1.5cqw] text-[3.6cqw] font-medium whitespace-pre-line italic" style={{ color: c.soft }}>
+                <p className={`inv-serif mt-[1.5cqw] whitespace-pre-line italic ${L ? "text-[4.4cqw] font-semibold" : "text-[3.6cqw] font-medium"}`} style={{ color: L ? c.ink : c.soft }}>
                   {p.parents}
+                </p>
+              )}
+              {p.elders && p.eldersBelow && (
+                <p className={`inv-label mt-[3cqw] leading-relaxed ${L ? "text-[3.4cqw] font-semibold" : "text-[2.8cqw]"}`} style={{ color: c.accent }}>
+                  {p.elders}
                 </p>
               )}
             </Reveal>
@@ -370,6 +457,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
   }
 
   function Events({ invite }: { invite: Invite }) {
+    const L = invite.largeText;
     return (
       <section className="relative px-[12cqw] py-[14cqw]">
         <Reveal>
@@ -388,23 +476,23 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
                 className="rounded-[4cqw] border px-[5cqw] py-[5cqw] text-center backdrop-blur-[2px]"
                 style={{ borderColor: `${c.accent}55`, background: `${c.paper}d9` }}
               >
-                <p className="inv-label text-[2.6cqw]" style={{ color: c.accent }}>
+                <p className={`inv-label ${L ? "text-[3.2cqw] font-semibold" : "text-[2.6cqw]"}`} style={{ color: c.accent, ...(L ? { letterSpacing: "0.08em" } : {}) }}>
                   {weekday(e.start)} · {o.d}
                   <sup>{o.s}</sup> {o.m} · {time(e.start)}
                 </p>
                 <h3 className="inv-script mt-[1.5cqw] leading-none" style={{ color: c.ink, ...sz(9) }}>
                   {e.name}
                 </h3>
-                <p className="inv-serif mt-[2.5cqw] text-[4.2cqw] leading-tight" style={{ color: c.ink }}>
+                <p className={`inv-serif mt-[2.5cqw] leading-tight ${L ? "text-[5cqw] font-semibold" : "text-[4.2cqw]"}`} style={{ color: c.ink }}>
                   {e.venue}
                 </p>
                 {e.address && (
-                  <p className="mt-[1cqw] text-[3cqw]" style={{ color: c.soft }}>
+                  <p className={`mt-[1cqw] ${L ? "text-[3.8cqw] font-medium" : "text-[3cqw]"}`} style={{ color: L ? c.ink : c.soft }}>
                     {e.address}
                   </p>
                 )}
                 {((e.dress && !invite.wardrobe) || e.note) && (
-                  <p className="inv-serif mt-[2cqw] text-[3.4cqw] italic" style={{ color: c.accent }}>
+                  <p className={`inv-serif mt-[2cqw] italic ${L ? "text-[4.4cqw] font-semibold" : "text-[3.4cqw]"}`} style={{ color: L ? c.ink : c.accent }}>
                     {[!invite.wardrobe && e.dress && `Dress: ${e.dress}`, e.note].filter(Boolean).join(" · ")}
                   </p>
                 )}
@@ -437,7 +525,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
                       <p className="inv-script leading-none" style={{ color: c.ink, ...sz(7.5) }}>
                         {e.name}
                       </p>
-                      <p className="inv-serif mt-[1.5cqw] text-[4.2cqw] italic" style={{ color: c.accent }}>
+                      <p className={`inv-serif mt-[1.5cqw] italic ${L ? "text-[4.8cqw] font-semibold" : "text-[4.2cqw]"}`} style={{ color: L ? c.ink : c.accent }}>
                         {e.dress}
                       </p>
                     </li>
@@ -451,9 +539,26 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
   }
 
   function Closing({ invite }: { invite: Invite }) {
+    const L = invite.largeText;
     const [a, b] = couple(invite);
     return (
       <section className="relative px-[14cqw] pt-[12cqw] text-center" style={{ paddingBottom: `calc(${spec.frame.bottom}vh + 18cqw)` }}>
+        {invite.memorial && (
+          <Reveal className="mb-[14cqw] flex flex-col items-center">
+            <MemorialPhoto photo={invite.memorial.photo} alt={invite.memorial.name ?? ""} className={invite.memorial.large ? "w-[38cqw]" : "w-[24cqw]"} />
+            {invite.memorial.name && (
+              <p className={`inv-script mt-[4cqw] leading-tight ${invite.memorial.large ? "text-[7.4cqw]" : "text-[6.4cqw]"}`} style={{ color: c.ink }}>
+                {invite.memorial.name}
+              </p>
+            )}
+            <p
+              className={`inv-serif mt-[2cqw] italic ${invite.memorial.large ? "text-[4.6cqw] font-semibold" : "text-[3.8cqw]"}`}
+              style={{ color: invite.memorial.large ? c.ink : c.soft }}
+            >
+              Her blessings are always with us.
+            </p>
+          </Reveal>
+        )}
         {invite.extras?.length ? (
           <div className="mb-[14cqw] space-y-[9cqw]">
             {invite.extras.map((g, i) => (
@@ -491,14 +596,14 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
         ) : null}
         <Reveal>
           <Divider />
-          <p className="inv-serif mt-[6cqw] text-[5cqw] leading-snug italic" style={{ color: c.ink }}>
+          <p className={`inv-serif mt-[6cqw] leading-snug italic ${L ? "text-[5.6cqw] font-medium" : "text-[5cqw]"}`} style={{ color: c.ink }}>
             {invite.closing}
           </p>
           <p className="inv-script mt-[4cqw] leading-none" style={{ color: c.ink, ...sz(12) }}>
             {a.first} &amp; {b.first}
           </p>
           {invite.hashtag && (
-            <p className="inv-label mt-[3cqw] text-[2.8cqw]" style={{ color: c.accent }}>
+            <p className={`inv-label mt-[3cqw] ${L ? "text-[3.4cqw] font-semibold" : "text-[2.8cqw]"}`} style={{ color: c.accent }}>
               {invite.hashtag}
             </p>
           )}
@@ -518,13 +623,17 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
   function Frame() {
     const { scrollY } = useScroll();
     const [heroH, setHeroH] = useState(800);
+    const [heroTop, setHeroTop] = useState(0);
     useEffect(() => {
-      const measure = () => setHeroH((Math.min(window.innerWidth, 480) * 1536) / 864);
+      const measure = () => {
+        setHeroH((Math.min(window.innerWidth, 480) * 1536) / 864);
+        setHeroTop((document.querySelector("[data-hero]") as HTMLElement | null)?.offsetTop ?? 0);
+      };
       measure();
       window.addEventListener("resize", measure);
       return () => window.removeEventListener("resize", measure);
     }, []);
-    const fade = useTransform(scrollY, [heroH * 0.35, heroH * 0.75], [0, 1]);
+    const fade = useTransform(scrollY, [heroTop + heroH * 0.35, heroTop + heroH * 0.75], [0, 1]);
     const opacity = spec.frameOverHero ? 1 : fade;
     const f = spec.frame;
     const soft = 4;

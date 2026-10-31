@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { site } from "@/config/site";
-import type { Invite } from "@/data/invites";
+import type { Invite, InviteEvent } from "@/data/invites";
 import { useT } from "./i18n";
 import { makeIllustrated } from "./illustrated";
 import { useOpened, usePreview } from "./opened";
@@ -25,6 +25,8 @@ const c = {
   ink: "#5b2615",
   name: "#a8573a",
   gold: "#b9853f",
+  // The same gold, deeper, for small text that has to read on the paper.
+  goldDeep: "#8c5f26",
   soft: "#86553f",
 };
 const HAND = "var(--font-alex-brush), cursive";
@@ -220,7 +222,7 @@ function Blessing({ invite }: { invite: Invite }) {
     <section ref={ref} className={`relative z-10 px-[13cqw] pt-[24cqw] pb-[12cqw] text-center ${still ? "" : "-mt-[55svh]"}`}>
       <motion.div style={still ? undefined : { scale, opacity, filter: blur, transformOrigin: "50% 30%" }}>
         <Divider />
-        <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed" style={{ color: c.gold }}>
+        <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed" style={{ color: c.goldDeep }}>
           {invite.hosts || t.togetherWithFamilies}
         </p>
         <p className="inv-serif mt-[3cqw] text-[4.6cqw] leading-snug" style={{ color: c.ink }}>
@@ -244,8 +246,99 @@ function Blessing({ invite }: { invite: Invite }) {
 
 /* ───────── Functions on arch cards ───────── */
 
+/** One arch card for a day: its functions and times, then the venue and directions once. */
+function DayCard({ invite, events }: { invite: Invite; events: InviteEvent[] }) {
+  const { t, d } = useT();
+  const first = events[0];
+  const oneVenue = events.every((e) => e.venue === first.venue);
+  // The address only when it adds something beyond the venue's own name.
+  const place = (e: InviteEvent) => (
+    <>
+      <p className="inv-serif text-[4.4cqw] leading-tight" style={{ color: c.ink }}>
+        {e.venue}
+      </p>
+      {e.address && !e.address.toLowerCase().includes(e.venue.toLowerCase()) && (
+        <p className="mt-[1cqw] text-[3cqw]" style={{ color: c.soft }}>
+          {e.address}
+        </p>
+      )}
+    </>
+  );
+  return (
+    <ArchCard>
+      <div className="-mt-[9cqw] px-[5cqw] pb-[6cqw] text-center">
+        <Sunburst className="mx-auto block w-[16cqw]" />
+        <p className="inv-label mt-[2cqw] text-[2.5cqw]" style={{ color: c.ink }}>
+          {d.weekday(first.start)}
+        </p>
+        <h3 className="inv-script mt-[1.5cqw] text-[8.5cqw] leading-none" style={{ color: c.name }}>
+          {d.day(first.start)} {d.month(first.start)}
+        </h3>
+        {/* Times in one column, functions in the next, both left-aligned and the pair centred. */}
+        <ul className="mx-auto mt-[5cqw] grid w-fit grid-cols-[auto_auto] gap-x-[4cqw] gap-y-[2.5cqw] text-left">
+          {events.map((e, i) => (
+            <li key={e.name + i} className="col-span-2 grid grid-cols-subgrid">
+              <span className="inv-serif text-[5cqw] leading-tight font-semibold" style={{ color: c.name }}>
+                {d.time(e.start)}
+              </span>
+              <span className="inv-serif text-[5cqw] leading-tight font-bold" style={{ color: c.ink }}>
+                {e.name}
+              </span>
+              {(e.dress || e.note) && (
+                <p className="inv-serif col-start-2 mt-[0.5cqw] text-[3.6cqw] italic" style={{ color: c.name }}>
+                  {[e.dress && t.dress(e.dress), e.note].filter(Boolean).join(" · ")}
+                </p>
+              )}
+              {!oneVenue && (
+                <div className="col-span-2 mt-[2cqw] text-center">
+                  {place(e)}
+                  <EventActions event={e} invite={invite} theme={mandir} />
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+        {oneVenue && (
+          <>
+            <div className="mx-auto mt-[5cqw] h-px w-[30cqw]" style={{ background: c.gold }} />
+            <div className="mt-[4cqw]">{place(first)}</div>
+            <EventActions event={first} invite={invite} theme={mandir} />
+          </>
+        )}
+      </div>
+    </ArchCard>
+  );
+}
+
+/** The invite's functions, one card per day, in order. */
+function byDay(events: InviteEvent[]) {
+  const days: InviteEvent[][] = [];
+  for (const e of events) {
+    const last = days[days.length - 1];
+    if (last && last[0].start.slice(0, 10) === e.start.slice(0, 10)) last.push(e);
+    else days.push([e]);
+  }
+  return days;
+}
+
 function Events({ invite }: { invite: Invite }) {
   const { t, d } = useT();
+  if (invite.eventsByDay) {
+    return (
+      <section className="relative px-[11cqw] py-[12cqw]">
+        <Reveal>
+          <Title kicker={t.eventsKicker}>{t.eventsTitle}</Title>
+        </Reveal>
+        <ol className="mt-[8cqw] space-y-[7cqw]">
+          {byDay(invite.events).map((day) => (
+            <motion.li key={day[0].start} initial={{ opacity: 0, y: 30, scale: 0.96 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.9, ease }}>
+              <DayCard invite={invite} events={day} />
+            </motion.li>
+          ))}
+        </ol>
+      </section>
+    );
+  }
   return (
     <section className="relative px-[11cqw] py-[12cqw]">
       <Reveal>
@@ -364,6 +457,7 @@ function Frame() {
 export const mandir: InviteTheme = {
   ...base,
   id: "mandir",
+  root: "inv-mandir",
   vars: { ...base.vars, "--inv-accent": c.name } as CSSProperties,
   accent: c.name,
   Hero,
