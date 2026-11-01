@@ -7,14 +7,16 @@ export const alt = "Aavjoo — designer wedding invitation websites for Indian w
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const dataUrl = async (path: string, type: string) => `data:${type};base64,${(await readFile(join(process.cwd(), path))).toString("base64")}`;
+// Each path is written out in full so only these four files ship with this route. A path built
+// at runtime makes the bundler copy the whole project into every server function.
+const dataUrl = async (file: Promise<Buffer>, type: string) => `data:${type};base64,${(await file).toString("base64")}`;
 
 export default async function Image() {
   const [logo, mahal, khat, gopuram] = await Promise.all([
-    dataUrl("public/brand/aavjoo-logo.png", "image/png"),
-    dataUrl("public/art/illus/mahal-hero.jpg", "image/jpeg"),
-    dataUrl("public/art/illus/khat-hero.jpg", "image/jpeg"),
-    dataUrl("public/art/illus/gopuram-hero.jpg", "image/jpeg"),
+    dataUrl(readFile(join(process.cwd(), "public/brand/aavjoo-logo.png")), "image/png"),
+    dataUrl(readFile(join(process.cwd(), "public/art/illus/mahal-hero.jpg")), "image/jpeg"),
+    dataUrl(readFile(join(process.cwd(), "public/art/illus/khat-hero.jpg")), "image/jpeg"),
+    dataUrl(readFile(join(process.cwd(), "public/art/illus/gopuram-hero.jpg")), "image/jpeg"),
   ]);
   const phone = (src: string, rotate: number, top: number, left: number, z: number) => (
     <div
