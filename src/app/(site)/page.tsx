@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { JsonLd, organizationLd } from "@/lib/seo";
 import { Diya, MarigoldHead } from "@/art/ornaments";
 import { formatINR } from "@/config/site";
@@ -51,6 +52,12 @@ export default function Home() {
                 See a live invite
               </ButtonLink>
             </div>
+            <p className="mt-5 text-[15px] text-muted">
+              Already ordered?{" "}
+              <Link href="/edit" className="font-medium text-ink underline underline-offset-4">
+                Edit your order
+              </Link>
+            </p>
           </Reveal>
         </Container>
       </section>

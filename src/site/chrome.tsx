@@ -75,6 +75,9 @@ export function Header() {
                 {n.label}
               </Link>
             ))}
+            <Link href="/edit" onClick={() => setOpen(false)} className="block rounded-tile px-4 py-3 text-title">
+              Edit your order
+            </Link>
             <OpenChat
               className={buttonClass("primary", "lg", "mt-2 w-full")}
             >
@@ -173,6 +176,7 @@ export function Footer() {
           <FooterCol
             title="Aavjoo"
             links={[
+              { href: "/edit", label: "Edit your order" },
               { href: "/about", label: "About us" },
               { href: "/#how", label: "How it works" },
               { href: "/#faq", label: "FAQ" },

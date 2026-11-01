@@ -44,7 +44,7 @@ const TRADITIONS: { label: string; id?: CategoryId }[] = [
 ];
 
 /** What people ask us most, in their words. */
-const FAQS: { q: string; a: string; ticket?: boolean }[] = [
+const FAQS: { q: string; a: string; ticket?: boolean; edit?: boolean }[] = [
   {
     q: "PDF, video or website?",
     a: "A live website: one link with an opening animation, your song, every function with Google Maps, a countdown and RSVP. It opens instantly on any phone, and unlike a PDF or video it can be updated any time.",
@@ -55,7 +55,8 @@ const FAQS: { q: string; a: string; ticket?: boolean }[] = [
   },
   {
     q: "How do I make changes?",
-    a: `After you order you get your own order page. Until your invite is published, edit your details there yourself and they save straight away. Once it's live, tap "Ask for changes" on the same page and we update the same link, so nobody needs a new invite. ${site.revisionRounds} rounds of changes are free.`,
+    a: `Tap "Edit my order" below and enter your invite link, order number and the phone number you ordered with. Change what you need and send it: we check it and update the same link, so nobody needs a new invite. ${site.revisionRounds} rounds of changes are free.`,
+    edit: true,
   },
   {
     q: "Can I change the design or theme?",
@@ -337,6 +338,11 @@ export function ChatWidget() {
                       <div key={q} className="contents">
                         <Bubble from="me">{q}</Bubble>
                         <Bubble from="bot">{f.a}</Bubble>
+                        {f.edit && (
+                          <Link href="/edit" onClick={() => setOpen(false)} className="w-full rounded-full bg-ink py-3 text-center text-[15px] font-medium text-white">
+                            Edit my order
+                          </Link>
+                        )}
                         {f.ticket && form === "closed" && (
                           <button type="button" onClick={() => setForm("open")} className="w-full rounded-full bg-ink py-3 text-[15px] font-medium text-white">
                             Raise a support ticket
