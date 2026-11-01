@@ -11,10 +11,10 @@ const NEED = ["Choosing a design", "Customising my invite", "My existing order",
 const pick = (v: unknown, list: string[]) => (typeof v === "string" && list.includes(v) ? v : null);
 const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
-export type LeadAnswers = { planner: string; month: string; tradition: string; design?: string; price: string; need: string; page?: string };
+export type LeadAnswers = { planner: string; month: string; tradition: string; design?: string; price?: string; need?: string; page?: string };
 
-/** Saves a finished chat. Returns its id, so what they do next can be added. */
-export async function saveLead(a: LeadAnswers): Promise<string | null> {
+/** Saves a chat once they pick a design or reach the end. Returns its id, so what they do next can be added. */
+export async function saveLead(a: LeadAnswers, outcome?: "order"): Promise<string | null> {
   if (!isSupabaseConfigured()) return null;
   const month = /^\d{4}-\d{2}$|^Later$/.test(String(a.month)) ? a.month : null;
   const { data } = await db()
@@ -27,6 +27,7 @@ export async function saveLead(a: LeadAnswers): Promise<string | null> {
       price_ok: pick(a.price, PRICE),
       need: pick(a.need, NEED),
       page: text(a.page, 120) || null,
+      outcome: outcome ?? null,
     })
     .select("id")
     .single();

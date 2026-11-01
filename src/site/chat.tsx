@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { formatINR, site, whatsappLink } from "@/config/site";
@@ -9,10 +10,12 @@ import { WaIcon } from "@/invites/shared";
 import { saveLead, setLeadOutcome, submitTicket } from "@/lib/lead-actions";
 
 /**
- * "Let's talk": a short scripted chat in place of a bare WhatsApp link. Five quick questions
- * qualify the enquiry, then the visitor can start their invite straight away or message us on
- * WhatsApp with their answers already written. Anything else goes in as a question (a ticket).
- * Every finished chat is saved for the Leads page in admin.
+ * "Let's talk", in place of a bare WhatsApp link. Two tabs:
+ * - Choose a design: a few quick questions, then the designs for their tradition. "Make it mine"
+ *   opens that design's form. Not sure yet? Two more questions, then WhatsApp with their answers
+ *   already written.
+ * - Questions: answers to what people ask most, and a form to ask anything else (a ticket).
+ * Every chat that gets to a design or to WhatsApp is saved for the Leads page in admin.
  */
 
 const OPEN_EVENT = "aavjoo:chat";
@@ -40,15 +43,21 @@ const TRADITIONS: { label: string; id?: CategoryId }[] = [
   { label: "Not sure" },
 ];
 
+/** What people ask us most, by topic. */
 const FAQS: { q: string; a: string }[] = [
-  { q: "How does it work?", a: "Pick a design, fill in your names, functions and song with a live preview, and pay online. Your invite link goes live within minutes, ready to share on WhatsApp." },
-  { q: "What's included?", a: `Everything, for ${priceRange}: every function with Google Maps directions, a countdown, RSVP on WhatsApp, your song, photos and 2 rounds of changes.` },
-  { q: "How fast is it?", a: "Usually within minutes of payment. You get the link on WhatsApp." },
-  { q: "How do I pay?", a: "Securely online by UPI, card or netbanking, right after you fill in your details." },
+  { q: "How it works", a: "Pick a design, fill in your names, functions and song with a live preview, and pay online. Your invite link goes live within minutes, ready to share on WhatsApp." },
+  { q: "Price & what's included", a: `${priceRange}, everything included: every function with Google Maps directions, a countdown, RSVP on WhatsApp, your song, photos and ${site.revisionRounds} rounds of changes.` },
+  { q: "How fast", a: "Usually within minutes of payment. You get the link on WhatsApp." },
+  { q: "Payment", a: "Securely online by UPI, card or netbanking, right after you fill in your details." },
+  { q: "Changing details later", a: "Message us with your order code and we'll update the same link, so nobody needs a new invite." },
+  { q: "Hindi & other languages", a: "Invocations, blessings and function names can be in Hindi, Marathi, Punjabi, Tamil or Urdu alongside English." },
+  { q: "Sharing with guests", a: "It's a normal link. Share it on WhatsApp and it opens in the phone's browser in seconds. No app, no login." },
+  { q: "How long it stays live", a: `Until ${site.inviteDaysAfterWedding} days after your wedding, so guests can look back at it.` },
 ];
 
 type Answers = { planner: string; month: string; tradition: string; design?: string; price: string; need: string };
-type Step = "planner" | "month" | "tradition" | "design" | "price" | "need" | "done" | "ticket" | "sent";
+type Step = "planner" | "month" | "tradition" | "design" | "price" | "need" | "done";
+type Tab = "design" | "questions";
 
 const monthOptions = () => {
   const out: { v: string; l: string }[] = [];
@@ -95,16 +104,20 @@ function MonthChips({ onPick }: { onPick: (v: string, label: string) => void }) 
 }
 
 export function ChatWidget() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState<Tab>("design");
   const [step, setStep] = useState<Step>("planner");
   const [a, setA] = useState<Partial<Answers>>({});
   const [log, setLog] = useState<{ from: "bot" | "me"; text: ReactNode }[]>([]);
   const [leadId, setLeadId] = useState<string | null>(null);
+  const [going, setGoing] = useState<string | null>(null);
+  const [asked, setAsked] = useState<string[]>([]);
+  const [form, setForm] = useState<"closed" | "open" | "sent">("closed");
   const [question, setQuestion] = useState("");
   const [contact, setContact] = useState("");
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
-  const [asked, setAsked] = useState<string[]>([]);
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -115,13 +128,13 @@ export function ChatWidget() {
 
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
-  }, [log, step]);
+  }, [log, step, tab, asked, form]);
 
   const say = (from: "bot" | "me", text: ReactNode) => setLog((l) => [...l, { from, text }]);
 
   const matching = (tradition: string) => {
     const id = TRADITIONS.find((t) => t.label === tradition)?.id;
-    return (id ? templates.filter((t) => t.category === id) : templates).slice(0, 3);
+    return id ? templates.filter((t) => t.category === id) : templates;
   };
 
   const answer = (key: keyof Answers, value: string, shown: string, next: Step) => {
@@ -130,27 +143,30 @@ export function ChatWidget() {
     setStep(next);
   };
 
+  /** "Make it mine": saves what they told us, then opens that design's form. */
+  async function makeItMine(id: string) {
+    setGoing(id);
+    await saveLead({ ...(a as Answers), design: id, page: window.location.pathname }, "order");
+    router.push(`/start/${id}`);
+    setOpen(false);
+    setGoing(null);
+  }
+
   async function finish(need: string) {
     const all = { ...a, need } as Answers;
     setA(all);
     say("me", need);
     setStep("done");
-    const id = await saveLead({ ...all, page: window.location.pathname });
-    setLeadId(id);
+    setLeadId(await saveLead({ ...all, page: window.location.pathname }));
   }
 
-  // Offered while they answer the five questions; each one goes once it's asked.
-  const faqsLeft = ["planner", "month", "tradition", "design", "price", "need"].includes(step) ? FAQS.filter((f) => !asked.includes(f.q)) : [];
-
-  const chosen = templates.find((t) => t.id === a.design);
   const waText = [
     `Hi ${site.name}!`,
-    [a.planner, a.month && `Wedding ${monthLabel(a.month)}`, a.tradition, chosen && `Liked ${chosen.name}`, a.price === "Yes" ? `${priceRange} works` : a.price].filter(Boolean).join(" · "),
+    [a.planner, a.month && `Wedding ${monthLabel(a.month)}`, a.tradition, a.price === "Yes" ? `${priceRange} works` : a.price].filter(Boolean).join(" · "),
     a.need && `I need help with: ${a.need.toLowerCase()}.`,
   ]
     .filter(Boolean)
     .join("\n");
-  const startHref = chosen ? `/start/${chosen.id}` : "/designs";
 
   async function sendTicket() {
     setError("");
@@ -158,24 +174,21 @@ export function ChatWidget() {
     const res = await submitTicket(leadId, question, contact);
     setSending(false);
     if ("error" in res) return setError(res.error);
-    say("me", question);
-    setStep("sent");
+    setForm("sent");
   }
 
   const prompt: Record<Step, ReactNode> = {
     planner: "Hi! 👋 Congratulations on the wedding. Who's planning the invite?",
     month: "Lovely. When is the wedding?",
     tradition: "Which tradition are you celebrating?",
-    design: "Here are designs couples love for that. Like any of these?",
+    design: "Here are our designs for that. Tap View to see one live, or Make it mine to start yours.",
     price: (
       <>
-        Our designs are <b>{priceRange}</b>, everything included: functions with maps, countdown, RSVP, music and photos. Your link goes live within minutes of paying. Does that work for you?
+        No problem, we&rsquo;ll help. Our designs are <b>{priceRange}</b>, everything included: functions with maps, countdown, RSVP, music and photos. Does that work for you?
       </>
     ),
     need: "Last one: what would you like help with?",
-    done: "Thank you! You're all set. Start your invite now (it takes about 5 minutes), or chat with us on WhatsApp with your answers ready.",
-    ticket: "Ask us anything. Tell us how to reach you and we'll reply between 9 am and 10 pm.",
-    sent: "Got it, thank you! We'll get back to you soon.",
+    done: "Thank you! Chat with us on WhatsApp with your answers ready, or browse all the designs.",
   };
 
   return (
@@ -208,139 +221,152 @@ export function ChatWidget() {
             transition={{ duration: 0.25 }}
             className="fixed inset-x-0 bottom-0 z-[60] flex h-[min(640px,88svh)] flex-col overflow-hidden rounded-t-3xl bg-surface shadow-[0_-12px_60px_-20px_rgb(0_0_0/.35)] sm:inset-x-auto sm:right-6 sm:bottom-6 sm:h-[600px] sm:w-[380px] sm:rounded-3xl sm:shadow-[0_24px_70px_-20px_rgb(0_0_0/.45),0_0_0_1px_rgb(0_0_0/.05)]"
           >
-            <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
-              <div>
-                <p className="text-[16px] font-semibold">{site.name}</p>
-                <p className="text-caption text-subtle">We reply {site.hours}</p>
+            <div className="border-b border-line px-5 pt-3.5 pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[16px] font-semibold">{site.name}</p>
+                  <p className="text-caption text-subtle">We reply {site.hours}</p>
+                </div>
+                <button type="button" onClick={() => setOpen(false)} aria-label="Close chat" className="grid size-9 place-items-center rounded-full bg-panel text-[20px] leading-none">
+                  ×
+                </button>
               </div>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Close chat" className="grid size-9 place-items-center rounded-full bg-panel text-[20px] leading-none">
-                ×
-              </button>
+              <div role="tablist" className="mt-3 grid grid-cols-2 gap-1 rounded-full bg-panel p-1">
+                {(
+                  [
+                    ["design", "Choose a design"],
+                    ["questions", "Questions"],
+                  ] as const
+                ).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === id}
+                    onClick={() => setTab(id)}
+                    className={`rounded-full py-2 text-[14px] font-medium transition ${tab === id ? "bg-surface text-ink shadow-[0_1px_3px_rgb(0_0_0/.12)]" : "text-muted hover:text-ink"}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div ref={scroller} className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-4 py-4">
-              {log.map((m, i) => (
-                <Bubble key={i} from={m.from}>
-                  {m.text}
-                </Bubble>
-              ))}
-              <Bubble key={step} from="bot">
-                {prompt[step]}
-              </Bubble>
+              {tab === "design" ? (
+                <>
+                  {log.map((m, i) => (
+                    <Bubble key={i} from={m.from}>
+                      {m.text}
+                    </Bubble>
+                  ))}
+                  <Bubble key={step} from="bot">
+                    {prompt[step]}
+                  </Bubble>
 
-              {step === "planner" && (
-                <Chips options={["Bride", "Groom", "Family", "Wedding planner"].map((v) => ({ v, l: v }))} onPick={(v) => answer("planner", v, v, "month")} />
-              )}
-              {step === "month" && <MonthChips onPick={(v, l) => answer("month", v, l, "tradition")} />}
-              {step === "tradition" && <Chips options={TRADITIONS.map((t) => ({ v: t.label, l: t.label }))} onPick={(v) => answer("tradition", v, v, "design")} />}
-              {step === "design" && (
-                <div className="grid gap-2 pt-1">
-                  {matching(a.tradition ?? "").map((t) => (
-                    <div key={t.id} className="flex items-center justify-between gap-3 rounded-2xl border border-line p-3">
-                      <div className="min-w-0">
-                        <p className="text-[15px] font-semibold">
-                          {t.name} <span className="font-normal text-subtle">{formatINR(t.price)}</span>
-                        </p>
-                        <p className="truncate text-caption text-subtle">{t.mood}</p>
-                      </div>
-                      <div className="flex shrink-0 gap-1.5">
-                        <a href={`/templates/${t.id}`} target="_blank" rel="noreferrer" className="rounded-full bg-panel px-3 py-1.5 text-[13px] font-medium">
-                          View
-                        </a>
-                        <button type="button" onClick={() => answer("design", t.id, `I like ${t.name}`, "price")} className="rounded-full bg-ink px-3 py-1.5 text-[13px] font-medium text-white">
-                          Pick
-                        </button>
-                      </div>
+                  {step === "planner" && <Chips options={["Bride", "Groom", "Family", "Wedding planner"].map((v) => ({ v, l: v }))} onPick={(v) => answer("planner", v, v, "month")} />}
+                  {step === "month" && <MonthChips onPick={(v, l) => answer("month", v, l, "tradition")} />}
+                  {step === "tradition" && <Chips options={TRADITIONS.map((t) => ({ v: t.label, l: t.label }))} onPick={(v) => answer("tradition", v, v, "design")} />}
+                  {step === "design" && (
+                    <div className="grid gap-2 pt-1">
+                      {matching(a.tradition ?? "").map((t) => (
+                        <div key={t.id} className="flex items-center justify-between gap-2 rounded-2xl border border-line p-3">
+                          <div className="min-w-0">
+                            <p className="text-[15px] font-semibold">
+                              {t.name} <span className="font-normal text-subtle">{formatINR(t.price)}</span>
+                            </p>
+                            <p className="truncate text-caption text-subtle">{t.mood.replace(/^[^·]*·\s*/, "")}</p>
+                          </div>
+                          <div className="flex shrink-0 gap-1.5">
+                            <a href={`/templates/${t.id}`} target="_blank" rel="noreferrer" className="rounded-full bg-panel px-3 py-1.5 text-[13px] font-medium">
+                              View
+                            </a>
+                            <button type="button" disabled={!!going} onClick={() => makeItMine(t.id)} className="rounded-full bg-ink px-3 py-1.5 text-[13px] font-medium text-white disabled:opacity-60">
+                              {going === t.id ? "Opening…" : "Make it mine"}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      <Chips options={[{ v: "skip", l: "Not sure yet" }]} onPick={() => answer("design", "", "Not sure yet", "price")} />
+                    </div>
+                  )}
+                  {step === "price" && <Chips options={["Yes", "Need something custom", "Just exploring"].map((v) => ({ v, l: v === "Yes" ? "Yes, works for me" : v }))} onPick={(v) => answer("price", v, v === "Yes" ? "Yes, works for me" : v, "need")} />}
+                  {step === "need" && <Chips options={["Choosing a design", "Customising my invite", "My existing order", "Something else"].map((v) => ({ v, l: v }))} onPick={finish} />}
+                  {step === "done" && (
+                    <div className="grid gap-2 pt-1">
+                      <a
+                        href={whatsappLink(waText)}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => leadId && setLeadOutcome(leadId, "whatsapp")}
+                        className="flex items-center justify-center gap-2 rounded-full bg-whatsapp py-3 text-[15px] font-medium text-white"
+                      >
+                        <WaIcon /> Chat on WhatsApp
+                      </a>
+                      <Link href="/designs" onClick={() => setOpen(false)} className="flex items-center justify-center rounded-full bg-panel py-3 text-[15px] font-medium">
+                        See all designs →
+                      </Link>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Bubble from="bot">What do you need help with?</Bubble>
+                  {asked.map((q) => (
+                    <div key={q} className="contents">
+                      <Bubble from="me">{q}</Bubble>
+                      <Bubble from="bot">{FAQS.find((f) => f.q === q)!.a}</Bubble>
                     </div>
                   ))}
-                  <Chips options={[{ v: "skip", l: "Not sure yet" }]} onPick={() => answer("design", "", "Not sure yet", "price")} />
-                </div>
-              )}
-              {step === "price" && <Chips options={["Yes", "Need something custom", "Just exploring"].map((v) => ({ v, l: v === "Yes" ? "Yes, works for me" : v }))} onPick={(v) => answer("price", v, v === "Yes" ? "Yes, works for me" : v, "need")} />}
-              {step === "need" && <Chips options={["Choosing a design", "Customising my invite", "My existing order", "Something else"].map((v) => ({ v, l: v }))} onPick={finish} />}
+                  {FAQS.length > asked.length && <Chips options={FAQS.filter((f) => !asked.includes(f.q)).map((f) => ({ v: f.q, l: f.q }))} onPick={(q) => setAsked((x) => [...x, q])} />}
 
-              {step === "done" && (
-                <div className="grid gap-2 pt-1">
-                  <Link href={startHref} onClick={() => leadId && setLeadOutcome(leadId, "order")} className="flex items-center justify-center gap-2 rounded-full bg-ink py-3 text-[15px] font-medium text-white">
-                    {chosen ? `Start my ${chosen.name} invite` : "Choose my design"} →
-                  </Link>
-                  <a
-                    href={whatsappLink(waText)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => leadId && setLeadOutcome(leadId, "whatsapp")}
-                    className="flex items-center justify-center gap-2 rounded-full bg-whatsapp py-3 text-[15px] font-medium text-white"
-                  >
-                    <WaIcon /> Chat on WhatsApp
-                  </a>
-                  <button type="button" onClick={() => setStep("ticket")} className="py-1.5 text-[14px] font-medium text-muted underline underline-offset-4">
-                    Ask a question instead
-                  </button>
-                </div>
-              )}
-
-              {step === "ticket" && (
-                <div className="grid gap-2 pt-1">
-                  <label htmlFor="chat-question" className="sr-only">
-                    Your question
-                  </label>
-                  <textarea
-                    id="chat-question"
-                    rows={3}
-                    value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
-                    placeholder="Your question"
-                    className="w-full resize-none rounded-2xl border border-line px-3.5 py-2.5 text-[16px] outline-none focus:border-ink"
-                  />
-                  <label htmlFor="chat-contact" className="sr-only">
-                    Email or phone
-                  </label>
-                  <input
-                    id="chat-contact"
-                    value={contact}
-                    onChange={(e) => setContact(e.target.value)}
-                    placeholder="Email or phone, for our reply"
-                    className="w-full rounded-full border border-line px-4 py-2.5 text-[16px] outline-none focus:border-ink"
-                  />
-                  {error && <p className="text-[13px] text-[#b42318]">{error}</p>}
-                  <button type="button" disabled={sending} onClick={sendTicket} className="rounded-full bg-ink py-3 text-[15px] font-medium text-white disabled:opacity-60">
-                    {sending ? "Sending…" : "Send question"}
-                  </button>
-                  <button type="button" onClick={() => setStep(a.need ? "done" : "planner")} className="py-1 text-[13px] text-subtle underline underline-offset-4">
-                    Back
-                  </button>
-                </div>
-              )}
-
-              {step === "sent" && (
-                <Link href="/designs" className="mt-1 flex items-center justify-center rounded-full bg-panel py-3 text-[15px] font-medium">
-                  Browse designs meanwhile →
-                </Link>
+                  {form === "closed" && (
+                    <div className="mt-3 border-t border-line pt-3">
+                      <p className="text-[14px] text-muted">Didn&rsquo;t find your answer?</p>
+                      <button type="button" onClick={() => setForm("open")} className="mt-2 w-full rounded-full bg-ink py-3 text-[15px] font-medium text-white">
+                        Ask us a question
+                      </button>
+                    </div>
+                  )}
+                  {form === "open" && (
+                    <div className="mt-3 grid gap-2 border-t border-line pt-3">
+                      <p className="text-[14px] text-muted">Tell us how to reach you and we&rsquo;ll reply {site.hours}.</p>
+                      <label htmlFor="chat-question" className="sr-only">
+                        Your question
+                      </label>
+                      <textarea
+                        id="chat-question"
+                        rows={3}
+                        value={question}
+                        onChange={(e) => setQuestion(e.target.value)}
+                        placeholder="Your question"
+                        className="w-full resize-none rounded-2xl border border-line px-3.5 py-2.5 text-[16px] outline-none focus:border-ink"
+                      />
+                      <label htmlFor="chat-contact" className="sr-only">
+                        Email or phone
+                      </label>
+                      <input
+                        id="chat-contact"
+                        value={contact}
+                        onChange={(e) => setContact(e.target.value)}
+                        placeholder="Email or phone, for our reply"
+                        className="w-full rounded-full border border-line px-4 py-2.5 text-[16px] outline-none focus:border-ink"
+                      />
+                      {error && <p className="text-[13px] text-[#b42318]">{error}</p>}
+                      <button type="button" disabled={sending} onClick={sendTicket} className="rounded-full bg-ink py-3 text-[15px] font-medium text-white disabled:opacity-60">
+                        {sending ? "Sending…" : "Send question"}
+                      </button>
+                    </div>
+                  )}
+                  {form === "sent" && (
+                    <>
+                      <Bubble from="me">{question}</Bubble>
+                      <Bubble from="bot">Got it, thank you! We&rsquo;ll get back to you soon.</Bubble>
+                    </>
+                  )}
+                </>
               )}
             </div>
-
-            {/* Common questions sit apart from the chat, so they don't read as answers to it. */}
-            {faqsLeft.length > 0 && (
-              <div className="border-t border-line bg-panel/60 px-4 pt-2.5 pb-3">
-                <p className="text-[12px] font-medium text-subtle">Common questions</p>
-                <div className="no-scrollbar -mx-4 mt-2 flex gap-1.5 overflow-x-auto px-4">
-                  {faqsLeft.map((f) => (
-                    <button
-                      key={f.q}
-                      type="button"
-                      onClick={() => {
-                        setAsked((x) => [...x, f.q]);
-                        say("me", f.q);
-                        say("bot", f.a);
-                      }}
-                      className="shrink-0 rounded-full bg-surface px-3 py-1.5 text-[13px] font-medium text-muted shadow-[0_0_0_1px_rgb(0_0_0/.06)] hover:text-ink"
-                    >
-                      {f.q}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
