@@ -43,17 +43,32 @@ const TRADITIONS: { label: string; id?: CategoryId }[] = [
   { label: "Not sure" },
 ];
 
-/** What people ask us most, by topic. */
+/** What people ask us most, in their words. */
 const FAQS: { q: string; a: string }[] = [
-  { q: "How it works", a: "Pick a design, fill in your names, functions and song with a live preview, and pay online. Your invite link goes live within minutes, ready to share on WhatsApp." },
+  {
+    q: "PDF, video or website?",
+    a: "A live website: one link with an opening animation, your song, every function with Google Maps, a countdown and RSVP. It opens instantly on any phone, and unlike a PDF or video it can be updated any time.",
+  },
+  {
+    q: "How do I make my invite?",
+    a: `Tap "Make it mine" on any design (try the Choose a design tab). Fill in your names, families and functions with dates, times and venues, and add your song and photos. The preview updates as you type. Then pay online and your link goes live within minutes.`,
+  },
+  {
+    q: "How do I make changes?",
+    a: `After you order you get your own order page. Until your invite is published, edit your details there yourself and they save straight away. Once it's live, tap "Ask for changes" on the same page and we update the same link, so nobody needs a new invite. ${site.revisionRounds} rounds of changes are free.`,
+  },
+  {
+    q: "Can I change the design or theme?",
+    a: "Each design comes with its own colours and artwork, which you see in the live preview while you fill the form. Try a few before you pay. Want to switch design or tweak colours after ordering? Ask us below and we'll tell you what's possible.",
+  },
+  {
+    q: "How many times can I share it?",
+    a: `As many times as you like, with as many people as you like: WhatsApp groups, Instagram, SMS or email. It's one link with no limit on views, and it stays live until ${site.inviteDaysAfterWedding} days after your wedding.`,
+  },
   { q: "Price & what's included", a: `${priceRange}, everything included: every function with Google Maps directions, a countdown, RSVP on WhatsApp, your song, photos and ${site.revisionRounds} rounds of changes.` },
-  { q: "How fast", a: "Usually within minutes of payment. You get the link on WhatsApp." },
   { q: "Payment", a: "Securely online by UPI, card or netbanking, right after you fill in your details." },
-  { q: "Changing details later", a: "Message us with your order code and we'll update the same link, so nobody needs a new invite." },
-  { q: "Hindi & other languages", a: "Invocations, blessings and function names can be in Hindi, Marathi, Punjabi, Tamil or Urdu alongside English." },
-  { q: "Sharing with guests", a: "It's a normal link. Share it on WhatsApp and it opens in the phone's browser in seconds. No app, no login." },
-  { q: "How long it stays live", a: `Until ${site.inviteDaysAfterWedding} days after your wedding, so guests can look back at it.` },
 ];
+
 
 type Answers = { planner: string; month: string; tradition: string; design?: string; price: string; need: string };
 type Step = "planner" | "month" | "tradition" | "design" | "price" | "need" | "done";
@@ -311,7 +326,7 @@ export function ChatWidget() {
                 </>
               ) : (
                 <>
-                  <Bubble from="bot">What do you need help with?</Bubble>
+                  <Bubble from="bot">Hi! 👋 What would you like to know?</Bubble>
                   {asked.map((q) => (
                     <div key={q} className="contents">
                       <Bubble from="me">{q}</Bubble>
