@@ -44,7 +44,7 @@ const TRADITIONS: { label: string; id?: CategoryId }[] = [
 ];
 
 /** What people ask us most, in their words. */
-const FAQS: { q: string; a: string }[] = [
+const FAQS: { q: string; a: string; ticket?: boolean }[] = [
   {
     q: "PDF, video or website?",
     a: "A live website: one link with an opening animation, your song, every function with Google Maps, a countdown and RSVP. It opens instantly on any phone, and unlike a PDF or video it can be updated any time.",
@@ -59,7 +59,8 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Can I change the design or theme?",
-    a: "Each design comes with its own colours and artwork, which you see in the live preview while you fill the form. Try a few before you pay. Want to switch design or tweak colours after ordering? Ask us below and we'll tell you what's possible.",
+    a: "Each design's colours, theme and layout are fixed, and we can't add extra sections to it. The live preview shows exactly what you'll get, so try a few designs before you pay. Need something else? Raise a support ticket and we'll get back to you.",
+    ticket: true,
   },
   {
     q: "How many times can I share it?",
@@ -174,6 +175,9 @@ export function ChatWidget() {
     setStep("done");
     setLeadId(await saveLead({ ...all, page: window.location.pathname }));
   }
+
+  // An answer that points to a ticket shows the button itself, so the one at the bottom steps aside.
+  const ticketOffered = asked.some((q) => FAQS.find((f) => f.q === q)?.ticket);
 
   const waText = [
     `Hi ${site.name}!`,
@@ -327,34 +331,42 @@ export function ChatWidget() {
               ) : (
                 <>
                   <Bubble from="bot">Hi! 👋 What would you like to know?</Bubble>
-                  {asked.map((q) => (
-                    <div key={q} className="contents">
-                      <Bubble from="me">{q}</Bubble>
-                      <Bubble from="bot">{FAQS.find((f) => f.q === q)!.a}</Bubble>
-                    </div>
-                  ))}
+                  {asked.map((q) => {
+                    const f = FAQS.find((x) => x.q === q)!;
+                    return (
+                      <div key={q} className="contents">
+                        <Bubble from="me">{q}</Bubble>
+                        <Bubble from="bot">{f.a}</Bubble>
+                        {f.ticket && form === "closed" && (
+                          <button type="button" onClick={() => setForm("open")} className="w-full rounded-full bg-ink py-3 text-[15px] font-medium text-white">
+                            Raise a support ticket
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                   {FAQS.length > asked.length && <Chips options={FAQS.filter((f) => !asked.includes(f.q)).map((f) => ({ v: f.q, l: f.q }))} onPick={(q) => setAsked((x) => [...x, q])} />}
 
-                  {form === "closed" && (
+                  {form === "closed" && !ticketOffered && (
                     <div className="mt-3 border-t border-line pt-3">
-                      <p className="text-[14px] text-muted">Didn&rsquo;t find your answer?</p>
+                      <p className="text-[14px] text-muted">Need something else?</p>
                       <button type="button" onClick={() => setForm("open")} className="mt-2 w-full rounded-full bg-ink py-3 text-[15px] font-medium text-white">
-                        Ask us a question
+                        Raise a support ticket
                       </button>
                     </div>
                   )}
                   {form === "open" && (
                     <div className="mt-3 grid gap-2 border-t border-line pt-3">
-                      <p className="text-[14px] text-muted">Tell us how to reach you and we&rsquo;ll reply {site.hours}.</p>
+                      <p className="text-[14px] text-muted">Tell us what you need and how to reach you. We reply {site.hours}.</p>
                       <label htmlFor="chat-question" className="sr-only">
-                        Your question
+                        What you need
                       </label>
                       <textarea
                         id="chat-question"
                         rows={3}
                         value={question}
                         onChange={(e) => setQuestion(e.target.value)}
-                        placeholder="Your question"
+                        placeholder="What do you need?"
                         className="w-full resize-none rounded-2xl border border-line px-3.5 py-2.5 text-[16px] outline-none focus:border-ink"
                       />
                       <label htmlFor="chat-contact" className="sr-only">
@@ -369,14 +381,14 @@ export function ChatWidget() {
                       />
                       {error && <p className="text-[13px] text-[#b42318]">{error}</p>}
                       <button type="button" disabled={sending} onClick={sendTicket} className="rounded-full bg-ink py-3 text-[15px] font-medium text-white disabled:opacity-60">
-                        {sending ? "Sending…" : "Send question"}
+                        {sending ? "Sending…" : "Send ticket"}
                       </button>
                     </div>
                   )}
                   {form === "sent" && (
                     <>
                       <Bubble from="me">{question}</Bubble>
-                      <Bubble from="bot">Got it, thank you! We&rsquo;ll get back to you soon.</Bubble>
+                      <Bubble from="bot">Ticket raised, thank you! We&rsquo;ll get back to you soon.</Bubble>
                     </>
                   )}
                 </>
