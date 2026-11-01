@@ -104,6 +104,7 @@ export function ChatWidget() {
   const [contact, setContact] = useState("");
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
+  const [asked, setAsked] = useState<string[]>([]);
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -137,6 +138,9 @@ export function ChatWidget() {
     const id = await saveLead({ ...all, page: window.location.pathname });
     setLeadId(id);
   }
+
+  // Offered while they answer the five questions; each one goes once it's asked.
+  const faqsLeft = ["planner", "month", "tradition", "design", "price", "need"].includes(step) ? FAQS.filter((f) => !asked.includes(f.q)) : [];
 
   const chosen = templates.find((t) => t.id === a.design);
   const waText = [
@@ -225,17 +229,7 @@ export function ChatWidget() {
               </Bubble>
 
               {step === "planner" && (
-                <>
-                  <Chips options={["Bride", "Groom", "Family", "Wedding planner"].map((v) => ({ v, l: v }))} onPick={(v) => answer("planner", v, v, "month")} />
-                  <p className="pt-3 text-caption text-subtle">Quick answers</p>
-                  <Chips
-                    options={FAQS.map((f) => ({ v: f.q, l: f.q }))}
-                    onPick={(q) => {
-                      say("me", q);
-                      say("bot", FAQS.find((f) => f.q === q)!.a);
-                    }}
-                  />
-                </>
+                <Chips options={["Bride", "Groom", "Family", "Wedding planner"].map((v) => ({ v, l: v }))} onPick={(v) => answer("planner", v, v, "month")} />
               )}
               {step === "month" && <MonthChips onPick={(v, l) => answer("month", v, l, "tradition")} />}
               {step === "tradition" && <Chips options={TRADITIONS.map((t) => ({ v: t.label, l: t.label }))} onPick={(v) => answer("tradition", v, v, "design")} />}
@@ -324,6 +318,29 @@ export function ChatWidget() {
                 </Link>
               )}
             </div>
+
+            {/* Common questions sit apart from the chat, so they don't read as answers to it. */}
+            {faqsLeft.length > 0 && (
+              <div className="border-t border-line bg-panel/60 px-4 pt-2.5 pb-3">
+                <p className="text-[12px] font-medium text-subtle">Common questions</p>
+                <div className="no-scrollbar -mx-4 mt-2 flex gap-1.5 overflow-x-auto px-4">
+                  {faqsLeft.map((f) => (
+                    <button
+                      key={f.q}
+                      type="button"
+                      onClick={() => {
+                        setAsked((x) => [...x, f.q]);
+                        say("me", f.q);
+                        say("bot", f.a);
+                      }}
+                      className="shrink-0 rounded-full bg-surface px-3 py-1.5 text-[13px] font-medium text-muted shadow-[0_0_0_1px_rgb(0_0_0/.06)] hover:text-ink"
+                    >
+                      {f.q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
