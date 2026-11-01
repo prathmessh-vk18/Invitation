@@ -6,6 +6,7 @@ import { fmtDate } from "@/lib/format";
 import { statusLabel, type Order, type OrderStatus } from "@/lib/orders";
 import { db, isSupabaseConfigured } from "@/lib/supabase";
 import { AdminHeader, statusTone } from "./AdminHeader";
+import { BULK_FORM, BulkCancel, SelectAll } from "./BulkCancel";
 import { paysOnline } from "@/lib/razorpay";
 
 /** "3 h ago" for how long an order has waited. */
@@ -65,10 +66,12 @@ export default async function AdminOrders({ searchParams }: PageProps<"/admin">)
           ))}
         </div>
 
+        <BulkCancel />
         <div className="mt-6 overflow-x-auto rounded-card border border-line">
           <table className="w-full min-w-[820px] text-left text-[14px]">
             <thead className="bg-panel text-caption text-subtle">
               <tr>
+                <th className="w-10 py-3 pl-4">{active !== "cancelled" && orders.length > 0 && <SelectAll />}</th>
                 {["Order", "Couple", "Design", "Wedding", "Amount", "WhatsApp", "Status", "Placed"].map((h) => (
                   <th key={h} className="px-4 py-3 font-medium">
                     {h}
@@ -81,6 +84,11 @@ export default async function AdminOrders({ searchParams }: PageProps<"/admin">)
                 const d = o.details;
                 return (
                   <tr key={o.id} className="border-t border-line hover:bg-panel/60">
+                    <td className="py-3 pl-4">
+                      {o.status !== "cancelled" && (
+                        <input type="checkbox" form={BULK_FORM} name="ids" value={o.id} data-live={o.status === "live" ? "1" : "0"} aria-label={`Select ${o.code}`} className="size-4 accent-ink" />
+                      )}
+                    </td>
                     <td className="px-4 py-3 font-semibold">
                       <Link href={`/admin/orders/${o.id}`} className="underline-offset-4 hover:underline">
                         {o.code}
@@ -115,7 +123,7 @@ export default async function AdminOrders({ searchParams }: PageProps<"/admin">)
               })}
               {!orders.length && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-16 text-center text-muted">
+                  <td colSpan={9} className="px-4 py-16 text-center text-muted">
                     Nothing here right now.
                   </td>
                 </tr>

@@ -65,6 +65,31 @@ export async function cancelOrder(id: string) {
   refresh(id);
 }
 
+/** Cancels several orders at once, from the ticked rows on the orders list. */
+export async function cancelOrders(form: FormData): Promise<{ cancelled: number }> {
+  await requireAdmin();
+  const ids = [...new Set(form.getAll("ids").map(String))].filter((id) => /^[0-9a-f-]{36}$/.test(id)).slice(0, 200);
+  if (!ids.length) return { cancelled: 0 };
+  const { data } = await db().from("orders").select("id, invite_slug").in("id", ids).neq("status", "cancelled");
+  const orders = (data ?? []) as Pick<Order, "id" | "invite_slug">[];
+  const slugs = orders.map((o) => o.invite_slug).filter((s): s is string => Boolean(s));
+  if (slugs.length) {
+    await db().from("invites").delete().in("slug", slugs);
+    slugs.forEach((s) => updateTag(`invite:${s}`));
+  }
+  if (orders.length) {
+    await db()
+      .from("orders")
+      .update({ status: "cancelled", invite_slug: null })
+      .in(
+        "id",
+        orders.map((o) => o.id),
+      );
+  }
+  revalidatePath("/admin");
+  return { cancelled: orders.length };
+}
+
 export async function saveNotes(id: string, notes: string) {
   await requireAdmin();
   await db().from("orders").update({ admin_notes: notes.slice(0, 4000) }).eq("id", id);
