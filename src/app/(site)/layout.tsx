@@ -1,4 +1,5 @@
-import { Footer, Header, WhatsAppFab } from "@/site/chrome";
+import { ChatWidget } from "@/site/chat";
+import { Footer, Header } from "@/site/chrome";
 import { OfferBar } from "@/site/offer";
 import { ReferralWhatsApp } from "@/site/referral";
 
@@ -9,7 +10,7 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
       <Header />
       <main className="overflow-x-clip">{children}</main>
       <Footer />
-      <WhatsAppFab />
+      <ChatWidget />
       <ReferralWhatsApp />
     </>
   );

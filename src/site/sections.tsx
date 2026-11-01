@@ -2,11 +2,11 @@ import { offer } from "@/config/offer";
 import type { ReactNode } from "react";
 import { EventGlyph } from "@/art/glyphs";
 import { Mandala } from "@/art/ornaments";
-import { formatINR, site, whatsappLink } from "@/config/site";
+import { formatINR, site } from "@/config/site";
 import { templates } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
-import { WaIcon } from "@/invites/shared";
-import { Accordion, ButtonLink, ChatBubble, Container, Heading, Lead, Panel, PhoneFrame, Reveal, Section } from "@/ui";
+import { OpenChat } from "@/site/chat";
+import { Accordion, ButtonLink, buttonClass, ChatBubble, Container, Heading, Lead, Panel, PhoneFrame, Reveal, Section } from "@/ui";
 
 /* ───────── Features ───────── */
 
@@ -275,9 +275,7 @@ export function ClosingCta() {
             {offer.emoji} {offer.name}: every design from {formatINR(from)}, up to 75% off. Pick one and make it yours in minutes.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-2">
-            <ButtonLink href={whatsappLink(`Hi ${site.name}! We're getting married and would love an invitation website.`)} variant="inverse">
-              <WaIcon /> Chat on WhatsApp
-            </ButtonLink>
+            <OpenChat className={buttonClass("inverse")}>Let&rsquo;s talk</OpenChat>
             <ButtonLink href="/designs" variant="secondary" className="bg-white/10 text-white hover:bg-white/15">
               See all designs
             </ButtonLink>

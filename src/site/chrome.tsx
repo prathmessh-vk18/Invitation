@@ -4,14 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import { site, whatsappLink } from "@/config/site";
+import { site } from "@/config/site";
 import { categories } from "@/data/categories";
 import { templates } from "@/data/templates";
 import { guides } from "@/data/guides";
-import { WaIcon } from "@/invites/shared";
 import { buttonClass } from "@/ui";
-
-const hello = `Hi ${site.name}! I'd like to know more about your wedding invitations.`;
+import { OpenChat } from "@/site/chat";
 
 /** The Aavjoo logo. `light` gives the white version for dark backgrounds. */
 export function Wordmark({ light, className }: { light?: boolean; className?: string }) {
@@ -52,9 +50,7 @@ export function Header() {
           </nav>
         </div>
         <div className="flex items-center gap-2">
-          <a href={whatsappLink(hello)} target="_blank" rel="noreferrer" className={buttonClass("ghost", "md", "max-sm:hidden")}>
-            WhatsApp us
-          </a>
+          <OpenChat className={buttonClass("ghost", "md", "max-sm:hidden")}>Let&rsquo;s talk</OpenChat>
           <Link href="/designs" className={buttonClass("primary", "md")}>
             Choose a design
           </Link>
@@ -79,32 +75,15 @@ export function Header() {
                 {n.label}
               </Link>
             ))}
-            <a href={whatsappLink(hello)} target="_blank" rel="noreferrer" className={buttonClass("primary", "lg", "mt-2 w-full")}>
-              <WaIcon /> Chat on WhatsApp
-            </a>
+            <OpenChat
+              className={buttonClass("primary", "lg", "mt-2 w-full")}
+            >
+              Let&rsquo;s talk
+            </OpenChat>
           </motion.nav>
         )}
       </AnimatePresence>
     </header>
-  );
-}
-
-export function WhatsAppFab() {
-  return (
-    <motion.a
-      href={whatsappLink(hello)}
-      target="_blank"
-      rel="noreferrer"
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 1.2, type: "spring", stiffness: 200, damping: 20 }}
-      className="wa-fab fixed right-4 bottom-4 z-40 flex items-center gap-2 rounded-full bg-surface py-2 pr-4 pl-2 text-[15px] font-medium text-ink shadow-[0_12px_32px_-12px_rgb(0_0_0/.35),0_0_0_1px_rgb(0_0_0/.05)] sm:right-6 sm:bottom-6"
-    >
-      <span className="grid size-9 place-items-center rounded-full bg-whatsapp text-lg text-white">
-        <WaIcon />
-      </span>
-      Let&rsquo;s talk
-    </motion.a>
   );
 }
 
@@ -166,9 +145,7 @@ export function Footer() {
             <Link href="/designs" className={buttonClass("inverse", "lg")}>
               Choose a design
             </Link>
-            <a href={whatsappLink(hello)} target="_blank" rel="noreferrer" className={buttonClass("secondary", "lg", "bg-white/10 text-white hover:bg-white/15")}>
-              <WaIcon /> Chat on WhatsApp
-            </a>
+            <OpenChat className={buttonClass("secondary", "lg", "bg-white/10 text-white hover:bg-white/15")}>Let&rsquo;s talk</OpenChat>
           </div>
         </div>
 
@@ -180,9 +157,7 @@ export function Footer() {
               {site.name} makes animated wedding invitation websites for Indian weddings: every function, venue, song and RSVP in one link, shared on WhatsApp.
             </p>
             <div className="mt-6 space-y-1.5 text-[15px]">
-              <a href={whatsappLink(hello)} target="_blank" rel="noreferrer" className="block text-white hover:text-[#f3d18a]">
-                WhatsApp {site.whatsappDisplay}
-              </a>
+              <OpenChat className="block text-white hover:text-[#f3d18a]">Chat with us</OpenChat>
               <a href={`mailto:${site.email}`} className="block break-all text-white/80 hover:text-[#f3d18a]">
                 {site.email}
               </a>

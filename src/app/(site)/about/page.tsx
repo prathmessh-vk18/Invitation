@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { site, whatsappLink } from "@/config/site";
+import { site } from "@/config/site";
+import { OpenChat } from "@/site/chat";
 import { templates } from "@/data/templates";
-import { ButtonLink, Container, Display, Heading, Lead, Panel, Reveal, Section } from "@/ui";
+import { ButtonLink, buttonClass, Container, Display, Heading, Lead, Panel, Reveal, Section } from "@/ui";
 
 export const metadata: Metadata = { title: "About", alternates: { canonical: "/about" }, description: `Why ${site.name} exists and how we work.` };
 
@@ -38,7 +39,7 @@ export default function AboutPage() {
         <Container>
           <Heading muted="We'd love to be part of it.">Planning a wedding?</Heading>
           <div className="mt-8 flex flex-wrap justify-center gap-2">
-            <ButtonLink href={whatsappLink(`Hi ${site.name}!`)}>Chat on WhatsApp</ButtonLink>
+            <OpenChat className={buttonClass()}>Let&rsquo;s talk</OpenChat>
             <ButtonLink href="/designs" variant="inverse">
               See the designs
             </ButtonLink>
