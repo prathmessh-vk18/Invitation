@@ -58,6 +58,8 @@ export type Invite = {
   tapAnywhere?: boolean;
   // Bigger, darker text throughout, for families whose guests are mostly older.
   largeText?: boolean;
+  // Stack the couple's names vertically on the hero cover (first name, &, second name).
+  stackNames?: boolean;
   // A couple's own RSVP title (e.g. "Please join us" instead of "Will you join us?").
   rsvpTitle?: string;
   // A couple's own RSVP heading in place of the design's.

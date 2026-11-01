@@ -339,13 +339,23 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           <motion.p {...show(0.45)} className="inv-label relative mt-[2cqw] text-[2.5cqw]" style={{ color: c.ink }}>
             The wedding of
           </motion.p>
-          <motion.h1 {...show(0.7)} className="inv-script relative mt-[1cqw] leading-[1] [text-shadow:0_1px_14px_rgba(255,250,240,.7)]" style={{ color: c.ink, ...sz(14) }}>
-            {a.first}
-            <span className="mx-[2cqw] text-[8cqw]" style={{ color: c.accent }}>
-              &amp;
-            </span>
-            {b.first}
-          </motion.h1>
+          {invite.stackNames ? (
+            <motion.h1 {...show(0.7)} className="inv-script relative mt-[1.5cqw] flex flex-col items-center leading-[0.95] [text-shadow:0_1px_14px_rgba(255,250,240,.7)]" style={{ color: c.ink, ...sz(12) }}>
+              <span>{a.first}</span>
+              <span className="my-[0.6cqw] text-[7cqw]" style={{ color: c.accent }}>
+                {invite.joiner ?? "&"}
+              </span>
+              <span>{b.first}</span>
+            </motion.h1>
+          ) : (
+            <motion.h1 {...show(0.7)} className="inv-script relative mt-[1cqw] leading-[1] [text-shadow:0_1px_14px_rgba(255,250,240,.7)]" style={{ color: c.ink, ...sz(14) }}>
+              {a.first}
+              <span className="mx-[2cqw] text-[8cqw]" style={{ color: c.accent }}>
+                {invite.joiner ?? "&"}
+              </span>
+              {b.first}
+            </motion.h1>
+          )}
           <motion.div {...show(1)} className="relative mt-[3cqw] flex items-center gap-[3cqw]" style={{ color: c.ink }}>
             <span className="inv-label border-y px-[1cqw] py-[1cqw] text-[2.6cqw]" style={{ borderColor: `${c.ink}66` }}>
               {weekday(invite.date)}
@@ -599,9 +609,19 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           <p className={`inv-serif mt-[6cqw] leading-snug italic ${L ? "text-[5.6cqw] font-medium" : "text-[5cqw]"}`} style={{ color: c.ink }}>
             {invite.closing}
           </p>
-          <p className="inv-script mt-[4cqw] leading-none" style={{ color: c.ink, ...sz(12) }}>
-            {a.first} &amp; {b.first}
-          </p>
+          {invite.stackNames ? (
+            <p className="inv-script mt-[4cqw] flex flex-col items-center leading-[0.95]" style={{ color: c.ink, ...sz(10.5) }}>
+              <span>{a.first}</span>
+              <span className="my-[0.6cqw] text-[6.5cqw]" style={{ color: c.accent }}>
+                {invite.joiner ?? "&"}
+              </span>
+              <span>{b.first}</span>
+            </p>
+          ) : (
+            <p className="inv-script mt-[4cqw] leading-none" style={{ color: c.ink, ...sz(12) }}>
+              {a.first} &amp; {b.first}
+            </p>
+          )}
           {invite.hashtag && (
             <p className={`inv-label mt-[3cqw] ${L ? "text-[3.4cqw] font-semibold" : "text-[2.8cqw]"}`} style={{ color: c.accent }}>
               {invite.hashtag}
