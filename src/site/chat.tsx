@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { formatINR, site, whatsappLink } from "@/config/site";
@@ -122,6 +122,8 @@ function MonthChips({ onPick }: { onPick: (v: string, label: string) => void }) 
 
 export function ChatWidget() {
   const router = useRouter();
+  // Order and form pages keep the bottom of the screen for their own buttons.
+  const hideFab = /^\/(order|start)\//.test(usePathname());
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>("design");
   const [step, setStep] = useState<Step>("planner");
@@ -213,22 +215,24 @@ export function ChatWidget() {
 
   return (
     <>
-      <motion.button
-        type="button"
-        onClick={() => setOpen(true)}
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: open ? 0 : 1, y: 0 }}
-        transition={{ delay: open ? 0 : 1.2, type: "spring", stiffness: 200, damping: 20 }}
-        className={`wa-fab fixed right-4 bottom-4 z-40 flex items-center gap-2 rounded-full bg-surface py-2 pr-4 pl-2 text-[15px] font-medium text-ink shadow-[0_12px_32px_-12px_rgb(0_0_0/.35),0_0_0_1px_rgb(0_0_0/.05)] sm:right-6 sm:bottom-6 ${open ? "pointer-events-none" : ""}`}
-        aria-label="Let's talk"
-      >
-        <span className="grid size-9 place-items-center rounded-full bg-ink text-white">
-          <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
-            <path d="M4 5h16v11H8l-4 4V5z" strokeLinejoin="round" />
-          </svg>
-        </span>
-        Let&rsquo;s talk
-      </motion.button>
+      {!hideFab && (
+        <motion.button
+          type="button"
+          onClick={() => setOpen(true)}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: open ? 0 : 1, y: 0 }}
+          transition={{ delay: open ? 0 : 1.2, type: "spring", stiffness: 200, damping: 20 }}
+          className={`wa-fab fixed right-4 bottom-4 z-40 flex items-center gap-2 rounded-full bg-surface py-2 pr-4 pl-2 text-[15px] font-medium text-ink shadow-[0_12px_32px_-12px_rgb(0_0_0/.35),0_0_0_1px_rgb(0_0_0/.05)] sm:right-6 sm:bottom-6 ${open ? "pointer-events-none" : ""}`}
+          aria-label="Let's talk"
+        >
+          <span className="grid size-9 place-items-center rounded-full bg-ink text-white">
+            <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
+              <path d="M4 5h16v11H8l-4 4V5z" strokeLinejoin="round" />
+            </svg>
+          </span>
+          Let&rsquo;s talk
+        </motion.button>
+      )}
 
       <AnimatePresence>
         {open && (
