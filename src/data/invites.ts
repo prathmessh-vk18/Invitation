@@ -58,8 +58,11 @@ export type Invite = {
   tapAnywhere?: boolean;
   // Bigger, darker text throughout, for families whose guests are mostly older.
   largeText?: boolean;
-  // Stack the couple's names vertically on the hero cover (first name, &, second name).
+  // Stack the couple's names vertically on the hero cover (first name, &, second name). On Rajwada,
+  // the couple's cards sit one below the other.
   stackNames?: boolean;
+  // Hide the "With love · hosts" line at the end.
+  noSignoff?: boolean;
   // A couple's own RSVP title (e.g. "Please join us" instead of "Will you join us?").
   rsvpTitle?: string;
   // A couple's own RSVP heading in place of the design's.

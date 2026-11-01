@@ -214,6 +214,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
         : {}),
       ...(d.largeText === true ? { largeText: true } : {}),
       ...(d.stackNames === true ? { stackNames: true } : {}),
+      ...(d.noSignoff === true ? { noSignoff: true } : {}),
       ...(d.tapAnywhere === true ? { tapAnywhere: true } : {}),
       ...(typeof d.seal === "string" && /^\/art\/seals\/[\w-]+\.(png|jpg|webp)$/.test(d.seal) ? { seal: d.seal } : {}),
       ...(d.sealFull === true ? { sealFull: true } : {}),
@@ -226,7 +227,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
 
 // Invite settings set by us for one couple that the order form doesn't show. A form save would
 // otherwise drop them, so they carry over from the order's previous details.
-const KEPT = ["stackNames", "rsvpTitle", "tapAnywhere", "largeText", "rsvpHeading", "monogram", "openHint", "memorial", "sealFull", "eventsByDay", "dayNames", "joiner", "plainCover", "seal", "wardrobe", "extras", "welcome", "lang"] as const;
+const KEPT = ["stackNames", "noSignoff", "rsvpTitle", "tapAnywhere", "largeText", "rsvpHeading", "monogram", "openHint", "memorial", "sealFull", "eventsByDay", "dayNames", "joiner", "plainCover", "seal", "wardrobe", "extras", "welcome", "lang"] as const;
 
 /** `next` from a form, with the invite-only settings from `prev` it couldn't have known about. */
 export function keepInviteSettings(prev: InviteDetails | null | undefined, next: InviteDetails): InviteDetails {

@@ -172,18 +172,18 @@ function Blessing({ invite }: { invite: Invite }) {
         <p className="inv-label text-[2.6cqw] text-[#f6d987]">{invite.hosts}</p>
         <p className="inv-serif mx-auto mt-[4cqw] max-w-[78cqw] text-[5cqw] leading-snug text-[#fbf1dc]/90 italic">{invite.message}</p>
       </Reveal>
-      <div className="mt-[10cqw] grid grid-cols-[1fr_auto_1fr] items-center gap-[2cqw]">
+      <div className={invite.stackNames ? "mx-auto mt-[10cqw] grid max-w-[72cqw] gap-[4cqw]" : "mt-[10cqw] grid grid-cols-[1fr_auto_1fr] items-center gap-[2cqw]"}>
         {[a, b].map((p, i) => (
-          <Reveal key={p === invite.bride ? "bride" : "groom"} delay={i * 0.2} className={i === 1 ? "col-start-3" : ""}>
+          <Reveal key={p === invite.bride ? "bride" : "groom"} delay={i * 0.2} className={invite.stackNames ? (i === 1 ? "row-start-3" : "") : i === 1 ? "col-start-3" : ""}>
             <div className="relative overflow-hidden rounded-t-full border border-[#e9bf62]/60 bg-[#3a0815]/60 px-[3cqw] pt-[10cqw] pb-[5cqw]">
               <Mandala color={GOLD} className="absolute -top-[10cqw] left-1/2 w-[40cqw] -translate-x-1/2 opacity-20" />
-              <p className="inv-script relative text-[10cqw] leading-none text-[#f6d987]">{p.first}</p>
+              <p className={`inv-script relative leading-none text-[#f6d987] ${invite.stackNames ? "text-[12cqw]" : "text-[10cqw]"}`}>{p.first}</p>
               <p className="inv-label relative mt-[3cqw] text-[2cqw] leading-relaxed text-[#fbf1dc]">{p.full}</p>
               <p className="inv-serif relative mt-[2cqw] text-[3.2cqw] leading-snug text-[#fbf1dc] italic">{p.parents}</p>
             </div>
           </Reveal>
         ))}
-        <Diya className="col-start-2 row-start-1 w-[10cqw]" />
+        <Diya className={invite.stackNames ? "row-start-2 mx-auto w-[10cqw]" : "col-start-2 row-start-1 w-[10cqw]"} />
       </div>
     </section>
   );
@@ -247,7 +247,7 @@ function Closing({ invite }: { invite: Invite }) {
           {a.first} & {b.first}
         </p>
         {invite.hashtag && <p className="inv-label mt-[5cqw] text-[2.8cqw] text-[#f6d987]">{invite.hashtag}</p>}
-        <p className="inv-label mt-[3cqw] text-[2.2cqw] text-[#fbf1dc]/60">With love · {invite.hosts}</p>
+        {!invite.noSignoff && <p className="inv-label mt-[3cqw] text-[2.2cqw] text-[#fbf1dc]/60">With love · {invite.hosts}</p>}
       </Reveal>
       <Link href="/" className="inv-label absolute inset-x-0 bottom-[6cqw] text-[2cqw] text-[#fbf1dc]/40">
         Crafted by {site.name}
