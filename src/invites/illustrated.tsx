@@ -633,9 +633,11 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
               {invite.hashtag}
             </p>
           )}
-          <Link href="/" className="inv-label mt-[10cqw] inline-block text-[2.2cqw] opacity-60" style={{ color: c.ink }}>
-            Crafted with love by {site.name}
-          </Link>
+          {!invite.noBranding && (
+            <Link href="/" className="inv-label mt-[10cqw] inline-block text-[2.2cqw] opacity-60" style={{ color: c.ink }}>
+              Crafted with love by {site.name}
+            </Link>
+          )}
         </Reveal>
       </section>
     );

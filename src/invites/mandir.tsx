@@ -416,9 +416,11 @@ function Closing({ invite }: { invite: Invite }) {
             </div>
           </div>
         ))}
-        <Link href="/" className="inv-label mt-[8cqw] inline-block text-[2.2cqw] opacity-60" style={{ color: c.ink }}>
-          Crafted with love by {site.name}
-        </Link>
+        {!invite.noBranding && (
+          <Link href="/" className="inv-label mt-[8cqw] inline-block text-[2.2cqw] opacity-60" style={{ color: c.ink }}>
+            Crafted with love by {site.name}
+          </Link>
+        )}
       </Reveal>
     </section>
   );

@@ -65,6 +65,8 @@ export type Invite = {
   stackNames?: boolean;
   // Hide the "With love · hosts" line at the end.
   noSignoff?: boolean;
+  // Hide "Crafted with love by Aavjoo" at the end.
+  noBranding?: boolean;
   // A couple's own RSVP title (e.g. "Please join us" instead of "Will you join us?").
   rsvpTitle?: string;
   // A couple's own countdown title (e.g. "Our big day countdown" instead of "Until we say “I do”").
