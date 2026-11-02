@@ -274,6 +274,9 @@ type Draft = { v: 2; s: FormState; step: number; furthest: number; song: Song | 
 
 const MAX_PHOTOS = 8;
 const photoUrl = (path: string) => `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${path}`;
+// Every upload gets a new random name, and is only ever swapped for a smaller copy of itself
+// (scripts/compress-media.mjs), so guests can keep it for a year.
+const UPLOAD_CACHE = "31536000";
 
 /** Shrinks a phone photo to at most 1600px on its long side, as a JPEG. Falls back to the original. */
 async function shrink(file: File): Promise<Blob> {
@@ -446,7 +449,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
     try {
       const res = await createSongUpload(file.name, file.type, file.size);
       if ("error" in res) throw new Error(res.error);
-      const { error } = await browserSupabase().storage.from("songs").uploadToSignedUrl(res.path, res.token, file, { contentType: file.type });
+      const { error } = await browserSupabase().storage.from("songs").uploadToSignedUrl(res.path, res.token, file, { contentType: file.type, cacheControl: UPLOAD_CACHE });
       if (error) throw new Error("The upload didn't finish. Please try again.");
       setSong({ path: res.path, name: file.name });
       setSongState("idle");
@@ -470,7 +473,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
           const type = blob.type || file.type;
           const res = await createPhotoUpload(type, blob.size);
           if ("error" in res) throw new Error(res.error);
-          const { error } = await browserSupabase().storage.from("photos").uploadToSignedUrl(res.path, res.token, blob, { contentType: type });
+          const { error } = await browserSupabase().storage.from("photos").uploadToSignedUrl(res.path, res.token, blob, { contentType: type, cacheControl: UPLOAD_CACHE });
           if (error) throw new Error("A photo didn't finish uploading. Please try again.");
           setPhotos((p) => (p.length < MAX_PHOTOS ? [...p, { path: res.path }] : p));
         } catch (e) {

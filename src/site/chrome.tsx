@@ -19,6 +19,7 @@ export function Wordmark({ light, className }: { light?: boolean; className?: st
       alt={site.name}
       width={1099}
       height={337}
+      sizes="120px"
       priority
       className={`h-8 w-auto ${className ?? ""}`}
     />

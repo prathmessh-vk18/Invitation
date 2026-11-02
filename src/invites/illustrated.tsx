@@ -10,7 +10,7 @@ import type { TemplateId } from "@/data/templates";
 import { dayNum, fmtDate, monthName, time, weekday, yearNum } from "@/lib/format";
 import { couple, EventActions, initials, Reveal } from "./shared";
 import { useT } from "./i18n";
-import { useOpened } from "./opened";
+import { INVITE_ART_SIZES, PREVIEW_ART_SIZES, useOpened, usePreview } from "./opened";
 import type { InviteTheme, OpeningProps } from "./types";
 
 /**
@@ -60,13 +60,14 @@ const ease = [0.22, 1, 0.36, 1] as const;
 const ART_RATIO = "864 / 1536";
 
 function Art({ src, alt = "", pos, priority, className, style }: { src: string; alt?: string; pos?: string; priority?: boolean; className?: string; style?: CSSProperties }) {
+  const preview = usePreview();
   return (
     <Image
       src={src}
       alt={alt}
       fill
-      priority={priority}
-      sizes="(max-width: 480px) 100vw, 480px"
+      priority={priority && !preview}
+      sizes={preview ? PREVIEW_ART_SIZES : INVITE_ART_SIZES}
       className={`object-cover ${className ?? ""}`}
       style={{ objectPosition: pos ?? "50% 50%", ...style }}
     />

@@ -30,7 +30,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body>
         {children}
         <Analytics />
-        <SpeedInsights />
+        {/* A quarter of visits is plenty for performance scores, at a quarter of the requests. */}
+        <SpeedInsights sampleRate={0.25} />
         {/* Google Analytics, on aavjoo.in only: local and preview builds don't report. */}
         {process.env.VERCEL_ENV === "production" && (
           <>

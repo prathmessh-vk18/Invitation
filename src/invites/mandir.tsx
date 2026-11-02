@@ -8,7 +8,7 @@ import { site } from "@/config/site";
 import type { Invite, InviteEvent } from "@/data/invites";
 import { useT } from "./i18n";
 import { makeIllustrated } from "./illustrated";
-import { useOpened, usePreview } from "./opened";
+import { PREVIEW_ART_SIZES, useOpened, usePreview } from "./opened";
 import { couple, EventActions, Reveal } from "./shared";
 import type { InviteTheme } from "./types";
 
@@ -139,7 +139,7 @@ function Hero({ invite }: { invite: Invite }) {
   if (usePreview()) {
     return (
       <section className="relative h-full w-full overflow-hidden">
-        <Image src={`${art}/mandir-temple.jpg`} alt="" fill priority sizes="(max-width: 480px) 100vw, 480px" className="object-cover" />
+        <Image src={`${art}/mandir-temple.jpg`} alt="" fill sizes={PREVIEW_ART_SIZES} className="object-cover" />
         <div className="absolute inset-x-[14%] top-[8%]">
           <Names invite={invite} show={showAfterOpen(opened)} />
         </div>
