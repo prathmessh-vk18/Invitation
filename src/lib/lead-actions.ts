@@ -41,15 +41,15 @@ export async function setLeadOutcome(id: string, outcome: "order" | "whatsapp") 
 }
 
 /** A question for us, with how they'd like a reply. Attaches to their chat when there is one. */
-export async function submitTicket(id: string | null, question: string, contact: string): Promise<{ ok: true } | { error: string }> {
+export async function submitTicket(id: string | null, question: string, contact: string): Promise<{ ok: true } | { error: string; failed?: true }> {
   const q = text(question, 1000);
   const c = text(contact, 120);
   if (q.length < 5) return { error: "Please write your question." };
   const email = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c);
   const phone = c.replace(/\D/g, "").length >= 10;
   if (!email && !phone) return { error: "Add an email or phone number so we can reply." };
-  if (!isSupabaseConfigured()) return { error: "We couldn't send that. Please try again." };
+  if (!isSupabaseConfigured()) return { error: "We couldn't send that. Please try again.", failed: true };
   const row = { question: q, contact: c, status: "new" };
   const { error } = id && /^[0-9a-f-]{36}$/.test(id) ? await db().from("leads").update(row).eq("id", id) : await db().from("leads").insert(row);
-  return error ? { error: "We couldn't send that. Please try again." } : { ok: true };
+  return error ? { error: "We couldn't send that. Please try again.", failed: true } : { ok: true };
 }

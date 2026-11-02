@@ -23,6 +23,9 @@ const OPEN_EVENT = "aavjoo:chat";
 /** Opens the chat from anywhere on the site. */
 export const openChat = () => window.dispatchEvent(new Event(OPEN_EVENT));
 
+/** Opens the chat on a support ticket already started, e.g. "Order AAV-1203: " from an order page. */
+export const openTicket = (question: string, contact = "") => window.dispatchEvent(new CustomEvent(OPEN_EVENT, { detail: { question, contact } }));
+
 /** A button that opens the chat, for the header, footer and pages. */
 export function OpenChat({ className, children }: { className?: string; children: ReactNode }) {
   return (
@@ -136,14 +139,27 @@ export function ChatWidget() {
   const [question, setQuestion] = useState("");
   const [contact, setContact] = useState("");
   const [error, setError] = useState("");
+  // The ticket itself couldn't be sent (not just a missing field): only then is WhatsApp offered.
+  const [failed, setFailed] = useState(false);
   const [sending, setSending] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const onOpen = () => setOpen(true);
+    const onOpen = (e: Event) => {
+      setOpen(true);
+      const ticket = (e as CustomEvent<{ question: string; contact: string } | null>).detail;
+      if (!ticket) return;
+      setTab("questions");
+      setQuestion(ticket.question);
+      setContact(ticket.contact);
+      setError("");
+      // A second ticket is a new one, not a rewrite of the first.
+      if (form === "sent") setLeadId(null);
+      setForm("open");
+    };
     window.addEventListener(OPEN_EVENT, onOpen);
     return () => window.removeEventListener(OPEN_EVENT, onOpen);
-  }, []);
+  }, [form]);
 
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
@@ -195,6 +211,7 @@ export function ChatWidget() {
     setSending(true);
     const res = await submitTicket(leadId, question, contact);
     setSending(false);
+    setFailed("error" in res && !!res.failed);
     if ("error" in res) return setError(res.error);
     setForm("sent");
   }
@@ -389,7 +406,20 @@ export function ChatWidget() {
                         placeholder="Email or phone, for our reply"
                         className="w-full rounded-full border border-line px-4 py-2.5 text-[16px] outline-none focus:border-ink"
                       />
-                      {error && <p className="text-[13px] text-[#b42318]">{error}</p>}
+                      {error && (
+                        <p className="text-[13px] text-[#b42318]">
+                          {error}
+                          {/* WhatsApp only as the fallback when a ticket can't be sent. */}
+                          {failed && (
+                            <>
+                              {" "}
+                              <a href={whatsappLink(question)} target="_blank" rel="noreferrer" className="font-medium underline underline-offset-2">
+                                Send it on WhatsApp instead
+                              </a>
+                            </>
+                          )}
+                        </p>
+                      )}
                       <button type="button" disabled={sending} onClick={sendTicket} className="rounded-full bg-ink py-3 text-[15px] font-medium text-white disabled:opacity-60">
                         {sending ? "Sending…" : "Send ticket"}
                       </button>
