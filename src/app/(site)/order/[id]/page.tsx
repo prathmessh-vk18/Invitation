@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { formatINR, site, whatsappLink } from "@/config/site";
+import { formatINR, site } from "@/config/site";
 import { getTemplate } from "@/data/templates";
 import { WaIcon } from "@/invites/shared";
 import { longDate } from "@/lib/format";
@@ -17,6 +17,8 @@ import { dateLine, daysToWedding, LINK_IN, saving } from "@/lib/urgency";
 import { paysOnline } from "@/lib/razorpay";
 import { autoPublishOn, freeSlug } from "@/lib/publish";
 import { CopyLink } from "@/site/copy-link";
+import { RememberOrder } from "@/site/my-orders";
+import { AskAboutOrder } from "./AskAboutOrder";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false } };
 export const instant = false;
@@ -55,7 +57,6 @@ async function Changes({ order, sent }: { order: Order; sent: boolean }) {
   const c = await changeSummary(order.id);
   const latest = c?.latest;
   const waiting = latest?.status === "pending";
-  const tell = whatsappLink(`Hi ${site.name}! I've sent changes for order ${order.code}. Please have a look.`);
   return (
     <Panel className="p-6 sm:p-8">
       <p className="text-title">{waiting ? "Your changes are with us" : "Need to change something?"}</p>
@@ -73,12 +74,9 @@ async function Changes({ order, sent }: { order: Order; sent: boolean }) {
         <p className="mt-3 text-body text-[#8a1c1c]">We couldn&rsquo;t make your last changes{latest.reply ? `: ${latest.reply}` : "."} Message us if you&rsquo;d like to talk about it.</p>
       )}
       {sent && waiting && (
-        <div className="mt-4 rounded-tile bg-whatsapp-wash p-4">
-          <p className="text-body font-medium">Changes sent ✓ Let us know on WhatsApp so we see them sooner.</p>
-          <a href={tell} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-whatsapp px-4 py-2.5 text-[15px] font-medium text-white">
-            <WaIcon /> Tell Aavjoo on WhatsApp
-          </a>
-        </div>
+        <p className="mt-4 rounded-tile bg-whatsapp-wash p-4 text-body font-medium">
+          Changes sent ✓ They come straight to us, so there&rsquo;s no need to message. This page shows when they&rsquo;re live.
+        </p>
       )}
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <ButtonLink href={editHref} variant={waiting ? "secondary" : "primary"}>
@@ -104,6 +102,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
   const t = getTemplate(order.template)!;
   const d = order.details;
   const [a, b] = d.lead === "groom" ? [d.groom, d.bride] : [d.bride, d.groom];
+  const orderUrl = `${site.url}/order/${order.id}`;
   const inviteUrl = order.invite_slug ? `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/i/${order.invite_slug}` : null;
   const stage = { awaiting_payment: 1, payment_submitted: 1, paid: 3, live: 4, cancelled: 0 }[order.status];
   const s = saving(order, t);
@@ -115,6 +114,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
+      <RememberOrder id={order.id} code={order.code} names={`${a.first} & ${b.first}`} cancelled={order.status === "cancelled"} />
       <div className="min-w-0 space-y-4">
         <div>
           <Badge live={order.status !== "live" && order.status !== "cancelled"} className="bg-panel">
@@ -186,7 +186,12 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
                 </p>
               </>
             )}
-            <p className="mt-5 text-caption text-subtle">Wrong number? Message us with your order code {order.code}.</p>
+            <p className="mt-5 text-caption text-subtle">
+              Wrong number?{" "}
+              <AskAboutOrder code={order.code} className="underline underline-offset-4">
+                Tell us
+              </AskAboutOrder>
+            </p>
           </Panel>
         )}
 
@@ -214,7 +219,13 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
         {order.status === "cancelled" && (
           <Panel className="p-6 sm:p-8">
             <p className="text-title">This order was cancelled.</p>
-            <p className="mt-1 text-body text-muted">If that&rsquo;s a mistake, message us on WhatsApp with order {order.code}.</p>
+            <p className="mt-1 text-body text-muted">
+              If that&rsquo;s a mistake,{" "}
+              <AskAboutOrder code={order.code} phone={order.customer_phone} className="font-medium text-ink underline underline-offset-4">
+                let us know
+              </AskAboutOrder>
+              .
+            </p>
           </Panel>
         )}
 
@@ -233,16 +244,29 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
               {goesLiveNow ? "Your invite goes live right after you pay, with your link right here" : "Your invite goes live and the link arrives on WhatsApp"}
             </Step>
           </ol>
-          <p className="mt-6 text-caption text-subtle">Bookmark this page to check your order. Questions? Message us with your order code.</p>
-          <a
-            href={whatsappLink(`Hi ${site.name}! A question about order ${order.code}.`)}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-2 inline-flex items-center gap-1.5 text-body font-medium underline underline-offset-4"
-          >
-            <WaIcon /> WhatsApp us
-          </a>
         </Panel>
+
+        {order.status !== "cancelled" && (
+          <Panel className="p-6 sm:p-8">
+            <p className="text-title">Keep this page</p>
+            <p className="mt-1 text-body text-muted">
+              Send it to your own WhatsApp so it&rsquo;s always one tap away. Your order, payment, changes and invite link are all here.
+            </p>
+            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3">
+              <a
+                href={`https://wa.me/${order.customer_phone}?text=${encodeURIComponent(`My ${site.name} order ${order.code}: ${a.first} & ${b.first}\n${orderUrl}`)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full bg-whatsapp px-4 py-2.5 text-[15px] font-medium text-white"
+              >
+                <WaIcon /> Send to my WhatsApp
+              </a>
+              <AskAboutOrder code={order.code} phone={order.customer_phone} className="text-body font-medium underline underline-offset-4">
+                Ask about your order
+              </AskAboutOrder>
+            </div>
+          </Panel>
+        )}
       </div>
 
       <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
