@@ -205,7 +205,7 @@ export function ScratchDate({ invite, theme }: { invite: Invite; theme: InviteTh
         <div ref={box} className={`${theme.ui.card} relative mt-[8cqw] overflow-visible`}>
           <div className="flex flex-col items-center px-[6cqw] py-[9cqw] text-center">
             <p className="inv-label text-[2.8cqw] opacity-70">{d.weekday(invite.date)}</p>
-            <p className="inv-serif mt-[2cqw] text-[18cqw] leading-none">{d.day(invite.date)}</p>
+            <p className="inv-serif mt-[2cqw] text-[18cqw] leading-none">{invite.padDay ? d.day(invite.date).padStart(2, "0") : d.day(invite.date)}</p>
             <p className="inv-label mt-[2cqw] text-[3.4cqw]">
               {d.month(invite.date)} · {d.year(invite.date)}
             </p>
