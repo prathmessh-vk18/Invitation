@@ -234,6 +234,13 @@ export function Gallery({ invite, theme }: { invite: Invite; theme: InviteTheme 
 // Couples whose RSVP also asks guests whether they need a place to stay, and for how many days.
 const askStaySlugs = ["kartheek-weds-sahithi"];
 
+/** The tick on a chosen RSVP chip. */
+const Tick = () => (
+  <svg viewBox="0 0 16 16" className="size-[1.1em] shrink-0" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M3 8.5l3.2 3L13 4.5" />
+  </svg>
+);
+
 export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) {
   const [name, setName] = useState("");
   const [guests, setGuests] = useState(2);
@@ -242,7 +249,9 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
   // What guests tick: each function, or each day when the invite groups its functions by day.
   const days = [...new Set(invite.events.map((e) => `${d.day(e.start)} ${d.month(e.start)}`))];
   const choices = invite.eventsByDay ? days.map((day, i) => (invite.dayNames?.[i] ? `${day} · ${invite.dayNames[i]}` : day)) : invite.events.map((e) => e.name);
-  const [events, setEvents] = useState<string[]>(() => choices);
+  // Nothing is picked to start: guests read a filled chip as one to tap, so they pick what they'll attend.
+  const [events, setEvents] = useState<string[]>([]);
+  const [pickError, setPickError] = useState(false);
   const [note, setNote] = useState("");
   const [stay, setStay] = useState<"yes" | "no">("no");
   const [stayDays, setStayDays] = useState(1);
@@ -252,15 +261,24 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
   // Sample invites on the website don't belong to a real couple, so nothing is sent from them.
   const isDemo = demoSlugs.has(invite.slug);
 
-  const toggle = (e: string) => setEvents((cur) => (cur.includes(e) ? cur.filter((x) => x !== e) : [...cur, e]));
+  const toggle = (e: string) => {
+    setPickError(false);
+    setEvents((cur) => (cur.includes(e) ? cur.filter((x) => x !== e) : [...cur, e]));
+  };
 
   const submit = (ev: React.FormEvent) => {
     ev.preventDefault();
+    if (attending === "yes" && choices.length > 1 && !events.length) {
+      setPickError(true);
+      return;
+    }
     if (isDemo) {
       setDemoSent(true);
       return;
     }
-    const lines = attending === "yes" ? t.rsvpYes(a.first, b.first, name, guests, events.join(", ")) : t.rsvpNo(a.first, b.first, name);
+    // With a single function there is nothing to pick, so it counts as picked.
+    const going = choices.length === 1 ? choices : choices.filter((c) => events.includes(c));
+    const lines = attending === "yes" ? t.rsvpYes(a.first, b.first, name, guests, going.join(", ")) : t.rsvpNo(a.first, b.first, name);
     if (askStay && attending === "yes") lines.push(stay === "yes" ? t.rsvpStay(stayDays) : t.rsvpNoStay);
     if (note.trim()) lines.push(t.rsvpNote(note.trim()));
     window.open(`https://wa.me/${invite.rsvp.phone}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank");
@@ -296,6 +314,7 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
                 type="button"
                 key={v}
                 onClick={() => setAttending(v)}
+                aria-pressed={attending === v}
                 className={`${attending === v ? theme.ui.chipOn : theme.ui.chip} py-[3cqw] text-[3.6cqw]`}
               >
                 {v === "yes" ? t.accept : t.decline}
@@ -320,21 +339,34 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
                   </button>
                 </div>
               </div>
-              <div>
-                <span className="inv-label text-[2.5cqw] opacity-70">{t.attendingAt}</span>
-                <div className="mt-2 flex flex-wrap gap-[2cqw]">
-                  {choices.map((c) => (
-                    <button
-                      type="button"
-                      key={c}
-                      onClick={() => toggle(c)}
-                      className={`${events.includes(c) ? theme.ui.chipOn : theme.ui.chip} px-[3.5cqw] py-[1.8cqw] text-[3.2cqw]`}
-                    >
-                      {c}
-                    </button>
-                  ))}
+              {choices.length > 1 && (
+                <div>
+                  <span className="inv-label text-[2.5cqw] opacity-70">{t.attendingAt}</span>
+                  <p className={`mt-1 text-[3cqw] ${theme.ui.muted}`}>{t.tapToPick}</p>
+                  <div className="mt-2 flex flex-wrap gap-[2cqw]">
+                    {choices.map((c) => {
+                      const on = events.includes(c);
+                      return (
+                        <button
+                          type="button"
+                          key={c}
+                          onClick={() => toggle(c)}
+                          aria-pressed={on}
+                          className={`${on ? theme.ui.chipOn : theme.ui.chip} inline-flex items-center gap-[1.5cqw] px-[3.5cqw] py-[1.8cqw] text-[3.2cqw]`}
+                        >
+                          {on && <Tick />}
+                          {c}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {pickError && (
+                    <p role="alert" className="mt-2 text-[3.2cqw] font-medium text-[#c0392b]">
+                      {t.pickOne}
+                    </p>
+                  )}
                 </div>
-              </div>
+              )}
               {askStay && (
                 <div>
                   <span className="inv-label text-[2.5cqw] opacity-70">{t.stayNeeded}</span>
