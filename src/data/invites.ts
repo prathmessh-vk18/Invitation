@@ -27,6 +27,8 @@ export type Person = {
   elders?: string;
   // Print the elder's line under the parents instead of above the name.
   eldersBelow?: boolean;
+  // Set the elders line like the parents line (italic serif) instead of small capitals.
+  eldersPlain?: boolean;
 };
 
 export type Invite = {

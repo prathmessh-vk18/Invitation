@@ -110,7 +110,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
     const o = (p ?? {}) as Record<string, unknown>;
     const first = str(o.first, 40);
     const elders = str(o.elders, 160);
-    return { first, full: str(o.full, 80) || first, parents: str(o.parents, 160), ...(elders ? { elders } : {}), ...(elders && o.eldersBelow === true ? { eldersBelow: true } : {}) };
+    return { first, full: str(o.full, 80) || first, parents: str(o.parents, 160), ...(elders ? { elders } : {}), ...(elders && o.eldersBelow === true ? { eldersBelow: true } : {}), ...(elders && o.eldersPlain === true ? { eldersPlain: true } : {}) };
   };
   const bride = person(d.bride);
   const groom = person(d.groom);
@@ -237,7 +237,7 @@ export function keepInviteSettings(prev: InviteDetails | null | undefined, next:
   const old = prev as unknown as Record<string, unknown>;
   for (const k of KEPT) if (out[k] === undefined && old[k] !== undefined) out[k] = old[k];
   for (const who of ["bride", "groom"] as const) {
-    if (!next[who].elders && prev[who]?.elders) out[who] = { ...next[who], elders: prev[who].elders, ...(prev[who].eldersBelow ? { eldersBelow: true } : {}) };
+    if (!next[who].elders && prev[who]?.elders) out[who] = { ...next[who], elders: prev[who].elders, ...(prev[who].eldersBelow ? { eldersBelow: true } : {}), ...(prev[who].eldersPlain ? { eldersPlain: true } : {}) };
   }
   return out as InviteDetails;
 }
