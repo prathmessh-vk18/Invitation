@@ -11,13 +11,17 @@ export const contentType = "image/png";
 // at runtime makes the bundler copy the whole project into every server function.
 const dataUrl = async (file: Promise<Buffer>, type: string) => `data:${type};base64,${(await file).toString("base64")}`;
 
+// Read once when the module loads, not inside Image(): file reads during the render make the
+// route dynamic, so every WhatsApp or Meta preview fetch would re-render it. This way the image
+// is built at deploy time and served as a static file.
+const [logo, mahal, khat, gopuram] = await Promise.all([
+  dataUrl(readFile(join(process.cwd(), "public/brand/aavjoo-logo.png")), "image/png"),
+  dataUrl(readFile(join(process.cwd(), "public/art/illus/mahal-hero.jpg")), "image/jpeg"),
+  dataUrl(readFile(join(process.cwd(), "public/art/illus/khat-hero.jpg")), "image/jpeg"),
+  dataUrl(readFile(join(process.cwd(), "public/art/illus/gopuram-hero.jpg")), "image/jpeg"),
+]);
+
 export default async function Image() {
-  const [logo, mahal, khat, gopuram] = await Promise.all([
-    dataUrl(readFile(join(process.cwd(), "public/brand/aavjoo-logo.png")), "image/png"),
-    dataUrl(readFile(join(process.cwd(), "public/art/illus/mahal-hero.jpg")), "image/jpeg"),
-    dataUrl(readFile(join(process.cwd(), "public/art/illus/khat-hero.jpg")), "image/jpeg"),
-    dataUrl(readFile(join(process.cwd(), "public/art/illus/gopuram-hero.jpg")), "image/jpeg"),
-  ]);
   const phone = (src: string, rotate: number, top: number, left: number, z: number) => (
     <div
       style={{
