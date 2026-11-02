@@ -126,6 +126,21 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
           <Lead className="mt-3">
             {t.name} · {longDate(d.date)} · {d.city}
           </Lead>
+          {order.status !== "cancelled" && (
+            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3">
+              <a
+                href={`https://wa.me/${order.customer_phone}?text=${encodeURIComponent(`My ${site.name} order ${order.code}: ${a.first} & ${b.first}\n${orderUrl}`)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full bg-whatsapp px-4 py-2.5 text-[15px] font-medium text-white"
+              >
+                <WaIcon /> Send this page to my WhatsApp
+              </a>
+              <AskAboutOrder code={order.code} phone={order.customer_phone} className="text-body font-medium underline underline-offset-4">
+                Ask about your order
+              </AskAboutOrder>
+            </div>
+          )}
         </div>
 
         {(order.status === "awaiting_payment" || order.status === "payment_submitted") && (
@@ -245,28 +260,6 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
             </Step>
           </ol>
         </Panel>
-
-        {order.status !== "cancelled" && (
-          <Panel className="p-6 sm:p-8">
-            <p className="text-title">Keep this page</p>
-            <p className="mt-1 text-body text-muted">
-              Send it to your own WhatsApp so it&rsquo;s always one tap away. Your order, payment, changes and invite link are all here.
-            </p>
-            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3">
-              <a
-                href={`https://wa.me/${order.customer_phone}?text=${encodeURIComponent(`My ${site.name} order ${order.code}: ${a.first} & ${b.first}\n${orderUrl}`)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full bg-whatsapp px-4 py-2.5 text-[15px] font-medium text-white"
-              >
-                <WaIcon /> Send to my WhatsApp
-              </a>
-              <AskAboutOrder code={order.code} phone={order.customer_phone} className="text-body font-medium underline underline-offset-4">
-                Ask about your order
-              </AskAboutOrder>
-            </div>
-          </Panel>
-        )}
       </div>
 
       <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
