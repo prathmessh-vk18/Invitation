@@ -6,6 +6,7 @@ import { stats } from "@/data/social-proof";
 import { getTemplate } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
 import { RecentOrders } from "@/site/recent-orders";
+import { MyOrderLink } from "@/site/my-orders";
 import { Showcase } from "@/site/showcase";
 import { ClosingCta, Comparison, Faq, Features, HowItWorks, Testimonials } from "@/site/sections";
 import { Badge, ButtonLink, Container, Display, Heading, InlineIcon, Lead, PhoneFrame, Reveal } from "@/ui";
@@ -54,9 +55,11 @@ export default function Home() {
             </div>
             <p className="mt-5 text-[15px] text-muted">
               Already ordered?{" "}
-              <Link href="/edit" className="font-medium text-ink underline underline-offset-4">
-                Edit your order
-              </Link>
+              <MyOrderLink className="font-medium text-ink underline underline-offset-4">
+                <Link href="/edit" className="font-medium text-ink underline underline-offset-4">
+                  Edit your order
+                </Link>
+              </MyOrderLink>
             </p>
           </Reveal>
         </Container>

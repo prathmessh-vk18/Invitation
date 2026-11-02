@@ -10,6 +10,7 @@ import { templates } from "@/data/templates";
 import { guides } from "@/data/guides";
 import { buttonClass } from "@/ui";
 import { OpenChat } from "@/site/chat";
+import { MyOrderLink } from "@/site/my-orders";
 
 /** The Aavjoo logo. `light` gives the white version for dark backgrounds. */
 export function Wordmark({ light, className }: { light?: boolean; className?: string }) {
@@ -51,7 +52,9 @@ export function Header() {
           </nav>
         </div>
         <div className="flex items-center gap-2">
-          <OpenChat className={buttonClass("ghost", "md", "max-sm:hidden")}>Let&rsquo;s talk</OpenChat>
+          <MyOrderLink className={buttonClass("ghost", "md", "max-sm:hidden")}>
+            <OpenChat className={buttonClass("ghost", "md", "max-sm:hidden")}>Let&rsquo;s talk</OpenChat>
+          </MyOrderLink>
           <Link href="/designs" className={buttonClass("primary", "md")}>
             Choose a design
           </Link>
@@ -76,9 +79,11 @@ export function Header() {
                 {n.label}
               </Link>
             ))}
-            <Link href="/edit" onClick={() => setOpen(false)} className="block rounded-tile px-4 py-3 text-title">
-              Edit your order
-            </Link>
+            <MyOrderLink onClick={() => setOpen(false)} className="block rounded-tile px-4 py-3 text-title">
+              <Link href="/edit" onClick={() => setOpen(false)} className="block rounded-tile px-4 py-3 text-title">
+                Edit your order
+              </Link>
+            </MyOrderLink>
             <OpenChat
               className={buttonClass("primary", "lg", "mt-2 w-full")}
             >

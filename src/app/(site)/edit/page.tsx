@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Container, Heading, Lead, Panel } from "@/ui";
 import { EditLookup } from "./EditLookup";
+import { SavedOrders } from "@/site/my-orders";
 
 export const metadata: Metadata = {
   title: "Edit your order",
@@ -16,6 +17,7 @@ export default function EditOrderPage() {
         Edit your order.
       </Heading>
       <Lead className="mt-3">Changes to a live invite go to us for a quick check, then update the same link.</Lead>
+      <SavedOrders className="mt-8" />
       <Panel tone="surface" className="mt-8 border border-line p-6 sm:p-7">
         <EditLookup />
       </Panel>
