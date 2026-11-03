@@ -441,6 +441,7 @@ export const invites: Invite[] = [
     ],
     rsvp: { phone: "919699711809", by: "2027-02-05T00:00:00+05:30", contact: "Mishra family" },
     closing: "Har Har Mahadev. Your blessings will make our day complete.",
+    music: "file:/music/piya-ghar-aavenge.mp3",
   },
   {
     slug: "advait-weds-naina",

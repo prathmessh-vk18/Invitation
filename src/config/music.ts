@@ -102,6 +102,7 @@ export const songs: Track[] = [
   { id: "file:/music/sajna.m4a", name: "Sajna", mood: "Darshan Raval · soft and romantic" },
   { id: "file:/music/vaaroon.m4a", name: "Vaaroon", mood: "Anand Bhaskar · from Mirzapur" },
   { id: "file:/music/raah-mein-unse-mulaqat.m4a", name: "Raah Mein Unse Mulaqat", mood: "Vijaypath · instrumental" },
+  { id: "file:/music/piya-ghar-aavenge.mp3", name: "Piya Ghar Aavenge", mood: "Kailash Kher · devotional, joyful" },
 ];
 
 export const instrumentals: Track[] = [
