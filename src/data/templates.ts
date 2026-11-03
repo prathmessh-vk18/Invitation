@@ -44,8 +44,8 @@ export const templates: TemplateMeta[] = [
       "Tap to enter and you are on Kailash, with Shiv and Parvati seated together among the snow peaks and your wedding details above them. Scroll and you step into the mountains as the invitation opens.",
       "Every function sits on a flower-shaped card over the still dawn sky, with petals drifting down. Scratch-to-reveal date, countdown, RSVP, photos and music are included, in English or Hindi.",
     ],
-    price: 299,
-    mrp: 999,
+    price: 499,
+    mrp: 1499,
     demoSlug: "rudra-weds-gauri",
     palette: [
       { name: "Dawn blush", hex: "#f3dce4" },

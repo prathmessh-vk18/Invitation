@@ -32,7 +32,7 @@ const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh, shiv] = awai
   jpg(readFile(join(process.cwd(), "public/art/illus/khat-hero.jpg"))),
   jpg(readFile(join(process.cwd(), "public/art/illus/gopuram-hero.jpg"))),
   jpg(readFile(join(process.cwd(), "public/art/illus/bagh-hero.jpg"))),
-  jpg(readFile(join(process.cwd(), "public/art/illus/shiv-meeting.jpg"))),
+  jpg(readFile(join(process.cwd(), "public/art/illus/shiv-share.jpg"))),
 ]);
 
 // The painted designs' hero art fills the card. The art is portrait (864×1536), so at the card's
@@ -42,7 +42,7 @@ const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh, shiv] = awai
 const ART_HEIGHT = Math.round((1200 * 1536) / 864);
 const scenes: Record<string, { src: string; y: number }> = {
   // Shiv's palm and Parvati's foot about to meet: no faces at all.
-  gaurishankar: { src: shiv, y: 0.1 },
+  gaurishankar: { src: shiv, y: 0.27 },
   mandir: { src: mandir, y: 0.45 },
   haveli: { src: haveli, y: 0.16 },
   mahal: { src: mahal, y: 0.15 },
