@@ -36,15 +36,16 @@ const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh] = await Prom
 
 // The painted designs' hero art fills the card. The art is portrait (864×1536), so at the card's
 // width only a band of it shows; `y` is where that band starts, as a share of the art's height,
-// chosen so the couple or the landmark sits under the names.
+// chosen so the landmark sits under the names. Only Mandir and Khat paint the couple from behind;
+// the others stop above the couple, so no faces appear on a shared preview.
 const ART_HEIGHT = Math.round((1200 * 1536) / 864);
 const scenes: Record<string, { src: string; y: number }> = {
   mandir: { src: mandir, y: 0.45 },
-  haveli: { src: haveli, y: 0.35 },
-  mahal: { src: mahal, y: 0.34 },
+  haveli: { src: haveli, y: 0.16 },
+  mahal: { src: mahal, y: 0.15 },
   khat: { src: khat, y: 0.45 },
-  gopuram: { src: gopuram, y: 0.37 },
-  bagh: { src: bagh, y: 0.36 },
+  gopuram: { src: gopuram, y: 0.19 },
+  bagh: { src: bagh, y: 0.21 },
 };
 
 async function resolve(slug: string): Promise<Invite | null> {
