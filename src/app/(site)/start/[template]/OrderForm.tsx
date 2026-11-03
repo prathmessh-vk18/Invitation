@@ -2,7 +2,7 @@
 
 import { offer } from "@/config/offer";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { unstable_isUnrecognizedActionError, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { getInvite } from "@/data/invites";
 import type { TemplateMeta } from "@/data/templates";
@@ -278,6 +278,12 @@ const photoUrl = (path: string) => `${process.env.NEXT_PUBLIC_SUPABASE_URL}/stor
 // (scripts/compress-media.mjs), so guests can keep it for a year.
 const UPLOAD_CACHE = "31536000";
 
+// A page opened before a deploy calls actions by the old build's ids, which the new server
+// doesn't have ("Server Action … was not found on the server").
+const isStale = unstable_isUnrecognizedActionError;
+const RETRY_KEY = "nim-retry";
+type Retry = "song" | "photos" | "order";
+
 /** Shrinks a phone photo to at most 1600px on its long side, as a JPEG. Falls back to the original. */
 async function shrink(file: File): Promise<Blob> {
   try {
@@ -360,6 +366,15 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
           setSong(d.song ?? null);
           setPhotos(d.photos ?? []);
         }
+        // Back from a reload onto a new deploy (see `stale`): ask them to repeat what didn't go through.
+        const retry = draftKey ? (window.sessionStorage.getItem(RETRY_KEY) as Retry | null) : null;
+        window.sessionStorage.removeItem(RETRY_KEY);
+        const again = "We just updated Aavjoo, so the page reloaded. Your details are saved.";
+        if (retry === "song") {
+          setSongState("error");
+          setSongError(`${again} Please upload your song again.`);
+        } else if (retry === "photos") setPhotoError(`${again} Please add your photos again.`);
+        else if (retry === "order") setServerErrors([`${again} Please send your order again.`]);
       } catch {}
       restored.current = true;
     }, 0);
@@ -442,6 +457,20 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
     setFurthest((f) => Math.max(f, n));
   }
 
+  /**
+   * After a deploy, a page opened earlier can't reach the server's actions. A new order's draft is
+   * already saved in this browser, so reload onto the new version and say what to repeat; an edit
+   * has no draft, so it asks them to refresh instead.
+   */
+  function stale(retry: Retry) {
+    if (!isNew) return "Aavjoo was just updated. Please refresh this page and try again.";
+    try {
+      window.sessionStorage.setItem(RETRY_KEY, retry);
+    } catch {}
+    window.location.reload();
+    return "Updating the page…";
+  }
+
   async function pickSong(file: File | undefined) {
     if (!file) return;
     setSongState("uploading");
@@ -455,7 +484,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
       setSongState("idle");
     } catch (e) {
       setSongState("error");
-      setSongError(e instanceof Error ? e.message : "The upload didn't finish. Please try again.");
+      setSongError(isStale(e) ? stale("song") : e instanceof Error ? e.message : "The upload didn't finish. Please try again.");
     }
   }
 
@@ -477,7 +506,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
           if (error) throw new Error("A photo didn't finish uploading. Please try again.");
           setPhotos((p) => (p.length < MAX_PHOTOS ? [...p, { path: res.path }] : p));
         } catch (e) {
-          setPhotoError(e instanceof Error ? e.message : "A photo didn't finish uploading. Please try again.");
+          setPhotoError(isStale(e) ? stale("photos") : e instanceof Error ? e.message : "A photo didn't finish uploading. Please try again.");
         } finally {
           setPhotoBusy((n) => n - 1);
         }
@@ -520,14 +549,20 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
     setServerErrors([]);
     if (!isNew) return saveEdit();
     start(async () => {
-      const res = await createOrder({
-        template: t.id,
-        details: toDetails(s),
-        songPath: song?.path ?? null,
-        photoPaths: showing("gallery") ? photos.map((x) => x.path) : [],
-        customer: { ...s.customer, phone: mobile10(s.customer.phone) },
-        ...(refCode ? { partnerCode: refCode } : {}),
-      });
+      let res: Awaited<ReturnType<typeof createOrder>>;
+      try {
+        res = await createOrder({
+          template: t.id,
+          details: toDetails(s),
+          songPath: song?.path ?? null,
+          photoPaths: showing("gallery") ? photos.map((x) => x.path) : [],
+          customer: { ...s.customer, phone: mobile10(s.customer.phone) },
+          ...(refCode ? { partnerCode: refCode } : {}),
+        });
+      } catch (e) {
+        if (!isStale(e)) throw e;
+        return setServerErrors([stale("order")]);
+      }
       if ("errors" in res) {
         setServerErrors(res.errors);
         return;
@@ -542,14 +577,19 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
   function saveEdit() {
     const input = { details: toDetails(s), songPath: song?.path ?? null, photoPaths: showing("gallery") ? photos.map((x) => x.path) : [], note };
     start(async () => {
-      if (mode.kind === "change") {
-        const res = await saveChanges(mode.orderId, input);
-        if ("errors" in res) return setServerErrors(res.errors);
-        router.push(`/order/${mode.orderId}${"pending" in res ? "?sent=1" : ""}`);
-      } else if (mode.kind === "admin") {
-        const res = mode.requestId ? await approveChange(mode.requestId, input) : await adminSaveOrder(mode.orderId, input);
-        if ("errors" in res) return setServerErrors(res.errors);
-        router.push(mode.back);
+      try {
+        if (mode.kind === "change") {
+          const res = await saveChanges(mode.orderId, input);
+          if ("errors" in res) return setServerErrors(res.errors);
+          router.push(`/order/${mode.orderId}${"pending" in res ? "?sent=1" : ""}`);
+        } else if (mode.kind === "admin") {
+          const res = mode.requestId ? await approveChange(mode.requestId, input) : await adminSaveOrder(mode.orderId, input);
+          if ("errors" in res) return setServerErrors(res.errors);
+          router.push(mode.back);
+        }
+      } catch (e) {
+        if (!isStale(e)) throw e;
+        setServerErrors([stale("order")]);
       }
     });
   }
