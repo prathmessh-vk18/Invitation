@@ -177,7 +177,7 @@ function Blessing({ invite }: { invite: Invite }) {
           <Reveal key={p === invite.bride ? "bride" : "groom"} delay={i * 0.2} className={invite.stackNames ? (i === 1 ? "row-start-3" : "") : i === 1 ? "col-start-3" : ""}>
             <div className="relative overflow-hidden rounded-t-full border border-[#e9bf62]/60 bg-[#3a0815]/60 px-[3cqw] pt-[10cqw] pb-[5cqw]">
               <Mandala color={GOLD} className="absolute -top-[10cqw] left-1/2 w-[40cqw] -translate-x-1/2 opacity-20" />
-              <p className={`inv-script relative leading-none text-[#f6d987] ${invite.stackNames ? "text-[12cqw]" : "text-[10cqw]"}`}>{p.first}</p>
+              <p className={`inv-script relative leading-none text-[#f6d987] ${invite.stackNames ? "text-[12cqw]" : "text-[10cqw]"}`}>{p.cardName ?? p.first}</p>
               <p className="inv-label relative mt-[3cqw] text-[2cqw] leading-relaxed text-[#fbf1dc]">{p.full}</p>
               <p className="inv-serif relative mt-[2cqw] text-[3.2cqw] leading-snug text-[#fbf1dc] italic">{p.parents}</p>
             </div>

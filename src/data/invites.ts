@@ -29,6 +29,8 @@ export type Person = {
   eldersBelow?: boolean;
   // Set the elders line like the parents line (italic serif) instead of small capitals.
   eldersPlain?: boolean;
+  // A shorter name for the couple's card only (e.g. "Priya"); everywhere else uses `first`.
+  cardName?: string;
 };
 
 export type Invite = {
