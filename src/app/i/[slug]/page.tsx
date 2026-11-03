@@ -27,9 +27,13 @@ export async function generateMetadata({ params }: PageProps<"/i/[slug]">): Prom
   const found = await resolve((await params).slug);
   if (!found) return { title: { absolute: `Invitation · ${site.name}` } };
   const [a, b] = couple(found.invite);
+  const title = `${a.first} & ${b.first} · Wedding Invitation`;
+  const description = `You're invited to celebrate ${a.first} & ${b.first}, ${longDate(found.invite.date)}, ${found.invite.city}.`;
   return {
-    title: { absolute: `${a.first} & ${b.first} · Wedding Invitation` },
-    description: `You're invited to celebrate ${a.first} & ${b.first}, ${longDate(found.invite.date)}, ${found.invite.city}.`,
+    title: { absolute: title },
+    description,
+    // The couple's own card (opengraph-image.tsx beside this page), without the site's name.
+    openGraph: { type: "website", title, description },
     robots: isListedDemo(found.invite.slug) ? undefined : { index: false },
   };
 }
