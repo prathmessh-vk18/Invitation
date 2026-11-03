@@ -34,8 +34,6 @@ const SCRIPT = "var(--font-pinyon), cursive";
 const HAND = "var(--font-parisienne), cursive";
 const SKY = "#f3dce4";
 const ease = [0.22, 1, 0.36, 1] as const;
-// The lehenga and the arm drift in out of the sky instead of ending in a hard edge.
-const FROM_SIDE: CSSProperties = { WebkitMaskImage: "linear-gradient(to right, transparent 0%, #000 30%)", maskImage: "linear-gradient(to right, transparent 0%, #000 30%)" };
 
 const base = makeIllustrated({
   id: "gaurishankar",
@@ -156,10 +154,10 @@ function Meeting({ invite, opened, onOpen }: OpeningProps) {
       <Art src={`${art}/shiv-sky.jpg`} priority />
       <Petals />
 
-      {/* Shiv's open palm reaches in from the side… */}
+      {/* Shiv's open palm reaches in from beyond the left edge… */}
       <motion.div
         className="absolute"
-        style={{ left: u(-6), top: "40%", width: u(104), aspectRatio: "1100 / 618", ...FROM_SIDE }}
+        style={{ left: u(-12), top: u(76), width: u(112), aspectRatio: "1100 / 618" }}
         initial={still ? false : { x: "-100%", opacity: 0 }}
         animate={{ x: "0%", opacity: 1 }}
         transition={{ duration: 2, delay: at(0.2), ease: "easeOut" }}
@@ -167,25 +165,26 @@ function Meeting({ invite, opened, onOpen }: OpeningProps) {
         <Art src={`${art}/shiv-hand.webp`} alt="" priority contain />
       </motion.div>
 
-      {/* …and Parvati's foot glides down from the upper right to rest just above it, sole down. */}
+      {/* …as Parvati steps down from the upper right, her lehenga running off the top and right
+          edges, until her foot hovers just above his palm. */}
       <motion.div
-        className="absolute"
-        style={{ left: u(40), top: `calc(40% - ${u(31)})`, width: u(64), aspectRatio: "1000 / 580" }}
-        initial={still ? false : { x: "70%", y: "-160%", opacity: 0 }}
-        animate={{ x: ["70%", "0%", "0%"], y: ["-160%", "0%", "4%"], opacity: 1 }}
-        transition={{ duration: 3.2, delay: at(1), times: [0, 0.7, 1], ease: "easeOut" }}
+        className="absolute top-0"
+        style={{ right: `min(calc(100cqw - ${u(130)}), 0px)`, width: u(90), aspectRatio: "788 / 890" }}
+        initial={still ? false : { x: "35%", y: "-35%", opacity: 0 }}
+        animate={{ x: "0%", y: "0%", opacity: 1 }}
+        transition={{ duration: 2.6, delay: at(1), ease: [0.25, 0.8, 0.3, 1] }}
       >
-        <Art src={`${art}/shiv-foot-glide.webp`} alt="" priority contain />
+        <Art src={`${art}/shiv-parvati-step.webp`} alt="" priority contain />
       </motion.div>
 
       {/* A glow where they meet. */}
       <motion.div
         aria-hidden
         className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
-        style={{ left: u(70), top: `calc(40% + ${u(10)})`, width: u(50), height: u(50), background: "radial-gradient(closest-side, rgba(255,240,230,.9), rgba(255,220,225,0))" }}
+        style={{ left: u(62), top: u(86), width: u(54), height: u(54), background: "radial-gradient(closest-side, rgba(255,240,230,.9), rgba(255,220,225,0))" }}
         initial={{ opacity: 0, scale: 0.4 }}
         animate={{ opacity: [0, 0.95, 0.4], scale: [0.4, 1.2, 1] }}
-        transition={{ duration: 2.2, delay: at(3.6), ease }}
+        transition={{ duration: 2.2, delay: at(3.4), ease }}
       />
 
       <div className="absolute inset-x-[6%] bottom-[6%] text-center">
@@ -382,59 +381,49 @@ function Blessing({ invite }: { invite: Invite }) {
   );
 }
 
-/* ───────── Functions on flower-shaped cards ───────── */
+/* ───────── Functions on temple-arch cards ───────── */
 
-// A rosette: petals round an ellipse, in a 100 × 135 box, so it fits a tall card without stretching.
-const ROSETTE = Array.from({ length: 26 }, (_, i) => {
-  const t = (i / 26) * Math.PI * 2;
-  // Rounded so the server and browser render identical numbers.
-  return { x: Math.round((50 + Math.cos(t) * 40) * 100) / 100, y: Math.round((67.5 + Math.sin(t) * 57) * 100) / 100 };
-});
-
-function FlowerCard({ e, invite }: { e: InviteEvent; invite: Invite }) {
+/** A function on the painted temple-arch card: garland along the arch, crescent moon, lotus below. */
+function ArchCard({ e, invite }: { e: InviteEvent; invite: Invite }) {
   return (
     <div>
-      <div className="relative mx-auto w-full" style={{ aspectRatio: "100 / 135" }}>
-        <svg viewBox="0 0 100 135" className="absolute inset-0 h-full w-full drop-shadow-[0_10px_18px_rgba(140,40,70,.16)]" aria-hidden>
-          {ROSETTE.map((p, i) => <circle key={`o${i}`} cx={p.x} cy={p.y} r={9.4} fill="#e9a7b8" opacity={0.8} />)}
-          {ROSETTE.map((p, i) => <circle key={`i${i}`} cx={p.x} cy={p.y} r={8.9} fill="#fffaf8" />)}
-          <ellipse cx={50} cy={67.5} rx={40} ry={57} fill="#fffaf8" />
-          <ellipse cx={50} cy={67.5} rx={35.5} ry={52} fill="none" stroke={c.gold} strokeWidth={0.35} strokeDasharray="1.2 1.2" opacity={0.8} />
-          {ROSETTE.map((p, i) => <circle key={`d${i}`} cx={Math.round((50 + (p.x - 50) * 1.02) * 100) / 100} cy={Math.round((67.5 + (p.y - 67.5) * 1.02) * 100) / 100} r={0.9} fill={c.rose} opacity={0.55} />)}
-        </svg>
-        <div className="absolute inset-x-[19%] inset-y-[14%] flex flex-col items-center justify-center text-center">
-          <svg viewBox="0 0 24 24" className="w-[6cqw]" fill="none" stroke={c.gold} strokeWidth={1.3} aria-hidden>
-            <path d="M12 19c-3-1.5-5-4-5-7 2 0 4 1 5 3 1-2 3-3 5-3 0 3-2 5.5-5 7zM12 15c-1.6-2-1.6-5 0-8 1.6 3 1.6 6 0 8z" />
-          </svg>
-          <h3 className="mt-[1cqw] text-[10cqw] leading-[1.05]" style={{ color: c.rose, fontFamily: SCRIPT }}>
+      <div className="relative mx-auto w-[78cqw] drop-shadow-[0_12px_20px_rgba(140,40,70,.14)]" style={{ aspectRatio: "774 / 1442" }}>
+        <Art src={`${art}/shiv-card.webp`} contain />
+        <div className="absolute inset-x-[15%] top-[25%] bottom-[15%] flex flex-col items-center justify-center text-center">
+          <h3 className="text-[12cqw] leading-[1.05]" style={{ color: c.rose, fontFamily: SCRIPT }}>
             {e.name}
           </h3>
           {e.note && (
-            <p className="inv-serif mt-[0.5cqw] text-[3.3cqw] leading-snug italic" style={{ color: c.soft }}>
+            <p className="inv-serif mt-[1.5cqw] text-[3.7cqw] leading-snug italic" style={{ color: c.soft }}>
               {e.note}
             </p>
           )}
-          <p className="inv-label mt-[2cqw] text-[3.4cqw] leading-snug" style={{ color: c.crimson, letterSpacing: "0.06em" }}>
-            {weekday(e.start).slice(0, 3)} · {fmtDate(e.start, { day: "numeric", month: "short", year: "numeric" })}
-            <br />
-            {time(e.start)}
+          <Divider className="my-[4cqw]" />
+          <p className="inv-label text-[3.5cqw] leading-snug" style={{ color: c.crimson, letterSpacing: "0.08em" }}>
+            {weekday(e.start)}
           </p>
-          <p className="inv-serif mt-[2cqw] text-[4cqw] leading-tight font-semibold" style={{ color: c.ink }}>
+          <p className="mt-[1cqw] text-[9cqw] leading-none" style={{ color: c.ink, fontFamily: "var(--font-cormorant), serif" }}>
+            {fmtDate(e.start, { day: "numeric" })}
+          </p>
+          <p className="inv-label mt-[1cqw] text-[3.3cqw] leading-snug" style={{ color: c.crimson, letterSpacing: "0.08em" }}>
+            {fmtDate(e.start, { month: "long", year: "numeric" })} · {time(e.start)}
+          </p>
+          <p className="inv-serif mt-[5cqw] text-[4.6cqw] leading-tight font-semibold" style={{ color: c.ink }}>
             {e.venue}
           </p>
           {e.address && (
-            <p className="inv-serif mt-[0.5cqw] line-clamp-2 text-[3cqw] leading-snug" style={{ color: c.soft }}>
+            <p className="inv-serif mt-[1cqw] line-clamp-3 text-[3.4cqw] leading-snug" style={{ color: c.soft }}>
               {e.address}
             </p>
           )}
           {e.dress && (
-            <p className="inv-serif mt-[1cqw] text-[3.2cqw] italic" style={{ color: c.rose }}>
+            <p className="inv-serif mt-[2.5cqw] text-[3.6cqw] italic" style={{ color: c.rose }}>
               Dress: {e.dress}
             </p>
           )}
         </div>
       </div>
-      <div className="-mt-[2cqw] flex justify-center">
+      <div className="mt-[3cqw] flex justify-center">
         <EventActions event={e} invite={invite} theme={gaurishankar} />
       </div>
     </div>
@@ -450,7 +439,7 @@ function Events({ invite }: { invite: Invite }) {
       <ol className="mt-[8cqw] space-y-[9cqw]">
         {invite.events.map((e, i) => (
           <motion.li key={e.name + i} initial={{ opacity: 0, y: 30, scale: 0.94 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.9, ease }}>
-            <FlowerCard e={e} invite={invite} />
+            <ArchCard e={e} invite={invite} />
           </motion.li>
         ))}
       </ol>
@@ -465,12 +454,18 @@ function Closing({ invite }: { invite: Invite }) {
   return (
     <section className="relative overflow-hidden px-[11cqw] pt-[8cqw] pb-[16cqw] text-center">
       <Reveal>
-        <div className="relative mx-auto h-[70cqw] w-[78cqw]" aria-hidden>
-          <div className="absolute -left-[8cqw] w-[76cqw]" style={{ top: "27cqw", aspectRatio: "1100 / 618", ...FROM_SIDE }}>
+        {/* The meeting again, in a small temple-arch window. Positions are the opening's, at 0.7×. */}
+        <div
+          aria-hidden
+          className="relative mx-auto w-[70cqw] overflow-hidden border border-[#d9b97a]"
+          style={{ aspectRatio: "100 / 142", borderRadius: "50% 50% 6px 6px / 30% 30% 6px 6px" }}
+        >
+          <Art src={`${art}/shiv-sky.jpg`} />
+          <div className="absolute" style={{ left: "-12%", top: "53.5%", width: "112%", aspectRatio: "1100 / 618" }}>
             <Art src={`${art}/shiv-hand.webp`} contain />
           </div>
-          <div className="absolute left-[27cqw] w-[48cqw]" style={{ top: "4cqw", aspectRatio: "1000 / 580" }}>
-            <Art src={`${art}/shiv-foot-glide.webp`} contain />
+          <div className="absolute top-0" style={{ left: "40%", width: "90%", aspectRatio: "788 / 890" }}>
+            <Art src={`${art}/shiv-parvati-step.webp`} contain />
           </div>
         </div>
         <Divider className="mt-[4cqw]" />
