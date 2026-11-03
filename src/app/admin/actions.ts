@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { endAdminSession, passwordMatches, requireAdmin, startAdminSession } from "@/lib/admin-auth";
 import { cleanPhotoPaths, cleanSongPath, validateDetails, type Order, keepInviteSettings } from "@/lib/orders";
 import type { ChangesInput } from "@/lib/order-actions";
-import { publishOrder } from "@/lib/publish";
+import { publishOrder, warmShareCard } from "@/lib/publish";
 import { db } from "@/lib/supabase";
 
 export async function login(_: unknown, form: FormData) {
@@ -121,6 +121,7 @@ export async function publishInvite(id: string, slugInput: string): Promise<{ ok
   const res = await publishOrder(await loadOrder(id), slugInput);
   if ("error" in res) return res;
   updateTag(`invite:${res.slug}`);
+  warmShareCard(res.slug);
   refresh(id);
   return res;
 }

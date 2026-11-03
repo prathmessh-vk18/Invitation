@@ -1,4 +1,5 @@
 import "server-only";
+import { after } from "next/server";
 import { site } from "@/config/site";
 import { getInvite as getDemoInvite } from "@/data/invites";
 import { inviteFromOrder } from "@/lib/order-invite";
@@ -46,6 +47,23 @@ export async function publishOrder(order: Order, slugInput: string): Promise<{ o
     .update({ status: "live", invite_slug: slug, published_at: order.published_at ?? new Date().toISOString() })
     .eq("id", order.id);
   return { ok: true, slug };
+}
+
+/**
+ * Opens a freshly published invite and its share card once, after the response has gone out, so
+ * the card is already built when the couple first shares the link. Built on that first share
+ * instead, it can take longer than WhatsApp waits, and WhatsApp then remembers "no preview".
+ */
+export function warmShareCard(slug: string) {
+  after(async () => {
+    try {
+      const html = await (await fetch(`${site.url}/i/${slug}`, { cache: "no-store" })).text();
+      const card = html.match(/property="og:image" content="([^"]+)"/)?.[1]?.replace(/&amp;/g, "&");
+      if (card) await fetch(card, { cache: "no-store" });
+    } catch {
+      // Only a head start; the card still builds on first share.
+    }
+  });
 }
 
 /** "aarav-weds-meera", then with the wedding year, the city, a number, and finally the order code. */

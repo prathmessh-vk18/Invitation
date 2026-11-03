@@ -5,7 +5,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { getTemplate } from "@/data/templates";
 import { cleanPhone, cleanPhotoPaths, cleanSongPath, keepInviteSettings, orderTotal, validateDetails, type InviteDetails } from "@/lib/orders";
 import { findActivePartner } from "@/lib/partners";
-import { autoPublish } from "@/lib/publish";
+import { autoPublish, warmShareCard } from "@/lib/publish";
 import { createRazorpayOrder, isRazorpayConfigured, paysOnline, isValidPaymentSignature, markPaidByRazorpayOrder, razorpayKeyId } from "@/lib/razorpay";
 import { db, isSupabaseConfigured, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
 
@@ -150,7 +150,10 @@ export async function confirmPayment(
   }
   if (await markPaidByRazorpayOrder(r.razorpay_order_id, r.razorpay_payment_id)) {
     const slug = await autoPublish(orderId);
-    if (slug) updateTag(`invite:${slug}`);
+    if (slug) {
+      updateTag(`invite:${slug}`);
+      warmShareCard(slug);
+    }
     revalidatePath("/admin");
   }
   return { ok: true };

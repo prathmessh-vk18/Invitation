@@ -1,5 +1,5 @@
 import { revalidateTag } from "next/cache";
-import { autoPublish } from "@/lib/publish";
+import { autoPublish, warmShareCard } from "@/lib/publish";
 import { isValidWebhookSignature, markPaidByRazorpayOrder } from "@/lib/razorpay";
 
 /**
@@ -18,7 +18,10 @@ export async function POST(request: Request) {
     // The couple may have closed the page before Checkout reported back; publish here instead.
     const orderId = await markPaidByRazorpayOrder(payment.order_id, payment.id);
     const slug = orderId ? await autoPublish(orderId) : null;
-    if (slug) revalidateTag(`invite:${slug}`, { expire: 0 });
+    if (slug) {
+      revalidateTag(`invite:${slug}`, { expire: 0 });
+      warmShareCard(slug);
+    }
   }
   // Always 200 for a signed request, so Razorpay doesn't keep retrying events we don't act on.
   return Response.json({ ok: true });
