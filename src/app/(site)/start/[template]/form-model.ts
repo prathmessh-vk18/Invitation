@@ -278,6 +278,7 @@ export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState[
 export function toPreview(s: FormState, demo: Invite): Invite {
   const person = (p: Person, fallback: string) => ({ first: p.first || fallback, full: p.full || p.first || fallback, parents: p.parents });
   const date = iso(s.weddingDate, s.weddingTime) || demo.date;
+  const rsvpPhone = mobile10(s.rsvpSame ? s.customer.phone : s.rsvpPhone);
   return {
     ...demo,
     bride: person(s.bride, "Bride"),
@@ -290,6 +291,13 @@ export function toPreview(s: FormState, demo: Invite): Invite {
     date,
     city: s.city || "Your city",
     hashtag: s.hashtag || undefined,
+    // Their reply-by date, or the wedding day when they leave it empty, as the saved order does.
+    rsvp: {
+      ...demo.rsvp,
+      phone: rsvpPhone.length === 10 ? `91${rsvpPhone}` : demo.rsvp.phone,
+      by: s.rsvpBy ? iso(s.rsvpBy, "00:00") : date,
+      contact: s.hosts || demo.rsvp.contact,
+    },
     closing: s.closing,
     hide: s.hide,
     font: s.font || undefined,
