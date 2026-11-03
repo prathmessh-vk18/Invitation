@@ -17,8 +17,10 @@ export const metadata = {
 };
 
 export default function Home() {
-  const spotlight = getTemplate("rajwada")!;
-  const [left, right] = [getTemplate("noor")!, getTemplate("kolam")!];
+  // The design in the spotlight, the line that sells its opening, and the two phones beside it.
+  const spotlight = getTemplate("gaurishankar")!;
+  const spotlightHint = "Watch Parvati's foot settle into Shiv's palm, then your names appear: written by destiny, blessed by Mahadev.";
+  const [left, right] = [getTemplate("mandir")!, getTemplate("rajwada")!];
   return (
     <>
       <JsonLd data={organizationLd} />
@@ -92,9 +94,9 @@ export default function Home() {
         <Container>
           <Reveal className="grid items-center gap-10 overflow-hidden rounded-card bg-panel p-8 sm:p-14 md:grid-cols-2">
             <div>
-              <Badge live>Most loved this season</Badge>
+              <Badge live>New arrival</Badge>
               <Heading className="mt-5">Meet {spotlight.name}.</Heading>
-              <Lead className="mt-4">{spotlight.tagline} Tap the seal and watch your names appear in gold.</Lead>
+              <Lead className="mt-4">{spotlightHint}</Lead>
               <div className="mt-7 flex flex-wrap gap-2">
                 <ButtonLink href={`/i/${spotlight.demoSlug}`} newTab>Open the invite →</ButtonLink>
                 <ButtonLink href={`/templates/${spotlight.id}`} variant="inverse" newTab>
