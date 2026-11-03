@@ -248,7 +248,7 @@ export function keepInviteSettings(prev: InviteDetails | null | undefined, next:
 
 /** Digits with the country code. Ten digits are an Indian mobile; a leading + means the code is already there. */
 export function cleanPhone(v: unknown) {
-  const raw = str(v, 24);
+  const raw = str(v, 30).normalize("NFKC").replace(/[^\d+]/g, "");
   const digits = raw.replace(/\D/g, "");
   if (raw.startsWith("+")) return digits;
   if (digits.length === 10) return `91${digits}`;

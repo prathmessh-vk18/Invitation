@@ -115,7 +115,8 @@ export function mobile10(v: string) {
  * Ten digits are an Indian mobile; a number from elsewhere starts with + (or 00) and its country code.
  */
 export function waNumber(v: string) {
-  const t = v.trim();
+  // Numbers copied from contacts or WhatsApp carry invisible direction marks and odd pluses; keep only + and digits.
+  const t = v.normalize("NFKC").replace(/[^\d+]/g, "");
   if (/^(\+|00)/.test(t)) {
     const d = t.replace(/\D/g, "").replace(/^00/, "");
     if (d.startsWith("91")) {
