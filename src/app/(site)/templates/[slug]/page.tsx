@@ -18,9 +18,9 @@ import { ButtonLink, Container, Eyebrow, Heading, Lead, Panel, PhoneFrame, Revea
 export const instant = false;
 
 /** The design's own artwork as its share preview (illustrated designs), else the site card. */
-const illustrated = new Set(["mandir", "mahal", "khat", "gopuram", "bagh", "haveli"]);
+const illustrated = new Set(["gaurishankar", "mandir", "mahal", "khat", "gopuram", "bagh", "haveli"]);
 const shareImage = (id: string) =>
-  id === "mandir" ? "/art/illus/mandir-temple.jpg" : id === "haveli" ? "/art/illus/haveli-arrival.jpg" : illustrated.has(id) ? `/art/illus/${id}-hero.jpg` : "/opengraph-image";
+  id === "gaurishankar" ? "/art/illus/shiv-meeting.jpg" : id === "mandir" ? "/art/illus/mandir-temple.jpg" : id === "haveli" ? "/art/illus/haveli-arrival.jpg" : illustrated.has(id) ? `/art/illus/${id}-hero.jpg` : "/opengraph-image";
 
 export function generateStaticParams() {
   return templates.map((t) => ({ slug: t.id }));

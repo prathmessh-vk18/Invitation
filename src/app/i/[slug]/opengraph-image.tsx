@@ -23,7 +23,7 @@ export function generateStaticParams() {
 // Each path is written out in full so only these files ship with this route, and they're read
 // once when the module loads (see app/opengraph-image.tsx).
 const jpg = async (file: Promise<Buffer>) => `data:image/jpeg;base64,${(await file).toString("base64")}`;
-const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh] = await Promise.all([
+const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh, shiv] = await Promise.all([
   readFile(join(process.cwd(), "src/app/i/[slug]/Fraunces-Medium.ttf")),
   readFile(join(process.cwd(), "src/app/i/[slug]/Geist-Medium.ttf")),
   jpg(readFile(join(process.cwd(), "public/art/illus/mandir-temple.jpg"))),
@@ -32,6 +32,7 @@ const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh] = await Prom
   jpg(readFile(join(process.cwd(), "public/art/illus/khat-hero.jpg"))),
   jpg(readFile(join(process.cwd(), "public/art/illus/gopuram-hero.jpg"))),
   jpg(readFile(join(process.cwd(), "public/art/illus/bagh-hero.jpg"))),
+  jpg(readFile(join(process.cwd(), "public/art/illus/shiv-meeting.jpg"))),
 ]);
 
 // The painted designs' hero art fills the card. The art is portrait (864×1536), so at the card's
@@ -40,6 +41,8 @@ const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh] = await Prom
 // the others stop above the couple, so no faces appear on a shared preview.
 const ART_HEIGHT = Math.round((1200 * 1536) / 864);
 const scenes: Record<string, { src: string; y: number }> = {
+  // Shiv's palm and Parvati's foot about to meet: no faces at all.
+  gaurishankar: { src: shiv, y: 0.1 },
   mandir: { src: mandir, y: 0.45 },
   haveli: { src: haveli, y: 0.16 },
   mahal: { src: mahal, y: 0.15 },

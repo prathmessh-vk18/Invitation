@@ -1,4 +1,4 @@
-export type TemplateId = "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli";
+export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli";
 export type CategoryId = "hindu" | "muslim" | "sikh" | "south-indian";
 
 export type TemplateMeta = {
@@ -31,6 +31,35 @@ export type TemplateMeta = {
 const DEVA = "var(--font-deva)";
 
 export const templates: TemplateMeta[] = [
+  {
+    id: "gaurishankar",
+    category: "hindu",
+    name: "Gauri Shankar",
+    native: "गौरी शंकर",
+    nativeFont: DEVA,
+    mood: "Illustrated · Written by destiny, blessed by Mahadev",
+    tagline: "Shiv's open palm receives Parvati's foot across a dawn sky, then the two of them sit together on Kailash above your names.",
+    description: [
+      "Gauri Shankar opens on a soft dawn sky. Shiv's blue palm, a jasmine string resting in it, reaches in as Parvati's alta-painted foot descends to meet it, and your names appear: written by destiny, blessed by Mahadev.",
+      "Tap to enter and you are on Kailash, with Shiv and Parvati seated together among the snow peaks and your wedding details above them. Scroll and you step into the mountains as the invitation opens.",
+      "Every function sits on a flower-shaped card over the still dawn sky, with petals drifting down. Scratch-to-reveal date, countdown, RSVP, photos and music are included, in English or Hindi.",
+    ],
+    price: 299,
+    mrp: 999,
+    demoSlug: "rudra-weds-gauri",
+    palette: [
+      { name: "Dawn blush", hex: "#f3dce4" },
+      { name: "Rose", hex: "#b2385a" },
+      { name: "Mahadev blue", hex: "#8fa6e0" },
+      { name: "Alta red", hex: "#8e1f2f" },
+    ],
+    suits: ["Shiv bhakt families", "Hindu weddings across India", "Couples who want a devotional, painted invite"],
+    signature: ["Shiv's palm meets Parvati's foot", "Shiv and Parvati seated on Kailash", "Walk into the peaks", "Petals drifting through every section"],
+    tint: "#f8eef1",
+    icon: { bg: "#b2385a", fg: "#fbeef1" },
+    addedOn: "2026-11-03",
+    isNew: true,
+  },
   {
     id: "haveli",
     category: "hindu",
