@@ -8,10 +8,10 @@ import { couple } from "@/invites/people";
 import { getPublishedInvite } from "@/lib/invites-db";
 import { longDate } from "@/lib/format";
 
-// The couple's own share preview: their names, date and city on their design, with no Aavjoo
-// branding or price. WhatsApp builds the preview on the sender's phone, so this is fetched when a
-// link is shared, not when guests open it. Demo cards are built at deploy time; a couple's card is
-// built on its first share and kept until their invite changes (the `invite:<slug>` tag).
+// The couple's own share preview: their names, date and city over their design's painting, with
+// no Aavjoo branding or price. WhatsApp builds the preview on the sender's phone, so this is
+// fetched when a link is shared, not when guests open it. Demo cards are built at deploy time; a
+// couple's card is built on its first share and kept until their invite changes (`invite:<slug>`).
 export const alt = "Wedding invitation";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -33,82 +33,65 @@ const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh] = await Prom
   jpg(readFile(join(process.cwd(), "public/art/illus/gopuram-hero.jpg"))),
   jpg(readFile(join(process.cwd(), "public/art/illus/bagh-hero.jpg"))),
 ]);
-const art: Record<string, string> = { mandir, haveli, mahal, khat, gopuram, bagh };
 
-// Relative luminance, to pick the darker of a design's two icon colours for text on its tint.
-const lum = (hex: string) => {
-  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+// The painted designs' hero art fills the card. The art is portrait (864×1536), so at the card's
+// width only a band of it shows; `y` is where that band starts, as a share of the art's height,
+// chosen so the couple or the landmark sits under the names.
+const ART_HEIGHT = Math.round((1200 * 1536) / 864);
+const scenes: Record<string, { src: string; y: number }> = {
+  mandir: { src: mandir, y: 0.45 },
+  haveli: { src: haveli, y: 0.35 },
+  mahal: { src: mahal, y: 0.34 },
+  khat: { src: khat, y: 0.45 },
+  gopuram: { src: gopuram, y: 0.37 },
+  bagh: { src: bagh, y: 0.36 },
 };
 
 async function resolve(slug: string): Promise<Invite | null> {
   return getInvite(slug) ?? (await getPublishedInvite(slug))?.invite ?? null;
 }
 
+/** Names on one line, as large as fits the card. */
+const nameSize = (names: string) => (names.length <= 18 ? 104 : names.length <= 24 ? 84 : names.length <= 30 ? 70 : 58);
+
+// Satori has no `inset`, so full-card layers spell out their box.
+const layer = { position: "absolute", top: 0, left: 0, width: 1200, height: 630, display: "flex" } as const;
+
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const invite = await resolve((await params).slug);
   if (!invite) notFound();
   const t = getTemplate(invite.template)!;
   const [a, b] = couple(invite);
-  const accent = lum(t.icon.fg) < lum(t.icon.bg) ? t.icon.fg : t.icon.bg;
   const names = `${a.first} & ${b.first}`;
-  const nameSize = names.length <= 16 ? 92 : names.length <= 22 ? 78 : 64;
-  const picture = art[invite.template];
+  const scene = scenes[invite.template];
+  // Over a painting the text is deep maroon on a light wash; on a plain card it takes the design's
+  // own pair of colours (gold on maroon for Rajwada, and so on).
+  const ink = scene ? "#3a1218" : t.icon.fg;
 
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", background: t.tint, fontFamily: "Geist", position: "relative" }}>
-        <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 0 0 84px", width: 720 }}>
-          <div style={{ fontSize: 22, letterSpacing: 6, color: accent }}>WEDDING INVITATION</div>
-          <div style={{ display: "flex", flexDirection: "column", fontFamily: "Fraunces", fontSize: nameSize, lineHeight: 1.05, color: "#1d1414", marginTop: 28, letterSpacing: -1 }}>
-            <span>{a.first}</span>
-            <span>&amp; {b.first}</span>
-          </div>
-          <div style={{ width: 96, height: 3, background: accent, marginTop: 36, borderRadius: 2 }} />
-          <div style={{ fontSize: 32, color: "#1d1414", marginTop: 32 }}>{longDate(invite.date)}</div>
-          <div style={{ fontSize: 28, color: "#6b5a5a", marginTop: 10 }}>{invite.city}</div>
-        </div>
-        {picture ? (
-          <div
-            style={{
-              position: "absolute",
-              top: 48,
-              right: 96,
-              width: 300,
-              height: 534,
-              borderRadius: 28,
-              border: "8px solid #141010",
-              overflow: "hidden",
-              boxShadow: "0 30px 60px rgba(60,20,30,.30)",
-              display: "flex",
-            }}
-          >
-            <img src={picture} width={300} height={534} style={{ objectFit: "cover", width: "100%", height: "100%" }} alt="" />
-          </div>
+      <div style={{ ...layer, position: "relative", overflow: "hidden", fontFamily: "Geist", background: t.icon.bg }}>
+        {scene ? (
+          <>
+            <img src={scene.src} width={1200} height={ART_HEIGHT} style={{ position: "absolute", top: -Math.round(ART_HEIGHT * scene.y), left: 0, width: 1200, height: ART_HEIGHT }} alt="" />
+            <div style={{ ...layer, backgroundImage: "linear-gradient(180deg, rgba(255,248,238,0.78) 0%, rgba(255,248,238,0.45) 38%, rgba(255,248,238,0) 58%)" }} />
+          </>
         ) : (
-          <div
-            style={{
-              position: "absolute",
-              top: 125,
-              right: 110,
-              width: 380,
-              height: 380,
-              borderRadius: 999,
-              background: t.icon.bg,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontFamily: "Fraunces",
-              fontSize: 150,
-              color: t.icon.fg,
-              letterSpacing: -4,
-            }}
-          >
-            {a.first[0]}
-            <span style={{ fontSize: 90, margin: "0 10px" }}>&amp;</span>
-            {b.first[0]}
-          </div>
+          <>
+            <div style={{ ...layer, backgroundImage: "radial-gradient(circle at 50% 45%, rgba(255,255,255,0.16), rgba(255,255,255,0) 70%)" }} />
+            <div style={{ position: "absolute", top: 24, left: 24, width: 1152, height: 582, display: "flex", border: `2px solid ${t.icon.fg}`, opacity: 0.7 }} />
+            <div style={{ position: "absolute", top: 34, left: 34, width: 1132, height: 562, display: "flex", border: `1px solid ${t.icon.fg}`, opacity: 0.45 }} />
+            <svg width="1200" height="630" viewBox="0 0 1200 630" style={{ position: "absolute", top: 0, left: 0 }}>
+              <path d="M300 605 V300 C300 190 420 120 600 64 C780 120 900 190 900 300 V605" fill="none" stroke={t.icon.fg} strokeWidth="2" opacity="0.55" />
+              <path d="M326 595 V306 C326 206 440 142 600 90 C760 142 874 206 874 306 V595" fill="none" stroke={t.icon.fg} strokeWidth="1" opacity="0.35" />
+            </svg>
+          </>
         )}
+        <div style={{ position: "absolute", top: scene ? 60 : 200, left: 0, width: 1200, display: "flex", flexDirection: "column", alignItems: "center", color: ink }}>
+          <div style={{ fontSize: 22, letterSpacing: 8 }}>WEDDING INVITATION</div>
+          <div style={{ fontFamily: "Fraunces", fontSize: nameSize(names), lineHeight: 1.05, marginTop: 14, letterSpacing: -2 }}>{names}</div>
+          <div style={{ fontSize: 30, marginTop: 16, letterSpacing: 1 }}>{`${longDate(invite.date)} · ${invite.city}`}</div>
+        </div>
       </div>
     ),
     {
