@@ -22,14 +22,19 @@ import type { InviteTheme, OpeningProps } from "./types";
  */
 
 const art = "/art/illus";
+// Text colours hold at least 4.2:1 on the pinkest and bluest parts of the sky (most 5–15:1).
+// The lighter gold is for hairlines and ornaments only, never for words.
 const c = {
   paper: "#fbf4f1",
-  ink: "#4a1a28",
-  rose: "#b2385a",
-  crimson: "#8e1f2f",
-  gold: "#b8862f",
-  soft: "#7a5a5f",
+  ink: "#36101c",
+  rose: "#9a1d45",
+  crimson: "#741225",
+  gold: "#6c4a0c",
+  line: "#b8862f",
+  soft: "#55303b",
 };
+// A soft light halo so thin script and small text stay crisp over clouds.
+const HALO = "0 0 14px rgba(255,250,252,.95), 0 0 3px rgba(255,250,252,.9)";
 const SCRIPT = "var(--font-pinyon), cursive";
 const HAND = "var(--font-parisienne), cursive";
 const SKY = "#f3dce4";
@@ -63,11 +68,11 @@ function Art({ src, alt = "", priority, contain }: { src: string; alt?: string; 
 function Divider({ className }: { className?: string }) {
   return (
     <div className={`flex items-center justify-center gap-[2.5cqw] ${className ?? ""}`}>
-      <span className="h-px w-[16cqw]" style={{ background: `linear-gradient(to right, transparent, ${c.gold})` }} />
-      <svg viewBox="0 0 24 24" className="w-[5cqw]" fill="none" stroke={c.gold} strokeWidth={1.3} aria-hidden>
+      <span className="h-px w-[16cqw]" style={{ background: `linear-gradient(to right, transparent, ${c.line})` }} />
+      <svg viewBox="0 0 24 24" className="w-[5cqw]" fill="none" stroke={c.line} strokeWidth={1.3} aria-hidden>
         <path d="M12 19c-3-1.5-5-4-5-7 2 0 4 1 5 3 1-2 3-3 5-3 0 3-2 5.5-5 7zM12 15c-1.6-2-1.6-5 0-8 1.6 3 1.6 6 0 8zM4 13c1.5 0 3 .6 4 2M20 13c-1.5 0-3 .6-4 2" />
       </svg>
-      <span className="h-px w-[16cqw]" style={{ background: `linear-gradient(to left, transparent, ${c.gold})` }} />
+      <span className="h-px w-[16cqw]" style={{ background: `linear-gradient(to left, transparent, ${c.line})` }} />
     </div>
   );
 }
@@ -76,11 +81,11 @@ function Title({ kicker, children }: { kicker?: string; children: ReactNode }) {
   return (
     <div className="text-center">
       {kicker && (
-        <p className="inv-label text-[2.6cqw]" style={{ color: c.gold }}>
+        <p className="inv-label text-[2.8cqw] font-semibold" style={{ color: c.gold, textShadow: HALO }}>
           {kicker}
         </p>
       )}
-      <h2 className="mt-[1cqw] text-[10cqw] leading-[1.1]" style={{ color: c.rose, fontFamily: SCRIPT }}>
+      <h2 className="mt-[1cqw] text-[11cqw] leading-[1.1]" style={{ color: c.rose, fontFamily: SCRIPT, textShadow: HALO }}>
         {children}
       </h2>
       <Divider className="mt-[1.5cqw]" />
@@ -187,10 +192,11 @@ function Meeting({ invite, opened, onOpen }: OpeningProps) {
         transition={{ duration: 2.2, delay: at(3.4), ease }}
       />
 
-      <div className="absolute inset-x-[6%] bottom-[6%] text-center">
+      <div className="absolute inset-x-[4%] bottom-[6%] text-center">
+        <div aria-hidden className="absolute -inset-x-[6%] -inset-y-[18%] rounded-[50%] bg-[radial-gradient(closest-side,rgba(255,248,250,.78),rgba(255,248,250,0))]" />
         <motion.p
-          className={`${hi ? "" : "inv-label"} leading-snug font-semibold`}
-          style={{ fontSize: u(4.6), color: c.crimson, fontFamily: hi ? "var(--font-deva)" : undefined, letterSpacing: hi ? undefined : "0.06em" }}
+          className={`${hi ? "" : "inv-label"} relative leading-snug font-bold`}
+          style={{ fontSize: u(4.8), color: c.crimson, textShadow: HALO, fontFamily: hi ? "var(--font-deva)" : undefined, letterSpacing: hi ? undefined : "0.06em" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.1, delay: at(4), ease }}
@@ -200,8 +206,8 @@ function Meeting({ invite, opened, onOpen }: OpeningProps) {
           {line[1]}
         </motion.p>
         <motion.p
-          className="leading-[1.15]"
-          style={{ fontSize: u(14), marginTop: u(2), color: c.rose, fontFamily: SCRIPT }}
+          className="relative leading-[1.15]"
+          style={{ fontSize: u(15), marginTop: u(2), color: c.rose, fontFamily: SCRIPT, textShadow: HALO }}
           initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ duration: 1.4, delay: at(4.8), ease }}
@@ -209,10 +215,10 @@ function Meeting({ invite, opened, onOpen }: OpeningProps) {
           {a.first} <span style={{ fontSize: u(10) }}>{invite.joiner ?? "&"}</span> {b.first}
         </motion.p>
         <motion.p
-          className="inv-label"
-          style={{ fontSize: u(2.6), marginTop: u(4), color: c.ink }}
+          className="inv-label relative font-semibold"
+          style={{ fontSize: u(2.9), marginTop: u(4), color: c.ink, textShadow: HALO }}
           initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0.85, 0.45, 0.85] }}
+          animate={{ opacity: [0, 1, 0.7, 1] }}
           transition={{ duration: 2.6, delay: at(6), repeat: Infinity, repeatType: "reverse" }}
         >
           {invite.openHint ?? (hi ? "प्रवेश के लिए स्पर्श करें" : "Tap anywhere to enter")}
@@ -230,27 +236,27 @@ function Details({ invite, show }: { invite: Invite; show: (d: number) => object
   const [a, b] = couple(invite);
   return (
     <div className="relative flex flex-col items-center text-center">
-      <div className="absolute -inset-x-[10%] -inset-y-[18%] rounded-[50%] bg-[radial-gradient(closest-side,rgba(255,250,248,.82),rgba(255,250,248,0))]" />
-      <motion.p {...show(0.2)} className="relative text-[3.4cqw] leading-snug" style={{ color: c.crimson, fontFamily: "var(--font-deva)" }}>
+      <div className="absolute -inset-x-[10%] -inset-y-[18%] rounded-[50%] bg-[radial-gradient(closest-side,rgba(255,250,248,.9),rgba(255,250,248,0))]" />
+      <motion.p {...show(0.2)} className="relative text-[3.6cqw] leading-snug font-semibold" style={{ color: c.crimson, fontFamily: "var(--font-deva)", textShadow: HALO }}>
         {invite.invocation}
       </motion.p>
       {invite.invocationMeaning && (
-        <motion.p {...show(0.35)} className="inv-serif relative mt-[1cqw] text-[3.6cqw] italic" style={{ color: c.soft }}>
+        <motion.p {...show(0.35)} className="inv-serif relative mt-[1cqw] text-[4cqw] font-semibold italic" style={{ color: c.soft, textShadow: HALO }}>
           {invite.invocationMeaning}
         </motion.p>
       )}
-      <motion.p {...show(0.5)} className="inv-label relative mt-[3cqw] text-[2.5cqw] leading-relaxed" style={{ color: c.ink }}>
+      <motion.p {...show(0.5)} className="inv-label relative mt-[3cqw] text-[2.8cqw] leading-relaxed font-semibold" style={{ color: c.ink, textShadow: HALO }}>
         We cordially invite you to the wedding of
       </motion.p>
-      <motion.h1 {...show(0.75)} className="relative mt-[1.5cqw] text-[13cqw] leading-[1.05]" style={{ color: c.rose, fontFamily: SCRIPT }}>
+      <motion.h1 {...show(0.75)} className="relative mt-[1.5cqw] text-[14cqw] leading-[1.05]" style={{ color: c.rose, fontFamily: SCRIPT, textShadow: HALO }}>
         {a.first}
         <span className="mx-[2cqw] text-[9cqw]">{invite.joiner ?? "&"}</span>
         {b.first}
       </motion.h1>
-      <motion.p {...show(1)} className="inv-label relative mt-[3cqw] text-[3.2cqw]" style={{ color: c.crimson, letterSpacing: "0.12em" }}>
+      <motion.p {...show(1)} className="inv-label relative mt-[3cqw] text-[3.4cqw] font-bold" style={{ color: c.crimson, letterSpacing: "0.1em", textShadow: HALO }}>
         {weekday(invite.date)} · {fmtDate(invite.date, { day: "numeric" })} {monthName(invite.date)} {yearNum(invite.date)}
       </motion.p>
-      <motion.p {...show(1.15)} className="inv-serif relative mt-[1.5cqw] text-[4.4cqw] italic" style={{ color: c.ink }}>
+      <motion.p {...show(1.15)} className="inv-serif relative mt-[1.5cqw] text-[4.8cqw] font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
         {invite.city}
       </motion.p>
     </div>
@@ -338,21 +344,21 @@ function Blessing({ invite }: { invite: Invite }) {
   const preview = usePreview();
   const person = (p: typeof a) => (
     <div>
-      <p className="mt-[1.5cqw] text-[13cqw] leading-[1.05]" style={{ color: c.rose, fontFamily: SCRIPT }}>
+      <p className="mt-[1.5cqw] text-[14cqw] leading-[1.05]" style={{ color: c.rose, fontFamily: SCRIPT, textShadow: HALO }}>
         {p.full || p.first}
       </p>
       {p.elders && !p.eldersBelow && (
-        <p className="inv-label mx-auto mt-[1cqw] max-w-[70cqw] text-[2.6cqw] leading-relaxed" style={{ color: c.gold }}>
+        <p className="inv-label mx-auto mt-[1cqw] max-w-[70cqw] text-[2.9cqw] leading-relaxed font-semibold" style={{ color: c.gold, textShadow: HALO }}>
           {p.elders}
         </p>
       )}
       {p.parents && (
-        <p className="inv-serif mx-auto mt-[1cqw] max-w-[70cqw] text-[3.8cqw] leading-snug italic" style={{ color: c.soft }}>
+        <p className="inv-serif mx-auto mt-[1cqw] max-w-[70cqw] text-[4.2cqw] leading-snug font-semibold italic" style={{ color: c.soft, textShadow: HALO }}>
           {p.parents}
         </p>
       )}
       {p.elders && p.eldersBelow && (
-        <p className="inv-serif mx-auto mt-[1cqw] max-w-[70cqw] text-[3.6cqw] leading-snug italic" style={{ color: c.soft }}>
+        <p className="inv-serif mx-auto mt-[1cqw] max-w-[70cqw] text-[4cqw] leading-snug font-semibold italic" style={{ color: c.soft, textShadow: HALO }}>
           {p.elders}
         </p>
       )}
@@ -361,18 +367,18 @@ function Blessing({ invite }: { invite: Invite }) {
   return (
     <section ref={ref} className={`relative z-10 px-[11cqw] pb-[10cqw] text-center ${preview ? "pt-[14cqw]" : "-mt-[55svh] pt-[20cqw]"}`}>
       <motion.div style={preview ? undefined : { scale, opacity, transformOrigin: "50% 30%" }}>
-        <p className="text-[9cqw] leading-none" style={{ color: c.gold, fontFamily: "var(--font-deva)" }}>
+        <p className="text-[9cqw] leading-none" style={{ color: c.gold, fontFamily: "var(--font-deva)", textShadow: HALO }}>
           ॐ
         </p>
-        <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed" style={{ color: c.gold }}>
+        <p className="inv-label mt-[4cqw] text-[3cqw] leading-relaxed font-semibold" style={{ color: c.gold, textShadow: HALO }}>
           {invite.hosts || "Together with their families"}
         </p>
-        <p className="inv-serif mt-[2.5cqw] text-[4.8cqw] leading-snug italic" style={{ color: c.ink }}>
+        <p className="inv-serif mt-[2.5cqw] text-[5cqw] leading-snug font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
           {invite.message}
         </p>
         <Divider className="my-[6cqw]" />
         {person(a)}
-        <p className="my-[3cqw] text-[9cqw] leading-none" style={{ color: c.gold, fontFamily: HAND }}>
+        <p className="my-[3cqw] text-[9cqw] leading-none" style={{ color: c.gold, fontFamily: HAND, textShadow: HALO }}>
           with
         </p>
         {person(b)}
@@ -390,34 +396,34 @@ function ArchCard({ e, invite }: { e: InviteEvent; invite: Invite }) {
       <div className="relative mx-auto w-[78cqw] drop-shadow-[0_12px_20px_rgba(140,40,70,.14)]" style={{ aspectRatio: "774 / 1442" }}>
         <Art src={`${art}/shiv-card.webp`} contain />
         <div className="absolute inset-x-[15%] top-[25%] bottom-[15%] flex flex-col items-center justify-center text-center">
-          <h3 className="text-[12cqw] leading-[1.05]" style={{ color: c.rose, fontFamily: SCRIPT }}>
+          <h3 className="text-[13cqw] leading-[1.05]" style={{ color: c.rose, fontFamily: SCRIPT }}>
             {e.name}
           </h3>
           {e.note && (
-            <p className="inv-serif mt-[1.5cqw] text-[3.7cqw] leading-snug italic" style={{ color: c.soft }}>
+            <p className="inv-serif mt-[1.5cqw] text-[3.9cqw] leading-snug font-semibold italic" style={{ color: c.soft }}>
               {e.note}
             </p>
           )}
           <Divider className="my-[4cqw]" />
-          <p className="inv-label text-[3.5cqw] leading-snug" style={{ color: c.crimson, letterSpacing: "0.08em" }}>
+          <p className="inv-label text-[3.6cqw] leading-snug font-bold" style={{ color: c.crimson, letterSpacing: "0.08em" }}>
             {weekday(e.start)}
           </p>
-          <p className="mt-[1cqw] text-[9cqw] leading-none" style={{ color: c.ink, fontFamily: "var(--font-cormorant), serif" }}>
+          <p className="mt-[1cqw] text-[10cqw] leading-none font-semibold" style={{ color: c.ink, fontFamily: "var(--font-cormorant), serif" }}>
             {fmtDate(e.start, { day: "numeric" })}
           </p>
-          <p className="inv-label mt-[1cqw] text-[3.3cqw] leading-snug" style={{ color: c.crimson, letterSpacing: "0.08em" }}>
+          <p className="inv-label mt-[1cqw] text-[3.4cqw] leading-snug font-bold" style={{ color: c.crimson, letterSpacing: "0.08em" }}>
             {fmtDate(e.start, { month: "long", year: "numeric" })} · {time(e.start)}
           </p>
-          <p className="inv-serif mt-[5cqw] text-[4.6cqw] leading-tight font-semibold" style={{ color: c.ink }}>
+          <p className="inv-serif mt-[5cqw] text-[4.8cqw] leading-tight font-bold" style={{ color: c.ink }}>
             {e.venue}
           </p>
           {e.address && (
-            <p className="inv-serif mt-[1cqw] line-clamp-3 text-[3.4cqw] leading-snug" style={{ color: c.soft }}>
+            <p className="inv-serif mt-[1cqw] line-clamp-3 text-[3.6cqw] leading-snug font-medium" style={{ color: c.soft }}>
               {e.address}
             </p>
           )}
           {e.dress && (
-            <p className="inv-serif mt-[2.5cqw] text-[3.6cqw] italic" style={{ color: c.rose }}>
+            <p className="inv-serif mt-[2.5cqw] text-[3.8cqw] font-semibold italic" style={{ color: c.rose }}>
               Dress: {e.dress}
             </p>
           )}
@@ -469,19 +475,19 @@ function Closing({ invite }: { invite: Invite }) {
           </div>
         </div>
         <Divider className="mt-[4cqw]" />
-        <p className="inv-serif mt-[4cqw] text-[5cqw] leading-snug italic" style={{ color: c.ink }}>
+        <p className="inv-serif mt-[4cqw] text-[5.2cqw] leading-snug font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
           {invite.closing}
         </p>
-        <p className="mt-[3cqw] text-[13cqw] leading-[1.1]" style={{ color: c.rose, fontFamily: SCRIPT }}>
+        <p className="mt-[3cqw] text-[14cqw] leading-[1.1]" style={{ color: c.rose, fontFamily: SCRIPT, textShadow: HALO }}>
           {a.first} {invite.joiner ?? "&"} {b.first}
         </p>
         {invite.hashtag && (
-          <p className="inv-label mt-[3cqw] text-[2.8cqw]" style={{ color: c.gold }}>
+          <p className="inv-label mt-[3cqw] text-[3cqw] font-semibold" style={{ color: c.gold, textShadow: HALO }}>
             {invite.hashtag}
           </p>
         )}
         {!invite.noBranding && (
-          <Link href="/" className="inv-label mt-[6cqw] inline-block text-[2.2cqw] opacity-70" style={{ color: c.ink }}>
+          <Link href="/" className="inv-label mt-[6cqw] inline-block text-[2.4cqw] font-semibold" style={{ color: c.soft, textShadow: HALO }}>
             Crafted with love by {site.name}
           </Link>
         )}
@@ -496,7 +502,7 @@ function Backdrop() {
     <div className="pointer-events-none absolute inset-0" style={{ background: SKY }}>
       <div className="sticky top-0 h-[var(--screen-h,100svh)] w-full">
         <Art src={`${art}/shiv-sky.jpg`} />
-        <div className="absolute inset-0" style={{ background: "radial-gradient(75% 60% at 50% 45%, rgba(255,252,250,.62), rgba(255,252,250,.2) 80%)" }} />
+        <div className="absolute inset-0" style={{ background: "radial-gradient(80% 65% at 50% 45%, rgba(255,252,250,.74), rgba(255,252,250,.36) 85%)" }} />
       </div>
     </div>
   );
@@ -507,7 +513,9 @@ export const gaurishankar: InviteTheme = {
   id: "gaurishankar",
   vars: { ...base.vars, "--inv-accent": c.rose } as CSSProperties,
   accent: c.rose,
-  ui: { ...base.ui, section: "relative px-[10cqw] py-[12cqw]" },
+  // Shared sections fade secondary text to 70%; over this sky it needs to stay near full strength.
+  root: `${base.root} [&_.opacity-70]:!opacity-95 [&_.opacity-80]:!opacity-100`,
+  ui: { ...base.ui, section: "relative px-[10cqw] py-[12cqw]", muted: "font-medium", input: `${base.ui.input} placeholder:!opacity-60` },
   Opening: Meeting,
   Hero,
   Blessing,
