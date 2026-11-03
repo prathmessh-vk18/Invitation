@@ -34,8 +34,7 @@ const SCRIPT = "var(--font-pinyon), cursive";
 const HAND = "var(--font-parisienne), cursive";
 const SKY = "#f3dce4";
 const ease = [0.22, 1, 0.36, 1] as const;
-// The lehenga drifts out of the clouds and the arm out of the side, instead of ending in a hard edge.
-const FROM_SKY: CSSProperties = { WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, #000 30%)", maskImage: "linear-gradient(to bottom, transparent 0%, #000 30%)" };
+// The lehenga and the arm drift in out of the sky instead of ending in a hard edge.
 const FROM_SIDE: CSSProperties = { WebkitMaskImage: "linear-gradient(to right, transparent 0%, #000 30%)", maskImage: "linear-gradient(to right, transparent 0%, #000 30%)" };
 
 const base = makeIllustrated({
@@ -133,6 +132,11 @@ function Petals({ burst = false }: { burst?: boolean }) {
 
 const LINE = { en: ["Written by destiny,", "blessed by Mahadev"], hi: ["विधि ने लिखा,", "महादेव ने आशीष दिया"] };
 
+// One step of the opening's layout: a hundredth of the width, unless the screen is short for its width,
+// so the hand, foot and garland shrink together instead of running into the names.
+const U = "min(1cqw, 0.5svh)";
+const u = (n: number) => `calc(${U} * ${n})`;
+
 function Meeting({ invite, opened, onOpen }: OpeningProps) {
   const still = useReducedMotion();
   const [a, b] = couple(invite);
@@ -152,65 +156,65 @@ function Meeting({ invite, opened, onOpen }: OpeningProps) {
       <Art src={`${art}/shiv-sky.jpg`} priority />
       <Petals />
 
-      {/* Parvati's foot descends from the sky… */}
+      {/* Shiv's open palm reaches in from the side… */}
       <motion.div
-        className="absolute left-[46cqw] w-[40cqw]"
-        style={{ top: "calc(40% - 41cqw)", aspectRatio: "700 / 1046", ...FROM_SKY }}
-        initial={still ? false : { y: "-140%", opacity: 0 }}
-        animate={{ y: ["-140%", "0%", "4%"], opacity: 1 }}
-        transition={{ duration: 3, delay: at(0.5), times: [0, 0.72, 1], ease: "easeOut" }}
-      >
-        <Art src={`${art}/shiv-foot.webp`} alt="" priority contain />
-      </motion.div>
-
-      {/* …as Shiv's open palm reaches in to receive it. */}
-      <motion.div
-        className="absolute -left-[6cqw] w-[104cqw]"
-        style={{ top: "40%", aspectRatio: "1100 / 618" }}
+        className="absolute"
+        style={{ left: u(-6), top: "40%", width: u(104), aspectRatio: "1100 / 618", ...FROM_SIDE }}
         initial={still ? false : { x: "-100%", opacity: 0 }}
-        animate={{ x: ["-100%", "0%", "0%"], y: ["0%", "0%", "-2%"], opacity: 1 }}
-        transition={{ duration: 3.2, delay: at(0.2), times: [0, 0.6, 1], ease: "easeOut" }}
+        animate={{ x: "0%", opacity: 1 }}
+        transition={{ duration: 2, delay: at(0.2), ease: "easeOut" }}
       >
         <Art src={`${art}/shiv-hand.webp`} alt="" priority contain />
+      </motion.div>
+
+      {/* …and Parvati's foot glides down from the upper right to rest just above it, sole down. */}
+      <motion.div
+        className="absolute"
+        style={{ left: u(40), top: `calc(40% - ${u(31)})`, width: u(64), aspectRatio: "1000 / 580" }}
+        initial={still ? false : { x: "70%", y: "-160%", opacity: 0 }}
+        animate={{ x: ["70%", "0%", "0%"], y: ["-160%", "0%", "4%"], opacity: 1 }}
+        transition={{ duration: 3.2, delay: at(1), times: [0, 0.7, 1], ease: "easeOut" }}
+      >
+        <Art src={`${art}/shiv-foot-glide.webp`} alt="" priority contain />
       </motion.div>
 
       {/* A glow where they meet. */}
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute size-[46cqw] -translate-x-1/2 -translate-y-1/2 rounded-full"
-        style={{ left: "70cqw", top: "calc(40% + 14cqw)", background: "radial-gradient(closest-side, rgba(255,240,230,.9), rgba(255,220,225,0))" }}
+        className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={{ left: u(70), top: `calc(40% + ${u(10)})`, width: u(50), height: u(50), background: "radial-gradient(closest-side, rgba(255,240,230,.9), rgba(255,220,225,0))" }}
         initial={{ opacity: 0, scale: 0.4 }}
         animate={{ opacity: [0, 0.95, 0.4], scale: [0.4, 1.2, 1] }}
-        transition={{ duration: 2.2, delay: at(3.1), ease }}
+        transition={{ duration: 2.2, delay: at(3.6), ease }}
       />
 
-      <div className="absolute inset-x-[6%] bottom-[9%] text-center">
+      <div className="absolute inset-x-[6%] bottom-[6%] text-center">
         <motion.p
-          className={`${hi ? "" : "inv-label"} text-[4.6cqw] leading-snug font-semibold`}
-          style={{ color: c.crimson, fontFamily: hi ? "var(--font-deva)" : undefined, letterSpacing: hi ? undefined : "0.06em" }}
+          className={`${hi ? "" : "inv-label"} leading-snug font-semibold`}
+          style={{ fontSize: u(4.6), color: c.crimson, fontFamily: hi ? "var(--font-deva)" : undefined, letterSpacing: hi ? undefined : "0.06em" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.1, delay: at(3.5), ease }}
+          transition={{ duration: 1.1, delay: at(4), ease }}
         >
           {line[0]}
           <br />
           {line[1]}
         </motion.p>
         <motion.p
-          className="mt-[2cqw] text-[14cqw] leading-[1.15]"
-          style={{ color: c.rose, fontFamily: SCRIPT }}
+          className="leading-[1.15]"
+          style={{ fontSize: u(14), marginTop: u(2), color: c.rose, fontFamily: SCRIPT }}
           initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ duration: 1.4, delay: at(4.3), ease }}
+          transition={{ duration: 1.4, delay: at(4.8), ease }}
         >
-          {a.first} <span className="text-[10cqw]">{invite.joiner ?? "&"}</span> {b.first}
+          {a.first} <span style={{ fontSize: u(10) }}>{invite.joiner ?? "&"}</span> {b.first}
         </motion.p>
         <motion.p
-          className="inv-label mt-[4cqw] text-[2.6cqw]"
-          style={{ color: c.ink }}
+          className="inv-label"
+          style={{ fontSize: u(2.6), marginTop: u(4), color: c.ink }}
           initial={{ opacity: 0 }}
           animate={{ opacity: [0, 0.85, 0.45, 0.85] }}
-          transition={{ duration: 2.6, delay: at(5.6), repeat: Infinity, repeatType: "reverse" }}
+          transition={{ duration: 2.6, delay: at(6), repeat: Infinity, repeatType: "reverse" }}
         >
           {invite.openHint ?? (hi ? "प्रवेश के लिए स्पर्श करें" : "Tap anywhere to enter")}
         </motion.p>
@@ -461,12 +465,12 @@ function Closing({ invite }: { invite: Invite }) {
   return (
     <section className="relative overflow-hidden px-[11cqw] pt-[8cqw] pb-[16cqw] text-center">
       <Reveal>
-        <div className="relative mx-auto h-[74cqw] w-[78cqw]" aria-hidden>
-          <div className="absolute left-[38cqw] w-[28cqw]" style={{ top: "0", aspectRatio: "700 / 1046", ...FROM_SKY }}>
-            <Art src={`${art}/shiv-foot.webp`} contain />
-          </div>
+        <div className="relative mx-auto h-[70cqw] w-[78cqw]" aria-hidden>
           <div className="absolute -left-[8cqw] w-[76cqw]" style={{ top: "27cqw", aspectRatio: "1100 / 618", ...FROM_SIDE }}>
             <Art src={`${art}/shiv-hand.webp`} contain />
+          </div>
+          <div className="absolute left-[27cqw] w-[48cqw]" style={{ top: "4cqw", aspectRatio: "1000 / 580" }}>
+            <Art src={`${art}/shiv-foot-glide.webp`} contain />
           </div>
         </div>
         <Divider className="mt-[4cqw]" />
