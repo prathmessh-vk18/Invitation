@@ -27,7 +27,7 @@ export async function findMyOrder(link: string, code: string, phone: string): Pr
   const p = cleanPhone(phone);
   if (!slug) return { error: "Paste your invite link." };
   if (!c) return { error: "Add your order number, e.g. AAV-1203." };
-  if (p.length !== 12) return { error: "Add the 10-digit phone number you ordered with." };
+  if (p.length < 10) return { error: "Add the phone number you ordered with." };
   if (!isSupabaseConfigured()) return notFound;
 
   const { data } = await db().from("orders").select("id").eq("code", c).eq("customer_phone", p).eq("invite_slug", slug).neq("status", "cancelled").maybeSingle();

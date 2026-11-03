@@ -63,7 +63,7 @@ export async function createOrder(input: CreateOrderInput): Promise<{ id: string
   const phone = cleanPhone(input.customer?.phone);
   const email = String(input.customer?.email ?? "").trim().slice(0, 120);
   if (!name) errors.push("Add your name so we know who to contact.");
-  if (phone.length < 12) errors.push("Add your WhatsApp number so we can send your link.");
+  if (phone.length < 10) errors.push("Add your WhatsApp number so we can send your link.");
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("Check your email address.");
   if (errors.length || !checked.ok) return { errors };
 

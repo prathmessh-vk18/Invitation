@@ -110,6 +110,38 @@ export function mobile10(v: string) {
   return /^[6-9]\d{9}$/.test(d) ? d : "";
 }
 
+/**
+ * A WhatsApp number as digits with its country code ("919876543210", "61447653652"), or "".
+ * Ten digits are an Indian mobile; a number from elsewhere starts with + (or 00) and its country code.
+ */
+export function waNumber(v: string) {
+  const t = v.trim();
+  if (/^(\+|00)/.test(t)) {
+    const d = t.replace(/\D/g, "").replace(/^00/, "");
+    if (d.startsWith("91")) {
+      const m = mobile10(d);
+      return m ? `91${m}` : "";
+    }
+    return /^[1-9]\d{7,14}$/.test(d) ? d : "";
+  }
+  const m = mobile10(t);
+  return m ? `91${m}` : "";
+}
+
+/** How a number shows in the form: "98765 43210" for India, "+61447653652" for elsewhere. */
+export function phoneField(digits: string) {
+  const d = digits.replace(/\D/g, "");
+  if (!d) return "";
+  return d.length === 12 && d.startsWith("91") ? d.slice(2) : `+${d}`;
+}
+
+/** "+91 98765 43210", or "+61447653652" for a number from elsewhere. */
+export function showPhone(v: string) {
+  const d = waNumber(v);
+  if (!d) return v;
+  return d.length === 12 && d.startsWith("91") ? `+91 ${d.slice(2, 7)} ${d.slice(7)}` : `+${d}`;
+}
+
 function personErrors(p: Person, who: "bride" | "groom", e: Record<string, string>) {
   const label = who === "bride" ? "the bride's" : "the groom's";
   const first = p.first.trim();
@@ -120,7 +152,7 @@ function personErrors(p: Person, who: "bride" | "groom", e: Record<string, strin
 
 function phoneError(v: string, empty: string) {
   if (!v.trim()) return empty;
-  if (!mobile10(v)) return "Enter a 10-digit mobile number, e.g. 98765 43210.";
+  if (!waNumber(v)) return "Enter a 10-digit mobile number, or a number from outside India with its country code, e.g. +61 412 345 678.";
   return "";
 }
 
@@ -208,7 +240,7 @@ export function toDetails(s: FormState) {
       ...(e.devanagari ? { devanagari: e.devanagari } : {}),
       ...(e.end ? { end: e.end } : {}),
     })),
-    rsvp: { phone: mobile10(rsvp), by: s.rsvpBy ? iso(s.rsvpBy, "00:00") : "", contact: s.hosts },
+    rsvp: { phone: waNumber(rsvp) ? `+${waNumber(rsvp)}` : "", by: s.rsvpBy ? iso(s.rsvpBy, "00:00") : "", contact: s.hosts },
     closing: s.closing,
     music: s.music,
     hide: s.hide,
@@ -231,8 +263,8 @@ function istParts(value?: string) {
 /** An order's saved details back as form fields, for editing it. */
 export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState["customer"]): FormState {
   const wedding = istParts(d.date);
-  const rsvp = d.rsvp.phone.replace(/^91(?=\d{10}$)/, "");
-  const own = mobile10(customer.phone);
+  const rsvp = phoneField(d.rsvp.phone);
+  const own = phoneField(customer.phone);
   return {
     ...initialState(demo),
     lead: d.lead,
@@ -266,7 +298,7 @@ export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState[
     rsvpSame: !rsvp || rsvp === own,
     rsvpPhone: rsvp === own ? "" : rsvp,
     rsvpBy: d.rsvp.by && d.rsvp.by !== d.date ? istParts(d.rsvp.by).date : "",
-    customer,
+    customer: { ...customer, phone: own },
     music: d.music ?? initialState(demo).music,
     hide: (d.hide ?? []) as FormState["hide"],
     font: d.font ?? "",
@@ -278,7 +310,7 @@ export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState[
 export function toPreview(s: FormState, demo: Invite): Invite {
   const person = (p: Person, fallback: string) => ({ first: p.first || fallback, full: p.full || p.first || fallback, parents: p.parents });
   const date = iso(s.weddingDate, s.weddingTime) || demo.date;
-  const rsvpPhone = mobile10(s.rsvpSame ? s.customer.phone : s.rsvpPhone);
+  const rsvpPhone = waNumber(s.rsvpSame ? s.customer.phone : s.rsvpPhone);
   return {
     ...demo,
     bride: person(s.bride, "Bride"),
@@ -294,7 +326,7 @@ export function toPreview(s: FormState, demo: Invite): Invite {
     // Their reply-by date, or the wedding day when they leave it empty, as the saved order does.
     rsvp: {
       ...demo.rsvp,
-      phone: rsvpPhone.length === 10 ? `91${rsvpPhone}` : demo.rsvp.phone,
+      phone: rsvpPhone || demo.rsvp.phone,
       by: s.rsvpBy ? iso(s.rsvpBy, "00:00") : date,
       contact: s.hosts || demo.rsvp.contact,
     },

@@ -155,7 +155,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
 
   const hide = Array.isArray(d.hide) ? [...new Set(d.hide.filter(isSectionId))] : [];
   const rsvp = (d.rsvp ?? {}) as Record<string, unknown>;
-  const rsvpPhone = str(rsvp.phone, 20).replace(/\D/g, "");
+  const rsvpPhone = cleanPhone(rsvp.phone);
   if (rsvpPhone.length < 10 && !hide.includes("rsvp")) errors.push("Add the WhatsApp number guests should RSVP to.");
   const rsvpBy = str(rsvp.by, 40);
 
@@ -176,7 +176,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       hashtag: str(d.hashtag, 40) || undefined,
       events,
       rsvp: {
-        phone: rsvpPhone.length === 10 ? `91${rsvpPhone}` : rsvpPhone,
+        phone: rsvpPhone,
         by: rsvpBy && isIso(rsvpBy) ? rsvpBy : date,
         contact: str(rsvp.contact, 80),
       },
@@ -246,8 +246,11 @@ export function keepInviteSettings(prev: InviteDetails | null | undefined, next:
   return out as InviteDetails;
 }
 
+/** Digits with the country code. Ten digits are an Indian mobile; a leading + means the code is already there. */
 export function cleanPhone(v: unknown) {
-  const digits = str(v, 20).replace(/\D/g, "");
+  const raw = str(v, 24);
+  const digits = raw.replace(/\D/g, "");
+  if (raw.startsWith("+")) return digits;
   if (digits.length === 10) return `91${digits}`;
   return digits;
 }

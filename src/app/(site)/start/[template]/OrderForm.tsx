@@ -31,7 +31,8 @@ import {
   initialState,
   LIMITS,
   mainCeremonies,
-  mobile10,
+  showPhone,
+  waNumber,
   stepOf,
   steps,
   toDetails,
@@ -556,7 +557,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
           details: toDetails(s),
           songPath: song?.path ?? null,
           photoPaths: showing("gallery") ? photos.map((x) => x.path) : [],
-          customer: { ...s.customer, phone: mobile10(s.customer.phone) },
+          customer: { ...s.customer, phone: `+${waNumber(s.customer.phone)}` },
           ...(refCode ? { partnerCode: refCode } : {}),
         });
       } catch (e) {
@@ -981,8 +982,8 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
           onBlur={() => touch("customer.phone")}
           error={shown("customer.phone")}
           placeholder="98765 43210"
-          maxLength={16}
-          autoComplete="tel-national"
+          maxLength={20}
+          autoComplete="tel"
         />
       </div>
       <Input
@@ -1022,7 +1023,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
       />
       </>
       )}
-      {!isNew && <p className="text-body text-muted">We&rsquo;ll keep messaging you at +91 {mobile10(s.customer.phone)}. To change that number, message us on WhatsApp.</p>}
+      {!isNew && <p className="text-body text-muted">We&rsquo;ll keep messaging you at {showPhone(s.customer.phone)}. To change that number, message us on WhatsApp.</p>}
       {showing("rsvp") && (
       <div className="rounded-tile bg-surface p-5">
         <p className="text-[15px] font-semibold">RSVPs</p>
@@ -1043,7 +1044,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
               onBlur={() => touch("rsvpPhone")}
               error={shown("rsvpPhone")}
               placeholder="98765 43210"
-              maxLength={16}
+              maxLength={20}
             />
           )}
           <Input
@@ -1120,9 +1121,9 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
       </ReviewBlock>
       <ReviewBlock title="Your contact" onEdit={() => goTo(stepIndex("contact"))}>
         <p className="text-ink">
-          {s.customer.name} · +91 {mobile10(s.customer.phone)}
+          {s.customer.name} · {showPhone(s.customer.phone)}
         </p>
-        <p>{showing("rsvp") ? `RSVPs to +91 ${mobile10(s.rsvpSame ? s.customer.phone : s.rsvpPhone)}` : "No RSVP section"}</p>
+        <p>{showing("rsvp") ? `RSVPs to ${showPhone(s.rsvpSame ? s.customer.phone : s.rsvpPhone)}` : "No RSVP section"}</p>
         {refCode && <p>{partner ? `Partner code ${partner.code} · ${partner.name}` : `Partner code ${refCode}`}</p>}
       </ReviewBlock>
       {mode.kind === "change" && !mode.prepaid && (
