@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { notFound } from "next/navigation";
 import { ImageResponse } from "next/og";
+import sharp from "sharp";
 import { getInvite, invites, type Invite } from "@/data/invites";
 import { getTemplate } from "@/data/templates";
 import { couple } from "@/invites/people";
@@ -14,7 +15,9 @@ import { longDate } from "@/lib/format";
 // couple's card is built on its first share and kept until their invite changes (`invite:<slug>`).
 export const alt = "Wedding invitation";
 export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+// Sent as a JPEG: the painted designs come out at 1–1.8 MB as PNG, and WhatsApp skips a preview
+// image that large. As JPEG they are a few hundred KB.
+export const contentType = "image/jpeg";
 
 export function generateStaticParams() {
   return invites.map((i) => ({ slug: i.slug }));
@@ -72,7 +75,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   // own pair of colours (gold on maroon for Rajwada, and so on).
   const ink = scene ? "#3a1218" : t.icon.fg;
 
-  return new ImageResponse(
+  const card = new ImageResponse(
     (
       <div style={{ ...layer, position: "relative", overflow: "hidden", fontFamily: "Geist", background: t.icon.bg }}>
         {scene ? (
@@ -106,4 +109,6 @@ export default async function Image({ params }: { params: Promise<{ slug: string
       ],
     },
   );
+  const jpeg = await sharp(Buffer.from(await card.arrayBuffer())).jpeg({ quality: 82, mozjpeg: true }).toBuffer();
+  return new Response(new Uint8Array(jpeg), { headers: { "Content-Type": "image/jpeg", "Cache-Control": card.headers.get("Cache-Control") ?? "public, max-age=31536000, immutable" } });
 }
