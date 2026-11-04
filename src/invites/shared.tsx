@@ -80,9 +80,11 @@ export function EventActions({ event, invite, theme }: { event: InviteEvent; inv
   const { t } = useT();
   return (
     <div data-event-actions className="mt-[5cqw] flex flex-wrap justify-center gap-[2.5cqw]">
-      <a href={directionsLink(event, invite.city)} target="_blank" rel="noreferrer" className={theme.ui.button}>
-        <PinIcon /> {t.directions}
-      </a>
+      {(event.mapUrl || !invite.noMapSearch) && (
+        <a href={directionsLink(event, invite.city)} target="_blank" rel="noreferrer" className={theme.ui.button}>
+          <PinIcon /> {t.directions}
+        </a>
+      )}
       <a
         href={calendarLink(`${event.name} · ${a.first} & ${b.first}`, event.start, event.end, placeOf(event, invite.city))}
         target="_blank"

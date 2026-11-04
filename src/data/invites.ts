@@ -60,6 +60,9 @@ export type Invite = {
   seal?: string;
   // Tapping anywhere on the opening screen opens the invite, not only the seal.
   tapAnywhere?: boolean;
+  // Directions only on functions with the couple's own map link, not a search for the venue (e.g.
+  // "At our residence", which a search can't find).
+  noMapSearch?: boolean;
   // Bigger, darker text throughout, for families whose guests are mostly older.
   largeText?: boolean;
   // Stack the couple's names vertically on the hero cover (first name, &, second name). On Rajwada,
