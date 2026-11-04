@@ -167,7 +167,7 @@ function Walk({ invite }: { invite: Invite }) {
     <section ref={ref} className="relative" style={{ height: "210svh" }}>
       <motion.div className="sticky top-0 h-[100svh] w-full overflow-hidden" style={{ opacity: sceneOpacity }}>
         <motion.div className="absolute inset-0" style={{ scale, transformOrigin: "50% 61%" }}>
-          <Image src={`${art}/mandir-temple.jpg`} alt={`A temple at sunrise for ${a.first} and ${b.first}'s wedding`} fill priority sizes="(max-width: 480px) 100vw, 480px" className="object-cover" />
+          <Image src={`${art}/mandir-temple.jpg`} alt={`A temple at sunrise for ${a.first} and ${b.first}'s ${invite.occasion ?? "wedding"}`} fill priority sizes="(max-width: 480px) 100vw, 480px" className="object-cover" />
         </motion.div>
         <motion.div className="absolute inset-x-[14%] top-[8%]" style={{ y: nameY, opacity: nameOpacity }}>
           <Names invite={invite} show={showAfterOpen(opened)} />
@@ -205,16 +205,19 @@ function Blessing({ invite }: { invite: Invite }) {
   // In a phone preview there's no walk to rise out of: show it still, at full size.
   const still = usePreview();
   const { t, lang } = useT();
+  const parents = (p: typeof a, className: string) =>
+    p.parents && (
+      <p className={`mx-auto text-[3.3cqw] leading-snug font-semibold ${className}`} style={{ color: c.name }}>
+        {p.parents}
+      </p>
+    );
   const person = (p: typeof a) => (
     <div>
-      {p.parents && (
-        <p className="mx-auto max-w-[62cqw] text-[3.3cqw] leading-snug font-semibold" style={{ color: c.name }}>
-          {p.parents}
-        </p>
-      )}
-      <p className="inv-script mt-[2cqw] text-[13.5cqw] leading-[0.95]" style={{ color: c.name }}>
+      {!invite.namesFirst && parents(p, "max-w-[62cqw]")}
+      <p className={`inv-script text-[13.5cqw] leading-[0.95] ${invite.namesFirst ? "" : "mt-[2cqw]"}`} style={{ color: c.name }}>
         {p.full || p.first}
       </p>
+      {invite.namesFirst && parents(p, "mt-[3cqw] max-w-[74cqw] whitespace-pre-line")}
     </div>
   );
   return (

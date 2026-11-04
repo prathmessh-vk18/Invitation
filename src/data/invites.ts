@@ -74,6 +74,10 @@ export type Invite = {
   noBranding?: boolean;
   // Show the big date on the save-the-date card as two digits ("01"), since this serif's 1 reads as "I".
   padDay?: boolean;
+  // An engagement rather than a wedding: the link title, share card and hidden labels say so.
+  occasion?: "engagement";
+  // Each name above its family lines (Mandir), instead of the lines above the name.
+  namesFirst?: boolean;
   // A couple's own RSVP title (e.g. "Please join us" instead of "Will you join us?").
   rsvpTitle?: string;
   // A couple's own countdown title (e.g. "Our big day countdown" instead of "Until we say “I do”").

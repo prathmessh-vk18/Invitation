@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: PageProps<"/i/[slug]">): Prom
   const found = await resolve((await params).slug);
   if (!found) return { title: { absolute: `Invitation · ${site.name}` } };
   const [a, b] = couple(found.invite);
-  const title = `${a.first} & ${b.first} · Wedding Invitation`;
+  const title = `${a.first} & ${b.first} · ${found.invite.occasion === "engagement" ? "Engagement" : "Wedding"} Invitation`;
   const description = `You're invited to celebrate ${a.first} & ${b.first}, ${longDate(found.invite.date)}, ${found.invite.city}.`;
   return {
     title: { absolute: title },
