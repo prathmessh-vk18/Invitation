@@ -46,14 +46,15 @@ function fit(root: HTMLElement) {
     const text = el.textContent?.trim();
     if (!text) return;
     // A chosen font style wider than the design's own (Royal's carved capitals) would come out far
-    // larger than the design meant, so it shrinks to the width the design's font would have taken.
+    // larger than the design meant, so it shrinks. Wider faces are also taller (capitals against a
+    // script's small letters), so it shrinks a little past matching the width: 1.35× wide → 0.64×.
     // Hindi keeps its own font, so it's left as it is.
     const own = getComputedStyle(el).getPropertyValue("--inv-script-own").trim();
     if (own && el.closest("[lang]")?.getAttribute("lang") !== "hi") {
       const family = resolveFamily(el, own);
       whenLoaded(family, () => fit(root));
       const wider = textWidth(el, text) / textWidth(el, text, family);
-      if (wider > 1.02) el.style.fontSize = `${parseFloat(getComputedStyle(el).fontSize) / wider}px`;
+      if (wider > 1.02) el.style.fontSize = `${parseFloat(getComputedStyle(el).fontSize) / wider ** 1.5}px`;
     }
     // Text that can wrap only needs its longest word to fit.
     const units = getComputedStyle(el).whiteSpace.includes("nowrap") ? [text] : text.split(/\s+/);
