@@ -67,7 +67,7 @@ export function SectionPreview({ invite, part, eventIndex }: { invite: Invite; p
       <div
         ref={ref}
         lang={langOf(invite)}
-        style={{ ...theme.vars, ...fontVars(invite.font), ...langVars(langOf(invite)), ...(screenH ? { ["--screen-h" as string]: `${screenH}px` } : {}) }}
+        style={{ ...theme.vars, ...fontVars(invite.font, (theme.vars as Record<string, unknown>)["--inv-script"]), ...langVars(langOf(invite)), ...(screenH ? { ["--screen-h" as string]: `${screenH}px` } : {}) }}
         className={`@container no-scrollbar relative h-full w-full overflow-x-hidden overflow-y-auto overscroll-contain select-none ${theme.root}`}
         aria-hidden
       >

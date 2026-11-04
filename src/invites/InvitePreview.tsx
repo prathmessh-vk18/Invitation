@@ -67,7 +67,7 @@ export function InvitePreview({
       <div
         ref={ref}
         lang={langOf(invite)}
-        style={{ ...theme.vars, ...fontVars(invite.font), ...langVars(langOf(invite)), ["--screen-h" as string]: "100%" }}
+        style={{ ...theme.vars, ...fontVars(invite.font, (theme.vars as Record<string, unknown>)["--inv-script"]), ...langVars(langOf(invite)), ["--screen-h" as string]: "100%" }}
         className={`@container pointer-events-none relative h-full w-full overflow-hidden select-none ${theme.root}`}
         aria-hidden
       >

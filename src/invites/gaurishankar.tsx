@@ -36,8 +36,6 @@ const c = {
 // A soft light halo so thin script and small text stay crisp over clouds.
 const HALO = "0 0 14px rgba(255,250,252,.95), 0 0 3px rgba(255,250,252,.9)";
 const SCRIPT = "var(--font-pinyon), cursive";
-// Names and titles follow the couple's font style (and Hindi), with Pinyon as the design's own.
-const NAMES = "var(--inv-script)";
 const HAND = "var(--font-parisienne), cursive";
 const SKY = "#f3dce4";
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -87,7 +85,7 @@ function Title({ kicker, children }: { kicker?: string; children: ReactNode }) {
           {kicker}
         </p>
       )}
-      <h2 className="mt-[1cqw] text-[11cqw] leading-[1.1]" style={{ color: c.rose, fontFamily: NAMES, textShadow: HALO }}>
+      <h2 className="inv-script mt-[1cqw] text-[11cqw] leading-[1.1]" style={{ color: c.rose, textShadow: HALO }}>
         {children}
       </h2>
       <Divider className="mt-[1.5cqw]" />
@@ -208,8 +206,8 @@ function Meeting({ invite, opened, onOpen }: OpeningProps) {
           {line[1]}
         </motion.p>
         <motion.p
-          className="relative leading-[1.15]"
-          style={{ fontSize: u(15), marginTop: u(2), color: c.rose, fontFamily: NAMES, textShadow: HALO }}
+          className="inv-script relative leading-[1.15]"
+          style={{ fontSize: u(15), marginTop: u(2), color: c.rose, textShadow: HALO }}
           initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ duration: 1.4, delay: at(4.8), ease }}
@@ -250,7 +248,7 @@ function Details({ invite, show }: { invite: Invite; show: (d: number) => object
       <motion.p {...show(0.5)} className="inv-label relative mt-[3cqw] text-[2.8cqw] leading-relaxed font-semibold" style={{ color: c.ink, textShadow: HALO }}>
         We cordially invite you to the wedding of
       </motion.p>
-      <motion.h1 {...show(0.75)} className="relative mt-[1.5cqw] text-[14cqw] leading-[1.05]" style={{ color: c.rose, fontFamily: NAMES, textShadow: HALO }}>
+      <motion.h1 {...show(0.75)} className="inv-script relative mt-[1.5cqw] text-[14cqw] leading-[1.05]" style={{ color: c.rose, textShadow: HALO }}>
         {a.first}
         <span className="mx-[2cqw] text-[9cqw]">{invite.joiner ?? "&"}</span>
         {b.first}
@@ -346,7 +344,7 @@ function Blessing({ invite }: { invite: Invite }) {
   const preview = usePreview();
   const person = (p: typeof a) => (
     <div>
-      <p className="mt-[1.5cqw] text-[14cqw] leading-[1.05]" style={{ color: c.rose, fontFamily: NAMES, textShadow: HALO }}>
+      <p className="inv-script mt-[1.5cqw] text-[14cqw] leading-[1.05]" style={{ color: c.rose, textShadow: HALO }}>
         {p.full || p.first}
       </p>
       {p.elders && !p.eldersBelow && (
@@ -398,7 +396,7 @@ function ArchCard({ e, invite }: { e: InviteEvent; invite: Invite }) {
       <div className="relative mx-auto w-[78cqw] drop-shadow-[0_12px_20px_rgba(140,40,70,.14)]" style={{ aspectRatio: "774 / 1442" }}>
         <Art src={`${art}/shiv-card.webp`} contain />
         <div className="absolute inset-x-[15%] top-[25%] bottom-[15%] flex flex-col items-center justify-center text-center">
-          <h3 className="text-[13cqw] leading-[1.05]" style={{ color: c.rose, fontFamily: NAMES }}>
+          <h3 className="inv-script text-[13cqw] leading-[1.05]" style={{ color: c.rose }}>
             {e.name}
           </h3>
           {e.note && (
@@ -480,7 +478,7 @@ function Closing({ invite }: { invite: Invite }) {
         <p className="inv-serif mt-[4cqw] text-[5.2cqw] leading-snug font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
           {invite.closing}
         </p>
-        <p className="mt-[3cqw] text-[14cqw] leading-[1.1]" style={{ color: c.rose, fontFamily: NAMES, textShadow: HALO }}>
+        <p className="inv-script mt-[3cqw] text-[14cqw] leading-[1.1]" style={{ color: c.rose, textShadow: HALO }}>
           {a.first} {invite.joiner ?? "&"} {b.first}
         </p>
         {invite.hashtag && (

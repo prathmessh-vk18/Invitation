@@ -77,8 +77,12 @@ export const fontStyles: FontStyle[] = [
 
 export const getFontStyle = (id: unknown) => fontStyles.find((f) => f.id === id);
 
-/** CSS variables that switch an invite to the couple's font style, if they picked one. */
-export function fontVars(id: unknown): Record<string, string> {
+/**
+ * CSS variables that switch an invite to the couple's font style, if they picked one. `own` is the
+ * design's own script font, which its name sizes were chosen for (fit.ts shrinks wider faces to it).
+ */
+export function fontVars(id: unknown, own?: unknown): Record<string, string> {
   const f = getFontStyle(id);
-  return f ? { "--inv-script": f.script, "--inv-serif": f.serif, "--inv-label": f.label } : {};
+  if (!f) return {};
+  return { "--inv-script": f.script, "--inv-serif": f.serif, "--inv-label": f.label, ...(typeof own === "string" ? { "--inv-script-own": own } : {}) };
 }
