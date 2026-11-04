@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
     return [
       { source: "/i/vidhi-weds-akshay", destination: "/i/akshay-weds-vidhi", permanent: false },
       { source: "/i/priya-weds-samridha", destination: "/i/samriddha-weds-priya", permanent: false },
+      { source: "/i/simran-weds-sahil", destination: "/i/simran-and-sahil", permanent: false },
     ];
   },
   turbopack: {
