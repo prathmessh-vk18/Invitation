@@ -207,13 +207,13 @@ function Blessing({ invite }: { invite: Invite }) {
   const { t, lang } = useT();
   const parents = (p: typeof a, className: string) =>
     p.parents && (
-      <p className={`mx-auto text-[3.3cqw] leading-snug font-semibold ${className}`} style={{ color: c.name }}>
+      <p className={`text-[3.3cqw] leading-snug font-semibold ${className}`} style={{ color: c.name }}>
         {p.parents}
       </p>
     );
   const person = (p: typeof a) => (
     <div>
-      {!invite.namesFirst && parents(p, "max-w-[62cqw]")}
+      {!invite.namesFirst && parents(p, "mx-auto max-w-[62cqw]")}
       <p className={`inv-script text-[13.5cqw] leading-[0.95] ${invite.namesFirst ? "" : "mt-[2cqw]"}`} style={{ color: c.name }}>
         {p.full || p.first}
       </p>
