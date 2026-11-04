@@ -217,7 +217,7 @@ function Blessing({ invite }: { invite: Invite }) {
       <p className={`inv-script text-[13.5cqw] leading-[0.95] ${invite.namesFirst ? "" : "mt-[2cqw]"}`} style={{ color: c.name }}>
         {p.full || p.first}
       </p>
-      {invite.namesFirst && parents(p, "mt-[3cqw] max-w-[74cqw] whitespace-pre-line")}
+      {invite.namesFirst && parents(p, "mt-[3cqw] -mx-[6cqw] whitespace-pre-line")}
     </div>
   );
   return (
