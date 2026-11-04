@@ -214,7 +214,7 @@ function Blessing({ invite }: { invite: Invite }) {
   const person = (p: typeof a) => (
     <div>
       {!invite.namesFirst && parents(p, "mx-auto max-w-[62cqw]")}
-      <p className={`inv-script text-[13.5cqw] leading-[0.95] ${invite.namesFirst ? "" : "mt-[2cqw]"}`} style={{ color: c.name }}>
+      <p className={`inv-script text-[13.5cqw] leading-[0.95] ${invite.namesFirst ? "whitespace-nowrap" : "mt-[2cqw]"}`} style={{ color: c.name }}>
         {p.full || p.first}
       </p>
       {invite.namesFirst && parents(p, "mt-[3cqw] -mx-[6cqw] whitespace-pre-line")}
