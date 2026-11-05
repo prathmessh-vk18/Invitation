@@ -34,10 +34,10 @@ function diff(a: unknown, b: unknown, path = ""): string[] {
 
 const rows: { code: string; slug: string; settings: string[]; drift: string[] }[] = [];
 for (const o of orders) {
-  const d = o.details as unknown as Record<string, any>;
+  const d = o.details as unknown as Record<string, unknown>;
   const settings = [
     ...Object.keys(d).filter((k) => !FORM_TOP.has(k)),
-    ...(["bride", "groom"] as const).flatMap((w) => Object.keys(d[w] ?? {}).filter((k) => !FORM_PERSON.has(k)).map((k) => `${w}.${k}`)),
+    ...(["bride", "groom"] as const).flatMap((w) => Object.keys((d[w] as object | undefined) ?? {}).filter((k) => !FORM_PERSON.has(k)).map((k) => `${w}.${k}`)),
   ];
   const inv = o.invite_slug ? invites.find((i) => i.slug === o.invite_slug) : undefined;
   const drift = inv ? diff(inviteFromOrder(o, o.invite_slug!), inv.data) : [];

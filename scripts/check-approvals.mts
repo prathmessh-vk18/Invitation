@@ -53,9 +53,9 @@ console.log(`orders checked: ${orders.length}, with differences: ${Object.keys(l
   state.bride.parents = "Edited by the couple";
   const v1 = validateDetails(toDetails(state));
   const v2 = v1.ok ? validateDetails(keepInviteSettings(d0, v1.details)) : v1;
-  const after = v2.ok ? (keepInviteSettings(d0, v2.details) as unknown as Record<string, any>) : null;
+  const after = v2.ok ? (keepInviteSettings(d0, v2.details) as unknown as Record<string, unknown>) : null;
   console.log("\nunlisted invite setting kept:", JSON.stringify(after?.someFutureSetting) === '{"on":true}');
-  console.log("unlisted person setting kept:", after?.bride?.someFutureBadge === "Dr.");
-  console.log("couple's edit applied:", after?.bride?.parents === "Edited by the couple");
+  console.log("unlisted person setting kept:", (after?.bride as Record<string, unknown> | undefined)?.someFutureBadge === "Dr.");
+  console.log("couple's edit applied:", (after?.bride as Record<string, unknown> | undefined)?.parents === "Edited by the couple");
 }
 for (const [k, v] of Object.entries(lost)) { console.log(`\n== ${k}`); v.slice(0, 12).forEach((x) => console.log("   " + x)); if (v.length > 12) console.log(`   … ${v.length - 12} more`); }
