@@ -33,6 +33,8 @@ export type Person = {
   cardName?: string;
   // A longer name for the cover only (e.g. "Dr. Simran"); everywhere else uses `first`.
   coverName?: string;
+  // A small line under the name, e.g. "IRS Officer" (Mandir cover and names).
+  title?: string;
 };
 
 export type Invite = {
@@ -82,6 +84,8 @@ export type Invite = {
   namesFirst?: boolean;
   // Venue and function notes a weight heavier (Mandir).
   boldEvents?: boolean;
+  // Shrinks the couple's names on the cover and names section (Mandir), e.g. 0.85.
+  nameScale?: number;
   // A couple's own RSVP title (e.g. "Please join us" instead of "Will you join us?").
   rsvpTitle?: string;
   // A couple's own countdown title (e.g. "Our big day countdown" instead of "Until we say “I do”").

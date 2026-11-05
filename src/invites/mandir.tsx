@@ -106,21 +106,30 @@ function ArchCard({ children }: { children: ReactNode }) {
 function Names({ invite, show }: { invite: Invite; show: (d: number) => object }) {
   const [a, b] = couple(invite);
   const { t, d, lang } = useT();
+  const big = { fontSize: `${(15 * (invite.nameScale ?? 1)).toFixed(2)}cqw` };
+  const title = (p: typeof a) =>
+    p.title && (
+      <span className="inv-label mt-[1.5cqw] mb-[1cqw] text-[2.8cqw] font-semibold" style={{ color: c.ink }}>
+        {p.title}
+      </span>
+    );
   return (
     <div className="flex flex-col items-center text-center [text-shadow:0_0_16px_rgba(255,240,228,.9)]">
       <motion.p {...show(0.3)} className="text-[3.4cqw]" style={{ color: c.name, fontFamily: "var(--font-deva)" }}>
         {invite.invocation}
       </motion.p>
       <motion.h1 {...show(0.6)} className="mt-[3cqw] flex flex-col items-center">
-        <span className={`inv-script text-[15cqw] leading-[0.95] ${a.coverName ? "whitespace-nowrap" : ""}`} style={{ color: c.name }}>
+        <span className={`inv-script text-[15cqw] leading-[0.95] ${a.coverName ? "whitespace-nowrap" : ""}`} style={{ color: c.name, ...big }}>
           {a.coverName ?? a.first}
         </span>
+        {title(a)}
         <span className={`text-[8.5cqw] leading-none ${lang === "hi" ? "my-[2cqw]" : "-my-[1cqw]"}`} style={{ color: c.ink, fontFamily: lang === "hi" ? "var(--inv-script)" : HAND }}>
           {invite.joiner ?? t.weds}
         </span>
-        <span className={`inv-script text-[15cqw] leading-[0.95] ${b.coverName ? "whitespace-nowrap" : ""}`} style={{ color: c.name }}>
+        <span className={`inv-script text-[15cqw] leading-[0.95] ${b.coverName ? "whitespace-nowrap" : ""}`} style={{ color: c.name, ...big }}>
           {b.coverName ?? b.first}
         </span>
+        {title(b)}
       </motion.h1>
       <motion.p {...show(1)} className="inv-label mt-[3cqw] text-[2.6cqw]" style={{ color: c.ink }}>
         {d.weekday(invite.date)} · {d.day(invite.date)} {d.month(invite.date)} {d.year(invite.date)}
@@ -214,9 +223,17 @@ function Blessing({ invite }: { invite: Invite }) {
   const person = (p: typeof a) => (
     <div>
       {!invite.namesFirst && parents(p, "mx-auto max-w-[62cqw]")}
-      <p className={`inv-script text-[13.5cqw] leading-[0.95] ${invite.namesFirst ? "whitespace-nowrap" : "mt-[2cqw]"}`} style={{ color: c.name }}>
+      <p
+        className={`inv-script text-[13.5cqw] leading-[0.95] ${invite.namesFirst ? "whitespace-nowrap" : "mt-[2cqw]"}`}
+        style={{ color: c.name, ...(invite.nameScale ? { fontSize: `${(13.5 * invite.nameScale).toFixed(2)}cqw` } : {}) }}
+      >
         {p.full || p.first}
       </p>
+      {p.title && (
+        <p className="inv-label mt-[1.5cqw] text-[2.8cqw] font-semibold" style={{ color: c.ink }}>
+          {p.title}
+        </p>
+      )}
       {invite.namesFirst && parents(p, "mt-[3cqw] -mx-[6cqw] whitespace-pre-line")}
     </div>
   );

@@ -112,7 +112,8 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
     const elders = str(o.elders, 160);
     const cardName = str(o.cardName, 40);
     const coverName = str(o.coverName, 40);
-    return { ...(cardName ? { cardName } : {}), ...(coverName ? { coverName } : {}), first, full: str(o.full, 80) || first, parents: str(o.parents, 160), ...(elders ? { elders } : {}), ...(elders && o.eldersBelow === true ? { eldersBelow: true } : {}), ...(elders && o.eldersPlain === true ? { eldersPlain: true } : {}) };
+    const title = str(o.title, 40);
+    return { ...(cardName ? { cardName } : {}), ...(coverName ? { coverName } : {}), ...(title ? { title } : {}), first, full: str(o.full, 80) || first, parents: str(o.parents, 160), ...(elders ? { elders } : {}), ...(elders && o.eldersBelow === true ? { eldersBelow: true } : {}), ...(elders && o.eldersPlain === true ? { eldersPlain: true } : {}) };
   };
   const bride = person(d.bride);
   const groom = person(d.groom);
@@ -223,6 +224,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.occasion === "engagement" ? { occasion: "engagement" as const } : {}),
       ...(d.namesFirst === true ? { namesFirst: true } : {}),
       ...(d.boldEvents === true ? { boldEvents: true } : {}),
+      ...(typeof d.nameScale === "number" && d.nameScale >= 0.6 && d.nameScale < 1 ? { nameScale: Math.round(d.nameScale * 100) / 100 } : {}),
       ...(d.tapAnywhere === true ? { tapAnywhere: true } : {}),
       ...(d.noMapSearch === true ? { noMapSearch: true } : {}),
       ...(typeof d.seal === "string" && /^\/art\/seals\/[\w-]+\.(png|jpg|webp)$/.test(d.seal) ? { seal: d.seal } : {}),
