@@ -110,7 +110,7 @@ function InlineTitle({ p, cover }: { p: Person; cover?: boolean }) {
   if (p.titleScript) {
     if (cover) return null;
     return (
-      <span data-fit-aside className="ml-[0.25em]" style={{ fontSize: "0.6em" }}>
+      <span data-fit-aside className="ml-[0.25em]" style={{ fontSize: "0.51em" }}>
         {p.title}
       </span>
     );
