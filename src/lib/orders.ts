@@ -111,7 +111,8 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
     const first = str(o.first, 40);
     const elders = str(o.elders, 160);
     const cardName = str(o.cardName, 40);
-    return { ...(cardName ? { cardName } : {}), first, full: str(o.full, 80) || first, parents: str(o.parents, 160), ...(elders ? { elders } : {}), ...(elders && o.eldersBelow === true ? { eldersBelow: true } : {}), ...(elders && o.eldersPlain === true ? { eldersPlain: true } : {}) };
+    const coverName = str(o.coverName, 40);
+    return { ...(cardName ? { cardName } : {}), ...(coverName ? { coverName } : {}), first, full: str(o.full, 80) || first, parents: str(o.parents, 160), ...(elders ? { elders } : {}), ...(elders && o.eldersBelow === true ? { eldersBelow: true } : {}), ...(elders && o.eldersPlain === true ? { eldersPlain: true } : {}) };
   };
   const bride = person(d.bride);
   const groom = person(d.groom);
@@ -245,6 +246,7 @@ export function keepInviteSettings(prev: InviteDetails | null | undefined, next:
   for (const k of KEPT) if (out[k] === undefined && old[k] !== undefined) out[k] = old[k];
   for (const who of ["bride", "groom"] as const) {
     if (!next[who].cardName && prev[who]?.cardName) out[who] = { ...(out[who] as InviteDetails["bride"]), cardName: prev[who].cardName };
+    if (!next[who].coverName && prev[who]?.coverName) out[who] = { ...(out[who] as InviteDetails["bride"]), coverName: prev[who].coverName };
     if (!next[who].elders && prev[who]?.elders) out[who] = { ...(out[who] as InviteDetails["bride"]), elders: prev[who].elders, ...(prev[who].eldersBelow ? { eldersBelow: true } : {}), ...(prev[who].eldersPlain ? { eldersPlain: true } : {}) };
   }
   return out as InviteDetails;

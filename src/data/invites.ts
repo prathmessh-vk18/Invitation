@@ -31,6 +31,8 @@ export type Person = {
   eldersPlain?: boolean;
   // A shorter name for the couple's card only (e.g. "Priya"); everywhere else uses `first`.
   cardName?: string;
+  // A longer name for the cover only (e.g. "Dr. Simran"); everywhere else uses `first`.
+  coverName?: string;
 };
 
 export type Invite = {

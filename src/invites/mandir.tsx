@@ -112,14 +112,14 @@ function Names({ invite, show }: { invite: Invite; show: (d: number) => object }
         {invite.invocation}
       </motion.p>
       <motion.h1 {...show(0.6)} className="mt-[3cqw] flex flex-col items-center">
-        <span className="inv-script text-[15cqw] leading-[0.95]" style={{ color: c.name }}>
-          {a.first}
+        <span className={`inv-script text-[15cqw] leading-[0.95] ${a.coverName ? "whitespace-nowrap" : ""}`} style={{ color: c.name }}>
+          {a.coverName ?? a.first}
         </span>
         <span className={`text-[8.5cqw] leading-none ${lang === "hi" ? "my-[2cqw]" : "-my-[1cqw]"}`} style={{ color: c.ink, fontFamily: lang === "hi" ? "var(--inv-script)" : HAND }}>
           {invite.joiner ?? t.weds}
         </span>
-        <span className="inv-script text-[15cqw] leading-[0.95]" style={{ color: c.name }}>
-          {b.first}
+        <span className={`inv-script text-[15cqw] leading-[0.95] ${b.coverName ? "whitespace-nowrap" : ""}`} style={{ color: c.name }}>
+          {b.coverName ?? b.first}
         </span>
       </motion.h1>
       <motion.p {...show(1)} className="inv-label mt-[3cqw] text-[2.6cqw]" style={{ color: c.ink }}>
