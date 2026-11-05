@@ -25,9 +25,8 @@ export function movedMediaUrl<T extends string | undefined>(url: T): T {
 
 export function withMovedMedia(invite: Invite): Invite {
   if (!MEDIA) return invite;
-  return {
-    ...invite,
-    ...(invite.music ? { music: movedMediaUrl(invite.music) } : {}),
-    ...(invite.gallery ? { gallery: invite.gallery.map((u) => movedMediaUrl(u)) } : {}),
-  };
+  // Every stored file link, wherever it sits (song, gallery, memorial photo, anything added later).
+  const move = (v: unknown): unknown =>
+    typeof v === "string" ? movedMediaUrl(v) : Array.isArray(v) ? v.map(move) : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, move(x)])) : v;
+  return move(invite) as Invite;
 }
