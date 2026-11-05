@@ -234,20 +234,28 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
   };
 }
 
-// Invite settings set by us for one couple that the order form doesn't show. A form save would
-// otherwise drop them, so they carry over from the order's previous details.
-const KEPT = ["stackNames", "noSignoff", "noBranding", "padDay", "occasion", "namesFirst", "boldEvents", "rsvpTitle", "countdownTitle", "tapAnywhere", "noMapSearch", "largeText", "rsvpHeading", "monogram", "openHint", "memorial", "sealFull", "eventsByDay", "dayNames", "joiner", "plainCover", "seal", "wardrobe", "extras", "welcome", "lang"] as const;
+// What the order form edits. Anything else on an order was set by us for one couple (a seal, a
+// custom heading, "Dr." on the cover…), and a form save or an approved change must never drop it.
+const FORM_FIELDS = new Set(["bride", "groom", "lead", "invocation", "invocationMeaning", "hosts", "message", "date", "city", "hashtag", "events", "rsvp", "closing", "music", "hide", "font", "lang"]);
+const FORM_PERSON_FIELDS = new Set(["first", "full", "parents"]);
+// Form fields that are left out when empty rather than sent blank, so a gap means "unchanged".
+const KEPT_IF_MISSING = ["lang"] as const;
 
-/** `next` from a form, with the invite-only settings from `prev` it couldn't have known about. */
+/**
+ * `next` from a form, with every setting from `prev` that the form doesn't edit carried over:
+ * at the top level and on each person. New per-invite settings are kept automatically.
+ */
 export function keepInviteSettings(prev: InviteDetails | null | undefined, next: InviteDetails): InviteDetails {
   if (!prev) return next;
   const out = { ...next } as Record<string, unknown>;
   const old = prev as unknown as Record<string, unknown>;
-  for (const k of KEPT) if (out[k] === undefined && old[k] !== undefined) out[k] = old[k];
+  for (const [k, v] of Object.entries(old)) if (!FORM_FIELDS.has(k) && out[k] === undefined && v !== undefined) out[k] = v;
+  for (const k of KEPT_IF_MISSING) if (out[k] === undefined && old[k] !== undefined) out[k] = old[k];
   for (const who of ["bride", "groom"] as const) {
-    if (!next[who].cardName && prev[who]?.cardName) out[who] = { ...(out[who] as InviteDetails["bride"]), cardName: prev[who].cardName };
-    if (!next[who].coverName && prev[who]?.coverName) out[who] = { ...(out[who] as InviteDetails["bride"]), coverName: prev[who].coverName };
-    if (!next[who].elders && prev[who]?.elders) out[who] = { ...(out[who] as InviteDetails["bride"]), elders: prev[who].elders, ...(prev[who].eldersBelow ? { eldersBelow: true } : {}), ...(prev[who].eldersPlain ? { eldersPlain: true } : {}) };
+    const was = (prev[who] ?? {}) as unknown as Record<string, unknown>;
+    const now = { ...(out[who] as Record<string, unknown>) };
+    for (const [k, v] of Object.entries(was)) if (!FORM_PERSON_FIELDS.has(k) && now[k] === undefined && v !== undefined) now[k] = v;
+    out[who] = now;
   }
   return out as InviteDetails;
 }
