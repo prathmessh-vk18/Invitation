@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { mediaUrl } from "@/lib/media";
 
 export const SONGS_BUCKET = "songs";
 export const PHOTOS_BUCKET = "photos";
@@ -26,10 +27,11 @@ export function db() {
   return client;
 }
 
+/** Public addresses of couples' files: Cloudflare R2 once it's switched on, Supabase until then. */
 export function photoPublicUrl(path: string) {
-  return db().storage.from(PHOTOS_BUCKET).getPublicUrl(path).data.publicUrl;
+  return mediaUrl(PHOTOS_BUCKET, path);
 }
 
 export function songPublicUrl(path: string) {
-  return db().storage.from(SONGS_BUCKET).getPublicUrl(path).data.publicUrl;
+  return mediaUrl(SONGS_BUCKET, path);
 }

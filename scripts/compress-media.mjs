@@ -11,20 +11,15 @@
  *
  * Needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY, and ffmpeg (or FFMPEG=<path>).
  */
-import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { promisify } from "node:util";
 import { createClient } from "@supabase/supabase-js";
-import sharp from "sharp";
+import { smallerPhoto, smallerSong } from "./media-shrink.mjs";
 
-const run = promisify(execFile);
 const args = process.argv.slice(2);
 const dry = args.includes("--dry");
 const backup = args.includes("--backup") ? args[args.indexOf("--backup") + 1] : null;
 const only = args.includes("--only") ? args[args.indexOf("--only") + 1] : null;
-const ffmpeg = process.env.FFMPEG || "ffmpeg";
 
 const YEAR = "31536000";
 const KEEP_IF_SAVES = 0.15; // replace only when the new file is at least 15% smaller
@@ -39,31 +34,6 @@ async function list(bucket, prefix) {
     out.push(...data.filter((f) => f.metadata).map((f) => ({ path: `${prefix}/${f.name}`, size: f.metadata.size, type: f.metadata.mimetype, cache: f.metadata.cacheControl ?? "" })));
     if (data.length < 1000) return out;
   }
-}
-
-/** 96 kbps keeps a song clear on phone speakers at about a third of a typical upload. */
-async function smallerSong(buf, type) {
-  // A WAV would become an MP3 at a .wav address. Chrome plays that, but it isn't worth the risk on iPhones.
-  if (type.includes("wav")) return { buf, type };
-  const dir = await mkdtemp(join(tmpdir(), "song-"));
-  try {
-    const input = join(dir, "in");
-    await writeFile(input, buf);
-    const m4a = type.includes("mp4") || type.includes("m4a");
-    const output = join(dir, m4a ? "out.m4a" : "out.mp3");
-    const codec = m4a ? ["-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart"] : ["-c:a", "libmp3lame", "-b:a", "96k"];
-    // -map 0:a drops cover art embedded in the file, which guests never see.
-    await run(ffmpeg, ["-y", "-loglevel", "error", "-i", input, "-map", "0:a:0", "-map_metadata", "-1", "-ac", "2", ...codec, output]);
-    return { buf: await readFile(output), type: m4a ? type : "audio/mpeg" };
-  } finally {
-    await rm(dir, { recursive: true, force: true });
-  }
-}
-
-/** 1280px on the long side is sharp even full screen on a phone. */
-async function smallerPhoto(buf) {
-  const out = await sharp(buf).rotate().resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true }).jpeg({ quality: 80, mozjpeg: true }).toBuffer();
-  return { buf: out, type: "image/jpeg" };
 }
 
 async function handle(bucket, file, shrink) {

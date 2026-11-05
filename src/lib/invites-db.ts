@@ -1,6 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import type { Invite } from "@/data/invites";
+import { withMovedMedia } from "@/lib/media";
 import { db, isSupabaseConfigured } from "@/lib/supabase";
 
 export type PublishedInvite = { invite: Invite; liveUntil: string };
@@ -13,5 +14,5 @@ export async function getPublishedInvite(slug: string): Promise<PublishedInvite 
   if (!isSupabaseConfigured()) return null;
   const { data } = await db().from("invites").select("data, live_until").eq("slug", slug).eq("is_published", true).maybeSingle();
   if (!data) return null;
-  return { invite: data.data as Invite, liveUntil: data.live_until as string };
+  return { invite: withMovedMedia(data.data as Invite), liveUntil: data.live_until as string };
 }

@@ -8,6 +8,7 @@ import { findActivePartner } from "@/lib/partners";
 import { logOrderEdit } from "@/lib/order-edits";
 import { autoPublish, warmShareCard } from "@/lib/publish";
 import { createRazorpayOrder, isRazorpayConfigured, paysOnline, isValidPaymentSignature, markPaidByRazorpayOrder, razorpayKeyId } from "@/lib/razorpay";
+import { r2UploadUrl } from "@/lib/r2";
 import { db, isSupabaseConfigured, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
 
 const AUDIO = /^(audio\/(mpeg|mp3|mp4|x-m4a|aac|wav|x-wav|ogg))$/;
@@ -19,6 +20,8 @@ export async function createSongUpload(fileName: string, contentType: string, si
   if (size > MAX_SONG_BYTES) return { error: "That file is over 15 MB. Please trim it or choose a shorter version." };
   const ext = (fileName.split(".").pop() || "mp3").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "mp3";
   const path = `uploads/${randomUUID()}.${ext}`;
+  const r2 = r2UploadUrl(SONGS_BUCKET, path, contentType, size);
+  if (r2) return { path, url: r2.url, headers: r2.headers };
   const { data, error } = await db().storage.from(SONGS_BUCKET).createSignedUploadUrl(path);
   if (error || !data) return { error: "We couldn't prepare the upload. Please try again." };
   return { path: data.path, token: data.token };
@@ -32,7 +35,10 @@ export async function createPhotoUpload(contentType: string, size: number) {
   if (!IMAGE.test(contentType)) return { error: "Please choose a JPG, PNG or WebP photo." };
   if (size > MAX_PHOTO_BYTES) return { error: "That photo is over 10 MB." };
   const ext = contentType === "image/png" ? "png" : contentType === "image/webp" ? "webp" : "jpg";
-  const { data, error } = await db().storage.from(PHOTOS_BUCKET).createSignedUploadUrl(`moments/${randomUUID()}.${ext}`);
+  const path = `moments/${randomUUID()}.${ext}`;
+  const r2 = r2UploadUrl(PHOTOS_BUCKET, path, contentType, size);
+  if (r2) return { path, url: r2.url, headers: r2.headers };
+  const { data, error } = await db().storage.from(PHOTOS_BUCKET).createSignedUploadUrl(path);
   if (error || !data) return { error: "We couldn't prepare the upload. Please try again." };
   return { path: data.path, token: data.token };
 }
