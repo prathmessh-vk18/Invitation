@@ -21,6 +21,7 @@ import { adminSaveOrder, approveChange } from "@/app/admin/actions";
 import type { InviteDetails } from "@/lib/orders";
 import { cleanPartnerCode, readRefCookie } from "@/config/partners";
 import { browserSupabase } from "@/lib/supabase-browser";
+import { mediaUrl, type MediaBucket } from "@/lib/media";
 import { OfferCountdown, PriceTag } from "@/site/offer";
 import { Button, Panel, PhoneFrame, ease } from "@/ui";
 import {
@@ -274,10 +275,22 @@ type Photo = { path: string };
 type Draft = { v: 2; s: FormState; step: number; furthest: number; song: Song | null; photos?: Photo[] };
 
 const MAX_PHOTOS = 8;
-const photoUrl = (path: string) => `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${path}`;
+const photoUrl = (path: string) => mediaUrl("photos", path);
 // Every upload gets a new random name, and is only ever swapped for a smaller copy of itself
 // (scripts/compress-media.mjs), so guests can keep it for a year.
 const UPLOAD_CACHE = "31536000";
+
+type UploadTicket = { path: string; url?: string; headers?: Record<string, string>; token?: string };
+
+/** Sends one file to the link our server issued: Cloudflare R2 when it's on, otherwise Supabase. */
+async function uploadTo(bucket: MediaBucket, ticket: UploadTicket, body: Blob, type: string) {
+  if (ticket.url) {
+    const res = await fetch(ticket.url, { method: "PUT", headers: ticket.headers, body });
+    return res.ok;
+  }
+  const { error } = await browserSupabase().storage.from(bucket).uploadToSignedUrl(ticket.path, ticket.token ?? "", body, { contentType: type, cacheControl: UPLOAD_CACHE });
+  return !error;
+}
 
 // A page opened before a deploy calls actions by the old build's ids, which the new server
 // doesn't have ("Server Action … was not found on the server").
@@ -479,8 +492,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
     try {
       const res = await createSongUpload(file.name, file.type, file.size);
       if ("error" in res) throw new Error(res.error);
-      const { error } = await browserSupabase().storage.from("songs").uploadToSignedUrl(res.path, res.token, file, { contentType: file.type, cacheControl: UPLOAD_CACHE });
-      if (error) throw new Error("The upload didn't finish. Please try again.");
+      if (!(await uploadTo("songs", res, file, file.type))) throw new Error("The upload didn't finish. Please try again.");
       setSong({ path: res.path, name: file.name });
       setSongState("idle");
     } catch (e) {
@@ -503,8 +515,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
           const type = blob.type || file.type;
           const res = await createPhotoUpload(type, blob.size);
           if ("error" in res) throw new Error(res.error);
-          const { error } = await browserSupabase().storage.from("photos").uploadToSignedUrl(res.path, res.token, blob, { contentType: type, cacheControl: UPLOAD_CACHE });
-          if (error) throw new Error("A photo didn't finish uploading. Please try again.");
+          if (!(await uploadTo("photos", res, blob, type))) throw new Error("A photo didn't finish uploading. Please try again.");
           setPhotos((p) => (p.length < MAX_PHOTOS ? [...p, { path: res.path }] : p));
         } catch (e) {
           setPhotoError(isStale(e) ? stale("photos") : e instanceof Error ? e.message : "A photo didn't finish uploading. Please try again.");
@@ -595,7 +606,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
     });
   }
 
-  const songUrl = song ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/songs/${song.path}` : "";
+  const songUrl = song ? mediaUrl("songs", song.path) : "";
 
   // The preview with the couple's own song and photos, when they've added them.
   const live = useMemo(
