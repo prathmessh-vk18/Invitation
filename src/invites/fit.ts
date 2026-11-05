@@ -43,7 +43,9 @@ function fit(root: HTMLElement) {
     // Start from the size the design set (some set it inline), not from a previous fit.
     el.dataset.fitBase ??= el.style.fontSize;
     el.style.fontSize = el.dataset.fitBase;
-    const text = el.textContent?.trim();
+    // A small line set beside the name (e.g. "IRS Officer") isn't script: it only takes up room.
+    const aside = el.querySelector<HTMLElement>("[data-fit-aside]");
+    const text = (aside ? el.textContent?.replace(aside.textContent ?? "", "") : el.textContent)?.trim();
     if (!text) return;
     // A chosen font style wider than the design's own (Royal's carved capitals) would come out far
     // larger than the design meant, so it shrinks. Wider faces are also taller (capitals against a
@@ -59,7 +61,8 @@ function fit(root: HTMLElement) {
     // Text that can wrap only needs its longest word to fit.
     const units = getComputedStyle(el).whiteSpace.includes("nowrap") ? [text] : text.split(/\s+/);
     const widest = Math.max(...units.map((u) => textWidth(el, u)));
-    const avail = room(el, root);
+    // A line that reaches past its box (negative margins) may use that extra width too.
+    const avail = aside ? Math.max(room(el, root), el.clientWidth) - aside.offsetWidth - parseFloat(getComputedStyle(aside).marginLeft) : room(el, root);
     if (widest > avail && avail > 0) el.style.fontSize = `${(parseFloat(getComputedStyle(el).fontSize) * avail * 0.96) / widest}px`;
   });
 }

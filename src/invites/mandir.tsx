@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { site } from "@/config/site";
-import type { Invite, InviteEvent } from "@/data/invites";
+import type { Invite, InviteEvent, Person } from "@/data/invites";
 import { useT } from "./i18n";
 import { makeIllustrated } from "./illustrated";
 import { PREVIEW_ART_SIZES, useOpened, usePreview } from "./opened";
@@ -103,12 +103,23 @@ function ArchCard({ children }: { children: ReactNode }) {
 
 /* ───────── Cover: walking up the carpet into the temple ───────── */
 
+/** A person's title (e.g. "IRS Officer") set small, on the name's own line. */
+function InlineTitle({ p }: { p: Person }) {
+  if (!p.title || !p.titleInline) return null;
+  return (
+    <span data-fit-aside className="inv-label ml-[2cqw] inline-block align-middle text-[2.6cqw] leading-none font-semibold" style={{ color: c.ink }}>
+      {p.title}
+    </span>
+  );
+}
+
 function Names({ invite, show }: { invite: Invite; show: (d: number) => object }) {
   const [a, b] = couple(invite);
   const { t, d, lang } = useT();
   const big = { fontSize: `${(15 * (invite.nameScale ?? 1)).toFixed(2)}cqw` };
   const title = (p: typeof a) =>
-    p.title && (
+    p.title &&
+    !p.titleInline && (
       <span className="inv-label mt-[1.5cqw] mb-[1cqw] text-[2.8cqw] font-semibold" style={{ color: c.ink }}>
         {p.title}
       </span>
@@ -121,6 +132,7 @@ function Names({ invite, show }: { invite: Invite; show: (d: number) => object }
       <motion.h1 {...show(0.6)} className="mt-[3cqw] flex flex-col items-center">
         <span className={`inv-script text-[15cqw] leading-[0.95] ${a.coverName ? "whitespace-nowrap" : ""}`} style={{ color: c.name, ...big }}>
           {a.coverName ?? a.first}
+          <InlineTitle p={a} />
         </span>
         {title(a)}
         <span className={`text-[8.5cqw] leading-none ${lang === "hi" ? "my-[2cqw]" : "-my-[1cqw]"}`} style={{ color: c.ink, fontFamily: lang === "hi" ? "var(--inv-script)" : HAND }}>
@@ -128,6 +140,7 @@ function Names({ invite, show }: { invite: Invite; show: (d: number) => object }
         </span>
         <span className={`inv-script text-[15cqw] leading-[0.95] ${b.coverName ? "whitespace-nowrap" : ""}`} style={{ color: c.name, ...big }}>
           {b.coverName ?? b.first}
+          <InlineTitle p={b} />
         </span>
         {title(b)}
       </motion.h1>
@@ -224,12 +237,13 @@ function Blessing({ invite }: { invite: Invite }) {
     <div>
       {!invite.namesFirst && parents(p, "mx-auto max-w-[62cqw]")}
       <p
-        className={`inv-script text-[13.5cqw] leading-[0.95] ${invite.namesFirst ? "whitespace-nowrap" : "mt-[2cqw]"}`}
+        className={`inv-script text-[13.5cqw] leading-[0.95] ${invite.namesFirst ? "whitespace-nowrap" : "mt-[2cqw]"} ${p.title && p.titleInline ? "-mx-[6cqw]" : ""}`}
         style={{ color: c.name, ...(invite.nameScale ? { fontSize: `${(13.5 * invite.nameScale).toFixed(2)}cqw` } : {}) }}
       >
         {p.full || p.first}
+        <InlineTitle p={p} />
       </p>
-      {p.title && (
+      {p.title && !p.titleInline && (
         <p className="inv-label mt-[1.5cqw] text-[2.8cqw] font-semibold" style={{ color: c.ink }}>
           {p.title}
         </p>

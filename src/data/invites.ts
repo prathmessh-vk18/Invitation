@@ -35,6 +35,8 @@ export type Person = {
   coverName?: string;
   // A small line under the name, e.g. "IRS Officer" (Mandir cover and names).
   title?: string;
+  // Print the title on the same line as the name, after it, instead of underneath.
+  titleInline?: boolean;
 };
 
 export type Invite = {
