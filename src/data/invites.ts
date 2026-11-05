@@ -243,11 +243,6 @@ export const invites: Invite[] = [
         note: "Lunch to follow",
       },
     ],
-    story: [
-      { year: "2019", title: "First hello", text: "A borrowed umbrella outside a Pune bookshop, returned three coffees later." },
-      { year: "2023", title: "The question", text: "Asked at sunrise on Sinhagad fort, answered before he finished." },
-      { year: "2027", title: "Forever", text: "And now, with everyone we love, we make it official." },
-    ],
     rsvp: { phone: "919699711809", by: "2027-01-05T00:00:00+05:30", contact: "Tara & Ishaan" },
     closing: "We can't wait to celebrate with you.",
   },
