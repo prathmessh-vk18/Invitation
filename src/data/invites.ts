@@ -37,6 +37,8 @@ export type Person = {
   title?: string;
   // Print the title on the same line as the name, after it, instead of underneath.
   titleInline?: boolean;
+  // With titleInline: set the title in the name's script at a smaller size, and leave it off the cover.
+  titleScript?: boolean;
 };
 
 export type Invite = {

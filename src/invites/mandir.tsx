@@ -104,8 +104,17 @@ function ArchCard({ children }: { children: ReactNode }) {
 /* ───────── Cover: walking up the carpet into the temple ───────── */
 
 /** A person's title (e.g. "IRS Officer") set small, on the name's own line. */
-function InlineTitle({ p }: { p: Person }) {
+function InlineTitle({ p, cover }: { p: Person; cover?: boolean }) {
   if (!p.title || !p.titleInline) return null;
+  // In the name's own script, smaller; the cover keeps just the name.
+  if (p.titleScript) {
+    if (cover) return null;
+    return (
+      <span data-fit-aside className="ml-[0.25em]" style={{ fontSize: "0.6em" }}>
+        {p.title}
+      </span>
+    );
+  }
   return (
     <span data-fit-aside className="inv-label ml-[2cqw] inline-block align-middle text-[2.6cqw] leading-none font-semibold" style={{ color: c.ink }}>
       {p.title}
@@ -132,7 +141,7 @@ function Names({ invite, show }: { invite: Invite; show: (d: number) => object }
       <motion.h1 {...show(0.6)} className="mt-[3cqw] flex flex-col items-center">
         <span className={`inv-script text-[15cqw] leading-[0.95] ${a.coverName ? "whitespace-nowrap" : ""}`} style={{ color: c.name, ...big }}>
           {a.coverName ?? a.first}
-          <InlineTitle p={a} />
+          <InlineTitle p={a} cover />
         </span>
         {title(a)}
         <span className={`text-[8.5cqw] leading-none ${lang === "hi" ? "my-[2cqw]" : "-my-[1cqw]"}`} style={{ color: c.ink, fontFamily: lang === "hi" ? "var(--inv-script)" : HAND }}>
@@ -140,7 +149,7 @@ function Names({ invite, show }: { invite: Invite; show: (d: number) => object }
         </span>
         <span className={`inv-script text-[15cqw] leading-[0.95] ${b.coverName ? "whitespace-nowrap" : ""}`} style={{ color: c.name, ...big }}>
           {b.coverName ?? b.first}
-          <InlineTitle p={b} />
+          <InlineTitle p={b} cover />
         </span>
         {title(b)}
       </motion.h1>

@@ -113,7 +113,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
     const cardName = str(o.cardName, 40);
     const coverName = str(o.coverName, 40);
     const title = str(o.title, 40);
-    return { ...(cardName ? { cardName } : {}), ...(coverName ? { coverName } : {}), ...(title ? { title } : {}), ...(title && o.titleInline === true ? { titleInline: true } : {}), first, full: str(o.full, 80) || first, parents: str(o.parents, 160), ...(elders ? { elders } : {}), ...(elders && o.eldersBelow === true ? { eldersBelow: true } : {}), ...(elders && o.eldersPlain === true ? { eldersPlain: true } : {}) };
+    return { ...(cardName ? { cardName } : {}), ...(coverName ? { coverName } : {}), ...(title ? { title } : {}), ...(title && o.titleInline === true ? { titleInline: true } : {}), ...(title && o.titleScript === true ? { titleScript: true } : {}), first, full: str(o.full, 80) || first, parents: str(o.parents, 160), ...(elders ? { elders } : {}), ...(elders && o.eldersBelow === true ? { eldersBelow: true } : {}), ...(elders && o.eldersPlain === true ? { eldersPlain: true } : {}) };
   };
   const bride = person(d.bride);
   const groom = person(d.groom);
