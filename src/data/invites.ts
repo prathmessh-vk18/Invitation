@@ -102,7 +102,8 @@ export type Invite = {
   openHint?: string;
   // A late parent's photo and name, on the opening screen and again at the end, in their memory.
   // `large` makes the closing tribute bigger and darker, for families sharing with older guests.
-  memorial?: { photo: string; name?: string; large?: boolean };
+  // `last`: show it at the very end, after the hashtag (Bagh-style illustrated designs).
+  memorial?: { photo: string; name?: string; large?: boolean; last?: boolean };
   // `seal` is a whole seal of its own (shape, colour and all), shown in place of the gold one.
   sealFull?: boolean;
   // Functions grouped into one card per day, instead of a card each.

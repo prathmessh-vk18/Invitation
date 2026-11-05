@@ -562,24 +562,26 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
   function Closing({ invite }: { invite: Invite }) {
     const L = invite.largeText;
     const [a, b] = couple(invite);
+    const memorial = (className: string) =>
+      invite.memorial && (
+        <Reveal className={`flex flex-col items-center ${className}`}>
+          <MemorialPhoto photo={invite.memorial.photo} alt={invite.memorial.name ?? ""} className={invite.memorial.large ? "w-[38cqw]" : "w-[24cqw]"} />
+          {invite.memorial.name && (
+            <p className={`inv-script mt-[4cqw] leading-tight ${invite.memorial.large ? "text-[7.4cqw]" : "text-[6.4cqw]"}`} style={{ color: c.ink }}>
+              {invite.memorial.name}
+            </p>
+          )}
+          <p
+            className={`inv-serif mt-[2cqw] italic ${invite.memorial.large ? "text-[4.6cqw] font-semibold" : "text-[3.8cqw]"}`}
+            style={{ color: invite.memorial.large ? c.ink : c.soft }}
+          >
+            Her blessings are always with us.
+          </p>
+        </Reveal>
+      );
     return (
       <section className="relative px-[14cqw] pt-[12cqw] text-center" style={{ paddingBottom: `calc(${spec.frame.bottom}vh + 18cqw)` }}>
-        {invite.memorial && (
-          <Reveal className="mb-[14cqw] flex flex-col items-center">
-            <MemorialPhoto photo={invite.memorial.photo} alt={invite.memorial.name ?? ""} className={invite.memorial.large ? "w-[38cqw]" : "w-[24cqw]"} />
-            {invite.memorial.name && (
-              <p className={`inv-script mt-[4cqw] leading-tight ${invite.memorial.large ? "text-[7.4cqw]" : "text-[6.4cqw]"}`} style={{ color: c.ink }}>
-                {invite.memorial.name}
-              </p>
-            )}
-            <p
-              className={`inv-serif mt-[2cqw] italic ${invite.memorial.large ? "text-[4.6cqw] font-semibold" : "text-[3.8cqw]"}`}
-              style={{ color: invite.memorial.large ? c.ink : c.soft }}
-            >
-              Her blessings are always with us.
-            </p>
-          </Reveal>
-        )}
+        {!invite.memorial?.last && memorial("mb-[14cqw]")}
         {invite.extras?.length ? (
           <div className="mb-[14cqw] space-y-[9cqw]">
             {invite.extras.map((g, i) => (
@@ -638,6 +640,9 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
               {invite.hashtag}
             </p>
           )}
+        </Reveal>
+        {invite.memorial?.last && memorial("mt-[12cqw]")}
+        <Reveal>
           {!invite.noBranding && (
             <Link href="/" className="inv-label mt-[10cqw] inline-block text-[2.2cqw] opacity-60" style={{ color: c.ink }}>
               Crafted with love by {site.name}
