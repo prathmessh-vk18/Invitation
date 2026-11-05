@@ -474,6 +474,8 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
 
   function Events({ invite }: { invite: Invite }) {
     const L = invite.largeText;
+    // boldEvents: a darker, heavier date line and venue, for couples who asked for easier reading.
+    const B = invite.boldEvents;
     return (
       <section className="relative px-[12cqw] py-[14cqw]">
         <Reveal>
@@ -492,14 +494,17 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
                 className="rounded-[4cqw] border px-[5cqw] py-[5cqw] text-center backdrop-blur-[2px]"
                 style={{ borderColor: `${c.accent}55`, background: `${c.paper}d9` }}
               >
-                <p className={`inv-label ${L ? "text-[3.2cqw] font-semibold" : "text-[2.6cqw]"}`} style={{ color: c.accent, ...(L ? { letterSpacing: "0.08em" } : {}) }}>
+                <p
+                  className={`inv-label ${L ? "text-[3.2cqw] font-semibold" : B ? "text-[3cqw] font-semibold" : "text-[2.6cqw]"}`}
+                  style={{ color: B ? c.ink : c.accent, ...(L ? { letterSpacing: "0.08em" } : B ? { letterSpacing: "0.14em" } : {}) }}
+                >
                   {weekday(e.start)} · {o.d}
                   <sup>{o.s}</sup> {o.m} · {time(e.start)}
                 </p>
                 <h3 className="inv-script mt-[1.5cqw] leading-none" style={{ color: c.ink, ...sz(9) }}>
                   {e.name}
                 </h3>
-                <p className={`inv-serif mt-[2.5cqw] leading-tight ${L ? "text-[5cqw] font-semibold" : "text-[4.2cqw]"}`} style={{ color: c.ink }}>
+                <p className={`inv-serif mt-[2.5cqw] leading-tight ${L ? "text-[5cqw] font-semibold" : B ? "text-[4.4cqw] font-semibold" : "text-[4.2cqw]"}`} style={{ color: c.ink }}>
                   {e.venue}
                 </p>
                 {e.address && (
