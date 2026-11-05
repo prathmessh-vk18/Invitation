@@ -5,6 +5,7 @@ import { formatINR, site } from "@/config/site";
 import { getTemplate } from "@/data/templates";
 import { requireAdmin } from "@/lib/admin-auth";
 import { fmtDate, longDate, time } from "@/lib/format";
+import { orderHistory, type EditSource } from "@/lib/order-edits";
 import { statusLabel, suggestSlug, type Order } from "@/lib/orders";
 import { db, photoPublicUrl, songPublicUrl } from "@/lib/supabase";
 import { Panel } from "@/ui";
@@ -24,6 +25,8 @@ function Row({ k, children }: { k: string; children: React.ReactNode }) {
   );
 }
 
+const editSource: Record<EditSource, string> = { couple: "The couple", admin: "Admin", approved: "Approved request", "by hand": "Edited by hand" };
+
 export default async function AdminOrder({ params }: PageProps<"/admin/orders/[id]">) {
   await requireAdmin();
   const { id } = await params;
@@ -34,9 +37,10 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
   const d = o.details;
   const t = getTemplate(o.template);
   // Both lookups only need the order, so run them together rather than one after the other.
-  const [{ data: inv }, { data: waiting }] = await Promise.all([
+  const [{ data: inv }, { data: waiting }, history] = await Promise.all([
     o.invite_slug ? db().from("invites").select("is_published, live_until").eq("slug", o.invite_slug).maybeSingle() : Promise.resolve({ data: null }),
     db().from("change_requests").select("id").eq("order_id", o.id).eq("status", "pending").maybeSingle(),
+    orderHistory(o.id),
   ]);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const couple = `${d.groom.first} & ${d.bride.first}`;
@@ -209,6 +213,38 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
               <div className="mt-4">
                 <NotesAndCancel id={o.id} notes={o.admin_notes ?? ""} status={o.status} slug={o.invite_slug} />
               </div>
+            </Panel>
+            <Panel className="p-6">
+              <p className="text-title">History</p>
+              <p className="mt-1 text-caption text-subtle">Every change to the details, newest first.</p>
+              {history.length ? (
+                <ol className="mt-4 space-y-4">
+                  {history.map((e) => (
+                    <li key={e.id} className="border-t border-line pt-3 first:border-0 first:pt-0">
+                      <p className="text-caption text-subtle">
+                        <span className="font-medium text-ink">{editSource[e.source]}</span> · {fmtDate(e.created_at, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
+                        {e.request_id && (
+                          <>
+                            {" "}·{" "}
+                            <Link href={`/admin/changes/${e.request_id}`} className="underline underline-offset-4">
+                              request
+                            </Link>
+                          </>
+                        )}
+                      </p>
+                      <ul className="mt-1.5 space-y-1">
+                        {e.changes.map((c) => (
+                          <li key={c.label} className="text-[14px] break-words">
+                            <span className="text-subtle">{c.label}:</span> <span className="text-muted line-through decoration-[#8a1c1c]/40">{c.before}</span> → {c.after}
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="mt-4 text-body text-muted">No changes recorded yet. Changes are recorded from 5 November 2026.</p>
+              )}
             </Panel>
           </div>
         </div>

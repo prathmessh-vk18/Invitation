@@ -4,6 +4,7 @@ import { site } from "@/config/site";
 import { requireAdmin } from "@/lib/admin-auth";
 import { diffDetails, type ChangeRequest } from "@/lib/change-requests";
 import { fmtDate } from "@/lib/format";
+import { orderHistory } from "@/lib/order-edits";
 import type { Order } from "@/lib/orders";
 import { db, photoPublicUrl, songPublicUrl } from "@/lib/supabase";
 import { Panel } from "@/ui";
@@ -24,6 +25,11 @@ export default async function AdminChange({ params }: PageProps<"/admin/changes/
   const order = o as Order;
 
   const changes = diffDetails(order.details, r.details);
+  // Edits made to the order after the couple sent this request. Approving puts back the couple's
+  // older version of anything those edits touched, so those lines need a second look.
+  const later = r.status === "pending" ? (await orderHistory(order.id, r.created_at)).filter((e) => e.request_id !== r.id) : [];
+  const touched = new Set(later.flatMap((e) => e.changes.map((c) => c.label)));
+  const undo = changes.filter((c) => touched.has(c.label));
   const songChanged = r.song_path !== order.song_path;
   const before = order.photo_paths ?? [];
   const after = r.photo_paths ?? [];
@@ -54,6 +60,30 @@ export default async function AdminChange({ params }: PageProps<"/admin/changes/
             </>
           )}
         </p>
+
+        {later.length > 0 && (
+          <div className="mt-6 rounded-card border border-[#e7b4b4] bg-[#fdecec] p-5 text-[#8a1c1c]">
+            <p className="text-title">This invite was edited after the couple sent this request</p>
+            <p className="mt-1 text-body">
+              {later.length} edit{later.length === 1 ? "" : "s"} since, last on {fmtDate(later[0].created_at, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}.{" "}
+              {undo.length
+                ? "Approving as it is would put back the couple's older version of:"
+                : "None of those edits is undone by this request, so approving is safe."}
+            </p>
+            {undo.length > 0 && (
+              <ul className="mt-3 space-y-2">
+                {undo.map((c) => (
+                  <li key={c.label} className="rounded-tile bg-surface/70 p-3 text-body text-ink">
+                    <span className="text-caption font-medium text-subtle">{c.label}</span>
+                    <span className="block">Now: {c.before}</span>
+                    <span className="block text-[#8a1c1c]">Would become: {c.after}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {undo.length > 0 && <p className="mt-3 text-body">Use “Edit, then approve” to keep the newer text, or approve anyway if the couple meant it.</p>}
+          </div>
+        )}
 
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
           <Panel className="p-6">
@@ -100,6 +130,7 @@ export default async function AdminChange({ params }: PageProps<"/admin/changes/
               code={order.code}
               phone={order.customer_phone}
               inviteUrl={inviteUrl}
+              undoCount={undo.length}
             />
           </Panel>
         </div>

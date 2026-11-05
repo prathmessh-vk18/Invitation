@@ -7,9 +7,12 @@ import { site } from "@/config/site";
 import { Button } from "@/ui";
 import { approveChange, declineChange } from "../../actions";
 
-type Props = { id: string; status: "pending" | "approved" | "declined"; reply: string | null; code: string; phone: string; inviteUrl: string };
+type Props = { id: string; status: "pending" | "approved" | "declined"; reply: string | null; code: string; phone: string; inviteUrl: string; undoCount?: number };
 
-export function ChangeActions({ id, status, reply, code, phone, inviteUrl }: Props) {
+export function ChangeActions({ id, status, reply, code, phone, inviteUrl, undoCount = 0 }: Props) {
+  // Approving a request that undoes later edits takes a deliberate tick first.
+  const [confirmed, setConfirmed] = useState(false);
+  const blocked = undoCount > 0 && !confirmed;
   const router = useRouter();
   const [pending, start] = useTransition();
   const [errors, setErrors] = useState<string[]>([]);
@@ -35,10 +38,18 @@ export function ChangeActions({ id, status, reply, code, phone, inviteUrl }: Pro
     <div className="space-y-4">
       <p className="text-title">Decide</p>
       <p className="text-body text-muted">Approving saves these details to the order. If the invite is live, it updates straight away.</p>
+      {undoCount > 0 && (
+        <label className="flex items-start gap-2.5 rounded-tile bg-[#fdecec] p-3 text-body text-[#8a1c1c]">
+          <input id="approve-anyway" type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-1 size-4 accent-[#8a1c1c]" />
+          <span>
+            I&rsquo;ve checked the {undoCount} line{undoCount === 1 ? "" : "s"} above. Approve anyway and undo the newer edit{undoCount === 1 ? "" : "s"}.
+          </span>
+        </label>
+      )}
       <div className="flex flex-wrap gap-2">
         <Button
           size="md"
-          disabled={pending}
+          disabled={pending || blocked}
           onClick={() =>
             start(async () => {
               const res = await approveChange(id);

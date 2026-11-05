@@ -3,8 +3,9 @@
 import { randomUUID } from "node:crypto";
 import { revalidatePath, updateTag } from "next/cache";
 import { getTemplate } from "@/data/templates";
-import { cleanPhone, cleanPhotoPaths, cleanSongPath, keepInviteSettings, orderTotal, validateDetails, type InviteDetails } from "@/lib/orders";
+import { cleanPhone, cleanPhotoPaths, cleanSongPath, keepInviteSettings, orderTotal, validateDetails, type InviteDetails, type Order } from "@/lib/orders";
 import { findActivePartner } from "@/lib/partners";
+import { logOrderEdit } from "@/lib/order-edits";
 import { autoPublish, warmShareCard } from "@/lib/publish";
 import { createRazorpayOrder, isRazorpayConfigured, paysOnline, isValidPaymentSignature, markPaidByRazorpayOrder, razorpayKeyId } from "@/lib/razorpay";
 import { db, isSupabaseConfigured, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
@@ -171,7 +172,7 @@ export async function saveChanges(orderId: string, input: ChangesInput): Promise
   const checked = validateDetails(input.details);
   if (!checked.ok) return { errors: checked.errors };
 
-  const { data: order } = await db().from("orders").select("id, status, details").eq("id", orderId).maybeSingle();
+  const { data: order } = await db().from("orders").select("id, status, details, song_path, photo_paths").eq("id", orderId).maybeSingle();
   if (!order) return { errors: ["We couldn't find this order."] };
   if (order.status === "cancelled") return { errors: ["This order is cancelled. Message us on WhatsApp if that's a mistake."] };
 
@@ -181,7 +182,9 @@ export async function saveChanges(orderId: string, input: ChangesInput): Promise
 
   if (order.status === "awaiting_payment" || order.status === "payment_submitted") {
     const { error } = await db().from("orders").update({ details, song_path: songPath, photo_paths: photoPaths }).eq("id", orderId);
-    return error ? { errors: ["We couldn't save your changes. Please try again."] } : { applied: true };
+    if (error) return { errors: ["We couldn't save your changes. Please try again."] };
+    await logOrderEdit(orderId, order as Order, { details, song_path: songPath, photo_paths: photoPaths }, "couple");
+    return { applied: true };
   }
 
   await db().from("change_requests").delete().eq("order_id", orderId).eq("status", "pending");

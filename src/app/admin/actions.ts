@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { endAdminSession, passwordMatches, requireAdmin, startAdminSession } from "@/lib/admin-auth";
 import { cleanPhotoPaths, cleanSongPath, validateDetails, type Order, keepInviteSettings } from "@/lib/orders";
 import type { ChangesInput } from "@/lib/order-actions";
+import { logOrderEdit, type EditSource } from "@/lib/order-edits";
 import { publishOrder, warmShareCard } from "@/lib/publish";
 import { db } from "@/lib/supabase";
 
@@ -107,7 +108,9 @@ export async function saveDetails(id: string, json: string): Promise<{ ok: true 
   }
   const checked = validateDetails(parsed);
   if (!checked.ok) return { errors: checked.errors };
+  const before = await loadOrder(id);
   await db().from("orders").update({ details: checked.details }).eq("id", id);
+  await logOrderEdit(id, before, { details: checked.details }, "admin");
   refresh(id);
   return { ok: true };
 }
@@ -134,15 +137,14 @@ export async function setInvitePublished(id: string, slug: string, published: bo
 }
 
 /** Writes new details, song and photos to an order and, if its invite is live, updates the invite too. */
-async function applyToOrder(id: string, input: ChangesInput): Promise<{ ok: true } | { errors: string[] }> {
+async function applyToOrder(id: string, input: ChangesInput, source: EditSource, requestId?: string): Promise<{ ok: true } | { errors: string[] }> {
   const checked = validateDetails(input.details);
   if (!checked.ok) return { errors: checked.errors };
   const before = await loadOrder(id);
-  const { error } = await db()
-    .from("orders")
-    .update({ details: keepInviteSettings(before.details, checked.details), song_path: cleanSongPath(input.songPath), photo_paths: cleanPhotoPaths(input.photoPaths) })
-    .eq("id", id);
+  const after = { details: keepInviteSettings(before.details, checked.details), song_path: cleanSongPath(input.songPath), photo_paths: cleanPhotoPaths(input.photoPaths) };
+  const { error } = await db().from("orders").update(after).eq("id", id);
   if (error) return { errors: ["Saving failed. Please try again."] };
+  await logOrderEdit(id, before, after, source, requestId);
   const order = await loadOrder(id);
   if (order.status === "live" && order.invite_slug) {
     const res = await publishInvite(id, order.invite_slug);
@@ -155,7 +157,7 @@ async function applyToOrder(id: string, input: ChangesInput): Promise<{ ok: true
 /** Admin edits an order in the form. A live invite updates straight away. */
 export async function adminSaveOrder(id: string, input: ChangesInput) {
   await requireAdmin();
-  return applyToOrder(id, input);
+  return applyToOrder(id, input, "admin");
 }
 
 /** Approves a couple's change request, optionally after the admin has adjusted it in the form. */
@@ -164,7 +166,7 @@ export async function approveChange(requestId: string, edited?: ChangesInput): P
   const { data: req } = await db().from("change_requests").select("*").eq("id", requestId).maybeSingle();
   if (!req) return { errors: ["That request no longer exists."] };
   if (req.status !== "pending") return { errors: ["This request was already handled."] };
-  const res = await applyToOrder(req.order_id, edited ?? { details: req.details, songPath: req.song_path, photoPaths: req.photo_paths });
+  const res = await applyToOrder(req.order_id, edited ?? { details: req.details, songPath: req.song_path, photoPaths: req.photo_paths }, "approved", req.id);
   if ("errors" in res) return res;
   await db().from("change_requests").update({ status: "approved", decided_at: new Date().toISOString() }).eq("id", requestId);
   revalidatePath("/admin/changes");
