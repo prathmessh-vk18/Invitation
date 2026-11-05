@@ -1,0 +1,508 @@
+<title>Aavjoo Accounts Mock</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+/* Layout: a two-mode switch (Couple on a phone, Admin on a desktop panel), each with its own tabs. */
+:root {
+  --bg: #f6f5f3;
+  --surface: #ffffff;
+  --panel: #f3f3f3;
+  --panel-strong: #e9e9e9;
+  --ink: #141414;
+  --soft: #3d3d3d;
+  --muted: #6b6b6b;
+  --subtle: #8a8a8a;
+  --line: #ececec;
+  --rose: #b2385a;
+  --rose-wash: #fbe6ea;
+  --good: #1d6b35;
+  --good-wash: #dff3e4;
+  --warn: #7a5b00;
+  --warn-wash: #fff3c4;
+  --info: #1f4f8a;
+  --info-wash: #e3eefc;
+  --wa: #25d366;
+  --phone: #111111;
+  --ui: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --script: "Pinyon Script", "Snell Roundhand", cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121212; --surface: #1b1b1b; --panel: #232323; --panel-strong: #2c2c2c; --ink: #f2f2f2; --soft: #d6d6d6;
+    --muted: #a8a8a8; --subtle: #8c8c8c; --line: #2c2c2c; --rose: #e07a97; --rose-wash: #3a1d26;
+    --good: #7fd69a; --good-wash: #183323; --warn: #f0cf6b; --warn-wash: #3a3214; --info: #8fb8ee; --info-wash: #1a2840;
+    --phone: #000000; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121212; --surface: #1b1b1b; --panel: #232323; --panel-strong: #2c2c2c; --ink: #f2f2f2; --soft: #d6d6d6;
+  --muted: #a8a8a8; --subtle: #8c8c8c; --line: #2c2c2c; --rose: #e07a97; --rose-wash: #3a1d26;
+  --good: #7fd69a; --good-wash: #183323; --warn: #f0cf6b; --warn-wash: #3a3214; --info: #8fb8ee; --info-wash: #1a2840;
+  --phone: #000000; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--ui); font-size: 15px; line-height: 1.45; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font-size: clamp(26px, 4vw, 34px); letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+.lead { color: var(--muted); margin: 6px 0 0; max-width: 62ch; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-top: 22px; }
+.seg { display: inline-flex; background: var(--panel); border-radius: 999px; padding: 4px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--muted); font: 500 14px var(--ui); padding: 8px 16px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgb(0 0 0 / .12); }
+.seg button:focus-visible, .btn:focus-visible, .chip:focus-visible, .tab:focus-visible { outline: 2px solid var(--rose); outline-offset: 2px; }
+.note { font-size: 13px; color: var(--subtle); }
+
+/* ---------- couple mode ---------- */
+.couple { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 36px; margin-top: 26px; align-items: start; }
+.explain { display: grid; gap: 14px; min-width: 0; }
+.explain h2 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+.explain p { margin: 0; color: var(--soft); max-width: 60ch; }
+.explain ul { margin: 0; padding-left: 18px; color: var(--soft); display: grid; gap: 6px; }
+.phone { width: 100%; max-width: 380px; margin: 0 auto; background: var(--phone); border-radius: 44px; padding: 12px; box-shadow: 0 30px 60px -30px rgb(0 0 0 / .45); }
+.screen { background: var(--surface); border-radius: 34px; height: 740px; overflow-y: auto; position: relative; }
+.notch { width: 110px; height: 26px; background: var(--phone); border-radius: 0 0 16px 16px; margin: 0 auto; position: sticky; top: 0; z-index: 3; }
+.app-top { display: flex; justify-content: space-between; align-items: center; padding: 6px 18px 10px; }
+.logo { font-family: var(--script); font-size: 30px; color: var(--rose); line-height: 1; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--rose-wash); color: var(--rose); display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+.scr { padding: 4px 18px 28px; display: grid; gap: 16px; }
+.hello { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
+.hello + p { margin: 2px 0 0; color: var(--muted); }
+.card { background: var(--panel); border-radius: 20px; padding: 16px; display: grid; gap: 10px; }
+.card.white { background: var(--surface); border: 1px solid var(--line); }
+.card h3 { margin: 0; font-size: 16px; }
+.steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; color: var(--soft); font-size: 14px; }
+.steps li { display: flex; gap: 8px; }
+.steps b { width: 20px; height: 20px; border-radius: 50%; background: var(--ink); color: var(--surface); font-size: 11px; display: grid; place-items: center; flex: none; margin-top: 1px; }
+.btn { border: 0; border-radius: 999px; padding: 11px 16px; font: 600 14px var(--ui); cursor: pointer; background: var(--ink); color: var(--surface); text-align: center; }
+.btn.ghost { background: var(--panel-strong); color: var(--ink); }
+.btn.wa { background: var(--wa); color: #fff; }
+.btn.small { padding: 7px 12px; font-size: 13px; }
+.sec { font-size: 12px; font-weight: 600; color: var(--subtle); letter-spacing: .06em; text-transform: uppercase; margin: 4px 0 -6px; }
+.designs { display: grid; grid-auto-flow: column; grid-auto-columns: 112px; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+.design { border-radius: 16px; overflow: hidden; background: var(--panel); }
+.design .art { height: 150px; position: relative; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 10px; }
+.design .art span { font-family: var(--script); font-size: 22px; color: #fff; text-shadow: 0 1px 6px rgb(0 0 0 / .4); }
+.design .meta { padding: 8px 10px; font-size: 12px; display: flex; justify-content: space-between; }
+.badge { position: absolute; top: 8px; left: 8px; background: #fff1e6; color: #b4410f; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
+.example { position: relative; }
+.example .tag { position: absolute; top: 12px; right: 12px; font-size: 11px; font-weight: 700; color: var(--subtle); border: 1px dashed var(--subtle); border-radius: 999px; padding: 2px 8px; }
+.example.faded { opacity: .7; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { background: var(--surface); border-radius: 14px; padding: 10px; }
+.card.white .stat { background: var(--panel); }
+.stat strong { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+.stat small { color: var(--muted); font-size: 12px; }
+.bars { display: grid; gap: 6px; font-size: 13px; }
+.bars div { display: grid; grid-template-columns: 70px 1fr 28px; gap: 8px; align-items: center; }
+.bars i { display: block; height: 8px; border-radius: 6px; background: var(--rose); opacity: .85; }
+.bars em { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+.pill.live { background: var(--good-wash); color: var(--good); }
+.pill.draft { background: var(--warn-wash); color: var(--warn); }
+.pill.pay { background: var(--info-wash); color: var(--info); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.row.between { justify-content: space-between; }
+.progress { height: 6px; border-radius: 6px; background: var(--panel-strong); overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--ink); }
+.linkbox { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--surface); border-radius: 12px; padding: 8px 10px; font-size: 13px; }
+.card.white .linkbox { background: var(--panel); }
+.linkbox code { font: 500 13px var(--ui); color: var(--soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.guest { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: 13px; padding: 8px 0; border-top: 1px solid var(--line); }
+.guest small { color: var(--muted); grid-column: 1 / -1; }
+.formbg { padding: 14px 18px; display: grid; gap: 12px; }
+.field { display: grid; gap: 5px; font-size: 13px; font-weight: 600; }
+.field span { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-weight: 400; color: var(--soft); }
+.nudge { background: var(--surface); border-radius: 18px; padding: 14px; box-shadow: 0 10px 30px -12px rgb(0 0 0 / .35), 0 0 0 1px var(--line); display: grid; gap: 8px; }
+.gbtn { display: flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid var(--line); border-radius: 999px; padding: 10px; font-weight: 600; background: var(--surface); color: var(--ink); cursor: pointer; font-family: var(--ui); font-size: 14px; }
+.g { width: 18px; height: 18px; }
+
+/* ---------- admin mode ---------- */
+.admin { margin-top: 26px; background: var(--surface); border-radius: 22px; border: 1px solid var(--line); overflow: hidden; }
+.admin-top { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+.tab { border: 0; background: transparent; font: 500 14px var(--ui); color: var(--muted); padding: 6px 2px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.tab[aria-pressed="true"] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--ink); }
+.tab .new { font-size: 10px; font-weight: 700; background: var(--rose-wash); color: var(--rose); padding: 1px 6px; border-radius: 999px; }
+.count { background: #d64545; color: #fff; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 6px; }
+.admin-body { padding: 22px 20px 26px; display: grid; gap: 18px; }
+.admin-body h2 { margin: 0; font-size: 22px; letter-spacing: -0.01em; }
+.admin-body .lead { margin-top: 2px; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.box { border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 10px; min-width: 0; }
+.box h3 { margin: 0; font-size: 15px; }
+.kv { display: grid; grid-template-columns: 110px 1fr; gap: 6px 12px; font-size: 14px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.acct { display: flex; gap: 12px; align-items: center; }
+.acct .avatar { width: 42px; height: 42px; font-size: 16px; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 680px; }
+th { text-align: left; font-weight: 500; font-size: 12px; color: var(--subtle); background: var(--panel); padding: 10px 14px; }
+td { padding: 12px 14px; border-top: 1px solid var(--line); vertical-align: top; }
+td small { color: var(--muted); display: block; font-size: 12px; }
+.num { font-variant-numeric: tabular-nums; }
+.funnel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.funnel div { background: var(--panel); border-radius: 14px; padding: 12px; }
+.funnel strong { font-size: 24px; display: block; font-variant-numeric: tabular-nums; }
+.funnel small { color: var(--muted); font-size: 12px; }
+.funnel em { font-style: normal; font-size: 12px; color: var(--subtle); }
+.switch { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.switch:first-of-type { border-top: 0; }
+.toggle { width: 42px; height: 24px; border-radius: 999px; background: var(--ink); position: relative; flex: none; border: 0; cursor: pointer; }
+.toggle::after { content: ""; position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--surface); transition: .2s; }
+.toggle[aria-pressed="false"] { background: var(--panel-strong); }
+.toggle[aria-pressed="false"]::after { right: 21px; }
+.danger { color: #c02e2e; }
+.toast { position: fixed; left: 50%; bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 16px)); transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 10px 16px; border-radius: 999px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.toast.on { opacity: 1; }
+@media (max-width: 880px) {
+  .couple { grid-template-columns: 1fr; }
+  .phone { order: -1; }
+  .grid2 { grid-template-columns: 1fr; }
+  .funnel { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 420px) { .screen { height: 680px; } .kv { grid-template-columns: 92px 1fr; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <h1>Aavjoo accounts</h1>
+  <p class="lead">A clickable mock of Google sign-in. Switch between what a couple sees on their phone and what you see in admin. All names and numbers are examples.</p>
+
+  <div class="bar">
+    <div class="seg" role="group" aria-label="View">
+      <button type="button" id="mode-couple" aria-pressed="true" data-mode="couple">Couple's phone</button>
+      <button type="button" id="mode-admin" aria-pressed="false" data-mode="admin">Admin</button>
+    </div>
+    <span class="note">Tap the buttons inside the screens too.</span>
+  </div>
+
+  <!-- ===================== COUPLE ===================== -->
+  <section id="couple" class="couple">
+    <div class="explain">
+      <div class="seg" role="group" aria-label="Couple's situation">
+        <button type="button" id="st-nudge" data-state="nudge" aria-pressed="false">In the form</button>
+        <button type="button" id="st-first" data-state="first" aria-pressed="true">First visit</button>
+        <button type="button" id="st-draft" data-state="draft" aria-pressed="false">Draft saved</button>
+        <button type="button" id="st-live" data-state="live" aria-pressed="false">Invite live</button>
+        <button type="button" id="st-existing" data-state="existing" aria-pressed="false">Already live, signs in</button>
+      </div>
+      <div id="ex-existing" hidden>
+        <h2>Ordered before sign-in existed</h2>
+        <p>A couple whose invite went live earlier signs in for the first time, from the banner on their order page or the site's Sign in link.</p>
+        <ul><li>If the Google email matches the email on their order, the invite is found automatically.</li><li>Otherwise “Find my order” links it once, with the invite link, order number and phone.</li><li>RSVPs count from the day this launches. Earlier replies went straight to their WhatsApp, and the dashboard says so.</li><li>Nothing changes for them if they never sign in: their invite, order page and edit link work as today.</li></ul>
+      </div>
+      <div id="ex-nudge" hidden>
+        <h2>The nudge, mid-form</h2>
+        <p>After the couple finishes their names and starts the functions, a card offers to save their progress. It never blocks the form and can be dismissed.</p>
+        <ul><li>Signing in keeps them on the same step.</li><li>The draft then follows them to any phone or laptop.</li><li>We get their email, so we can remind them to finish.</li></ul>
+      </div>
+      <div id="ex-first">
+        <h2>First visit, nothing yet</h2>
+        <p>Someone who signs in directly, with no draft or order. One job: show what they get, then get them started.</p>
+        <ul><li>If their Google email matches an old order, they skip this and see their invite.</li><li>The example panel sells RSVP tracking, clearly marked as an example.</li><li>“Find my order” links an order placed with another email.</li></ul>
+      </div>
+      <div id="ex-draft" hidden>
+        <h2>Came back with a draft</h2>
+        <p>The unfinished invite moves to the top with exactly where they stopped. Everything else stays below.</p>
+        <ul><li>“Continue” opens the form at step 4.</li><li>The preview shows their own names and design so far.</li></ul>
+      </div>
+      <div id="ex-live" hidden>
+        <h2>Invite is live</h2>
+        <p>Their own invite and live RSVP counts replace the example. This is the screen couples will come back to.</p>
+        <ul><li>Share and copy the link in one tap.</li><li>RSVPs by function, the guest list, and an Excel download.</li><li>Edits go through the existing “Ask for changes”.</li></ul>
+      </div>
+    </div>
+
+    <div class="phone" aria-label="Couple's phone">
+      <div class="screen" id="screen">
+        <div class="notch"></div>
+
+        <!-- nudge -->
+        <div id="s-nudge" hidden>
+          <div class="app-top"><span class="logo">Aavjoo</span><span class="note">Step 3 of 9</span></div>
+          <div class="formbg">
+            <div class="progress"><i style="width:33%"></i></div>
+            <h3 style="margin:4px 0 0;font-size:20px">The functions</h3>
+            <label class="field">Function<span>Haldi</span></label>
+            <label class="field">Date and time<span>16 Feb 2027 · 10:00 am</span></label>
+            <label class="field">Venue<span>Mishra Niwas, Varanasi</span></label>
+            <div class="nudge" id="nudgeCard">
+              <strong>Save your progress?</strong>
+              <span style="color:var(--muted);font-size:14px">Sign in with Google and continue on any device. We'll keep your draft safe.</span>
+              <button type="button" class="gbtn" data-go="draft"><svg class="g" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.3 13.4 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.3.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.4 0-11.7-3.9-13.5-9.5l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>Continue with Google</button>
+              <button type="button" class="btn ghost small" data-dismiss>Not now</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- first visit -->
+        <div id="s-first">
+          <div class="app-top"><span class="logo">Aavjoo</span><span class="avatar">S</span></div>
+          <div class="scr">
+            <div><p class="hello">Namaste, Shivani 🙏</p><p>Let's make your wedding invite.</p></div>
+            <div class="card">
+              <h3>Start your invite</h3>
+              <ol class="steps"><li><b>1</b>Pick a design</li><li><b>2</b>Add names, functions and your song</li><li><b>3</b>Pay ₹249–₹499, live within minutes</li></ol>
+              <button type="button" class="btn" data-toast="Opens the designs page">Choose a design</button>
+            </div>
+            <p class="sec">Couples love these</p>
+            <div class="designs">
+              <div class="design"><div class="art" style="background:linear-gradient(160deg,#b9cdf0,#f2c9d8)"><span class="badge">New</span><span>Gauri Shankar</span></div><div class="meta"><span>Gauri Shankar</span><b>₹499</b></div></div>
+              <div class="design"><div class="art" style="background:linear-gradient(160deg,#f6d6b8,#e9a77c)"><span>Mandir</span></div><div class="meta"><span>Mandir</span><b>₹299</b></div></div>
+              <div class="design"><div class="art" style="background:linear-gradient(160deg,#dfe8f1,#c7b38a)"><span>Haveli</span></div><div class="meta"><span>Haveli</span><b>₹299</b></div></div>
+              <div class="design"><div class="art" style="background:linear-gradient(160deg,#7a1f33,#3a0815)"><span>Rajwada</span></div><div class="meta"><span>Rajwada</span><b>₹299</b></div></div>
+            </div>
+            <p class="sec">What you'll see here once live</p>
+            <div class="card example faded">
+              <span class="tag">Example</span>
+              <div class="row"><strong>Rudra &amp; Gauri</strong><span class="pill live"><span class="dot"></span>Live</span></div>
+              <div class="stats"><div class="stat"><strong>42</strong><small>Attending</small></div><div class="stat"><strong>6</strong><small>Declined</small></div><div class="stat"><strong>118</strong><small>Guests</small></div></div>
+              <div class="bars"><div><span>Haldi</span><i style="width:70%"></i><em>31</em></div><div><span>Sangeet</span><i style="width:86%"></i><em>38</em></div><div><span>Wedding</span><i style="width:95%"></i><em>42</em></div></div>
+            </div>
+            <p style="margin:-6px 0 0;color:var(--muted);font-size:14px">Track RSVPs live, share your link and request changes, all here.</p>
+            <div class="card white">
+              <h3>Already ordered?</h3>
+              <span style="color:var(--muted);font-size:14px">Link it with your invite link, order number and phone.</span>
+              <button type="button" class="btn ghost" data-toast="Opens Find my order">Find my order</button>
+            </div>
+            <button type="button" class="btn ghost" data-toast="Opens the Let's talk chat">Questions? Let's talk</button>
+          </div>
+        </div>
+
+        <!-- draft -->
+        <div id="s-draft" hidden>
+          <div class="app-top"><span class="logo">Aavjoo</span><span class="avatar">S</span></div>
+          <div class="scr">
+            <div><p class="hello">Welcome back, Shivani</p><p>Your invite is saved. Pick up where you left off.</p></div>
+            <div class="card white">
+              <div class="row between"><strong>Shivani &amp; Saksham</strong><span class="pill draft"><span class="dot"></span>Draft</span></div>
+              <span style="color:var(--muted);font-size:14px">Gauri Shankar · Step 4 of 9 · Saved 2 hours ago</span>
+              <div class="progress"><i style="width:44%"></i></div>
+              <button type="button" class="btn" data-toast="Opens the form at step 4">Continue my invite</button>
+              <button type="button" class="btn ghost small" data-toast="Opens a preview of the draft">Preview so far</button>
+            </div>
+            <p class="sec">What you'll see here once live</p>
+            <div class="card example faded">
+              <span class="tag">Example</span>
+              <div class="stats"><div class="stat"><strong>42</strong><small>Attending</small></div><div class="stat"><strong>6</strong><small>Declined</small></div><div class="stat"><strong>118</strong><small>Guests</small></div></div>
+            </div>
+            <p class="sec">Other designs</p>
+            <div class="designs">
+              <div class="design"><div class="art" style="background:linear-gradient(160deg,#f6d6b8,#e9a77c)"><span>Mandir</span></div><div class="meta"><span>Mandir</span><b>₹299</b></div></div>
+              <div class="design"><div class="art" style="background:linear-gradient(160deg,#dfe8f1,#c7b38a)"><span>Haveli</span></div><div class="meta"><span>Haveli</span><b>₹299</b></div></div>
+              <div class="design"><div class="art" style="background:linear-gradient(160deg,#7a1f33,#3a0815)"><span>Rajwada</span></div><div class="meta"><span>Rajwada</span><b>₹299</b></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- existing live couple, first sign-in -->
+        <div id="s-existing" hidden>
+          <div class="app-top"><span class="logo">Aavjoo</span><span class="avatar">A</span></div>
+          <div class="scr" id="exist-find">
+            <div><p class="hello">Namaste, Akanksha 🙏</p><p>We couldn't find an invite under akanksha.k@gmail.com.</p></div>
+            <div class="card white">
+              <h3>Find my invite</h3>
+              <span style="color:var(--muted);font-size:14px">You only do this once. After that it's always here when you sign in.</span>
+              <label class="field">Invite link<span>aavjoo.in/i/akanksha-weds-karan</span></label>
+              <label class="field">Order number<span>AAV-1262</span></label>
+              <label class="field">Phone you ordered with<span>98xxx xxx21</span></label>
+              <button type="button" class="btn" id="linkBtn">Link my invite</button>
+            </div>
+            <div class="card"><h3>Haven't ordered yet?</h3><button type="button" class="btn ghost" data-toast="Opens the designs page">Choose a design</button></div>
+          </div>
+          <div class="scr" id="exist-linked" hidden>
+            <div><p class="hello">Akanksha &amp; Karan</p><p>27 days to go · Tuesday, 1 December</p></div>
+            <div class="card" style="background:var(--good-wash);color:var(--good)"><strong>Your invite is linked ✓</strong><span style="font-size:14px">It'll be here every time you sign in.</span></div>
+            <div class="card white">
+              <div class="row between"><strong>Your invite</strong><span class="pill live"><span class="dot"></span>Live</span></div>
+              <div class="linkbox"><code>aavjoo.in/i/akanksha-weds-karan</code><button type="button" class="btn ghost small" data-toast="Link copied">Copy</button></div>
+              <button type="button" class="btn wa" data-toast="Opens WhatsApp to share">Share on WhatsApp</button>
+            </div>
+            <div class="card">
+              <div class="row between"><strong>RSVPs</strong><span class="note">Counting from 10 Nov</span></div>
+              <div class="stats"><div class="stat"><strong>0</strong><small>Attending</small></div><div class="stat"><strong>0</strong><small>Declined</small></div><div class="stat"><strong>0</strong><small>Guests</small></div></div>
+              <span style="font-size:13px;color:var(--muted)">Replies sent before 10 November went straight to your WhatsApp (+91 98xxx xxx21). New replies appear here and still reach your WhatsApp.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- live -->
+        <div id="s-live" hidden>
+          <div class="app-top"><span class="logo">Aavjoo</span><span class="avatar">S</span></div>
+          <div class="scr">
+            <div><p class="hello">Shivani &amp; Saksham</p><p>26 days to go · Thursday, 4 December</p></div>
+            <div class="card white">
+              <div class="row between"><strong>Your invite</strong><span class="pill live"><span class="dot"></span>Live</span></div>
+              <div class="linkbox"><code>aavjoo.in/i/shivani-weds-saksham</code><button type="button" class="btn ghost small" data-toast="Link copied">Copy</button></div>
+              <button type="button" class="btn wa" data-toast="Opens WhatsApp to share">Share on WhatsApp</button>
+              <div class="row"><button type="button" class="btn ghost small" data-toast="Opens the invite">Open invite</button><button type="button" class="btn ghost small" data-toast="Opens Ask for changes">Ask for changes</button><span class="note">1 of 2 change rounds used</span></div>
+            </div>
+            <div class="card">
+              <div class="row between"><strong>RSVPs</strong><span class="note">Updated just now</span></div>
+              <div class="stats"><div class="stat"><strong>42</strong><small>Attending</small></div><div class="stat"><strong>6</strong><small>Declined</small></div><div class="stat"><strong>118</strong><small>Guests</small></div></div>
+              <div class="bars"><div><span>Haldi</span><i style="width:70%"></i><em>31</em></div><div><span>Sangeet</span><i style="width:86%"></i><em>38</em></div><div><span>Wedding</span><i style="width:95%"></i><em>42</em></div><div><span>Reception</span><i style="width:80%"></i><em>35</em></div></div>
+              <div>
+                <div class="guest"><b>Sharma family</b><span class="num">4 guests</span><small>Haldi, Wedding · “Can't wait! 🎉”</small></div>
+                <div class="guest"><b>Anjali &amp; Rohit</b><span class="num">2 guests</span><small>All functions</small></div>
+                <div class="guest"><b>Mehta ji</b><span class="num" style="color:var(--muted)">Declined</span><small>“Blessings from Pune 🙏”</small></div>
+              </div>
+              <button type="button" class="btn ghost small" data-toast="Downloads the guest list as Excel">Download guest list (Excel)</button>
+            </div>
+            <button type="button" class="btn ghost" data-toast="Opens the Let's talk chat">Need help? Let's talk</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ADMIN ===================== -->
+  <section id="admin" class="admin" hidden>
+    <div class="admin-top" role="group" aria-label="Admin pages">
+      <span class="logo" style="font-size:26px;margin-right:8px">Aavjoo</span>
+      <button type="button" class="tab" id="tab-order" data-tab="order" aria-pressed="true">Orders</button>
+      <button type="button" class="tab" id="tab-drafts" data-tab="drafts" aria-pressed="false">Drafts <span class="new">New</span></button>
+      <button type="button" class="tab" id="tab-settings" data-tab="settings" aria-pressed="false">Settings</button>
+      <span class="tab" style="cursor:default">Changes <span class="count">2</span></span>
+      <span class="tab" style="cursor:default">Leads</span>
+    </div>
+
+    <div class="admin-body" id="a-order">
+      <div><h2>AAV-1203 · Shivani &amp; Saksham</h2><p class="lead">Mandir · Live since 2 Nov · <span class="num">42 ✓ RSVPs</span></p></div>
+      <div class="grid2">
+        <div class="box">
+          <h3>Order</h3>
+          <dl class="kv"><dt>Status</dt><dd><span class="pill live"><span class="dot"></span>Live</span></dd><dt>Invite</dt><dd>aavjoo.in/i/shivani-weds-saksham</dd><dt>Paid</dt><dd>₹299 · Razorpay · 2 Nov</dd><dt>WhatsApp</dt><dd class="num">+91 95xxx xxx12</dd><dt>Changes</dt><dd>1 of 2 rounds used</dd></dl>
+        </div>
+        <div class="box">
+          <h3>Account <span class="pill info" style="background:var(--info-wash);color:var(--info);margin-left:6px">New</span></h3>
+          <div class="acct"><span class="avatar">S</span><div><b>Shivani Verma</b><div class="note">shivani.v@gmail.com</div></div></div>
+          <dl class="kv"><dt>Linked</dt><dd>Matched by email, 3 Nov</dd><dt>Last seen</dt><dd>Today, 9:42 am</dd></dl>
+          <div class="row"><button type="button" class="btn ghost small" data-toast="Pick another account to move this order to">Link to another account</button><button type="button" class="btn ghost small danger" data-toast="Asks to confirm, then unlinks">Unlink</button></div>
+          <button type="button" class="btn wa small" data-toast="Copied: “Track your RSVPs live: sign in at aavjoo.in/account”">Copy sign-in invite for WhatsApp</button>
+        </div>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Order</th><th>Couple</th><th>Design</th><th>Status</th><th>RSVPs</th><th>Account</th></tr></thead>
+          <tbody>
+            <tr><td><b>AAV-1203</b></td><td>Shivani &amp; Saksham</td><td>Mandir</td><td><span class="pill live"><span class="dot"></span>Live</span></td><td class="num">42 ✓</td><td>👤 shivani.v@…</td></tr>
+            <tr><td><b>AAV-1262</b></td><td>Akanksha &amp; Karan</td><td>Mandir</td><td><span class="pill live"><span class="dot"></span>Live</span></td><td class="num">17 ✓</td><td>👤 karan.m@…</td></tr>
+            <tr><td><b>AAV-1371</b></td><td>Simran &amp; Sahil</td><td>Mandir</td><td><span class="pill live"><span class="dot"></span>Live</span></td><td class="num">0</td><td class="note">Not signed in</td></tr>
+            <tr><td><b>AAV-1388</b></td><td>Priya &amp; Rohan</td><td>Gauri Shankar</td><td><span class="pill pay"><span class="dot"></span>Awaiting payment</span></td><td class="note">—</td><td>👤 priya.r@…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="admin-body" id="a-drafts" hidden>
+      <div><h2>Drafts</h2><p class="lead">Unfinished invites from signed-in couples. Anonymous drafts stay on their own device.</p></div>
+      <div class="funnel">
+        <div><strong>64</strong><small>Started a form</small><em>last 7 days</em></div>
+        <div><strong>31</strong><small>Signed in</small><em>48%</em></div>
+        <div><strong>12</strong><small>Ordered</small><em>39% of signed in</em></div>
+        <div><strong>10</strong><small>Paid</small><em>83% of ordered</em></div>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Couple</th><th>Design</th><th>Where they stopped</th><th>Last active</th><th>Reminder</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><b>Priya &amp; Rohan</b><small>priya.r@gmail.com</small></td><td>Gauri Shankar</td><td>Step 6 of 9 · Photos</td><td>2 hours ago</td><td class="note">Not sent</td><td><div class="row"><button type="button" class="btn small" data-toast="Reminder email sent">Remind</button><button type="button" class="btn ghost small" data-toast="Opens a read-only preview">Preview</button></div></td></tr>
+            <tr><td><b>Aman &amp; Kriti</b><small>aman.k@gmail.com</small></td><td>Mandir</td><td>Step 2 of 9 · The couple</td><td>3 days ago</td><td>Sent 1 day ago ✓</td><td><button type="button" class="btn ghost small" data-toast="Opens a read-only preview">Preview</button></td></tr>
+            <tr><td><b>Neha &amp; Arjun</b><small>neha.a@gmail.com · +91 98xxx xxx40</small></td><td>Haveli</td><td>Step 8 of 9 · RSVPs</td><td>5 hours ago</td><td class="note">Not sent</td><td><div class="row"><button type="button" class="btn small" data-toast="Reminder email sent">Remind</button><button type="button" class="btn wa small" data-toast="WhatsApp nudge copied">Copy WhatsApp nudge</button></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="margin:0">Biggest drop this week: step 6 (photos). 9 couples stopped there.</p>
+    </div>
+
+    <div class="admin-body" id="a-rsvps" hidden>
+      <div class="row between"><div><h2>RSVPs · Shivani &amp; Saksham</h2><p class="lead">What the couple sees on their dashboard, with tools to tidy it.</p></div><button type="button" class="btn ghost" data-toast="Downloads the guest list as Excel">Download Excel</button></div>
+      <div class="grid2">
+        <div class="box">
+          <h3>Totals</h3>
+          <div class="stats"><div class="stat"><strong>42</strong><small>Attending</small></div><div class="stat"><strong>6</strong><small>Declined</small></div><div class="stat"><strong>118</strong><small>Guests</small></div></div>
+        </div>
+        <div class="box">
+          <h3>By function</h3>
+          <div class="bars"><div><span>Haldi</span><i style="width:70%"></i><em>31</em></div><div><span>Sangeet</span><i style="width:86%"></i><em>38</em></div><div><span>Wedding</span><i style="width:95%"></i><em>42</em></div><div><span>Reception</span><i style="width:80%"></i><em>35</em></div></div>
+        </div>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Name</th><th>Reply</th><th>Guests</th><th>Functions</th><th>Note</th><th>Sent</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><b>Sharma family</b></td><td><span class="pill live">Attending</span></td><td class="num">4</td><td>Haldi, Wedding</td><td>Can't wait! 🎉</td><td>Today, 9:12 am</td><td><button type="button" class="btn ghost small danger" data-toast="Asks to confirm, then removes it">Remove</button></td></tr>
+            <tr><td><b>Anjali &amp; Rohit</b></td><td><span class="pill live">Attending</span></td><td class="num">2</td><td>All</td><td class="note">—</td><td>Yesterday</td><td><button type="button" class="btn ghost small danger" data-toast="Asks to confirm, then removes it">Remove</button></td></tr>
+            <tr><td><b>Mehta ji</b></td><td><span class="pill draft">Declined</span></td><td class="num">—</td><td>—</td><td>Blessings from Pune 🙏</td><td>2 Nov</td><td><button type="button" class="btn ghost small danger" data-toast="Asks to confirm, then removes it">Remove</button></td></tr>
+            <tr><td><b>test test</b><small>Looks like a duplicate</small></td><td><span class="pill live">Attending</span></td><td class="num">12</td><td>All</td><td class="note">—</td><td>2 Nov</td><td><button type="button" class="btn ghost small danger" data-toast="Asks to confirm, then removes it">Remove</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="admin-body" id="a-accounts" hidden>
+      <div><h2>Accounts</h2><p class="lead">Everyone who has signed in with Google.</p></div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Person</th><th>Orders</th><th>Drafts</th><th>Last seen</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><b>Shivani Verma</b><small>shivani.v@gmail.com</small></td><td>AAV-1203 · Live</td><td class="num">0</td><td>Today</td><td><div class="row"><button type="button" class="btn ghost small" data-toast="Pick an order to move to another account">Move an order</button><button type="button" class="btn ghost small danger" data-toast="Asks to confirm. Removes the account, drafts and guest names; keeps the order record">Delete account &amp; data</button></div></td></tr>
+            <tr><td><b>Priya Rao</b><small>priya.r@gmail.com</small></td><td>AAV-1388 · Awaiting payment</td><td class="num">1</td><td>2 hours ago</td><td><div class="row"><button type="button" class="btn ghost small" data-toast="Pick an order to move to another account">Move an order</button><button type="button" class="btn ghost small danger" data-toast="Asks to confirm. Removes the account, drafts and guest names; keeps the order record">Delete account &amp; data</button></div></td></tr>
+            <tr><td><b>Aman Khanna</b><small>aman.k@gmail.com</small></td><td class="note">None yet</td><td class="num">1</td><td>3 days ago</td><td><div class="row"><button type="button" class="btn ghost small danger" data-toast="Asks to confirm. Removes the account, drafts and guest names; keeps the order record">Delete account &amp; data</button></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="admin-body" id="a-settings" hidden>
+      <div><h2>Settings</h2><p class="lead">Switch features off instantly, without a redeploy.</p></div>
+      <div class="box" style="max-width:640px">
+        <div class="switch"><div><b>Google sign-in</b><div class="note">Off hides every sign-in button and nudge. Signed-in couples keep their dashboard.</div></div><button type="button" class="toggle" id="t-signin" aria-pressed="true" aria-label="Google sign-in"></button></div>
+        <div class="switch"><div><b>Record RSVPs</b><div class="note">Keep a copy of each RSVP for the couple's dashboard. WhatsApp still opens as now.</div></div><button type="button" class="toggle" id="t-rsvp" aria-pressed="true" aria-label="Record RSVPs"></button></div>
+        <div class="switch"><div><b>Reminder emails for drafts</b><div class="note">After 24 hours, then after 3 days. Never more than two.</div></div><button type="button" class="toggle" id="t-remind" aria-pressed="false" aria-label="Reminder emails"></button></div>
+      </div>
+      <p class="note" style="margin:0">Your admin login stays a separate password. Couples' Google sign-in never opens admin.</p>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
+  var toastTimer;
+  function toast(text) {
+    var t = $("#toast"); t.textContent = text; t.classList.add("on");
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove("on"); }, 1800);
+  }
+  function setMode(m) {
+    $$("[data-mode]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.mode === m)); });
+    $("#couple").hidden = m !== "couple"; $("#admin").hidden = m !== "admin";
+  }
+  function setState(s) {
+    $$("[data-state]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.state === s)); });
+    ["nudge", "first", "draft", "live", "existing"].forEach(function (k) { $("#s-" + k).hidden = k !== s; $("#ex-" + k).hidden = k !== s; });
+    $("#screen").scrollTop = 0;
+    $("#exist-find").hidden = false; $("#exist-linked").hidden = true;
+    var card = $("#nudgeCard"); if (card) card.hidden = false;
+  }
+  function setTab(t) {
+    $$("[data-tab]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.tab === t)); });
+    ["order", "drafts", "settings"].forEach(function (k) { $("#a-" + k).hidden = k !== t; });
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.mode) setMode(b.dataset.mode);
+    else if (b.dataset.state) setState(b.dataset.state);
+    else if (b.dataset.tab) setTab(b.dataset.tab);
+    else if (b.dataset.go) { setState(b.dataset.go); toast("Signed in. Draft saved to your account"); }
+    else if (b.id === "linkBtn") { $("#exist-find").hidden = true; $("#exist-linked").hidden = false; $("#screen").scrollTop = 0; toast("Invite linked to your account"); }
+    else if (b.hasAttribute("data-dismiss")) { $("#nudgeCard").hidden = true; toast("Dismissed. The form carries on"); }
+    else if (b.classList.contains("toggle")) { b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); toast(b.getAttribute("aria-label") + (b.getAttribute("aria-pressed") === "true" ? " on" : " off")); }
+    else if (b.dataset.toast) toast(b.dataset.toast);
+  });
+})();
+</script>
