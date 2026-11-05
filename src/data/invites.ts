@@ -78,6 +78,8 @@ export type Invite = {
   occasion?: "engagement";
   // Each name above its family lines (Mandir), instead of the lines above the name.
   namesFirst?: boolean;
+  // Venue and function notes a weight heavier (Mandir).
+  boldEvents?: boolean;
   // A couple's own RSVP title (e.g. "Please join us" instead of "Will you join us?").
   rsvpTitle?: string;
   // A couple's own countdown title (e.g. "Our big day countdown" instead of "Until we say “I do”").

@@ -257,7 +257,7 @@ function DayCard({ invite, events }: { invite: Invite; events: InviteEvent[] }) 
   // The address only when it adds something beyond the venue's own name.
   const place = (e: InviteEvent) => (
     <>
-      <p className="inv-serif text-[4.4cqw] leading-tight" style={{ color: c.ink }}>
+      <p className={`inv-serif text-[4.4cqw] leading-tight${invite.boldEvents ? " font-semibold" : ""}`} style={{ color: c.ink }}>
         {e.venue}
       </p>
       {e.address && !e.address.toLowerCase().includes(e.venue.toLowerCase()) && (
@@ -288,7 +288,7 @@ function DayCard({ invite, events }: { invite: Invite; events: InviteEvent[] }) 
                 {e.name}
               </span>
               {(e.dress || e.note) && (
-                <p className="inv-serif col-start-2 mt-[0.5cqw] text-[3.6cqw] italic" style={{ color: c.name }}>
+                <p className={`inv-serif col-start-2 mt-[0.5cqw] text-[3.6cqw] italic${invite.boldEvents ? " font-semibold" : ""}`} style={{ color: c.name }}>
                   {[e.dress && t.dress(e.dress), e.note].filter(Boolean).join(" · ")}
                 </p>
               )}
@@ -362,7 +362,7 @@ function Events({ invite }: { invite: Invite }) {
                 <p className="inv-serif mt-[1cqw] text-[4cqw] italic" style={{ color: c.soft }}>
                   {t.onwards(d.time(e.start))}
                 </p>
-                <p className="inv-serif mt-[3cqw] text-[4.4cqw] leading-tight" style={{ color: c.ink }}>
+                <p className={`inv-serif mt-[3cqw] text-[4.4cqw] leading-tight${invite.boldEvents ? " font-semibold" : ""}`} style={{ color: c.ink }}>
                   {e.venue}
                 </p>
                 {e.address && (
@@ -371,7 +371,7 @@ function Events({ invite }: { invite: Invite }) {
                   </p>
                 )}
                 {(e.dress || e.note) && (
-                  <p className="inv-serif mt-[2cqw] text-[3.6cqw] italic" style={{ color: c.name }}>
+                  <p className={`inv-serif mt-[2cqw] text-[3.6cqw] italic${invite.boldEvents ? " font-semibold" : ""}`} style={{ color: c.name }}>
                     {[e.dress && t.dress(e.dress), e.note].filter(Boolean).join(" · ")}
                   </p>
                 )}
