@@ -26,6 +26,8 @@ export type TemplateMeta = {
   topSeller?: boolean;
   // Shown with a "New" badge instead, for recently added designs.
   isNew?: boolean;
+  // A custom design whose couple pays us directly: no online checkout, and we publish by hand.
+  payDirect?: boolean;
 };
 
 const DEVA = "var(--font-deva)";
@@ -414,8 +416,9 @@ export const privateTemplates: TemplateMeta[] = [
     mood: "Illustrated · Khat for a bride in crimson and gold",
     tagline: "Khat's sealed envelope and sunset meadow, with the bride in a crimson-and-gold saree and crimson type.",
     description: ["A colour version of Khat made for one couple."],
-    price: 0,
-    mrp: 0,
+    price: 299,
+    mrp: 299,
+    payDirect: true,
     demoSlug: "rhea-weds-arjun-red",
     palette: [
       { name: "Ivory", hex: "#fbf1ec" },

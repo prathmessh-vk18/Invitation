@@ -195,7 +195,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
             ) : (
               <>
                 <p className="text-title">Order received. Thank you!</p>
-                {order.amount > 0 ? (
+                {!t.payDirect ? (
                   <p className="mt-2 text-body text-muted">
                     We&rsquo;ll message you on WhatsApp at <span className="font-semibold text-ink">+{order.customer_phone}</span> with the payment details for{" "}
                     {formatINR(order.amount)}. As soon as payment is done, we&rsquo;ll publish your invite and send you the link.

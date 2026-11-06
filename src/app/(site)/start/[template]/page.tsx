@@ -33,7 +33,7 @@ export default async function StartPage({ params }: PageProps<"/start/[template]
           Make {t.name} yours.
         </Heading>
         <Lead className="mt-3 max-w-[640px]">
-          {t.price > 0
+          {!t.payDirect
             ? "A few short steps, with a live preview of your invite as you go. Pay securely online at the end, and your invite goes live within minutes."
             : "A few short steps, with a live preview of your invite as you go. Send it when you're done: we'll confirm payment with you directly and put your invite live."}
         </Lead>
