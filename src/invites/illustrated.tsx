@@ -338,7 +338,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
             {invite.invocation}
           </motion.p>
           <motion.p {...show(0.45)} className="inv-label relative mt-[2cqw] text-[2.5cqw]" style={{ color: c.ink }}>
-            The wedding of
+            {invite.heroKicker ?? "The wedding of"}
           </motion.p>
           {invite.stackNames ? (
             <motion.h1 {...show(0.7)} className="inv-script relative mt-[1.5cqw] flex flex-col items-center leading-[0.95] [text-shadow:0_1px_14px_rgba(255,250,240,.7)]" style={{ color: c.ink, ...sz(12) }}>
