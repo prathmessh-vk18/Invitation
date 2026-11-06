@@ -451,7 +451,10 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
                 {p.full || p.first}
               </p>
               {p.parents && (
-                <p className={`inv-serif mt-[1.5cqw] whitespace-pre-line italic ${L ? "text-[4.4cqw] font-semibold" : "text-[3.6cqw] font-medium"}`} style={{ color: L ? c.ink : c.soft }}>
+                <p
+                  className={`inv-serif mt-[1.5cqw] whitespace-pre-line italic ${L ? "text-[4.4cqw] font-semibold" : "text-[3.6cqw] font-medium"} ${invite.parentsWide ? "-mx-[8cqw]" : ""}`}
+                  style={{ color: L ? c.ink : c.soft }}
+                >
                   {p.parents}
                 </p>
               )}

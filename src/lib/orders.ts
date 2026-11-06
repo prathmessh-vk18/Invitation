@@ -221,6 +221,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.noSignoff === true ? { noSignoff: true } : {}),
       ...(typeof d.signoff === "string" && d.signoff.trim() ? { signoff: str(d.signoff, 80) } : {}),
       ...(typeof d.heroKicker === "string" && d.heroKicker.trim() ? { heroKicker: str(d.heroKicker, 60) } : {}),
+      ...(d.parentsWide === true ? { parentsWide: true } : {}),
       ...(d.noBranding === true ? { noBranding: true } : {}),
       ...(d.padDay === true ? { padDay: true } : {}),
       ...(d.occasion === "engagement" ? { occasion: "engagement" as const } : {}),

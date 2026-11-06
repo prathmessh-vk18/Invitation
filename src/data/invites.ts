@@ -78,6 +78,8 @@ export type Invite = {
   stackNames?: boolean;
   // Hide the "With love · hosts" line at the end.
   noSignoff?: boolean;
+  // Let the parents' lines use more of the page's width, so a long line stays on one line.
+  parentsWide?: boolean;
   // The small heading over the names on the cover, in place of "The wedding of" (e.g. "The wedding reception of").
   heroKicker?: string;
   // A family's own sign-off just above the Aavjoo line (e.g. "With love,\nAlwani Family"; Bagh-style designs).
