@@ -23,6 +23,21 @@ export const khat = makeIllustrated({
   fonts: { script: "var(--font-pinyon), cursive", serif: "var(--font-cormorant), serif", label: "var(--font-manrope), sans-serif" },
 });
 
+/**
+ * Khat in ivory red, for a bride in a crimson-and-gold lehenga: the same envelope opening, the
+ * couple repainted with her in deep red, crimson type and the floral paper warmed with red.
+ */
+export const khatred = makeIllustrated({
+  id: "khatred",
+  images: { opening: `${base}/khat-envelope.jpg`, hero: `${base}/khat-red-hero.jpg`, card: `${base}/khat-red-card.jpg` },
+  opening: "envelope",
+  sealAt: { x: 50.5, y: 49.5 },
+  heroTextTop: 12,
+  frame: { top: 15, bottom: 15, side: 3 },
+  colors: { ink: "#6e1320", accent: "#a3192b", soft: "#7a4741", paper: "#fbf1ec", onAccent: "#fff" },
+  fonts: { script: "var(--font-pinyon), cursive", serif: "var(--font-cormorant), serif", label: "var(--font-manrope), sans-serif" },
+});
+
 export const gopuram = makeIllustrated({
   id: "gopuram",
   images: { opening: `${base}/gopuram-doors.jpg`, hero: `${base}/gopuram-hero.jpg`, card: `${base}/gopuram-card.jpg` },

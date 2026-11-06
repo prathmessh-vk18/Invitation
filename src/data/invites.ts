@@ -650,7 +650,10 @@ const demoTracks = songs.map((s) => s.id);
 invites.forEach((i, n) => (i.music ??= demoTracks[(n * 5 + 2) % demoTracks.length]));
 
 // Demos for private designs: they preview the design in its order form, but aren't listed or prerendered.
-export const privateInvites: Invite[] = [];
+export const privateInvites: Invite[] = [
+  // Khat in ivory red, to show a client before she orders: the Khat demo couple in the new colours.
+  { ...invites.find((i) => i.slug === "rhea-weds-arjun")!, slug: "rhea-weds-arjun-red", template: "khatred" },
+];
 
 export function getInvite(slug: string) {
   return invites.find((i) => i.slug === slug) ?? privateInvites.find((i) => i.slug === slug);

@@ -1,4 +1,4 @@
-export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli";
+export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli" | "khatred";
 export type CategoryId = "hindu" | "muslim" | "sikh" | "south-indian";
 
 export type TemplateMeta = {
@@ -404,7 +404,31 @@ export const templates: TemplateMeta[] = [
  * Designs made for one couple. They work everywhere a design does (ordering at /start/<id>,
  * admin, publishing) but never appear in the gallery, footer, sitemap or counts.
  */
-export const privateTemplates: TemplateMeta[] = [];
+export const privateTemplates: TemplateMeta[] = [
+  {
+    id: "khatred",
+    category: "hindu",
+    name: "Khat (Ivory Red)",
+    native: "ख़त",
+    nativeFont: DEVA,
+    mood: "Illustrated · Khat for a bride in crimson and gold",
+    tagline: "Khat's sealed envelope and sunset meadow, with the bride in a crimson-and-gold lehenga and crimson type.",
+    description: ["A colour version of Khat made for one couple."],
+    price: 0,
+    mrp: 0,
+    demoSlug: "rhea-weds-arjun-red",
+    palette: [
+      { name: "Ivory", hex: "#fbf1ec" },
+      { name: "Crimson", hex: "#a3192b" },
+      { name: "Deep red", hex: "#6e1320" },
+    ],
+    suits: ["A bride in a red lehenga"],
+    signature: ["Sealed envelope", "Bride in crimson and gold", "Crimson type"],
+    tint: "#fbf1ec",
+    icon: { bg: "#a3192b", fg: "#fbf1ec" },
+    addedOn: "2026-11-06",
+  },
+];
 
 export function getTemplate(id: string) {
   return templates.find((t) => t.id === id) ?? privateTemplates.find((t) => t.id === id);
