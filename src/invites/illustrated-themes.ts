@@ -32,7 +32,7 @@ export const khatred = makeIllustrated({
   images: { opening: `${base}/khat-envelope.jpg`, hero: `${base}/khat-red-hero.jpg`, card: `${base}/khat-red-card.jpg` },
   opening: "envelope",
   sealAt: { x: 50.5, y: 49.5 },
-  heroTextTop: 12,
+  heroTextTop: 8,
   frame: { top: 15, bottom: 15, side: 3 },
   colors: { ink: "#6e1320", accent: "#a3192b", soft: "#7a4741", paper: "#fbf1ec", onAccent: "#fff" },
   fonts: { script: "var(--font-pinyon), cursive", serif: "var(--font-cormorant), serif", label: "var(--font-manrope), sans-serif" },
