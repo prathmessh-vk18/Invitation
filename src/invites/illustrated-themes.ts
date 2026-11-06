@@ -24,7 +24,7 @@ export const khat = makeIllustrated({
 });
 
 /**
- * Khat in ivory red, for a bride in a crimson-and-gold lehenga: the same envelope opening, the
+ * Khat in ivory red, for a bride in a crimson-and-gold saree: the same envelope opening, the
  * couple repainted with her in deep red, crimson type and the floral paper warmed with red.
  */
 export const khatred = makeIllustrated({

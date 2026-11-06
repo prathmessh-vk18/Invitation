@@ -195,10 +195,17 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
             ) : (
               <>
                 <p className="text-title">Order received. Thank you!</p>
-                <p className="mt-2 text-body text-muted">
-                  We&rsquo;ll message you on WhatsApp at <span className="font-semibold text-ink">+{order.customer_phone}</span> with the payment details for{" "}
-                  {formatINR(order.amount)}. As soon as payment is done, we&rsquo;ll publish your invite and send you the link.
-                </p>
+                {order.amount > 0 ? (
+                  <p className="mt-2 text-body text-muted">
+                    We&rsquo;ll message you on WhatsApp at <span className="font-semibold text-ink">+{order.customer_phone}</span> with the payment details for{" "}
+                    {formatINR(order.amount)}. As soon as payment is done, we&rsquo;ll publish your invite and send you the link.
+                  </p>
+                ) : (
+                  <p className="mt-2 text-body text-muted">
+                    We&rsquo;ll confirm the payment with you directly, as agreed. As soon as it&rsquo;s done, we&rsquo;ll publish your invite and send the link to{" "}
+                    <span className="font-semibold text-ink">+{order.customer_phone}</span> on WhatsApp.
+                  </p>
+                )}
               </>
             )}
             <p className="mt-5 text-caption text-subtle">

@@ -1253,7 +1253,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
           <div className="mt-4">{previewToggle}</div>
           {fullButton}
         </div>
-        {isNew && (
+        {isNew && t.price > 0 && (
           <Panel className="mt-4 p-6">
             <p className="text-caption font-medium text-subtle">{t.name} design · everything included</p>
             <PriceTag price={t.price} mrp={t.mrp} size="lg" className="mt-1" />
