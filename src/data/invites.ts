@@ -78,6 +78,8 @@ export type Invite = {
   stackNames?: boolean;
   // Hide the "With love · hosts" line at the end.
   noSignoff?: boolean;
+  // A family's own sign-off just above the Aavjoo line (e.g. "With love,\nAlwani Family"; Bagh-style designs).
+  signoff?: string;
   // Hide "Crafted with love by Aavjoo" at the end.
   noBranding?: boolean;
   // Show the big date on the save-the-date card as two digits ("01"), since this serif's 1 reads as "I".

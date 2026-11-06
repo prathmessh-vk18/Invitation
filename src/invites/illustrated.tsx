@@ -643,8 +643,13 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
         </Reveal>
         {invite.memorial?.last && memorial("mt-[12cqw]")}
         <Reveal>
+          {invite.signoff && (
+            <p className={`inv-serif mt-[10cqw] leading-snug whitespace-pre-line italic ${L ? "text-[5.4cqw] font-semibold" : "text-[4.8cqw] font-medium"}`} style={{ color: c.ink }}>
+              {invite.signoff}
+            </p>
+          )}
           {!invite.noBranding && (
-            <Link href="/" className="inv-label mt-[10cqw] inline-block text-[2.2cqw] opacity-60" style={{ color: c.ink }}>
+            <Link href="/" className={`inv-label ${invite.signoff ? "mt-[6cqw]" : "mt-[10cqw]"} inline-block text-[2.2cqw] opacity-60`} style={{ color: c.ink }}>
               Crafted with love by {site.name}
             </Link>
           )}
