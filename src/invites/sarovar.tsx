@@ -888,87 +888,51 @@ function Closing({ invite }: { invite: Invite }) {
 }
 
 /**
- * Once open, the invite scrolls itself gently from top to bottom, like a film, with Pause and
- * Replay. Touching or scrolling takes over (it pauses); Play picks up from wherever the guest is.
+ * Once open, the invite scrolls itself gently from top to bottom, like a film. The moment a guest
+ * touches, scrolls or presses a key, it stops for good and they read at their own pace.
  */
-function Player() {
-  const [playing, setPlaying] = useState(false);
-  const [ended, setEnded] = useState(false);
-  const raf = useRef(0);
+function useAutoplay() {
   useEffect(() => {
-    const t = window.setTimeout(() => setPlaying(true), 3200);
-    return () => window.clearTimeout(t);
-  }, []);
-  useEffect(() => {
-    if (!playing) return;
-    let last = performance.now();
+    let raf = 0;
+    let stopped = false;
+    let last = 0;
     let carry = 0;
     const step = (now: number) => {
+      if (stopped) return;
       // About a screen every 14 seconds: time to read, without dragging.
-      carry += ((now - last) / 1000) * (window.innerHeight / 14);
+      if (last) carry += ((now - last) / 1000) * (window.innerHeight / 14);
       last = now;
       if (carry >= 1) {
         window.scrollBy(0, Math.floor(carry));
         carry -= Math.floor(carry);
       }
       if (
-        window.innerHeight + window.scrollY >=
+        window.innerHeight + window.scrollY <
         document.documentElement.scrollHeight - 2
-      ) {
-        setPlaying(false);
-        setEnded(true);
-        return;
-      }
-      raf.current = requestAnimationFrame(step);
+      )
+        raf = requestAnimationFrame(step);
     };
-    raf.current = requestAnimationFrame(step);
-    const stop = () => setPlaying(false);
-    window.addEventListener("wheel", stop, { passive: true });
-    window.addEventListener("touchstart", stop, { passive: true });
-    window.addEventListener("keydown", stop);
+    const stop = () => {
+      stopped = true;
+      cancelAnimationFrame(raf);
+    };
+    const start = window.setTimeout(
+      () => (raf = requestAnimationFrame(step)),
+      3200,
+    );
+    const events = ["wheel", "touchstart", "keydown", "mousedown"] as const;
+    events.forEach((e) => window.addEventListener(e, stop, { passive: true }));
     return () => {
-      cancelAnimationFrame(raf.current);
-      window.removeEventListener("wheel", stop);
-      window.removeEventListener("touchstart", stop);
-      window.removeEventListener("keydown", stop);
+      window.clearTimeout(start);
+      stop();
+      events.forEach((e) => window.removeEventListener(e, stop));
     };
-  }, [playing]);
-  const btn =
-    "inv-label pointer-events-auto rounded-full border px-[3.6cqw] py-[1.8cqw] text-[2.6cqw] tracking-[0.2em] uppercase shadow-sm backdrop-blur-sm";
-  return (
-    <div className="absolute bottom-[4.5cqw] left-[4cqw] flex gap-[2cqw]">
-      <button
-        type="button"
-        onClick={() => (ended ? null : setPlaying((p) => !p))}
-        className={btn}
-        style={{
-          color: c.maroon,
-          borderColor: c.line,
-          background: "rgba(255,252,248,.88)",
-        }}
-        disabled={ended}
-      >
-        {playing ? "Pause" : "Play"}
-      </button>
-      <button
-        type="button"
-        onClick={() => {
-          setEnded(false);
-          setPlaying(false);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          window.setTimeout(() => setPlaying(true), 1600);
-        }}
-        className={btn}
-        style={{
-          color: c.maroon,
-          borderColor: c.line,
-          background: "rgba(255,252,248,.88)",
-        }}
-      >
-        Replay
-      </button>
-    </div>
-  );
+  }, []);
+}
+
+function Player() {
+  useAutoplay();
+  return null;
 }
 
 function Frame() {

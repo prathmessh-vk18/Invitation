@@ -134,8 +134,8 @@ export const invites: Invite[] = [
   {
     slug: "jasmeet-weds-harleen",
     template: "sarovar",
-    groom: { first: "Jasmeet", full: "Jasmeet Singh", parents: "son of Sdn. Manpreet Kaur & S. Gurbir Singh", elders: "Sdn. Satwant Kaur & Late S. Harbhajan Singh" },
-    bride: { first: "Harleen", full: "Harleen Kaur", parents: "daughter of Sdn. Rajinder Kaur & S. Amarjit Singh\nof Model Town, Ludhiana" },
+    groom: { first: "Jasmeet", full: "Jasmeet Singh", parents: "son of Sdn. Manpreet Kaur & S. Gurbir Singh" },
+    bride: { first: "Harleen", full: "Harleen Kaur", parents: "daughter of Sdn. Rajinder Kaur & S. Amarjit Singh, Ludhiana" },
     lead: "groom",
     invocation: "॥ ਸਤਿਨਾਮ ਵਾਹਿਗੁਰੂ ॥",
     invocationMeaning: "",

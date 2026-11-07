@@ -784,7 +784,17 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
                 maxLength={300}
               />
               <Input k={`${k}.dress`} label="Dress code" hint="optional" value={e.dress} onChange={(v) => setEvent(i, "dress", v)} onBlur={() => touch(`${k}.dress`)} placeholder="Shades of yellow" maxLength={80} />
-              <Input k={`${k}.note`} label="Note" hint="optional" value={e.note} onChange={(v) => setEvent(i, "note", v)} onBlur={() => touch(`${k}.note`)} placeholder="Lunch to follow" maxLength={240} />
+              <TextArea
+                k={`${k}.note`}
+                label="Note"
+                hint={t.id === "sarovar" ? "optional · one timing per line" : "optional"}
+                value={e.note}
+                onChange={(v) => setEvent(i, "note", v)}
+                onBlur={() => touch(`${k}.note`)}
+                placeholder={t.id === "sarovar" ? "9:30 AM Departure of the Barat\n11:00 AM Anand Karaj at the Gurudwara" : "Lunch to follow"}
+                maxLength={240}
+                rows={2}
+              />
             </div>
             {prev && prev.venue && !e.venue && (
               <button
