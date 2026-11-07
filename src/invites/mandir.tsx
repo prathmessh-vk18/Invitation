@@ -198,7 +198,7 @@ function Walk({ invite }: { invite: Invite }) {
     <section ref={ref} className="relative" style={{ height: "210svh" }}>
       <motion.div className="sticky top-0 h-[100svh] w-full overflow-hidden" style={{ opacity: sceneOpacity }}>
         <motion.div className="absolute inset-0" style={{ scale, transformOrigin: "50% 61%" }}>
-          <Image src={`${art}/mandir-temple.jpg`} alt={`A temple at sunrise for ${a.first} and ${b.first}'s ${invite.occasion ?? "wedding"}`} fill priority sizes="(max-width: 480px) 100vw, 480px" className="object-cover" />
+          <Image src={`${art}/mandir-temple.jpg`} alt={`A temple at sunrise for ${a.first} and ${b.first}'s ${invite.occasion === "reception" ? "wedding reception" : (invite.occasion ?? "wedding")}`} fill priority sizes="(max-width: 480px) 100vw, 480px" className="object-cover" />
         </motion.div>
         <motion.div className="absolute inset-x-[14%] top-[8%]" style={{ y: nameY, opacity: nameOpacity }}>
           <Names invite={invite} show={showAfterOpen(opened)} />

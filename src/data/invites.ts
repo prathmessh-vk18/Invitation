@@ -89,7 +89,7 @@ export type Invite = {
   // Show the big date on the save-the-date card as two digits ("01"), since this serif's 1 reads as "I".
   padDay?: boolean;
   // An engagement rather than a wedding: the link title, share card and hidden labels say so.
-  occasion?: "engagement";
+  occasion?: "engagement" | "reception";
   // Each name above its family lines (Mandir), instead of the lines above the name.
   namesFirst?: boolean;
   // Venue and function notes a weight heavier (Mandir).

@@ -224,7 +224,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.parentsWide === true ? { parentsWide: true } : {}),
       ...(d.noBranding === true ? { noBranding: true } : {}),
       ...(d.padDay === true ? { padDay: true } : {}),
-      ...(d.occasion === "engagement" ? { occasion: "engagement" as const } : {}),
+      ...(d.occasion === "engagement" || d.occasion === "reception" ? { occasion: d.occasion as "engagement" | "reception" } : {}),
       ...(d.namesFirst === true ? { namesFirst: true } : {}),
       ...(d.boldEvents === true ? { boldEvents: true } : {}),
       ...(typeof d.nameScale === "number" && d.nameScale >= 0.6 && d.nameScale < 1 ? { nameScale: Math.round(d.nameScale * 100) / 100 } : {}),

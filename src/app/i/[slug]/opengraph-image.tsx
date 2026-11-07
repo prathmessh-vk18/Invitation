@@ -97,7 +97,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           </>
         )}
         <div style={{ position: "absolute", top: scene ? 60 : 200, left: 0, width: 1200, display: "flex", flexDirection: "column", alignItems: "center", color: ink }}>
-          <div style={{ fontSize: 22, letterSpacing: 8 }}>{invite.occasion === "engagement" ? "ENGAGEMENT INVITATION" : "WEDDING INVITATION"}</div>
+          <div style={{ fontSize: 22, letterSpacing: 8 }}>{invite.occasion === "engagement" ? "ENGAGEMENT INVITATION" : invite.occasion === "reception" ? "WEDDING RECEPTION INVITATION" : "WEDDING INVITATION"}</div>
           <div style={{ fontFamily: "Fraunces", fontSize: nameSize(names), lineHeight: 1.05, marginTop: 14, letterSpacing: -2 }}>{names}</div>
           <div style={{ fontSize: 30, marginTop: 16, letterSpacing: 1 }}>{`${longDate(invite.date)} · ${invite.city}`}</div>
         </div>
