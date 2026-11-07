@@ -153,7 +153,8 @@ body {
 
 /* Invitation theme hooks — each template sets these variables on its root */
 .inv-script { font-family: var(--inv-script); font-weight: 400; }
-.inv-serif { font-family: var(--inv-serif); }
+/* Lining figures: the serif's old-style "1" reads as a capital I, so "11" looked like a Roman numeral. */
+.inv-serif { font-family: var(--inv-serif); font-variant-numeric: lining-nums; }
 .inv-label { font-family: var(--inv-label); letter-spacing: 0.28em; text-transform: uppercase; }
 /* Mandir's labels (families, RSVP fields…) in a slightly heavier stroke; its label face has one weight. */
 .inv-mandir .inv-label { -webkit-text-stroke: 0.35px currentColor; }
