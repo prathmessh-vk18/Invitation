@@ -456,21 +456,6 @@ const BY_KIND: Record<string, string> = {
 const vignetteOf = (e: InviteEvent) =>
   VIGNETTES.find(([re]) => re.test(e.name))?.[1] ?? BY_KIND[e.kind];
 
-// A function's note may list its own timings, one per line: "8:30 AM Sehra Bandi at our residence".
-const TIMED =
-  /^\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|noon))\s*[-–:·]?\s*(.+)$/i;
-function splitNote(note?: string) {
-  const lines = (note ?? "")
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean);
-  return {
-    schedule: lines
-      .filter((l) => TIMED.test(l))
-      .map((l) => l.match(TIMED)!.slice(1, 3)),
-    rest: lines.filter((l) => !TIMED.test(l)),
-  };
-}
 const clock = (iso: string) =>
   ist(iso, { hour: "numeric", minute: "2-digit", hour12: true }).toUpperCase();
 
@@ -581,7 +566,6 @@ function Event({
   n: number;
 }) {
   const v = vignetteOf(e);
-  const { schedule, rest } = splitNote(e.note);
   return (
     <div
       className="relative overflow-hidden border-t px-[10cqw] py-[12cqw] text-center"
@@ -615,26 +599,6 @@ function Event({
         >
           {clock(e.start)}
         </p>
-        {schedule.length > 0 && (
-          <div className="mx-auto mt-[2cqw] grid w-fit grid-cols-[auto_1fr] gap-x-[3cqw] gap-y-[1.5cqw] text-left">
-            {schedule.map(([t, what], i) => (
-              <p key={i} className="contents">
-                <span
-                  className="inv-serif text-right text-[4.2cqw] font-semibold"
-                  style={{ color: c.deep }}
-                >
-                  {t.toUpperCase()}
-                </span>
-                <span
-                  className="inv-serif text-[4.2cqw]"
-                  style={{ color: c.ink }}
-                >
-                  {what}
-                </span>
-              </p>
-            ))}
-          </div>
-        )}
         <p
           className="inv-serif mx-auto mt-[4cqw] flex max-w-[68cqw] justify-center gap-[3cqw] text-[4.2cqw] italic"
           style={{ color: c.soft }}
@@ -650,12 +614,12 @@ function Event({
             )}
           </span>
         </p>
-        {(e.dress || rest.length > 0) && (
+        {(e.dress || e.note) && (
           <p
             className="inv-label mx-auto mt-[4cqw] max-w-[62cqw] text-[3cqw] leading-relaxed tracking-[0.14em] uppercase"
             style={{ color: c.maroon }}
           >
-            {[...rest, e.dress && `Dress: ${e.dress}`]
+            {[e.note, e.dress && `Dress: ${e.dress}`]
               .filter(Boolean)
               .join(" · ")}
           </p>
