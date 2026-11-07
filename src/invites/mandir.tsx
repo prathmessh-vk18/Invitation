@@ -206,14 +206,15 @@ function Walk({ invite }: { invite: Invite }) {
         <motion.button
           type="button"
           onClick={() => window.scrollBy({ top: window.innerHeight, behavior: "smooth" })}
-          className="absolute bottom-[4%] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1 px-[6cqw] py-[2cqw] text-white [text-shadow:0_1px_8px_rgba(0,0,0,.55)]"
+          // On a soft dark pill: plain white text vanished against the cream carpet.
+          className="absolute bottom-[4%] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-[0.5cqw] rounded-full bg-[rgba(70,32,16,.58)] px-[6cqw] pt-[1.8cqw] pb-[1.2cqw] text-white shadow-[0_4px_18px_rgba(40,18,8,.35)] backdrop-blur-[3px]"
           initial={{ opacity: 0 }}
           animate={opened ? { opacity: 1, y: [0, 6, 0] } : {}}
           transition={{ opacity: { delay: 1.8, duration: 0.6 }, y: { delay: 1.8, duration: 1.8, repeat: Infinity } }}
           style={{ opacity: cue }}
           aria-label={t.scrollToWalkIn}
         >
-          <span className="inv-label text-[2.3cqw]">{t.scrollToWalkIn}</span>
+          <span className="inv-label text-[2.6cqw] font-semibold tracking-[0.2em] whitespace-nowrap">{t.scrollToWalkIn}</span>
           <svg viewBox="0 0 24 24" className="size-[4cqw]" fill="none" stroke="currentColor" strokeWidth={1.6}>
             <path d="M6 9l6 6 6-6" />
           </svg>
