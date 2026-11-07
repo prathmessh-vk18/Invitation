@@ -17,7 +17,7 @@ import type { InviteTheme, OpeningProps } from "./types";
  * couple's initials; the ring opens onto the couple at the edge of a Gurudwara's sarovar at
  * sunset. Then the Mool Mantar and a shabad, the families, every function with its own painting
  * and timed programme, the Four Laavan with their meaning on deep maroon, and the families'
- * invitation. Rose petals drift down the whole way. Art: public/art/illus/sarovar-*.
+ * invitation. Art: public/art/illus/sarovar-*.
  */
 
 const art = "/art/illus";
@@ -74,33 +74,6 @@ function Title({ kicker, children }: { kicker?: string; children: ReactNode }) {
   );
 }
 
-/* ───────── Petals drifting down over everything ───────── */
-
-// Fixed positions so the server and the browser draw the same petals.
-const PETALS = Array.from({ length: 14 }, (_, i) => ({
-  left: (i * 37 + 11) % 100,
-  delay: (i * 1.7) % 12,
-  dur: 11 + ((i * 5) % 8),
-  size: 1.6 + ((i * 7) % 5) * 0.35,
-  tone: ["#b3243a", "#d9606f", "#efd5d8", "#8a1c2b"][i % 4],
-}));
-
-function Petals() {
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      {PETALS.map((p, i) => (
-        <motion.span
-          key={i}
-          className="absolute top-[-4%] block rounded-[60%_40%_60%_40%]"
-          style={{ left: `${p.left}%`, width: `${p.size}cqw`, height: `${p.size * 1.4}cqw`, background: p.tone, opacity: 0.8 }}
-          animate={{ y: ["0vh", "110vh"], x: [0, i % 2 ? 24 : -24, 0], rotate: [0, 180, 360] }}
-          transition={{ duration: p.dur, delay: p.delay, repeat: Infinity, ease: "linear" }}
-        />
-      ))}
-    </div>
-  );
-}
-
 /* ───────── Opening: the ring ───────── */
 
 function Opening({ invite, opened, onOpen }: OpeningProps) {
@@ -108,10 +81,10 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
   const d = invite.date;
   return (
     <motion.div
-      className="absolute inset-0 flex flex-col items-center justify-center text-center"
+      className="absolute inset-0 flex flex-col items-center justify-center text-center [perspective:220cqw]"
       style={{ background: `radial-gradient(90% 60% at 50% 50%, #fffdf9, ${c.paper} 70%, #f1ebe2)`, color: c.maroon }}
       animate={opened ? { opacity: 0 } : { opacity: 1 }}
-      transition={{ duration: 1.2, delay: opened ? 0.5 : 0, ease }}
+      transition={{ duration: 0.6, delay: opened ? 1.2 : 0, ease }}
     >
       <span className="absolute inset-x-0 top-[2%] h-px" style={{ background: c.line }} />
       <span className="absolute inset-x-0 bottom-[2%] h-px" style={{ background: c.line }} />
@@ -125,12 +98,17 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
         type="button"
         onClick={onOpen}
         aria-label="Open the invitation"
-        className="relative mt-[6cqw] aspect-square w-[74cqw]"
+        className="relative mt-[6cqw] aspect-square w-[74cqw] [transform-style:preserve-3d]"
         initial={{ opacity: 0, scale: 0.9 }}
-        animate={opened ? { scale: 3.2, opacity: 0 } : { opacity: 1, scale: [1, 1.02, 1] }}
-        transition={opened ? { duration: 1.3, ease } : { opacity: { duration: 1, delay: 0.6 }, scale: { duration: 3, repeat: Infinity, ease: "easeInOut" } }}
+        // Before it opens the ring turns slowly on its axis; tapped, it spins twice and you pass through it.
+        animate={opened ? { rotateY: [0, 720, 720], scale: [1, 1.05, 3.2], opacity: [1, 1, 0] } : { opacity: 1, scale: 1, rotateY: [-18, 18, -18] }}
+        transition={
+          opened
+            ? { duration: 1.8, times: [0, 0.62, 1], ease: "easeInOut" }
+            : { opacity: { duration: 1, delay: 0.6 }, scale: { duration: 1, delay: 0.6 }, rotateY: { duration: 5, repeat: Infinity, ease: "easeInOut" } }
+        }
       >
-        <Art src={`${art}/sarovar-ring.jpg`} alt="A gold solitaire ring" priority className="object-contain mix-blend-multiply" />
+        <Art src={`${art}/sarovar-ring.webp`} alt="A gold solitaire ring" priority className="object-contain" />
         {/* The couple's initials and date sit inside the band. */}
         <span className="absolute top-[58.5%] left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
           <span className="h-px w-[16cqw]" style={{ background: c.line }} />
@@ -205,7 +183,6 @@ const SHABAD = ["ਸਤਿਗੁਰ ਦਾਤੇ ਕਾਜ ਰਚਾਇਆ ਆ�
 function Blessing({ invite }: { invite: Invite }) {
   const [a, b] = couple(invite);
   const elders = a.elders || b.elders;
-  const d = invite.date;
   const person = (p: typeof a) => (
     <>
       <p className="inv-script text-[12cqw] leading-[1.1]" style={{ color: c.deep }}>
@@ -257,19 +234,6 @@ function Blessing({ invite }: { invite: Invite }) {
         </p>
         {person(b)}
       </Reveal>
-      <Reveal>
-        <div className="mt-[10cqw] flex items-center justify-center gap-[4cqw]">
-          <span className="inv-label text-[3.6cqw] tracking-[0.18em] uppercase" style={{ color: c.ink }}>
-            {ist(d, { weekday: "long" })}
-          </span>
-          <span className="inv-label grid size-[15cqw] place-items-center rounded-full text-[7cqw] text-white" style={{ background: c.maroon }}>
-            {two(ist(d, { day: "numeric" }))}
-          </span>
-          <span className="inv-label text-[3.6cqw] tracking-[0.18em] uppercase" style={{ color: c.ink }}>
-            {ist(d, { month: "long" })} {ist(d, { year: "numeric" })}
-          </span>
-        </div>
-      </Reveal>
     </section>
   );
 }
@@ -304,19 +268,63 @@ function Pin() {
   );
 }
 
-function Event({ e, invite }: { e: InviteEvent; invite: Invite }) {
+// Velvet folds for the curtains that part over each function's painting.
+const VELVET = `repeating-linear-gradient(90deg, #5e0d1a 0, #9a1d31 2.2cqw, #74111f 3.6cqw, #5e0d1a 5cqw)`;
+
+function Curtained({ src }: { src: string }) {
+  const side = (left: boolean) => (
+    <motion.span
+      className="absolute inset-y-0 block w-1/2 shadow-[inset_0_-1.5cqw_0_#b0873a]"
+      style={{ [left ? "left" : "right"]: 0, background: VELVET, transformOrigin: left ? "left top" : "right top" } as CSSProperties}
+      variants={{ shut: { x: "0%", scaleX: 1 }, open: { x: left ? "-78%" : "78%", scaleX: 0.55 } }}
+      transition={{ duration: 1.6, delay: 0.25, ease }}
+    />
+  );
+  return (
+    // The wrapper is what's watched, so the curtains start opening as the painting scrolls in.
+    <motion.div
+      className="relative mx-auto aspect-[4/5] w-[56cqw] overflow-hidden rounded-[50%] border-[0.6cqw] shadow-[0_2cqw_6cqw_-3cqw_rgba(90,20,30,.35)]"
+      style={{ borderColor: c.gold }}
+      initial="shut"
+      whileInView="open"
+      viewport={{ once: true, amount: 0.55 }}
+    >
+      <Art src={src} alt="" />
+      {side(true)}
+      {side(false)}
+    </motion.div>
+  );
+}
+
+/** The curtain's pull cord down the side of a function, with its tassel, pulled as the curtains open. */
+function Cord() {
+  return (
+    <motion.div
+      className="pointer-events-none absolute top-0 left-[5cqw] flex flex-col items-center"
+      initial={{ y: "-6cqw" }}
+      whileInView={{ y: "0cqw" }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 1.4, delay: 0.2, ease }}
+      aria-hidden
+    >
+      <span className="block h-[62cqw] w-[1.1cqw] rounded-full" style={{ background: "repeating-linear-gradient(160deg, #8a1c2b 0 1.2cqw, #b3243a 1.2cqw 2.2cqw)" }} />
+      <span className="block h-[2cqw] w-[2.6cqw] rounded-t-full" style={{ background: c.gold }} />
+      <span className="block h-[7cqw] w-[4cqw]" style={{ background: "repeating-linear-gradient(90deg, #8a1c2b 0 0.6cqw, #b3243a 0.6cqw 1cqw)", clipPath: "polygon(15% 0, 85% 0, 100% 100%, 0 100%)" }} />
+    </motion.div>
+  );
+}
+
+function Event({ e, invite, n }: { e: InviteEvent; invite: Invite; n: number }) {
   const v = vignetteOf(e);
   const { schedule, rest } = splitNote(e.note);
   return (
-    <div className="border-t px-[8cqw] py-[12cqw] text-center" style={{ borderColor: c.line }}>
+    <div className="relative overflow-hidden border-t px-[8cqw] py-[12cqw] text-center" style={{ borderColor: c.line }}>
+      <Cord />
+      <span className="inv-script pointer-events-none absolute top-[18cqw] right-[3cqw] text-[40cqw] leading-none opacity-[0.06]" style={{ color: c.maroon }} aria-hidden>
+        {n}
+      </span>
       <Reveal>
-        {v ? (
-          <div className="relative mx-auto aspect-[4/5] w-[56cqw] overflow-hidden rounded-[50%] border-[0.6cqw] shadow-[0_2cqw_6cqw_-3cqw_rgba(90,20,30,.35)]" style={{ borderColor: c.gold }}>
-            <Art src={`${art}/sarovar-${v}.jpg`} alt="" />
-          </div>
-        ) : (
-          <Rings />
-        )}
+        {v ? <Curtained src={`${art}/sarovar-${v}.jpg`} /> : <Rings />}
         <p className="inv-label mt-[6cqw] text-[3.2cqw] tracking-[0.25em] uppercase" style={{ color: c.maroon }}>
           {ist(e.start, { weekday: "long" })} {ist(e.start, { day: "numeric" })} {ist(e.start, { month: "long" })} {ist(e.start, { year: "numeric" })}
         </p>
@@ -372,7 +380,7 @@ function Events({ invite }: { invite: Invite }) {
       </Reveal>
       <div className="mt-[6cqw]">
         {invite.events.map((e, i) => (
-          <Event key={e.name + i} e={e} invite={invite} />
+          <Event key={e.name + i} e={e} invite={invite} n={i + 1} />
         ))}
       </div>
     </section>
@@ -475,16 +483,11 @@ function Backdrop() {
   return <div className="pointer-events-none absolute inset-0" style={{ background: c.paper }} />;
 }
 
-/** The petals fall over the whole invite once it's open. */
-function Frame() {
-  return <Petals />;
-}
-
 export const sarovar: InviteTheme = {
   id: "sarovar",
   root: "",
   vars: {
-    "--inv-script": "var(--font-pinyon), cursive",
+    "--inv-script": "var(--font-dancing), cursive",
     "--inv-serif": "var(--font-cormorant), serif",
     "--inv-label": "var(--font-cinzel), serif",
     "--inv-accent": c.maroon,
@@ -509,7 +512,6 @@ export const sarovar: InviteTheme = {
   Events,
   Closing,
   Backdrop,
-  Frame,
   Divider,
   Title,
   countdownTitle: "Anand Karaj in",
