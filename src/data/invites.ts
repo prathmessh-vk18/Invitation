@@ -132,6 +132,29 @@ export type Invite = {
 
 export const invites: Invite[] = [
   {
+    slug: "jasmeet-weds-harleen",
+    template: "sarovar",
+    groom: { first: "Jasmeet", full: "Jasmeet Singh", parents: "son of Sdn. Manpreet Kaur & S. Gurbir Singh", elders: "Sdn. Satwant Kaur & Late S. Harbhajan Singh" },
+    bride: { first: "Harleen", full: "Harleen Kaur", parents: "daughter of Sdn. Rajinder Kaur & S. Amarjit Singh\nof Model Town, Ludhiana" },
+    lead: "groom",
+    invocation: "॥ ਸਤਿਨਾਮ ਵਾਹਿਗੁਰੂ ॥",
+    invocationMeaning: "",
+    hosts: "Sdn. Manpreet Kaur & S. Gurbir Singh",
+    message: "seek the pleasure of your gracious presence at the wedding celebrations of their beloved son",
+    date: "2027-02-14T11:00:00+05:30",
+    city: "Gurudwara Sri Dukh Niwaran Sahib, Patiala",
+    hashtag: "#JasmeetWedsHarleen",
+    events: [
+      { kind: "other", name: "Arambh Sri Akhand Path Sahib", start: "2027-02-11T10:00:00+05:30", venue: "At our residence", address: "Leela Bhawan, Patiala" },
+      { kind: "other", name: "Bhog Sri Akhand Path Sahib", start: "2027-02-13T10:00:00+05:30", venue: "At our residence", address: "Leela Bhawan, Patiala", note: "11:00 AM Kirtan, until 12:00 noon\n1:00 PM Guru Ka Langar" },
+      { kind: "other", name: "Jaggo", start: "2027-02-13T19:00:00+05:30", venue: "At our residence", address: "Leela Bhawan, Patiala", dress: "Bright and festive" },
+      { kind: "phere", name: "Anand Karaj", start: "2027-02-14T08:30:00+05:30", venue: "Gurudwara Sri Dukh Niwaran Sahib", address: "Patiala", note: "8:30 AM Sehra Bandi at our residence\n9:30 AM Departure of the Barat\n11:00 AM Anand Karaj at the Gurudwara\nKindly avoid red and white, the colours are reserved for the couple" },
+      { kind: "reception", name: "Reception", start: "2027-02-14T19:30:00+05:30", venue: "The Royal Orchard", address: "Sirhind Road, Patiala" },
+    ],
+    rsvp: { phone: "919699711809", by: "2027-02-01T00:00:00+05:30", contact: "Gurbir Singh" },
+    closing: "Your presence and blessings mean the world to us. Please join us!",
+  },
+  {
     slug: "aarav-weds-meera",
     template: "rajwada",
     groom: { first: "Aarav", full: "Aarav Singh Rathore", parents: "Son of Mrs. Kavita & Mr. Vikram Singh Rathore" },

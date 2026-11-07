@@ -54,7 +54,7 @@ export function Countdown({ invite, theme }: { invite: Invite; theme: InviteThem
   return (
     <section className={theme.ui.section}>
       <Reveal>
-        <theme.Title kicker={t.countdownKicker}>{invite.countdownTitle ?? t.countdownTitle}</theme.Title>
+        <theme.Title kicker={t.countdownKicker}>{invite.countdownTitle ?? theme.countdownTitle ?? t.countdownTitle}</theme.Title>
         {c?.done ? (
           <p className="inv-script mt-6 text-center text-[11cqw]">{t.justMarried}</p>
         ) : (

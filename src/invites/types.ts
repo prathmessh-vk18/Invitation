@@ -32,4 +32,6 @@ export type InviteTheme = {
   Frame?: FC;
   Divider: FC<{ className?: string }>;
   Title: FC<{ kicker?: string; children: ReactNode }>;
+  // A design's own countdown heading (e.g. "Anand Karaj in"), unless the couple set one.
+  countdownTitle?: string;
 };

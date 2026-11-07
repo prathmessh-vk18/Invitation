@@ -8,7 +8,12 @@ export const sections = [
   { id: "countdown", name: "Countdown", note: "Days, hours and minutes to the wedding." },
   { id: "gallery", name: "Our moments", note: "Your photos as polaroids guests can swipe through." },
   { id: "rsvp", name: "RSVP", note: "Guests reply on WhatsApp with their name and headcount." },
+  // Only designs listed in `only` offer it.
+  { id: "laavan", name: "The Four Laavan", note: "The four laavan of Anand Karaj in Gurmukhi, with their meaning.", only: ["sarovar"] },
 ] as const;
+
+/** The optional sections a design offers. */
+export const sectionsFor = (template: string) => sections.filter((x) => !("only" in x) || (x.only as readonly string[]).includes(template));
 
 export type SectionId = (typeof sections)[number]["id"];
 

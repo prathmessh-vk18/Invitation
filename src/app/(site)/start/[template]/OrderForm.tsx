@@ -10,7 +10,7 @@ import { InvitePreview } from "@/invites/InvitePreview";
 import { SectionPreview, type PreviewPart } from "@/invites/SectionPreview";
 import { FullInvitePreview } from "@/invites/FullInvitePreview";
 import { fmtDate } from "@/lib/format";
-import { fontStyles, getFontStyle, sections, type SectionId } from "@/config/customise";
+import { fontStyles, getFontStyle, type SectionId, sectionsFor } from "@/config/customise";
 import { instrumentals, privateSongs, songs, tracks, type Track } from "@/config/music";
 import { themes } from "@/invites/registry";
 import { useInviteMusic } from "@/invites/music";
@@ -433,7 +433,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
   const [a, b] = s.lead === "groom" ? [s.groom, s.bride] : [s.bride, s.groom];
   const showing = (id: SectionId) => !s.hide.includes(id);
   const setShowing = (id: SectionId, on: boolean) => setS((p) => ({ ...p, hide: on ? p.hide.filter((x) => x !== id) : [...p.hide, id] }));
-  const hidden = sections.filter((x) => !showing(x.id));
+  const hidden = sectionsFor(t.id).filter((x) => !showing(x.id));
 
   function focusFirstError(id: StepId) {
     const first = Object.keys(errors).find((k) => stepOf(k) === id);
@@ -862,7 +862,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
         <p className="text-[14px] font-semibold">Sections</p>
         <p className="mt-0.5 text-caption text-muted">The cover, wording, functions and closing always show. Turn off anything else.</p>
         <div className="mt-3 grid gap-2">
-          {sections.map((x) => (
+          {sectionsFor(t.id).map((x) => (
             <Switch key={x.id} id={`section-${x.id}`} on={showing(x.id)} onChange={(on) => setShowing(x.id, on)} label={x.name} note={x.note} />
           ))}
         </div>

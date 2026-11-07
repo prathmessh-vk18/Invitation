@@ -1,4 +1,4 @@
-export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli" | "khatred";
+export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli" | "khatred" | "sarovar";
 export type CategoryId = "hindu" | "muslim" | "sikh" | "south-indian";
 
 export type TemplateMeta = {
@@ -33,6 +33,35 @@ export type TemplateMeta = {
 const DEVA = "var(--font-deva)";
 
 export const templates: TemplateMeta[] = [
+  {
+    id: "sarovar",
+    category: "sikh",
+    name: "Sarovar",
+    native: "ਸਰੋਵਰ",
+    nativeFont: "var(--font-gurmukhi)",
+    mood: "Anand Karaj · Ivory, crimson and gold",
+    tagline: "Tap a gold solitaire to open onto the two of you at a Gurudwara's sarovar at sunset, with the Four Laavan and every function painted.",
+    description: [
+      "Sarovar opens on a gold solitaire holding your initials and date. Tap the ring and it opens onto the two of you standing at the edge of a Gurudwara's sarovar at sunset, framed by marble pillars and roses, with Ik Onkar and your names above.",
+      "Then the Mool Mantar and a shabad in Gurmukhi, the blessings of your elders and both families, and a date medallion. Every function, from Akhand Path and Jaggo to Anand Karaj and the reception, has its own painting and its own timings.",
+      "The Four Laavan follow on deep maroon, in Gurmukhi with their meaning, before your families' invitation. Rose petals drift down the whole way. Countdown, RSVP, photos and music are included.",
+    ],
+    price: 299,
+    mrp: 999,
+    demoSlug: "jasmeet-weds-harleen",
+    palette: [
+      { name: "Ivory", hex: "#faf7f1" },
+      { name: "Crimson", hex: "#8a1c2b" },
+      { name: "Maroon", hex: "#5c0f1c" },
+      { name: "Gold", hex: "#b0873a" },
+    ],
+    suits: ["Anand Karaj", "Sikh weddings across India and abroad", "Families who want Gurbani and the Laavan on the invite"],
+    signature: ["Gold solitaire opening", "Couple at the sarovar", "A painting for every function", "The Four Laavan with meaning"],
+    tint: "#f6efe6",
+    icon: { bg: "#8a1c2b", fg: "#faf7f1" },
+    addedOn: "2026-11-07",
+    isNew: true,
+  },
   {
     id: "gaurishankar",
     category: "hindu",
