@@ -437,21 +437,34 @@ function Blessing({ invite }: { invite: Invite }) {
 // The painting for a function, by its name first and its kind second.
 const VIGNETTES: [RegExp, string][] = [
   [/arambh|palki|parkash|prakash|aagman/i, "palki"],
-  [/akhand|path|sehaj|bhog|kirtan|ardas/i, "path"],
+  [/akhand|sehaj|bhog|kirtan|ardas/i, "path"],
   [/jaggo|jago/i, "jaggo"],
-  [/anand karaj|laav|phere|wedding ceremony|^wedding$/i, "anandkaraj"],
-  [/reception|party|dinner|cocktail|walima/i, "reception"],
-  [
-    /mehndi|mehendi|sangeet|ladies|giddha|haldi|vatna|maiyan|chunni|shagun|roka|choora|chura/i,
-    "mehndi",
-  ],
+  [/anand karaj|laav|wedding ceremony|^wedding$/i, "anandkaraj"],
+  [/phere|pheras|vivah|lagna/i, "phere"],
+  [/engagement|\bring\b|roka|sagai|kurmai|shagun|chunni|mangni/i, "engagement"],
+  [/haldi|maiyan|vatna|batna|ubtan/i, "haldi"],
+  [/mehndi|mehendi|henna/i, "mehndi"],
+  [/sangeet|ladies|giddha/i, "sangeet"],
+  [/baraat|barat|sehra|ghodi|milni/i, "baraat"],
+  [/nikah/i, "nikah"],
+  [/walima/i, "walima"],
+  [/muhurtham|muhurtam|kalyanam/i, "muhurtham"],
+  [/reception|party|dinner|cocktail/i, "reception"],
 ];
+// Every function type in the order form's dropdown has its own painting.
 const BY_KIND: Record<string, string> = {
-  phere: "anandkaraj",
-  reception: "reception",
+  haldi: "haldi",
   mehndi: "mehndi",
-  sangeet: "mehndi",
-  haldi: "mehndi",
+  sangeet: "sangeet",
+  jaggo: "jaggo",
+  baraat: "baraat",
+  phere: "phere",
+  anandkaraj: "anandkaraj",
+  nikah: "nikah",
+  muhurtham: "muhurtham",
+  walima: "walima",
+  reception: "reception",
+  other: "celebration",
 };
 const vignetteOf = (e: InviteEvent) =>
   VIGNETTES.find(([re]) => re.test(e.name))?.[1] ?? BY_KIND[e.kind];
