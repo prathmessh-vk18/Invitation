@@ -334,7 +334,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
         </motion.div>
         <motion.div className="absolute inset-x-[10%] flex flex-col items-center text-center" style={{ top: `${spec.heroTextTop}%`, y: textY, opacity: textFade }}>
           {spec.heroGlow && <div className="absolute -inset-x-[8%] -inset-y-[18%] -z-0 rounded-[50%] bg-[radial-gradient(closest-side,rgba(255,250,240,.85),rgba(255,250,240,0))]" />}
-          <motion.p {...show(0.3)} className="relative text-[3.2cqw]" style={{ color: c.accent, fontFamily: invite.template === "gopuram" ? "var(--font-tamil)" : "var(--font-deva)" }}>
+          <motion.p {...show(0.3)} className="relative text-[3.2cqw] leading-relaxed whitespace-pre-line" style={{ color: c.accent, fontFamily: invite.template === "gopuram" ? "var(--font-tamil)" : "var(--font-deva)" }}>
             {invite.invocation}
           </motion.p>
           <motion.p {...show(0.45)} className="inv-label relative mt-[2cqw] text-[2.5cqw]" style={{ color: c.ink }}>
