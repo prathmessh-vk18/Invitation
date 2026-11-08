@@ -53,6 +53,8 @@ export type IllustratedSpec = {
   heroLead?: number;
   // Doors only: false drops the shadow along the inner edges, for art with its own seam.
   doorShade?: boolean;
+  // Envelope only: a light colour for "You're invited" when the opening art is dark (Roka's red silk).
+  openingInk?: string;
 };
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -167,10 +169,10 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           animate={{ opacity: opened ? 0 : 1, y: opened ? -20 : 0 }}
           transition={{ duration: 0.4 }}
         >
-          <p className="inv-script text-[10cqw] leading-none" style={{ color: c.ink }}>
+          <p className={`inv-script text-[10cqw] leading-none ${spec.openingInk ? "[text-shadow:0_2px_14px_rgba(0,0,0,.45)]" : ""}`} style={{ color: spec.openingInk ?? c.ink }}>
             You&rsquo;re invited
           </p>
-          <p className="inv-label mt-[2cqw] text-[2.6cqw]" style={{ color: c.ink }}>
+          <p className={`inv-label mt-[2cqw] text-[2.6cqw] ${spec.openingInk ? "[text-shadow:0_1px_8px_rgba(0,0,0,.5)]" : ""}`} style={{ color: spec.openingInk ?? c.ink }}>
             {couple(invite)[0].first} &amp; {couple(invite)[1].first}
           </p>
         </motion.div>

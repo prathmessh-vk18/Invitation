@@ -14,7 +14,7 @@ import { longDate } from "@/lib/format";
 // Each path is written out in full so only these files ship with this route, and they're read
 // once when the module loads (see app/opengraph-image.tsx).
 const jpg = async (file: Promise<Buffer>) => `data:image/jpeg;base64,${(await file).toString("base64")}`;
-const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh, shiv, khatRed, sarovarArt] = await Promise.all([
+const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh, shiv, khatRed, sarovarArt, angoothiArt, chandniArt, rokaArt] = await Promise.all([
   readFile(join(process.cwd(), "src/app/i/[slug]/Fraunces-Medium.ttf")),
   readFile(join(process.cwd(), "src/app/i/[slug]/Geist-Medium.ttf")),
   jpg(readFile(join(process.cwd(), "public/art/illus/mandir-temple.jpg"))),
@@ -26,6 +26,9 @@ const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh, shiv, khatRe
   jpg(readFile(join(process.cwd(), "public/art/illus/shiv-share.jpg"))),
   jpg(readFile(join(process.cwd(), "public/art/illus/khat-red-hero.jpg"))),
   jpg(readFile(join(process.cwd(), "public/art/illus/sarovar-hero.jpg"))),
+  jpg(readFile(join(process.cwd(), "public/art/illus/angoothi-hero.jpg"))),
+  jpg(readFile(join(process.cwd(), "public/art/illus/chandni-hero.jpg"))),
+  jpg(readFile(join(process.cwd(), "public/art/illus/roka-hero.jpg"))),
 ]);
 
 // The painted designs' hero art fills the card. The art is portrait (864×1536), so at the card's
@@ -45,6 +48,10 @@ const scenes: Record<string, { src: string; y: number }> = {
   // The engagement designs share their art with Mandir and Khat.
   vachan: { src: mandir, y: 0.45 },
   mudrika: { src: khat, y: 0.45 },
+  // Hands and thalis, no faces.
+  angoothi: { src: angoothiArt, y: 0.42 },
+  chandni: { src: chandniArt, y: 0.44 },
+  roka: { src: rokaArt, y: 0.42 },
   khatred: { src: khatRed, y: 0.42 },
   gopuram: { src: gopuram, y: 0.19 },
   bagh: { src: bagh, y: 0.21 },

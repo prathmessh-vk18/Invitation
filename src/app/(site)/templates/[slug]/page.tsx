@@ -18,7 +18,7 @@ import { ButtonLink, Container, Eyebrow, Heading, Lead, Panel, PhoneFrame, Revea
 export const instant = false;
 
 /** The design's own artwork as its share preview (illustrated designs), else the site card. */
-const illustrated = new Set(["gaurishankar", "mandir", "mahal", "khat", "gopuram", "bagh", "haveli", "vachan", "mudrika"]);
+const illustrated = new Set(["gaurishankar", "mandir", "mahal", "khat", "gopuram", "bagh", "haveli", "vachan", "mudrika", "angoothi", "chandni", "roka"]);
 const shareImage = (id: string) =>
   id === "gaurishankar" ? "/art/illus/shiv-share.jpg" : id === "mandir" ? "/art/illus/mandir-temple.jpg" : id === "haveli" ? "/art/illus/haveli-arrival.jpg" : illustrated.has(id) ? `/art/illus/${id}-hero.jpg` : "/opengraph-image";
 

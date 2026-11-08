@@ -94,3 +94,53 @@ export const haveli = makeIllustrated({
   colors: { ink: "#5a1f2b", accent: "#9c4a3c", soft: "#6e564a", paper: "#f8f3e8", onAccent: "#fff" },
   fonts: { script: "var(--font-pinyon), cursive", serif: "var(--font-cormorant), serif", label: "var(--font-cinzel), serif" },
 });
+
+/* ───────── Engagement designs with their own paintings ───────── */
+
+const ring = (theme: ReturnType<typeof makeIllustrated>) => ({ ...theme, countdownTitle: "Until the ring ceremony" });
+
+/** Angoothi: a sealed ring box on a brass thali opens onto two hands exchanging rings. */
+export const angoothi = ring(
+  makeIllustrated({
+    id: "angoothi",
+    images: { opening: `${base}/angoothi-box.jpg`, hero: `${base}/angoothi-hero.jpg`, card: `${base}/angoothi-card.jpg` },
+    opening: "envelope",
+    sealAt: { x: 50, y: 47 },
+    heroTextTop: 9,
+    heroGlow: true,
+    frame: { top: 14, bottom: 14, side: 3 },
+    colors: { ink: "#5a2414", accent: "#b5482a", soft: "#7a4b36", paper: "#fbf3e6", onAccent: "#fff" },
+    fonts: { script: "var(--font-pinyon), cursive", serif: "var(--font-cormorant), serif", label: "var(--font-cinzel), serif" },
+  }),
+);
+
+/** Chandni: carved marble doors at twilight open onto the couple under a floral arch on a palace terrace. */
+export const chandni = ring(
+  makeIllustrated({
+    id: "chandni",
+    images: { opening: `${base}/chandni-doors.jpg`, hero: `${base}/chandni-hero.jpg`, card: `${base}/chandni-card.jpg` },
+    opening: "doors",
+    heroTextTop: 10,
+    heroGlow: true,
+    frame: { top: 14, bottom: 14, side: 3 },
+    colors: { ink: "#3d2b4f", accent: "#9a4f7c", soft: "#6d5a73", paper: "#f8f1f4", onAccent: "#fff" },
+    fonts: { script: "var(--font-parisienne), cursive", serif: "var(--font-cormorant), serif", label: "var(--font-manrope), sans-serif" },
+  }),
+);
+
+/** Roka: a sealed red shagun envelope opens onto the Roka thali, chunri and mithai. */
+export const roka = ring(
+  makeIllustrated({
+    id: "roka",
+    images: { opening: `${base}/roka-envelope.jpg`, hero: `${base}/roka-hero.jpg`, card: `${base}/roka-card.jpg` },
+    opening: "envelope",
+    sealAt: { x: 49.5, y: 48 },
+    openingInk: "#fff1d0",
+    heroTextTop: 10,
+    heroGlow: true,
+    frame: { top: 14, bottom: 14, side: 3 },
+    colors: { ink: "#6e1320", accent: "#b3261e", soft: "#7a4741", paper: "#fbf3e6", onAccent: "#fff" },
+    fonts: { script: "var(--font-yeseva), serif", serif: "var(--font-cormorant), serif", label: "var(--font-marcellus), serif" },
+    scriptScale: 0.8,
+  }),
+);
