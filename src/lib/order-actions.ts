@@ -11,20 +11,51 @@ import { createRazorpayOrder, isRazorpayConfigured, paysOnline, isValidPaymentSi
 import { r2UploadUrl } from "@/lib/r2";
 import { db, isSupabaseConfigured, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
 
-const AUDIO = /^(audio\/(mpeg|mp3|mp4|x-m4a|aac|wav|x-wav|ogg))$/;
 const MAX_SONG_BYTES = 15 * 1024 * 1024;
+
+// Songs are typed by their extension first: phones often label them oddly ("audio/mp4a-latm",
+// "audio/x-mpeg-3") or not at all (""), and turning those away lost us many couples' own songs.
+const SONG_EXT: Record<string, string> = {
+  mp3: "audio/mpeg", m4a: "audio/mp4", mp4: "audio/mp4", aac: "audio/aac", wav: "audio/wav",
+  ogg: "audio/ogg", oga: "audio/ogg", opus: "audio/ogg",
+};
+const SONG_LABEL: [RegExp, string][] = [
+  [/^audio\/(mpeg|mp3|mpeg3|x-mpeg-3|x-mp3|mpg)$/, "mp3"],
+  [/^audio\/(mp4|x-m4a|m4a|mp4a-latm)$/, "m4a"],
+  [/^audio\/(aac|x-aac|aacp|vnd\.dlna\.adts)$/, "aac"],
+  [/^audio\/(wav|x-wav|wave|vnd\.wave)$/, "wav"],
+  [/^audio\/(ogg|opus)$/, "ogg"],
+];
+const VOICE_NOTE = /^(amr|3gp|3gpp|3ga|awb)$/;
+
+/** The extension and type we store a song under, or null when browsers can't play it. */
+function songFormat(fileName: string, label: string): { ext: string; type: string } | null {
+  const fromName = (fileName.split(".").pop() || "").toLowerCase();
+  const type = label.toLowerCase().split(";")[0].trim();
+  // A known extension wins, unless the phone clearly says it's something else (an image, a document).
+  if (SONG_EXT[fromName] && (!type || type.startsWith("audio/") || type === "video/mp4" || type === "application/octet-stream")) {
+    return { ext: fromName, type: SONG_EXT[fromName] };
+  }
+  const hit = SONG_LABEL.find(([re]) => re.test(type));
+  return hit ? { ext: hit[1], type: SONG_EXT[hit[1]] } : null;
+}
 
 /** A one-time URL the browser uploads the couple's song to. The file never passes through our server. */
 export async function createSongUpload(fileName: string, contentType: string, size: number) {
-  if (!AUDIO.test(contentType)) return { error: "Please choose an audio file (MP3, M4A, AAC, WAV or OGG)." };
+  const format = songFormat(fileName, contentType);
+  if (!format) {
+    const ext = (fileName.split(".").pop() || "").toLowerCase();
+    return VOICE_NOTE.test(ext)
+      ? { error: "This is a voice-recording format that phones can't play in an invite. Please choose an MP3 or M4A song." }
+      : { error: "We can't play this file in an invite. Please choose an MP3, M4A, AAC, WAV or OGG song." };
+  }
   if (size > MAX_SONG_BYTES) return { error: "That file is over 15 MB. Please trim it or choose a shorter version." };
-  const ext = (fileName.split(".").pop() || "mp3").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "mp3";
-  const path = `uploads/${randomUUID()}.${ext}`;
-  const r2 = r2UploadUrl(SONGS_BUCKET, path, contentType, size);
-  if (r2) return { path, url: r2.url, headers: r2.headers };
+  const path = `uploads/${randomUUID()}.${format.ext}`;
+  const r2 = r2UploadUrl(SONGS_BUCKET, path, format.type, size);
+  if (r2) return { path, url: r2.url, headers: r2.headers, contentType: format.type };
   const { data, error } = await db().storage.from(SONGS_BUCKET).createSignedUploadUrl(path);
   if (error || !data) return { error: "We couldn't prepare the upload. Please try again." };
-  return { path: data.path, token: data.token };
+  return { path: data.path, token: data.token, contentType: format.type };
 }
 
 const IMAGE = /^image\/(jpeg|png|webp)$/;

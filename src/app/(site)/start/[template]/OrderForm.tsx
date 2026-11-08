@@ -283,10 +283,19 @@ const UPLOAD_CACHE = "31536000";
 type UploadTicket = { path: string; url?: string; headers?: Record<string, string>; token?: string };
 
 /** Sends one file to the link our server issued: Cloudflare R2 when it's on, otherwise Supabase. */
-async function uploadTo(bucket: MediaBucket, ticket: UploadTicket, body: Blob, type: string) {
+async function uploadTo(bucket: MediaBucket, ticket: UploadTicket, body: Blob, type: string, onProgress?: (pct: number) => void) {
   if (ticket.url) {
-    const res = await fetch(ticket.url, { method: "PUT", headers: ticket.headers, body });
-    return res.ok;
+    const url = ticket.url;
+    // XHR rather than fetch: it reports progress, so a slow upload on mobile data shows it's moving.
+    return new Promise<boolean>((resolve) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", url);
+      for (const [k, v] of Object.entries(ticket.headers ?? {})) xhr.setRequestHeader(k, v);
+      if (onProgress) xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(Math.round((e.loaded / e.total) * 100));
+      xhr.onload = () => resolve(xhr.status >= 200 && xhr.status < 300);
+      xhr.onerror = xhr.onabort = xhr.ontimeout = () => resolve(false);
+      xhr.send(body);
+    });
   }
   const { error } = await browserSupabase().storage.from(bucket).uploadToSignedUrl(ticket.path, ticket.token ?? "", body, { contentType: type, cacheControl: UPLOAD_CACHE });
   return !error;
@@ -346,6 +355,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
   const [photoError, setPhotoError] = useState("");
   const [songState, setSongState] = useState<"idle" | "uploading" | "error">("idle");
   const [songError, setSongError] = useState("");
+  const [songProgress, setSongProgress] = useState(0);
   const [touched, setTouched] = useState<Set<string>>(() => new Set());
   const [attempted, setAttempted] = useState<Set<StepId>>(() => new Set());
   const [serverErrors, setServerErrors] = useState<string[]>([]);
@@ -489,10 +499,12 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
     if (!file) return;
     setSongState("uploading");
     setSongError("");
+    setSongProgress(0);
     try {
       const res = await createSongUpload(file.name, file.type, file.size);
       if ("error" in res) throw new Error(res.error);
-      if (!(await uploadTo("songs", res, file, file.type))) throw new Error("The upload didn't finish. Please try again.");
+      if (!(await uploadTo("songs", res, file, res.contentType ?? file.type, setSongProgress)))
+        throw new Error("The upload didn't finish. This is usually a weak network: please try again on Wi-Fi or a stronger signal.");
       setSong({ path: res.path, name: file.name });
       setSongState("idle");
     } catch (e) {
@@ -948,11 +960,17 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
         className={`flex cursor-pointer items-center justify-between gap-4 rounded-tile p-4 transition ${song ? "bg-ink text-white" : "bg-surface hover:bg-panel-strong"} ${songState === "uploading" ? "pointer-events-none opacity-60" : ""}`}
       >
         <div className="min-w-0">
-          <p className="truncate text-[15px] font-medium">{song ? song.name : songState === "uploading" ? "Uploading…" : "Your own song"}</p>
-          <p className={`text-caption ${song ? "text-white/70" : "text-subtle"}`}>MP3, M4A, AAC, WAV or OGG, up to 15 MB</p>
+          <p className="truncate text-[15px] font-medium">{song ? song.name : songState === "uploading" ? `Uploading… ${songProgress}%` : "Your own song"}</p>
+          {songState === "uploading" ? (
+            <div className="mt-2 h-1.5 w-40 max-w-full overflow-hidden rounded-full bg-black/10" role="progressbar" aria-valuenow={songProgress} aria-valuemin={0} aria-valuemax={100}>
+              <div className="h-full rounded-full bg-ink transition-[width] duration-300" style={{ width: `${songProgress}%` }} />
+            </div>
+          ) : (
+            <p className={`text-caption ${song ? "text-white/70" : "text-subtle"}`}>MP3, M4A, AAC, WAV or OGG, up to 15 MB</p>
+          )}
         </div>
         <span className={`shrink-0 rounded-full px-4 py-2 text-[14px] font-medium ${song ? "bg-white text-ink" : "bg-ink text-white"}`}>{song ? "Replace" : "Upload"}</span>
-        <input id="song" type="file" accept="audio/*" className="sr-only" onChange={(e) => pickSong(e.target.files?.[0])} />
+        <input id="song" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.opus" className="sr-only" onChange={(e) => pickSong(e.target.files?.[0])} />
       </label>
       {song && (
         <div className="flex items-center gap-3">
@@ -963,6 +981,10 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
         </div>
       )}
       {songState === "error" && <p className="text-[13px] text-[#b42318]">{songError}</p>}
+      <p className="text-caption text-subtle">
+        Song only on Spotify, Apple Music or YouTube? Those can&apos;t be uploaded. Download the song as an MP3 first, or send it to yourself on
+        WhatsApp as a document, save it to Files, then upload it here.
+      </p>
       <p className="text-caption text-subtle">Please only upload music you have the right to share.</p>
     </div>
   );
