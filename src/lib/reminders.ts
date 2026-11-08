@@ -95,26 +95,58 @@ export function reminderDue(order: Order, now = Date.now()) {
   return now - since >= REMINDER_GAPS_DAYS[sent] * DAY;
 }
 
+/**
+ * The reminders to send now: due orders, minus anyone who already paid on another order (people
+ * often try a few designs), and one per person (by phone), about their most recent order. `also` lists that
+ * person's other unpaid orders, which move along with it so they never get a second copy.
+ */
+export async function dueReminders() {
+  const { data, error } = await db().from("orders").select("*").neq("status", "cancelled");
+  if (error) throw new Error(error.message);
+  const orders = data as Order[];
+  const email = (o: Order) => (o.customer_email ?? "").trim().toLowerCase();
+  const paid = new Set(orders.filter((o) => o.status === "paid" || o.status === "live").flatMap((o) => [o.customer_phone, email(o)]).filter(Boolean));
+  const people = new Map<string, Order[]>();
+  for (const o of orders) {
+    if (o.status !== "awaiting_payment" || !email(o) || paid.has(o.customer_phone) || paid.has(email(o))) continue;
+    // By phone: everyone gives one, while emails get typed differently from order to order.
+    people.set(o.customer_phone, [...(people.get(o.customer_phone) ?? []), o]);
+  }
+  const out: { order: Order; also: string[] }[] = [];
+  for (const os of people.values()) {
+    const latest = os.sort((x, y) => y.created_at.localeCompare(x.created_at))[0];
+    if (reminderDue(latest)) out.push({ order: latest, also: os.slice(1).map((o) => o.id) });
+  }
+  return out;
+}
+
 /** Sends every reminder that's due. Run once a day by the cron. */
 export async function sendDueReminders({ dryRun = false } = {}) {
   if (!dryRun && !isMailConfigured()) return { sent: 0, failed: 0, due: 0, error: "Email isn't set up." };
-  const { data, error } = await db().from("orders").select("*").eq("status", "awaiting_payment").not("customer_email", "is", null).eq("email_opt_out", false);
-  if (error) return { sent: 0, failed: 0, due: 0, error: error.message };
-  const due = (data as Order[]).filter((o) => reminderDue(o));
+  let due: Awaited<ReturnType<typeof dueReminders>>;
+  try {
+    due = await dueReminders();
+  } catch (e) {
+    return { sent: 0, failed: 0, due: 0, error: (e as Error).message };
+  }
   let sent = 0;
   let failed = 0;
-  for (const o of due) {
+  for (const { order: o, also } of due) {
     if (dryRun) continue;
     try {
       const n = o.email_reminders ?? 0;
-      await sendMail({ to: o.customer_email!, ...reminderEmail(o, n) });
+      await sendMail({ to: o.customer_email!.trim(), ...reminderEmail(o, n) });
       // Only counts once Gmail accepted it, so a failure is retried tomorrow.
-      await db().from("orders").update({ email_reminders: n + 1, email_reminded_at: new Date().toISOString() }).eq("id", o.id).eq("status", "awaiting_payment");
+      await db()
+        .from("orders")
+        .update({ email_reminders: n + 1, email_reminded_at: new Date().toISOString() })
+        .in("id", [o.id, ...also])
+        .eq("status", "awaiting_payment");
       sent++;
     } catch (e) {
       console.error("Reminder email failed", o.code, e);
       failed++;
     }
   }
-  return { sent, failed, due: due.length, codes: due.map((o) => o.code) };
+  return { sent, failed, due: due.length, codes: due.map((d) => d.order.code) };
 }
