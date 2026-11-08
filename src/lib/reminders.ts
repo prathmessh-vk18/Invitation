@@ -2,7 +2,7 @@ import "server-only";
 import { formatINR, site } from "@/config/site";
 import { getTemplate } from "@/data/templates";
 import { button, esc, helpLine, layout, link, ticks } from "@/lib/email-layout";
-import { isMailConfigured, sendMail } from "@/lib/mail";
+import { isMailConfigured, sendMail, unsubscribeUrl } from "@/lib/mail";
 import type { Order } from "@/lib/orders";
 import { paysOnline } from "@/lib/razorpay";
 import { db } from "@/lib/supabase";
@@ -15,7 +15,8 @@ import { dateLine, daysToWedding, LINK_IN, saving } from "@/lib/urgency";
  */
 export const REMINDER_GAPS_DAYS = [0.5, 2, 4];
 const DAY = 864e5;
-export const MAX_PER_RUN = 80;
+// A new sending domain earns trust by starting small; raise this once emails land in inboxes reliably.
+export const MAX_PER_RUN = 30;
 const TIME_BUDGET_MS = 45_000;
 
 type Reminder = { subject: string; html: string; text: string };
@@ -91,7 +92,7 @@ ${helpLine}`;
     preheader: copy.preheader,
     image: { src: `${orderUrl}/card`, href: payUrl, alt: `${pair}'s wedding invitation` },
     body,
-    footer: `Order ${esc(order.code)}. You're getting this because you started this order on aavjoo.in. Reply "stop" and we won't email you again.`,
+    footer: `Order ${esc(order.code)}. You're getting this because you started this order on aavjoo.in. <a href="${unsubscribeUrl(order.id)}" style="color:#8a8178">Don't send me reminders</a>.`,
   });
 
   const text = [
@@ -109,7 +110,7 @@ ${helpLine}`;
     proof,
     "",
     `Questions? Reply to this email or WhatsApp us at ${site.whatsappDisplay}.`,
-    `Order ${order.code}. Reply "stop" and we won't email you again.`,
+    `Order ${order.code}. Don't want reminders? ${unsubscribeUrl(order.id)}`,
   ]
     .filter((l, i, all) => !(l === "" && all[i - 1] === ""))
     .join("\n");
@@ -169,14 +170,15 @@ export async function sendDueReminders({ dryRun = false } = {}) {
   if (dryRun) return { sent, failed, due: due.length, codes: due.map((d) => d.order.code) };
   const queue = due.slice(0, MAX_PER_RUN);
   const started = Date.now();
-  // Two at a time (Gmail's pooled connections), and no new email after the time budget: the
-  // server stops the job at 60 s, and anyone not reached is first in line tomorrow.
+  // One at a time, a moment apart (a steady trickle reads better to mail providers than a burst,
+  // and stays inside Resend's rate limit), with no new email after the time budget: the server
+  // stops the job at 60 s, and anyone not reached is first in line tomorrow.
   async function worker() {
     for (let next = queue.shift(); next; next = queue.shift()) {
       if (Date.now() - started > TIME_BUDGET_MS) return;
       const { order: o, also } = next;
       const n = o.email_reminders ?? 0;
-      const mail = { to: o.customer_email!.trim(), ...reminderEmail(o, n, couples ?? 0) };
+      const mail = { to: o.customer_email!.trim(), ...reminderEmail(o, n, couples ?? 0), idempotencyKey: `reminder-${o.id}-${n + 1}`, unsubscribeUrl: unsubscribeUrl(o.id) };
       const log = { order_id: o.id, to_email: mail.to, kind: "payment_reminder", reminder: n + 1, subject: mail.subject };
       try {
         await sendMail(mail);
@@ -188,6 +190,7 @@ export async function sendDueReminders({ dryRun = false } = {}) {
           .eq("status", "awaiting_payment");
         await db().from("email_log").insert({ ...log, status: "sent" });
         sent++;
+        await new Promise((r) => setTimeout(r, 700));
       } catch (e) {
         console.error("Reminder email failed", o.code, e);
         await db().from("email_log").insert({ ...log, status: "failed", error: String((e as Error).message ?? e).slice(0, 300) });
@@ -195,6 +198,6 @@ export async function sendDueReminders({ dryRun = false } = {}) {
       }
     }
   }
-  await Promise.all([worker(), worker()]);
+  await worker();
   return { sent, failed, due: due.length, codes: due.map((d) => d.order.code) };
 }

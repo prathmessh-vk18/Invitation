@@ -68,7 +68,7 @@ ${helpLine}`;
 export async function sendInviteLiveEmail(order: Order, slug: string) {
   const to = order.customer_email?.trim();
   if (!to?.includes("@") || !isMailConfigured()) return;
-  const mail = { to, ...inviteLiveEmail(order, slug) };
+  const mail = { to, ...inviteLiveEmail(order, slug), idempotencyKey: `invite-live-${order.id}` };
   const log = { order_id: order.id, to_email: to, kind: "invite_live", subject: mail.subject };
   try {
     await sendMail(mail);

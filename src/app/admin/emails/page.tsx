@@ -2,7 +2,7 @@ import Link from "next/link";
 import { formatINR } from "@/config/site";
 import { requireAdmin } from "@/lib/admin-auth";
 import { fmtDate } from "@/lib/format";
-import { isMailConfigured } from "@/lib/mail";
+import { EMAILS_PAUSED, FROM, isMailConfigured } from "@/lib/mail";
 import type { Order } from "@/lib/orders";
 import { dueReminders } from "@/lib/reminders";
 import { db } from "@/lib/supabase";
@@ -55,7 +55,12 @@ export default async function AdminEmails() {
         <p className="mt-2 text-lead text-muted">
           Payment reminders go out every morning at 10:00 IST to unpaid orders with an email: up to 3 per person, never to anyone who already paid.
         </p>
-        {!isMailConfigured() && <p className="mt-4 text-body text-[#b42318]">Email isn&rsquo;t set up: add GMAIL_USER and GMAIL_APP_PASSWORD in Vercel.</p>}
+        <p className="mt-2 text-caption text-subtle">Sent from {FROM} through Resend; replies go to aavjoo.in@gmail.com.</p>
+        {EMAILS_PAUSED ? (
+          <p className="mt-4 rounded-tile bg-[#fff3c4] px-5 py-4 text-body font-medium text-[#7a5b00]">Emails are paused: nothing is being sent.</p>
+        ) : (
+          !isMailConfigured() && <p className="mt-4 text-body text-[#b42318]">Email isn&rsquo;t set up: add RESEND_API_KEY in Vercel.</p>
+        )}
         {error && <p className="mt-4 text-body text-[#b42318]">Couldn&rsquo;t load the log. Have you run supabase/migrations/0012_email_log.sql?</p>}
 
         <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
