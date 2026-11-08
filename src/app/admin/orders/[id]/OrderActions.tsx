@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { site } from "@/config/site";
 import { Button } from "@/ui";
 import type { OrderStatus } from "@/lib/orders";
-import { cancelOrder, changeEdits, publishInvite, recordNudge, saveDetails, saveNotes, setInvitePublished, setPaymentVerified } from "../../actions";
+import { cancelOrder, changeEdits, setEmailOptOut, publishInvite, recordNudge, saveDetails, saveNotes, setInvitePublished, setPaymentVerified } from "../../actions";
 
 type Props = {
   id: string;
@@ -250,5 +250,15 @@ export function EditsActions({ id }: { id: string }) {
         Reset
       </button>
     </div>
+  );
+}
+
+/** Stops (or allows again) payment reminder emails for one order. */
+export function EmailOptOut({ id, optOut }: { id: string; optOut: boolean }) {
+  const [pending, start] = useTransition();
+  return (
+    <button type="button" disabled={pending} onClick={() => start(() => setEmailOptOut(id, !optOut))} className="ml-2 text-caption text-subtle underline underline-offset-4 hover:text-ink">
+      {optOut ? "Allow emails again" : "Stop emails"}
+    </button>
   );
 }

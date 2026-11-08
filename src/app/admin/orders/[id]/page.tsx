@@ -12,7 +12,7 @@ import { Panel } from "@/ui";
 import { paysOnline } from "@/lib/razorpay";
 import { nudgeMessage } from "@/lib/urgency";
 import { AdminHeader, statusTone } from "../../AdminHeader";
-import { DetailsEditor, EditsActions, NotesAndCancel, PaymentActions, PublishActions } from "./OrderActions";
+import { DetailsEditor, EditsActions, EmailOptOut, NotesAndCancel, PaymentActions, PublishActions } from "./OrderActions";
 import { changeSummary } from "@/lib/change-requests";
 
 export const instant = false;
@@ -137,6 +137,14 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
                   </a>
                 </Row>
                 <Row k="Email">{o.customer_email ?? "—"}</Row>
+                {o.customer_email && o.status === "awaiting_payment" && (
+                  <Row k="Reminders">
+                    {o.email_opt_out
+                      ? "Stopped: no more emails"
+                      : `${o.email_reminders ?? 0} of 3 emails sent${o.email_reminded_at ? `, last ${fmtDate(o.email_reminded_at, { day: "numeric", month: "short" })}` : ""}`}
+                    <EmailOptOut id={o.id} optOut={Boolean(o.email_opt_out)} />
+                  </Row>
+                )}
                 <Row k="Partner">
                   {o.partner_code ? (
                     <Link href="/admin/partners" className="underline underline-offset-4">

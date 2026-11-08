@@ -29,6 +29,10 @@ export type Order = {
   nudged_at?: string | null;
   /** Edits on top of the free ones, from packs or given in admin. */
   extra_edits?: number | null;
+  /** Payment reminder emails sent, the last one's time, and whether they asked us to stop. */
+  email_reminders?: number | null;
+  email_reminded_at?: string | null;
+  email_opt_out?: boolean | null;
   admin_notes: string | null;
   invite_slug: string | null;
   partner_code?: string | null;

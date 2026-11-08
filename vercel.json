@@ -4,5 +4,11 @@
   "regions": [
     "hnd1"
   ],
-  "ignoreCommand": "[ -n \"$VERCEL_GIT_COMMIT_REF\" ] && [ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ]"
+  "ignoreCommand": "[ -n \"$VERCEL_GIT_COMMIT_REF\" ] && [ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ]",
+  "crons": [
+    {
+      "path": "/api/cron/reminders",
+      "schedule": "30 4 * * *"
+    }
+  ]
 }

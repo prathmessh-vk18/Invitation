@@ -197,3 +197,10 @@ export async function changeEdits(id: string, how: "plus1" | "plus3" | "reset") 
     .insert({ order_id: id, source: "admin", changes: [{ label: how === "reset" ? "Edits (reset)" : "Edits (given free)", before: left(extra), after: left(next) }] });
   refresh(id);
 }
+
+/** A couple replied "stop": no more reminder emails (or allow them again). */
+export async function setEmailOptOut(id: string, optOut: boolean) {
+  await requireAdmin();
+  await db().from("orders").update({ email_opt_out: optOut }).eq("id", id);
+  refresh(id);
+}
