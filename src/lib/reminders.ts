@@ -15,6 +15,7 @@ import { dateLine, daysToWedding, LINK_IN, saving } from "@/lib/urgency";
  */
 export const REMINDER_GAPS_DAYS = [0.5, 2, 4];
 const DAY = 864e5;
+export const MAX_PER_RUN = 80;
 
 type Reminder = { subject: string; html: string; text: string };
 
@@ -162,7 +163,9 @@ export async function sendDueReminders({ dryRun = false } = {}) {
   const { count: couples } = await db().from("orders").select("id", { count: "exact", head: true }).eq("status", "live");
   let sent = 0;
   let failed = 0;
-  for (const { order: o, also } of due) {
+  // At most this many a day: a new Gmail account sending hundreds at once can be flagged as spam.
+  // Anyone over the cap is simply first in line tomorrow.
+  for (const { order: o, also } of due.slice(0, MAX_PER_RUN)) {
     if (dryRun) continue;
     const n = o.email_reminders ?? 0;
     const mail = { to: o.customer_email!.trim(), ...reminderEmail(o, n, couples ?? 0) };

@@ -13,5 +13,5 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   const { data } = await db().from("orders").select("details, template, song_path, photo_paths, status").eq("id", id).maybeSingle();
   if (!data || data.status === "cancelled") return new Response("Not found", { status: 404 });
   const card = await shareCard(inviteFromOrder(data as Order, "preview"));
-  return new Response(card.body, { headers: { "Content-Type": "image/jpeg", "Cache-Control": "public, max-age=86400" } });
+  return new Response(card.body, { headers: { "Content-Type": "image/jpeg", "Cache-Control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800" } });
 }

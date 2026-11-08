@@ -11,6 +11,9 @@ let transport: nodemailer.Transporter | null = null;
 function mailer() {
   transport ??= nodemailer.createTransport({
     host: "smtp.gmail.com",
+    // One login reused for a whole batch (and at most 2 at once), instead of reconnecting per email.
+    pool: true,
+    maxConnections: 2,
     port: 465,
     secure: true,
     // Google shows app passwords in groups of four; the spaces are not part of it.
