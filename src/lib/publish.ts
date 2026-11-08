@@ -5,7 +5,19 @@ import { getInvite as getDemoInvite } from "@/data/invites";
 import { inviteFromOrder } from "@/lib/order-invite";
 import { isValidSlug, liveUntil, slugPart, suggestSlug, type Order } from "@/lib/orders";
 import { paysOnline } from "@/lib/razorpay";
+import { saveInvitesBackup } from "@/lib/invites-backup-key";
 import { db } from "@/lib/supabase";
+
+/** Refreshes the R2 backup of published invites once the response has gone out. Never fails the caller. */
+export function refreshInvitesBackup() {
+  after(async () => {
+    try {
+      await saveInvitesBackup(db());
+    } catch (e) {
+      console.error(e);
+    }
+  });
+}
 
 /**
  * Orders paid online go live on their own the moment the payment is confirmed. Set
@@ -46,6 +58,7 @@ export async function publishOrder(order: Order, slugInput: string): Promise<{ o
     .from("orders")
     .update({ status: "live", invite_slug: slug, published_at: order.published_at ?? new Date().toISOString() })
     .eq("id", order.id);
+  refreshInvitesBackup();
   return { ok: true, slug };
 }
 

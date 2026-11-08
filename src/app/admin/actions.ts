@@ -9,7 +9,7 @@ import { applyChanges } from "@/lib/apply-changes";
 import { changeSummary } from "@/lib/change-requests";
 import { site } from "@/config/site";
 import { logOrderEdit, type EditSource } from "@/lib/order-edits";
-import { publishOrder, warmShareCard } from "@/lib/publish";
+import { publishOrder, refreshInvitesBackup, warmShareCard } from "@/lib/publish";
 import { db } from "@/lib/supabase";
 
 export async function login(_: unknown, form: FormData) {
@@ -63,6 +63,7 @@ export async function cancelOrder(id: string) {
   const order = await loadOrder(id);
   if (order.invite_slug) {
     await db().from("invites").delete().eq("slug", order.invite_slug);
+    refreshInvitesBackup();
     updateTag(`invite:${order.invite_slug}`);
   }
   await db().from("orders").update({ status: "cancelled", invite_slug: null }).eq("id", id);
@@ -79,6 +80,7 @@ export async function cancelOrders(form: FormData): Promise<{ cancelled: number 
   const slugs = orders.map((o) => o.invite_slug).filter((s): s is string => Boolean(s));
   if (slugs.length) {
     await db().from("invites").delete().in("slug", slugs);
+    refreshInvitesBackup();
     slugs.forEach((s) => updateTag(`invite:${s}`));
   }
   if (orders.length) {
@@ -135,6 +137,7 @@ export async function publishInvite(id: string, slugInput: string): Promise<{ ok
 export async function setInvitePublished(id: string, slug: string, published: boolean) {
   await requireAdmin();
   await db().from("invites").update({ is_published: published }).eq("slug", slug);
+  refreshInvitesBackup();
   updateTag(`invite:${slug}`);
   refresh(id);
 }
