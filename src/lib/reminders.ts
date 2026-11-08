@@ -1,6 +1,7 @@
 import "server-only";
 import { formatINR, site } from "@/config/site";
 import { getTemplate } from "@/data/templates";
+import { button, esc, helpLine, layout, link, ticks } from "@/lib/email-layout";
 import { isMailConfigured, sendMail } from "@/lib/mail";
 import type { Order } from "@/lib/orders";
 import { paysOnline } from "@/lib/razorpay";
@@ -17,70 +18,99 @@ const DAY = 864e5;
 
 type Reminder = { subject: string; html: string; text: string };
 
-const esc = (s: string) => s.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!);
-
-/** The email for an order's next reminder (0 = first). */
-export function reminderEmail(order: Order, n: number): Reminder {
+/**
+ * The email for an order's next reminder (0 = first). Built to convert: their own invite card on
+ * top, one big pay button, an easy way to fix details first, what they get, and how many couples
+ * already sent theirs with us. Every claim in it is true for this order.
+ */
+export function reminderEmail(order: Order, n: number, couples = 0): Reminder {
   const d = order.details;
   const t = getTemplate(order.template);
   const [a, b] = d.lead === "groom" ? [d.groom.first, d.bride.first] : [d.bride.first, d.groom.first];
-  const couple = `${a} & ${b}`;
+  const pair = `${a} & ${b}`;
   const hi = order.customer_name?.trim().split(/\s+/)[0] || "there";
-  const payUrl = `${site.url}/order/${order.id}?pay=1`;
+  const orderUrl = `${site.url}/order/${order.id}`;
+  const payUrl = `${orderUrl}?pay=1`;
+  const editUrl = `${orderUrl}/edit`;
   const s = saving(order, t);
   const price = formatINR(order.amount);
-  const soon = dateLine(daysToWedding(d.date))?.text;
+  const days = daysToWedding(d.date);
+  const soon = dateLine(days)?.text;
+  const proof = couples >= 50 ? `${Math.floor(couples / 10) * 10}+ couples have already sent their invites with ${site.name}.` : "";
 
   const copy = [
     {
-      subject: `Your ${t?.name ?? ""} invite for ${couple} is ready 🌸`,
-      lead: `Your ${t?.name ?? ""} invitation for ${couple} is all set up, with your functions, venues and music. It goes live the moment you pay.`,
+      subject: `${pair}, your wedding invite is ready 🌸`,
+      preheader: `Your ${t?.name ?? ""} invite is made. Pay once and share it on WhatsApp in ${LINK_IN}.`,
+      title: `${pair}, your invite is ready`,
+      lead: `Hi ${hi}, your ${t?.name ?? ""} invitation is made: every function, venue and your music, on one beautiful link. It's one step from your guests' phones.`,
     },
     {
-      subject: `${couple}'s invite is still waiting`,
-      lead: `Just checking in: ${couple}'s invite is ready and waiting. Pay once and you'll have your link to share on WhatsApp within ${LINK_IN}.`,
+      subject: `Your guests haven't seen ${pair}'s invite yet`,
+      preheader: `It's ready and waiting. Pay once and it goes live in ${LINK_IN}.`,
+      title: `Your invite is waiting for you`,
+      lead: `Hi ${hi}, ${pair}'s invite is ready, but it isn't live yet, so your guests can't open it. Pay once and you'll have the link to share in ${LINK_IN}.`,
     },
     {
-      subject: `Last reminder: ${couple}'s wedding invite`,
-      lead: `This is our last reminder about ${couple}'s invite. Everything you filled in is saved, so it's one payment away from going live.`,
+      subject: `Last reminder: ${pair}'s wedding invite`,
+      preheader: `Everything you filled in is saved. One payment and it's live.`,
+      title: `One step left`,
+      lead: `Hi ${hi}, this is our last reminder. Everything you filled in for ${pair} is saved, so your invite is one payment away from going live.`,
     },
   ][Math.min(n, 2)];
 
-  const priceLine = s ? `${price} (launch price, you save ${formatINR(s.off)} on ${formatINR(s.mrp)})` : price;
+  const gets = [
+    `Every function with venue, time and Google Maps directions`,
+    `A live countdown, and RSVPs straight to your WhatsApp`,
+    `Your music and photos, on one link that opens like a card`,
+    `${site.revisionRounds} free edits after it's live, on the same link`,
+  ];
+
+  const body = `
+<h1 style="margin:0;font-size:26px;line-height:1.2;letter-spacing:-0.02em;font-weight:800">${esc(copy.title)}</h1>
+<p style="margin:12px 0 0;font-size:16px;line-height:1.55;color:#333">${esc(copy.lead)}</p>
+${soon ? `<p style="margin:14px 0 0;padding:12px 14px;background:#fff4e5;border-radius:12px;font-size:15px;line-height:1.5;color:#7a3e00;font-weight:600">⏳ ${esc(soon)}</p>` : ""}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;background:#f7f3ee;border-radius:14px"><tr><td style="padding:16px 18px">
+<div style="font-size:14px;color:#666">${esc(t?.name ?? "Invitation")} design · order ${esc(order.code)}</div>
+<div style="margin-top:4px;font-size:24px;font-weight:800;letter-spacing:-0.02em">${price}${s ? ` <span style="font-size:16px;font-weight:500;color:#999;text-decoration:line-through">${formatINR(s.mrp)}</span>` : ""}</div>
+${s ? `<div style="margin-top:2px;font-size:14px;font-weight:600;color:#1d6b35">Launch price · you save ${formatINR(s.off)}</div>` : ""}
+</td></tr></table>
+<div style="margin-top:20px">${button(payUrl, `Pay ${price} and go live`)}</div>
+<p style="margin:10px 0 0;text-align:center;font-size:13px;color:#777">UPI, cards or netbanking · secure checkout by Razorpay</p>
+<p style="margin:18px 0 0;text-align:center;font-size:15px;color:#333">Want to change something first? ${link(editUrl, "Edit your details")}. It's free and saves instantly.</p>
+<div style="margin-top:24px;padding-top:20px;border-top:1px solid #eee">
+<div style="font-size:15px;font-weight:700;margin-bottom:6px">What your guests get</div>
+${ticks(gets)}
+</div>
+${proof ? `<p style="margin:18px 0 0;font-size:15px;line-height:1.5;color:#333">💛 ${esc(proof)}</p>` : ""}
+${helpLine}`;
+
+  const html = layout({
+    preheader: copy.preheader,
+    image: { src: `${orderUrl}/card`, href: payUrl, alt: `${pair}'s wedding invitation` },
+    body,
+    footer: `Order ${esc(order.code)}. You're getting this because you started this order on aavjoo.in. Reply "stop" and we won't email you again.`,
+  });
+
   const text = [
-    `Hi ${hi},`,
+    copy.title,
     "",
     copy.lead,
     soon ?? "",
     "",
-    `Pay ${priceLine} here: ${payUrl}`,
-    "UPI, cards or netbanking.",
+    `${t?.name ?? "Invitation"} design · ${s ? `${price} (launch price, you save ${formatINR(s.off)} on ${formatINR(s.mrp)})` : price}`,
+    `Pay and go live: ${payUrl}`,
+    `Change something first (free): ${editUrl}`,
+    "",
+    "What your guests get:",
+    ...gets.map((g) => `- ${g}`),
+    proof,
     "",
     `Questions? Reply to this email or WhatsApp us at ${site.whatsappDisplay}.`,
-    "",
-    `Order ${order.code} · ${site.name}`,
-    `You're getting this because you started this order on aavjoo.in. Reply "stop" and we won't email you again.`,
+    `Order ${order.code}. Reply "stop" and we won't email you again.`,
   ]
     .filter((l, i, all) => !(l === "" && all[i - 1] === ""))
     .join("\n");
-
-  const html = `<!doctype html><html><body style="margin:0;background:#f4f1ec;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#141414">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f1ec;padding:24px 12px"><tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:20px;padding:32px 28px">
-<tr><td style="font-size:22px;font-weight:700;letter-spacing:-0.02em;color:#7a2a3a">Aavjoo</td></tr>
-<tr><td style="padding-top:24px;font-size:16px;line-height:1.55">Hi ${esc(hi)},</td></tr>
-<tr><td style="padding-top:12px;font-size:16px;line-height:1.55">${esc(copy.lead)}</td></tr>
-${soon ? `<tr><td style="padding-top:12px;font-size:15px;line-height:1.55;color:#7a2a3a;font-weight:600">${esc(soon)}</td></tr>` : ""}
-<tr><td style="padding-top:24px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f4ef;border-radius:14px"><tr><td style="padding:16px 18px;font-size:15px;line-height:1.5">
-<div style="font-weight:600">${esc(couple)} · ${esc(t?.name ?? "Invitation")}</div>
-<div style="color:#555">${s ? `<span style="text-decoration:line-through;color:#999">${formatINR(s.mrp)}</span>&nbsp; ` : ""}<b style="color:#141414">${price}</b>${s ? ` · launch price` : ""}</div>
-</td></tr></table></td></tr>
-<tr><td align="center" style="padding-top:24px"><a href="${payUrl}" style="display:inline-block;background:#141414;color:#ffffff;text-decoration:none;font-weight:600;font-size:16px;padding:15px 30px;border-radius:999px">Pay ${price} and go live</a></td></tr>
-<tr><td align="center" style="padding-top:10px;font-size:13px;color:#777">UPI, cards or netbanking · secure checkout by Razorpay</td></tr>
-<tr><td style="padding-top:28px;font-size:14px;line-height:1.55;color:#555">Questions? Just reply to this email, or WhatsApp us at <a href="https://wa.me/${site.whatsapp}" style="color:#141414">${site.whatsappDisplay}</a>.</td></tr>
-</table>
-<p style="max-width:520px;margin:16px auto 0;font-size:12px;line-height:1.5;color:#888">Order ${esc(order.code)}. You're getting this because you started this order on aavjoo.in. Reply "stop" and we won't email you again.</p>
-</td></tr></table></body></html>`;
 
   return { subject: copy.subject, html, text };
 }
@@ -129,12 +159,13 @@ export async function sendDueReminders({ dryRun = false } = {}) {
   } catch (e) {
     return { sent: 0, failed: 0, due: 0, error: (e as Error).message };
   }
+  const { count: couples } = await db().from("orders").select("id", { count: "exact", head: true }).eq("status", "live");
   let sent = 0;
   let failed = 0;
   for (const { order: o, also } of due) {
     if (dryRun) continue;
     const n = o.email_reminders ?? 0;
-    const mail = { to: o.customer_email!.trim(), ...reminderEmail(o, n) };
+    const mail = { to: o.customer_email!.trim(), ...reminderEmail(o, n, couples ?? 0) };
     const log = { order_id: o.id, to_email: mail.to, kind: "payment_reminder", reminder: n + 1, subject: mail.subject };
     try {
       await sendMail(mail);

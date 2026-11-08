@@ -6,6 +6,7 @@ import { inviteFromOrder } from "@/lib/order-invite";
 import { isValidSlug, liveUntil, slugPart, suggestSlug, type Order } from "@/lib/orders";
 import { paysOnline } from "@/lib/razorpay";
 import { saveInvitesBackup } from "@/lib/invites-backup-key";
+import { sendInviteLiveEmail } from "@/lib/order-emails";
 import { db } from "@/lib/supabase";
 
 /** Refreshes the R2 backup of published invites once the response has gone out. Never fails the caller. */
@@ -59,6 +60,17 @@ export async function publishOrder(order: Order, slugInput: string): Promise<{ o
     .update({ status: "live", invite_slug: slug, published_at: order.published_at ?? new Date().toISOString() })
     .eq("id", order.id);
   refreshInvitesBackup();
+  // The first time it goes live, email the couple their link and order page (after the response).
+  if (order.status !== "live") {
+    after(async () => {
+      try {
+        const { data: paid } = await db().from("orders").select("*").eq("id", order.id).single();
+        await sendInviteLiveEmail(paid as Order, slug);
+      } catch (e) {
+        console.error(e);
+      }
+    });
+  }
   return { ok: true, slug };
 }
 

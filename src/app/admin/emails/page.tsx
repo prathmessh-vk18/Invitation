@@ -101,7 +101,7 @@ export default async function AdminEmails() {
                       {ord && <span className="block text-caption text-subtle">{ord.details.groom.first} &amp; {ord.details.bride.first}</span>}
                     </td>
                     <td className="px-4 py-3 break-all">{r.to_email}</td>
-                    <td className="px-4 py-3">{r.reminder ? `Reminder ${r.reminder} of 3` : r.subject}</td>
+                    <td className="px-4 py-3">{r.reminder ? `Reminder ${r.reminder} of 3` : r.subject.includes("is live") ? "Invite is live" : r.subject}</td>
                     <td className="px-4 py-3">
                       {r.status === "sent" ? <span className="text-[#1d6b35]">Sent</span> : <span className="text-[#b42318]">Failed{r.error ? `: ${r.error}` : ""}</span>}
                     </td>
