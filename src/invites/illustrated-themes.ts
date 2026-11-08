@@ -23,6 +23,21 @@ export const khat = makeIllustrated({
   fonts: { script: "var(--font-pinyon), cursive", serif: "var(--font-cormorant), serif", label: "var(--font-manrope), sans-serif" },
 });
 
+/** Mudrika: Khat's envelope and meadow, worded for an engagement and counting down to the ring ceremony. */
+export const mudrika = {
+  ...makeIllustrated({
+    id: "mudrika",
+    images: { opening: `${base}/khat-envelope.jpg`, hero: `${base}/khat-hero.jpg`, card: `${base}/khat-card.jpg` },
+    opening: "envelope",
+    sealAt: { x: 50.5, y: 49.5 },
+    heroTextTop: 12,
+    frame: { top: 15, bottom: 15, side: 3 },
+    colors: { ink: "#5b2a3a", accent: "#b2566c", soft: "#7e5a62", paper: "#fbf3ea", onAccent: "#fff" },
+    fonts: { script: "var(--font-pinyon), cursive", serif: "var(--font-cormorant), serif", label: "var(--font-manrope), sans-serif" },
+  }),
+  countdownTitle: "Until the ring ceremony",
+};
+
 /**
  * Khat in ivory red, for a bride in a crimson-and-gold saree: the same envelope opening, the
  * couple repainted with her in deep red, crimson type and the floral paper warmed with red.

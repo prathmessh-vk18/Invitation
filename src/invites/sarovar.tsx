@@ -439,6 +439,7 @@ const VIGNETTES: [RegExp, string][] = [
 ];
 // Every function type in the order form's dropdown has its own painting.
 const BY_KIND: Record<string, string> = {
+  engagement: "engagement",
   haldi: "haldi",
   mehndi: "mehndi",
   sangeet: "sangeet",

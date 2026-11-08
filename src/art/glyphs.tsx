@@ -2,6 +2,15 @@ import type { EventKind } from "@/data/invites";
 
 // Fine line glyphs for each ceremony, drawn on a 48×48 grid with currentColor.
 const paths: Record<EventKind, React.ReactNode> = {
+  // Two interlocked rings with a small stone on top.
+  engagement: (
+    <>
+      <circle cx="19" cy="28" r="10" />
+      <circle cx="29" cy="28" r="10" />
+      <path d="M17 18 L19 13 L21 18" />
+      <path d="M16 13 H22" />
+    </>
+  ),
   haldi: (
     <>
       <path d="M8 24 H40 C40 33 33 39 24 39 C15 39 8 33 8 24 Z" />

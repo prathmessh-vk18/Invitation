@@ -1,5 +1,5 @@
-export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli" | "khatred" | "sarovar";
-export type CategoryId = "hindu" | "muslim" | "sikh" | "south-indian";
+export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli" | "khatred" | "sarovar" | "vachan" | "mudrika";
+export type CategoryId = "hindu" | "muslim" | "sikh" | "south-indian" | "engagement";
 
 export type TemplateMeta = {
   id: TemplateId;
@@ -26,6 +26,8 @@ export type TemplateMeta = {
   topSeller?: boolean;
   // Shown with a "New" badge instead, for recently added designs.
   isNew?: boolean;
+  // Not a wedding: invites made with this design say so (cover, share preview, emails, form labels).
+  occasion?: "engagement";
   // A custom design whose couple pays us directly: no online checkout, and we publish by hand.
   payDirect?: boolean;
 };
@@ -146,6 +148,66 @@ export const templates: TemplateMeta[] = [
     tint: "#fbeada",
     icon: { bg: "#a8573a", fg: "#fbeada" },
     addedOn: "2026-10-27",
+  },
+  {
+    id: "vachan",
+    category: "engagement",
+    occasion: "engagement",
+    name: "Vachan",
+    native: "वचन",
+    nativeFont: DEVA,
+    mood: "Illustrated · Engagement at the temple",
+    tagline: "Carved temple doors open onto a temple at sunrise for your ring ceremony, with your names under hanging bells.",
+    description: [
+      "Vachan means a promise. Tap the seal and carved temple doors swing apart onto a temple at sunrise, the two of you walking a lamp-lined carpet towards it.",
+      "Both families are named above your names, your ring ceremony and every other function get their own arch-shaped card, and your photos appear as polaroids guests can swipe through.",
+      "Scratch-to-reveal date, a countdown to the ring ceremony, RSVP and music are all included.",
+    ],
+    price: 249,
+    mrp: 799,
+    demoSlug: "rohan-and-ishita",
+    palette: [
+      { name: "Sunrise peach", hex: "#f9ceab" },
+      { name: "Terracotta", hex: "#a8573a" },
+      { name: "Sandstone", hex: "#d8b48a" },
+      { name: "Bridal red", hex: "#b3261e" },
+    ],
+    suits: ["Sagai, Roka and ring ceremonies", "Families who love a traditional, painted look", "Temple and heritage venues"],
+    signature: ["Carved temple doors", "Temple at sunrise", "Countdown to the ring ceremony", "Walk-in zoom to your names"],
+    tint: "#fbeada",
+    icon: { bg: "#a8573a", fg: "#fbeada" },
+    addedOn: "2026-11-08",
+    isNew: true,
+  },
+  {
+    id: "mudrika",
+    category: "engagement",
+    occasion: "engagement",
+    name: "Mudrika",
+    native: "मुद्रिका",
+    nativeFont: DEVA,
+    mood: "Illustrated · Ring ceremony in a meadow",
+    tagline: "A wax-sealed letter in a golden-hour meadow opens onto the two of you walking towards a floral arch.",
+    description: [
+      "Mudrika means a ring. It begins with a sealed envelope lying in a field of wildflowers, glowing in late-afternoon light.",
+      "Tap the seal and the camera drifts into it, opening onto the two of you walking hand in hand towards a floral arch.",
+      "Soft watercolour florals frame every section, with a countdown to your ring ceremony and RSVP straight to WhatsApp.",
+    ],
+    price: 249,
+    mrp: 799,
+    demoSlug: "dev-and-anika",
+    palette: [
+      { name: "Blush", hex: "#f3c9c4" },
+      { name: "Golden hour", hex: "#f6d4a8" },
+      { name: "Wax red", hex: "#8e1f2c" },
+      { name: "Sage", hex: "#9aae8c" },
+    ],
+    suits: ["Engagements and ring ceremonies", "Day and garden functions", "Romantic, modern couples"],
+    signature: ["Wax-seal envelope", "Cinematic zoom-in", "Couple in a meadow", "Countdown to the ring ceremony"],
+    tint: "#fbe6dd",
+    icon: { bg: "#b2566c", fg: "#fbe6dd" },
+    addedOn: "2026-11-08",
+    isNew: true,
   },
   {
     id: "khat",

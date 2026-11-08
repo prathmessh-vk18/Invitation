@@ -63,6 +63,19 @@ export const categories: Category[] = [
       { q: "Can we add travel and stay details for outstation guests?", a: "Yes. Any event card can carry notes, and we can add a travel card." },
     ],
   },
+  {
+    id: "engagement",
+    slug: "engagement-invitations",
+    label: "Engagement",
+    title: "Engagement & ring ceremony invitations",
+    intro: "Sagai, Roka or ring ceremony: one beautiful link with your families, the ceremony and the dinner, a countdown and RSVP on WhatsApp.",
+    ceremonies: ["Roka", "Sagai", "Ring ceremony", "Chunni", "Dinner"],
+    faqs: [
+      { q: "Can we add more than one function?", a: "Yes. Add the ring ceremony, the dinner or anything else, each with its own time, venue and dress code." },
+      { q: "Can we use the same link for the wedding later?", a: "Your engagement invite has its own link. When you order your wedding invite, you get a new design and link for the wedding." },
+      { q: "Is it the same order form as a wedding invite?", a: "Yes, with the words changed for an engagement. You can edit it after it's live, just like a wedding invite." },
+    ],
+  },
 ];
 
 export const getCategory = (slug: string) => categories.find((c) => c.slug === slug);

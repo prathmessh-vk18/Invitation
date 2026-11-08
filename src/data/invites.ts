@@ -2,7 +2,7 @@ import type { SectionId } from "@/config/customise";
 import { songs } from "@/config/music";
 import type { TemplateId } from "./templates";
 
-export type EventKind = "haldi" | "mehndi" | "sangeet" | "baraat" | "phere" | "reception" | "nikah" | "walima" | "jaggo" | "anandkaraj" | "muhurtham" | "other";
+export type EventKind = "engagement" | "haldi" | "mehndi" | "sangeet" | "baraat" | "phere" | "reception" | "nikah" | "walima" | "jaggo" | "anandkaraj" | "muhurtham" | "other";
 
 export type InviteEvent = {
   kind: EventKind;
@@ -665,6 +665,74 @@ export const invites: Invite[] = [
     rsvp: { phone: "919699711809", by: "2027-02-05T00:00:00+05:30", contact: "Mertiya family" },
     closing: "Your presence and blessings will make our celebration complete.",
     music: "file:/music/krishna-flute.m4a",
+  },
+  {
+    slug: "rohan-and-ishita",
+    template: "vachan",
+    occasion: "engagement",
+    groom: { first: "Rohan", full: "Rohan Sharma", parents: "Son of Mrs. Neelam & Mr. Rakesh Sharma" },
+    bride: { first: "Ishita", full: "Ishita Verma", parents: "Daughter of Mrs. Sunita & Mr. Anil Verma" },
+    lead: "groom",
+    invocation: "॥ श्री गणेशाय नमः ॥",
+    invocationMeaning: "With the blessings of Lord Ganesha",
+    hosts: "The Sharma & Verma families",
+    message: "cordially request the honour of your presence at the engagement ceremony of their children, and your blessings as they begin a new journey together.",
+    date: "2027-01-17T11:00:00+05:30",
+    city: "Jaipur, Rajasthan",
+    hashtag: "#RohanKiIshita",
+    events: [
+      {
+        kind: "engagement",
+        name: "Ring Ceremony",
+        start: "2027-01-17T11:00:00+05:30",
+        venue: "Shiv Vilas Lawns",
+        address: "Jaipur–Delhi Highway, Jaipur, Rajasthan 302028",
+        dress: "Traditional",
+      },
+      {
+        kind: "other",
+        name: "Lunch",
+        start: "2027-01-17T13:30:00+05:30",
+        venue: "Shiv Vilas Lawns",
+        address: "Jaipur–Delhi Highway, Jaipur, Rajasthan 302028",
+      },
+    ],
+    rsvp: { phone: "919699711809", by: "2027-01-10T00:00:00+05:30", contact: "Sharma family" },
+    closing: "Your blessings mean the world to us.",
+  },
+  {
+    slug: "dev-and-anika",
+    template: "mudrika",
+    occasion: "engagement",
+    groom: { first: "Dev", full: "Dev Malhotra", parents: "Son of Mrs. Ritu & Mr. Sanjay Malhotra" },
+    bride: { first: "Anika", full: "Anika Kapoor", parents: "Daughter of Mrs. Meera & Mr. Vikram Kapoor" },
+    lead: "bride",
+    invocation: "॥ श्री गणेशाय नमः ॥",
+    invocationMeaning: "With the blessings of Lord Ganesha",
+    hosts: "The Kapoor & Malhotra families",
+    message: "invite you to celebrate with us as our children exchange rings and say yes to forever.",
+    date: "2027-02-14T19:00:00+05:30",
+    city: "Pune, Maharashtra",
+    hashtag: "#DevKiAnika",
+    events: [
+      {
+        kind: "engagement",
+        name: "Ring Ceremony",
+        start: "2027-02-14T19:00:00+05:30",
+        venue: "The Garden Terrace, Westin Pune",
+        address: "Koregaon Park Annexe, Pune, Maharashtra 411036",
+        dress: "Pastels",
+      },
+      {
+        kind: "other",
+        name: "Dinner",
+        start: "2027-02-14T21:00:00+05:30",
+        venue: "The Garden Terrace, Westin Pune",
+        address: "Koregaon Park Annexe, Pune, Maharashtra 411036",
+      },
+    ],
+    rsvp: { phone: "919699711809", by: "2027-02-07T00:00:00+05:30", contact: "Kapoor family" },
+    closing: "Come celebrate the beginning of our forever.",
   },
 ];
 

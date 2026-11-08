@@ -114,6 +114,7 @@ const categoryLabel: Record<string, string> = {
   muslim: "Muslim & Nikah invitation",
   sikh: "Sikh Anand Karaj invitation",
   "south-indian": "South Indian wedding invitation",
+  engagement: "Engagement invitation",
 };
 
 function FooterCol({ title, links }: { title: string; links: { href: string; label: string }[] }) {

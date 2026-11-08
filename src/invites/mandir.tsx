@@ -140,6 +140,11 @@ function Names({ invite, show }: { invite: Invite; show: (d: number) => object }
       <motion.p {...show(0.3)} className="text-[3.4cqw]" style={{ color: c.name, fontFamily: "var(--font-deva)" }}>
         {invite.invocation}
       </motion.p>
+      {(invite.heroKicker || (invite.occasion === "engagement" && invite.template === "vachan")) && (
+        <motion.p {...show(0.45)} className="inv-label mt-[2.5cqw] text-[2.6cqw] font-semibold tracking-[0.2em]" style={{ color: c.ink }}>
+          {invite.heroKicker ?? "The engagement of"}
+        </motion.p>
+      )}
       <motion.h1 {...show(0.6)} className="mt-[3cqw] flex flex-col items-center">
         <span className={`inv-script text-[15cqw] leading-[0.95] ${a.coverName ? "whitespace-nowrap" : ""}`} style={{ color: c.name, ...big }}>
           {a.coverName ?? a.first}
@@ -147,7 +152,7 @@ function Names({ invite, show }: { invite: Invite; show: (d: number) => object }
         </span>
         {title(a)}
         <span className={`text-[8.5cqw] leading-none ${lang === "hi" ? "my-[2cqw]" : "-my-[1cqw]"}`} style={{ color: c.ink, fontFamily: lang === "hi" ? "var(--inv-script)" : HAND }}>
-          {invite.joiner ?? t.weds}
+          {invite.joiner ?? (invite.occasion === "engagement" ? "&" : t.weds)}
         </span>
         <span className={`inv-script text-[15cqw] leading-[0.95] ${b.coverName ? "whitespace-nowrap" : ""}`} style={{ color: c.name, ...big }}>
           {b.coverName ?? b.first}
@@ -500,3 +505,6 @@ export const mandir: InviteTheme = {
   Divider,
   Title,
 };
+
+/** Vachan: Mandir's temple and doors, worded for an engagement and counting down to the ring ceremony. */
+export const vachan: InviteTheme = { ...mandir, id: "vachan", countdownTitle: "Until the ring ceremony" };

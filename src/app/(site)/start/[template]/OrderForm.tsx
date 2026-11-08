@@ -430,7 +430,10 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
   }, [step]);
 
   // Edits skip the "already passed" checks: a Haldi that's over shouldn't block changing the Reception.
-  const errors = useMemo(() => validate(s, isNew ? today : ""), [s, today, isNew]);
+  // Engagement designs word the form for an engagement, everything else for a wedding.
+  const occasion = t.occasion ?? "wedding";
+  const Occasion = occasion === "engagement" ? "Engagement" : "Wedding";
+  const errors = useMemo(() => validate(s, isNew ? today : "", occasion), [s, today, isNew, occasion]);
   const shown = (k: string) => (touched.has(k) || attempted.has(stepOf(k)) ? errors[k] : undefined);
   const touch = (k: string) => setTouched((p) => (p.has(k) ? p : new Set(p).add(k)));
   const stepHasErrors = (id: StepId) => Object.keys(errors).some((k) => stepOf(k) === id);
@@ -719,19 +722,19 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
 
   const wedding = (
     <div className="grid gap-4 sm:grid-cols-2">
-      <Input k="weddingDate" type="date" label="Wedding date" value={s.weddingDate} min={today || undefined} onChange={(v) => set("weddingDate", v)} onBlur={() => touch("weddingDate")} error={shown("weddingDate")} />
+      <Input k="weddingDate" type="date" label={`${Occasion} date`} value={s.weddingDate} min={today || undefined} onChange={(v) => set("weddingDate", v)} onBlur={() => touch("weddingDate")} error={shown("weddingDate")} />
       <Input
         k="weddingTime"
         type="time"
-        label="Wedding time"
-        help="The muhurat or main wedding time. Approximate is fine."
+        label={`${Occasion} time`}
+        help={occasion === "engagement" ? "The time of the ring ceremony. Approximate is fine." : "The muhurat or main wedding time. Approximate is fine."}
         value={s.weddingTime}
         onChange={(v) => set("weddingTime", v)}
         onBlur={() => touch("weddingTime")}
         error={shown("weddingTime")}
       />
       <div className="sm:col-span-2">
-        <Input k="city" label="City where the wedding will be held" value={s.city} onChange={(v) => set("city", v)} onBlur={() => touch("city")} error={shown("city")} placeholder="Udaipur, Rajasthan" maxLength={LIMITS.city} autoComplete="address-level2" />
+        <Input k="city" label={`City where the ${occasion} will be held`} value={s.city} onChange={(v) => set("city", v)} onBlur={() => touch("city")} error={shown("city")} placeholder="Udaipur, Rajasthan" maxLength={LIMITS.city} autoComplete="address-level2" />
       </div>
     </div>
   );
@@ -1254,7 +1257,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
                 {current.title}
                 {"optional" in current && current.optional && <span className="ml-2 align-middle text-caption font-medium text-subtle">Optional</span>}
               </h3>
-              <p className="mt-1 text-body text-muted">{current.note}</p>
+              <p className="mt-1 text-body text-muted">{current.note.replace(/\bwedding\b/g, occasion)}</p>
               <form
                 className="mt-6"
                 noValidate

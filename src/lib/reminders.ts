@@ -31,6 +31,7 @@ export function reminderEmail(order: Order, n: number, couples = 0): Reminder {
   const t = getTemplate(order.template);
   const [a, b] = d.lead === "groom" ? [d.groom.first, d.bride.first] : [d.bride.first, d.groom.first];
   const pair = `${a} & ${b}`;
+  const occ = t?.occasion ?? d.occasion ?? "wedding";
   const hi = order.customer_name?.trim().split(/\s+/)[0] || "there";
   const orderUrl = `${site.url}/order/${order.id}`;
   const payUrl = `${orderUrl}?pay=1`;
@@ -43,7 +44,7 @@ export function reminderEmail(order: Order, n: number, couples = 0): Reminder {
 
   const copy = [
     {
-      subject: `${pair}, your wedding invite is ready 🌸`,
+      subject: `${pair}, your ${occ} invite is ready 🌸`,
       preheader: `Your ${t?.name ?? ""} invite is made. Pay once and share it on WhatsApp in ${LINK_IN}.`,
       title: `${pair}, your invite is ready`,
       lead: `Hi ${hi}, your ${t?.name ?? ""} invitation is made: every function, venue and your music, on one beautiful link. It's one step from your guests' phones.`,
@@ -55,7 +56,7 @@ export function reminderEmail(order: Order, n: number, couples = 0): Reminder {
       lead: `Hi ${hi}, ${pair}'s invite is ready, but it isn't live yet, so your guests can't open it. Pay once and you'll have the link to share in ${LINK_IN}.`,
     },
     {
-      subject: `Last reminder: ${pair}'s wedding invite`,
+      subject: `Last reminder: ${pair}'s ${occ} invite`,
       preheader: `Everything you filled in is saved. One payment and it's live.`,
       title: `One step left`,
       lead: `Hi ${hi}, this is our last reminder. Everything you filled in for ${pair} is saved, so your invite is one payment away from going live.`,
@@ -90,7 +91,7 @@ ${helpLine}`;
 
   const html = layout({
     preheader: copy.preheader,
-    image: { src: `${orderUrl}/card`, href: payUrl, alt: `${pair}'s wedding invitation` },
+    image: { src: `${orderUrl}/card`, href: payUrl, alt: `${pair}'s ${occ} invitation` },
     body,
     footer: `Order ${esc(order.code)}. You're getting this because you started this order on aavjoo.in. <a href="${unsubscribeUrl(order.id)}" style="color:#8a8178">Don't send me reminders</a>.`,
   });

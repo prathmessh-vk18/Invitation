@@ -53,8 +53,9 @@ export const statusLabel: Record<OrderStatus, string> = {
 };
 
 export const eventKinds: { kind: EventKind; label: string }[] = [
+  { kind: "engagement", label: "Engagement / Ring ceremony" },
   { kind: "haldi", label: "Haldi / Maiyan" },
-  { kind: "mehndi", label: "Mehndi / Engagement" },
+  { kind: "mehndi", label: "Mehndi" },
   { kind: "sangeet", label: "Sangeet" },
   { kind: "jaggo", label: "Jaggo" },
   { kind: "baraat", label: "Baraat" },

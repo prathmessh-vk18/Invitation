@@ -43,6 +43,7 @@ const TRADITIONS: { label: string; id?: CategoryId }[] = [
   { label: "South Indian", id: "south-indian" },
   { label: "Sikh", id: "sikh" },
   { label: "Muslim", id: "muslim" },
+  { label: "Engagement", id: "engagement" },
   { label: "Not sure" },
 ];
 

@@ -161,17 +161,18 @@ function phoneError(v: string, empty: string) {
  * Every problem in the form, keyed by field. `today` is "YYYY-MM-DD" (empty until known,
  * which skips the past-date checks).
  */
-export function validate(s: FormState, today: string): Record<string, string> {
+/** `occasion` words the messages for an engagement design ("Pick the engagement date."). */
+export function validate(s: FormState, today: string, occasion: "wedding" | "engagement" = "wedding"): Record<string, string> {
   const e: Record<string, string> = {};
 
   personErrors(s.bride, "bride", e);
   personErrors(s.groom, "groom", e);
   if (s.bride.first.trim() && s.bride.first.trim().toLowerCase() === s.groom.first.trim().toLowerCase()) e["groom.first"] = "The bride's and groom's names are the same. Check for a typo.";
 
-  if (!s.weddingDate) e.weddingDate = "Pick the wedding date.";
+  if (!s.weddingDate) e.weddingDate = `Pick the ${occasion} date.`;
   else if (today && s.weddingDate < today) e.weddingDate = "This date has already passed.";
   else if (today && s.weddingDate > `${Number(today.slice(0, 4)) + 3}${today.slice(4)}`) e.weddingDate = "That's more than 3 years away. Check the year.";
-  if (!s.weddingTime) e.weddingTime = "Add the wedding time. Approximate is fine.";
+  if (!s.weddingTime) e.weddingTime = `Add the ${occasion} time. Approximate is fine.`;
   if (!s.city.trim()) e.city = "Enter the city, e.g. Udaipur, Rajasthan.";
 
   if (!s.events.length) e.events = "Add at least one function.";
@@ -180,7 +181,7 @@ export function validate(s: FormState, today: string): Record<string, string> {
     if (!ev.name.trim()) e[`${k}.name`] = ev.kind === "other" ? "Name this function, e.g. Cocktail night." : "Pick which function this is.";
     if (!ev.date) e[`${k}.date`] = "Pick a date.";
     else if (today && ev.date < today) e[`${k}.date`] = "This date has already passed.";
-    else if (s.weddingDate && ev.date > addDays(s.weddingDate, 10)) e[`${k}.date`] = "This is well after the wedding. Check the date.";
+    else if (s.weddingDate && ev.date > addDays(s.weddingDate, 10)) e[`${k}.date`] = `This is well after the ${occasion}. Check the date.`;
     if (!ev.time) e[`${k}.time`] = "Add a time.";
     if (!ev.venue.trim()) e[`${k}.venue`] = "Enter the venue name.";
     if (ev.mapUrl?.trim() && !isMapUrl(ev.mapUrl)) e[`${k}.mapUrl`] = "Paste a Google Maps link, e.g. https://maps.app.goo.gl/…";
@@ -199,7 +200,7 @@ export function validate(s: FormState, today: string): Record<string, string> {
   }
   if (s.hide.includes("rsvp")) {
     // No RSVP section, so its fields don't matter.
-  } else if (s.rsvpBy && s.weddingDate && s.rsvpBy > s.weddingDate) e.rsvpBy = "Pick a date before the wedding.";
+  } else if (s.rsvpBy && s.weddingDate && s.rsvpBy > s.weddingDate) e.rsvpBy = `Pick a date before the ${occasion}.`;
   else if (s.rsvpBy && today && s.rsvpBy < today) e.rsvpBy = "This date has already passed.";
 
   return e;

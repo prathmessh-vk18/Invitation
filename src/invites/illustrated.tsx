@@ -298,7 +298,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
       <MemorialPage invite={invite} />
       <section ref={ref} data-hero className="relative w-full overflow-hidden" style={{ aspectRatio: lead ? `864 / ${1536 * (1 + lead)}` : ART_RATIO, background: c.paper }}>
         <motion.div className="absolute inset-x-0 bottom-0" style={{ y: imgY, scale: imgScale, height: `${100 / (1 + lead)}%` }}>
-          <Art src={spec.images.hero} alt={`Illustration of a couple for ${a.first} and ${b.first}'s wedding`} priority />
+          <Art src={spec.images.hero} alt={`Illustration of a couple for ${a.first} and ${b.first}'s ${invite.occasion ?? "wedding"}`} priority />
           {lead > 0 && <div className="absolute inset-x-0 top-0 h-[12%]" style={{ background: `linear-gradient(${c.paper}, transparent)` }} />}
         </motion.div>
         <motion.div className="absolute inset-x-[10%] flex flex-col items-center text-center" style={{ top: `${spec.heroTextTop}%`, y: textY, opacity: textFade }}>
@@ -307,7 +307,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
             {invite.invocation}
           </motion.p>
           <motion.p {...show(0.45)} className="inv-label relative mt-[2cqw] text-[2.5cqw]" style={{ color: c.ink }}>
-            {invite.heroKicker ?? "The wedding of"}
+            {invite.heroKicker ?? (invite.occasion === "engagement" ? "The engagement of" : "The wedding of")}
           </motion.p>
           {invite.stackNames ? (
             <motion.h1 {...show(0.7)} className="inv-script relative mt-[1.5cqw] flex flex-col items-center leading-[0.95] [text-shadow:0_1px_14px_rgba(255,250,240,.7)]" style={{ color: c.ink, ...sz(12) }}>

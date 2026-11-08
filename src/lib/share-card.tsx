@@ -42,6 +42,9 @@ const scenes: Record<string, { src: string; y: number }> = {
   haveli: { src: haveli, y: 0.16 },
   mahal: { src: mahal, y: 0.15 },
   khat: { src: khat, y: 0.45 },
+  // The engagement designs share their art with Mandir and Khat.
+  vachan: { src: mandir, y: 0.45 },
+  mudrika: { src: khat, y: 0.45 },
   khatred: { src: khatRed, y: 0.42 },
   gopuram: { src: gopuram, y: 0.19 },
   bagh: { src: bagh, y: 0.21 },

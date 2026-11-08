@@ -17,10 +17,11 @@ export function inviteLiveEmail(order: Order, slug: string) {
   const t = getTemplate(order.template);
   const [a, b] = d.lead === "groom" ? [d.groom.first, d.bride.first] : [d.bride.first, d.groom.first];
   const pair = `${a} & ${b}`;
+  const occ = t?.occasion ?? d.occasion ?? "wedding";
   const hi = order.customer_name?.trim().split(/\s+/)[0] || "there";
   const inviteUrl = `${site.url}/i/${slug}`;
   const orderUrl = `${site.url}/order/${order.id}`;
-  const share = `https://wa.me/?text=${encodeURIComponent(`You're invited to ${pair}'s wedding 💛\n${inviteUrl}`)}`;
+  const share = `https://wa.me/?text=${encodeURIComponent(`You're invited to ${pair}'s ${occ} 💛\n${inviteUrl}`)}`;
   const paid = order.paid_at ? fmtDate(order.paid_at, { day: "numeric", month: "short", year: "numeric" }) : "";
 
   const body = `
@@ -44,7 +45,7 @@ ${helpLine}`;
 
   const html = layout({
     preheader: `Here's ${pair}'s invite link, ready to share on WhatsApp.`,
-    image: { src: `${orderUrl}/card`, href: inviteUrl, alt: `${pair}'s wedding invitation` },
+    image: { src: `${orderUrl}/card`, href: inviteUrl, alt: `${pair}'s ${occ} invitation` },
     body,
     footer: `Order ${esc(order.code)} · ${esc(site.name)}, wedding invitations that open like a celebration.`,
   });
@@ -61,7 +62,7 @@ ${helpLine}`;
     `Order ${order.code} · ${t?.name ?? ""}${order.amount > 1 ? ` · paid ${formatINR(order.amount)}` : ""}`,
     `Questions? Reply to this email or WhatsApp us at ${site.whatsappDisplay}.`,
   ].join("\n");
-  return { subject: `🎉 ${pair}'s wedding invite is live`, html, text };
+  return { subject: `🎉 ${pair}'s ${occ} invite is live`, html, text };
 }
 
 /** Sends the "invite is live" email if the order has an email address. Never throws. */
