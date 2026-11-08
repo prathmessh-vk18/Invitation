@@ -133,18 +133,22 @@ export async function sendDueReminders({ dryRun = false } = {}) {
   let failed = 0;
   for (const { order: o, also } of due) {
     if (dryRun) continue;
+    const n = o.email_reminders ?? 0;
+    const mail = { to: o.customer_email!.trim(), ...reminderEmail(o, n) };
+    const log = { order_id: o.id, to_email: mail.to, kind: "payment_reminder", reminder: n + 1, subject: mail.subject };
     try {
-      const n = o.email_reminders ?? 0;
-      await sendMail({ to: o.customer_email!.trim(), ...reminderEmail(o, n) });
+      await sendMail(mail);
       // Only counts once Gmail accepted it, so a failure is retried tomorrow.
       await db()
         .from("orders")
         .update({ email_reminders: n + 1, email_reminded_at: new Date().toISOString() })
         .in("id", [o.id, ...also])
         .eq("status", "awaiting_payment");
+      await db().from("email_log").insert({ ...log, status: "sent" });
       sent++;
     } catch (e) {
       console.error("Reminder email failed", o.code, e);
+      await db().from("email_log").insert({ ...log, status: "failed", error: String((e as Error).message ?? e).slice(0, 300) });
       failed++;
     }
   }

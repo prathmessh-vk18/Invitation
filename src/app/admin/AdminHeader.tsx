@@ -39,6 +39,9 @@ export async function AdminHeader() {
           <Link href="/admin/partners" className="text-[15px] font-medium text-muted hover:text-ink">
             Partners
           </Link>
+          <Link href="/admin/emails" className="text-[15px] font-medium text-muted hover:text-ink">
+            Emails
+          </Link>
         </div>
         <div className="flex items-center gap-4 text-[15px]">
           <Link href="/" target="_blank" className="text-muted hover:text-ink">
