@@ -5,7 +5,7 @@ export const site = {
   url: "https://aavjoo.in",
   tagline: "Wedding invitations that open like a celebration",
   description:
-    "Designer invitation websites for Indian weddings — one beautiful link with your events, venues, music and RSVP, shared on WhatsApp.",
+    "Designer invitation websites for Indian engagements and weddings — one beautiful link with your events, venues, music and RSVP, shared on WhatsApp.",
   // International format without "+" or spaces, used for wa.me links.
   whatsapp: "919699711809",
   whatsappDisplay: "+91 96997 11809",

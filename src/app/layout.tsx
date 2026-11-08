@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   // Absolute URLs for link previews (WhatsApp, Instagram) use the live domain.
   metadataBase: new URL(site.url),
   title: {
-    default: `${site.name} — Designer Wedding Invitation Websites`,
+    default: `${site.name} — Engagement & Wedding Invitation Websites`,
     template: `%s · ${site.name}`,
   },
   description: site.description,

@@ -139,6 +139,19 @@ export function DesignBadge({ t, className }: { t: { topSeller?: boolean; isNew?
   return null;
 }
 
+/** "Wedding" or "Engagement" on a design's card, so visitors know what each design is for. */
+export function OccasionTag({ t, className }: { t: { occasion?: "engagement" }; className?: string }) {
+  const engagement = t.occasion === "engagement";
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-sans text-[12px] font-semibold ${engagement ? "bg-[#fde3ec] text-[#9b2a55]" : "bg-white/90 text-ink"} ${className ?? ""}`}
+    >
+      <span aria-hidden>{engagement ? "💍" : "🪔"}</span>
+      {engagement ? "Engagement" : "Wedding"}
+    </span>
+  );
+}
+
 /** "Top seller" pill for designs marked topSeller in data/templates. */
 export function TopSeller({ className }: { className?: string }) {
   return (

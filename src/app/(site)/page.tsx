@@ -13,7 +13,7 @@ import { Badge, ButtonLink, Container, Display, Heading, InlineIcon, Lead, Phone
 
 export const metadata = {
   alternates: { canonical: "/" },
-  openGraph: { url: "/", title: "Aavjoo — Designer Wedding Invitation Websites", description: "Animated wedding invitation websites for Indian weddings, with every function, venue, song and RSVP in one WhatsApp link. From ₹249." },
+  openGraph: { url: "/", title: "Aavjoo — Engagement & Wedding Invitation Websites", description: "Animated invitation websites for Indian engagements and weddings, with every function, venue, song and RSVP in one WhatsApp link. From ₹249." },
 };
 
 export default function Home() {
@@ -31,15 +31,15 @@ export default function Home() {
           <Reveal>
             <RecentOrders />
             <Display className="mx-auto max-w-[1040px]">
-              Wedding invites
+              Make them say wow
               <InlineIcon bg="var(--color-icon-maroon)" rotate={-6}>
                 <Diya className="size-[80%]" glow={false} />
               </InlineIcon>
-              your family will
+              before the
               <InlineIcon bg="var(--color-icon-blush)" rotate={5}>
                 <span className="size-[46%] rounded-full bg-[radial-gradient(circle_at_35%_30%,#d4677f,#a2405f_55%,#6e2440)]" />
               </InlineIcon>
-              open twice
+              first function
               <InlineIcon bg="var(--color-icon-butter)" rotate={-4}>
                 <svg viewBox="-12 -12 24 24" className="size-[70%]" aria-hidden>
                   <MarigoldHead r={11} />
@@ -47,7 +47,7 @@ export default function Home() {
               </InlineIcon>
             </Display>
             <Lead className="mx-auto mt-7">
-              Designer invitation websites for Indian weddings. Every function, venue, song and RSVP in one link, shared on WhatsApp.
+              Designer invites for your engagement and wedding, opened on every phone in the family. Every function, venue, song and RSVP in one link, shared on WhatsApp.
             </Lead>
             <div className="mt-9 flex flex-wrap justify-center gap-2">
               <ButtonLink href="/designs">Choose a design</ButtonLink>

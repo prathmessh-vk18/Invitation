@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { DesignBadge, PriceTag } from "./offer";
+import { DesignBadge, OccasionTag, PriceTag } from "./offer";
 import { useState } from "react";
 import { templates, templatesIn, type CategoryId, type TemplateMeta } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
@@ -49,7 +49,10 @@ export function PosterTile({ t, index }: { t: TemplateMeta; index: number }) {
         <div className="relative flex aspect-[4/4.6] flex-col sm:aspect-[4/4.2]">
           {/* price */}
           <div className="flex items-start justify-end gap-2 p-[5cqw]">
-            <DesignBadge t={t} className="mr-auto" />
+            <div className="mr-auto flex flex-wrap items-center gap-1.5">
+              <DesignBadge t={t} />
+              <OccasionTag t={t} />
+            </div>
             <span className="rounded-full bg-white/90 px-3 py-1 font-sans text-ink backdrop-blur"><PriceTag price={t.price} mrp={t.mrp} size="sm" /></span>
           </div>
 
