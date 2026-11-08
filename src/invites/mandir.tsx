@@ -30,6 +30,8 @@ const c = {
   soft: "#86553f",
 };
 const HAND = "var(--font-alex-brush), cursive";
+// The dress code for boldEvents: the rust of the names, deepened so it reads as body text.
+const DRESS_BOLD = "#7d3a22";
 const ease = [0.22, 1, 0.36, 1] as const;
 
 // How much of each edge of the arch painting is ornament (%), so content can scroll underneath it.
@@ -312,7 +314,7 @@ function DayCard({ invite, events }: { invite: Invite; events: InviteEvent[] }) 
     <ArchCard>
       <div className="-mt-[9cqw] px-[5cqw] pb-[6cqw] text-center">
         <Sunburst className="mx-auto block w-[16cqw]" />
-        <p className="inv-label mt-[2cqw] text-[2.5cqw]" style={{ color: c.ink }}>
+        <p className={`inv-label mt-[2cqw] ${invite.boldEvents ? "text-[3cqw] font-bold" : "text-[2.5cqw]"}`} style={{ color: c.ink }}>
           {d.weekday(first.start)}
         </p>
         <h3 className="inv-script mt-[1.5cqw] text-[8.5cqw] leading-none" style={{ color: c.name }}>
@@ -329,7 +331,7 @@ function DayCard({ invite, events }: { invite: Invite; events: InviteEvent[] }) 
                 {e.name}
               </span>
               {(e.dress || e.note) && (
-                <p className={`inv-serif col-start-2 mt-[0.5cqw] text-[3.6cqw] italic${invite.boldEvents ? " font-semibold" : ""}`} style={{ color: c.name }}>
+                <p className={`inv-serif col-start-2 mt-[0.5cqw] ${invite.boldEvents ? "text-[4cqw] font-semibold" : "text-[3.6cqw] italic"}`} style={{ color: invite.boldEvents ? DRESS_BOLD : c.name }}>
                   {[e.dress && t.dress(e.dress), e.note].filter(Boolean).join(" · ")}
                 </p>
               )}
@@ -397,10 +399,11 @@ function Events({ invite }: { invite: Invite }) {
                 <h3 className="inv-script mt-[2cqw] text-[8.5cqw] leading-none" style={{ color: c.name }}>
                   {e.name}
                 </h3>
-                <p className="inv-label mt-[2.5cqw] text-[2.5cqw]" style={{ color: c.ink }}>
+                {/* boldEvents: bigger, heavier, darker date, time and dress code, for couples who asked for easier reading. */}
+                <p className={`inv-label mt-[2.5cqw] ${invite.boldEvents ? "text-[3cqw] font-bold" : "text-[2.5cqw]"}`} style={{ color: c.ink }}>
                   {d.weekday(e.start)} · {d.shortMonthDate(e.start)}
                 </p>
-                <p className="inv-serif mt-[1cqw] text-[4cqw] italic" style={{ color: c.soft }}>
+                <p className={`inv-serif mt-[1cqw] ${invite.boldEvents ? "text-[4.8cqw] font-semibold" : "text-[4cqw] italic"}`} style={{ color: invite.boldEvents ? c.ink : c.soft }}>
                   {t.onwards(d.time(e.start))}
                 </p>
                 <p className={`inv-serif mt-[3cqw] text-[4.4cqw] leading-tight${invite.boldEvents ? " font-semibold" : ""}`} style={{ color: c.ink }}>
@@ -412,7 +415,7 @@ function Events({ invite }: { invite: Invite }) {
                   </p>
                 )}
                 {(e.dress || e.note) && (
-                  <p className={`inv-serif mt-[2cqw] text-[3.6cqw] italic${invite.boldEvents ? " font-semibold" : ""}`} style={{ color: c.name }}>
+                  <p className={`inv-serif mt-[2cqw] ${invite.boldEvents ? "text-[4cqw] font-semibold" : "text-[3.6cqw] italic"}`} style={{ color: invite.boldEvents ? DRESS_BOLD : c.name }}>
                     {[e.dress && t.dress(e.dress), e.note].filter(Boolean).join(" · ")}
                   </p>
                 )}
