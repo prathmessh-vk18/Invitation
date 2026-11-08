@@ -4,7 +4,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { DesignBadge, PriceTag } from "./offer";
 import { useState } from "react";
-import { categories } from "@/data/categories";
 import { templates, templatesIn, type CategoryId, type TemplateMeta } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
 import { themes } from "@/invites/registry";
@@ -98,9 +97,15 @@ export function PosterTile({ t, index }: { t: TemplateMeta; index: number }) {
  * shows just its own designs, in the same posters.
  */
 export function Showcase({ only, tabs = !only }: { only?: CategoryId; tabs?: boolean }) {
-  const [active, setActive] = useState<CategoryId | "all">(only ?? "all");
-  const tabList = [{ id: "all" as const, label: "All designs", n: templates.length }, ...categories.map((c) => ({ id: c.id, label: c.label, n: templatesIn(c.id).length }))].filter((x) => x.n > 0);
-  const shown = active === "all" ? templates : templatesIn(active);
+  const [active, setActive] = useState<CategoryId | "all" | "wedding">(only ?? "all");
+  // Three tabs: everything, every wedding tradition together, and engagement.
+  const wedding = templates.filter((t) => t.category !== "engagement");
+  const tabList = [
+    { id: "all" as const, label: "All", n: templates.length },
+    { id: "wedding" as const, label: "Wedding", n: wedding.length },
+    { id: "engagement" as const, label: "Engagement", n: templatesIn("engagement").length },
+  ].filter((x) => x.n > 0);
+  const shown = active === "all" ? templates : active === "wedding" ? wedding : templatesIn(active);
   return (
     <>
       {tabs && (
