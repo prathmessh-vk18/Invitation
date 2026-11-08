@@ -11,8 +11,8 @@ import { site } from "@/config/site";
 export const FROM = "Aavjoo <hello@mail.aavjoo.in>";
 export const REPLY_TO = "aavjoo.in@gmail.com";
 
-// While true nothing is sent and nothing is counted (paused 8 Nov 2026 after Gmail rejections).
-export const EMAILS_PAUSED = true;
+// While true nothing is sent and nothing is counted (paused 8 Nov 2026 after Gmail rejections, back on through Resend the same day).
+export const EMAILS_PAUSED = false;
 
 export const isMailConfigured = () => !EMAILS_PAUSED && Boolean(process.env.RESEND_API_KEY);
 
