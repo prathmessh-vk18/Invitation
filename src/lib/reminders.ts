@@ -16,6 +16,7 @@ import { dateLine, daysToWedding, LINK_IN, saving } from "@/lib/urgency";
 export const REMINDER_GAPS_DAYS = [0.5, 2, 4];
 const DAY = 864e5;
 export const MAX_PER_RUN = 80;
+const TIME_BUDGET_MS = 45_000;
 
 type Reminder = { subject: string; html: string; text: string };
 
@@ -165,26 +166,35 @@ export async function sendDueReminders({ dryRun = false } = {}) {
   let failed = 0;
   // At most this many a day: a new Gmail account sending hundreds at once can be flagged as spam.
   // Anyone over the cap is simply first in line tomorrow.
-  for (const { order: o, also } of due.slice(0, MAX_PER_RUN)) {
-    if (dryRun) continue;
-    const n = o.email_reminders ?? 0;
-    const mail = { to: o.customer_email!.trim(), ...reminderEmail(o, n, couples ?? 0) };
-    const log = { order_id: o.id, to_email: mail.to, kind: "payment_reminder", reminder: n + 1, subject: mail.subject };
-    try {
-      await sendMail(mail);
-      // Only counts once Gmail accepted it, so a failure is retried tomorrow.
-      await db()
-        .from("orders")
-        .update({ email_reminders: n + 1, email_reminded_at: new Date().toISOString() })
-        .in("id", [o.id, ...also])
-        .eq("status", "awaiting_payment");
-      await db().from("email_log").insert({ ...log, status: "sent" });
-      sent++;
-    } catch (e) {
-      console.error("Reminder email failed", o.code, e);
-      await db().from("email_log").insert({ ...log, status: "failed", error: String((e as Error).message ?? e).slice(0, 300) });
-      failed++;
+  if (dryRun) return { sent, failed, due: due.length, codes: due.map((d) => d.order.code) };
+  const queue = due.slice(0, MAX_PER_RUN);
+  const started = Date.now();
+  // Two at a time (Gmail's pooled connections), and no new email after the time budget: the
+  // server stops the job at 60 s, and anyone not reached is first in line tomorrow.
+  async function worker() {
+    for (let next = queue.shift(); next; next = queue.shift()) {
+      if (Date.now() - started > TIME_BUDGET_MS) return;
+      const { order: o, also } = next;
+      const n = o.email_reminders ?? 0;
+      const mail = { to: o.customer_email!.trim(), ...reminderEmail(o, n, couples ?? 0) };
+      const log = { order_id: o.id, to_email: mail.to, kind: "payment_reminder", reminder: n + 1, subject: mail.subject };
+      try {
+        await sendMail(mail);
+        // Only counts once Gmail accepted it, so a failure is retried tomorrow.
+        await db()
+          .from("orders")
+          .update({ email_reminders: n + 1, email_reminded_at: new Date().toISOString() })
+          .in("id", [o.id, ...also])
+          .eq("status", "awaiting_payment");
+        await db().from("email_log").insert({ ...log, status: "sent" });
+        sent++;
+      } catch (e) {
+        console.error("Reminder email failed", o.code, e);
+        await db().from("email_log").insert({ ...log, status: "failed", error: String((e as Error).message ?? e).slice(0, 300) });
+        failed++;
+      }
     }
   }
+  await Promise.all([worker(), worker()]);
   return { sent, failed, due: due.length, codes: due.map((d) => d.order.code) };
 }
