@@ -13,7 +13,8 @@ function mailer() {
     host: "smtp.gmail.com",
     port: 465,
     secure: true,
-    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+    // Google shows app passwords in groups of four; the spaces are not part of it.
+    auth: { user: process.env.GMAIL_USER?.trim(), pass: process.env.GMAIL_APP_PASSWORD?.replace(/\s/g, "") },
   });
   return transport;
 }
