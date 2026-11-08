@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { categories, getCategory } from "@/data/categories";
 import { templatesIn } from "@/data/templates";
-import { TemplateTile } from "@/site/gallery";
+import { Showcase } from "@/site/showcase";
 import { ClosingCta, Faq, HowItWorks } from "@/site/sections";
 import { Container, Display, Eyebrow, Heading, Lead, Panel, Reveal, Section } from "@/ui";
 
@@ -35,7 +35,6 @@ const included = [
 export default async function CategoryPage({ params }: PageProps<"/[category]">) {
   const c = getCategory((await params).category);
   if (!c) notFound();
-  const designs = templatesIn(c.id);
   const others = categories.filter((x) => x.id !== c.id);
 
   return (
@@ -64,15 +63,8 @@ export default async function CategoryPage({ params }: PageProps<"/[category]">)
 
       <section>
         <Container wide className="px-3 sm:px-5">
-          <div className="rounded-frame bg-panel p-3 sm:p-10">
-            <div className="grid gap-x-5 gap-y-8 rounded-[24px] bg-surface p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3">
-              {designs.map((t, i) => (
-                <Reveal key={t.id} delay={i * 0.08}>
-                  <TemplateTile t={t} index={i} price />
-                </Reveal>
-              ))}
-            </div>
-          </div>
+          {/* The same posters as the home page, just this category's designs. */}
+          <Showcase only={c.id} />
         </Container>
       </section>
 

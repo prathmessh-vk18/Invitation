@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { DesignBadge, PriceTag } from "./offer";
-import { templates, type TemplateMeta } from "@/data/templates";
+import { useState } from "react";
+import { categories } from "@/data/categories";
+import { templates, templatesIn, type CategoryId, type TemplateMeta } from "@/data/templates";
 import { InvitePreview } from "@/invites/InvitePreview";
 import { themes } from "@/invites/registry";
 import { PhoneFrame, ease } from "@/ui";
@@ -90,21 +92,48 @@ export function PosterTile({ t, index }: { t: TemplateMeta; index: number }) {
   );
 }
 
-/** The main design showcase: every design as a big poster, two to a row. */
-export function Showcase() {
+/**
+ * The main design showcase: every design as a big poster, two to a row. On the home and Designs
+ * pages, tabs filter by category (Hindu, Sikh… Engagement); a category page passes `only` and
+ * shows just its own designs, in the same posters.
+ */
+export function Showcase({ only, tabs = !only }: { only?: CategoryId; tabs?: boolean }) {
+  const [active, setActive] = useState<CategoryId | "all">(only ?? "all");
+  const tabList = [{ id: "all" as const, label: "All designs", n: templates.length }, ...categories.map((c) => ({ id: c.id, label: c.label, n: templatesIn(c.id).length }))].filter((x) => x.n > 0);
+  const shown = active === "all" ? templates : templatesIn(active);
   return (
-    <div className="grid gap-5 md:grid-cols-2">
-      {templates.map((t, i) => (
-        <motion.div
-          key={t.id}
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.15 }}
-          transition={{ duration: 0.8, delay: (i % 2) * 0.1, ease }}
-        >
-          <PosterTile t={t} index={i} />
-        </motion.div>
-      ))}
-    </div>
+    <>
+      {tabs && (
+        <div role="tablist" aria-label="Design categories" className="no-scrollbar -mx-3 mb-5 flex gap-2 overflow-x-auto px-3 sm:mx-0 sm:flex-wrap sm:justify-center sm:px-0">
+          {tabList.map((x) => (
+            <button
+              key={x.id}
+              type="button"
+              role="tab"
+              aria-selected={active === x.id}
+              onClick={() => setActive(x.id)}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2.5 text-[15px] font-medium transition ${active === x.id ? "bg-ink text-white" : "bg-panel text-ink hover:bg-panel-strong"}`}
+            >
+              {x.label}
+              <span className={`text-[13px] tabular-nums ${active === x.id ? "text-white/60" : "text-subtle"}`}>{x.n}</span>
+              {x.id === "engagement" && <span className={`rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${active === x.id ? "bg-white/20 text-white" : "bg-[#fde3d3] text-[#b4451c]"}`}>New</span>}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="grid gap-5 md:grid-cols-2">
+        {shown.map((t, i) => (
+          <motion.div
+            key={t.id}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.8, delay: (i % 2) * 0.1, ease }}
+          >
+            <PosterTile t={t} index={i} />
+          </motion.div>
+        ))}
+      </div>
+    </>
   );
 }
