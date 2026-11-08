@@ -58,7 +58,7 @@ const FAQS: { q: string; a: string; ticket?: boolean; edit?: boolean }[] = [
   },
   {
     q: "How do I make changes?",
-    a: `Tap "Edit my order" below and enter your invite link, order number and the phone number you ordered with. Change what you need and send it: we check it and update the same link, so nobody needs a new invite. ${site.revisionRounds} rounds of changes are free.`,
+    a: `Tap "Edit my order" below and enter your invite link, order number and the phone number you ordered with. Change what you need and save: your invite updates straight away on the same link, so nobody needs a new invite. ${site.revisionRounds} edits are free, then ${site.editPack.edits} more cost ₹${site.editPack.price}.`,
     edit: true,
   },
   {
@@ -70,7 +70,7 @@ const FAQS: { q: string; a: string; ticket?: boolean; edit?: boolean }[] = [
     q: "How many times can I share it?",
     a: `As many times as you like, with as many people as you like: WhatsApp groups, Instagram, SMS or email. It's one link with no limit on views, and it stays live until ${site.inviteDaysAfterWedding} days after your wedding.`,
   },
-  { q: "Price & what's included", a: `${priceRange}, everything included: every function with Google Maps directions, a countdown, RSVP on WhatsApp, your song, photos and ${site.revisionRounds} rounds of changes.` },
+  { q: "Price & what's included", a: `${priceRange}, everything included: every function with Google Maps directions, a countdown, RSVP on WhatsApp, your song, photos and ${site.revisionRounds} free edits.` },
   { q: "Payment", a: "Securely online by UPI, card or netbanking, right after you fill in your details." },
 ];
 

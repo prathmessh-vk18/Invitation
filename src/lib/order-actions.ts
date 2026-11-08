@@ -7,8 +7,12 @@ import { cleanPhone, cleanPhotoPaths, cleanSongPath, keepInviteSettings, orderTo
 import { findActivePartner } from "@/lib/partners";
 import { logOrderEdit } from "@/lib/order-edits";
 import { autoPublish, warmShareCard } from "@/lib/publish";
-import { createRazorpayOrder, isRazorpayConfigured, paysOnline, isValidPaymentSignature, markPaidByRazorpayOrder, razorpayKeyId } from "@/lib/razorpay";
+import { createRazorpayOrder, creditEditPack, isRazorpayConfigured, paysOnline, isValidPaymentSignature, markPaidByRazorpayOrder, razorpayKeyId } from "@/lib/razorpay";
 import { r2UploadUrl } from "@/lib/r2";
+import { applyChanges } from "@/lib/apply-changes";
+import { changeSummary } from "@/lib/change-requests";
+import { holdReason } from "@/lib/edit-hold";
+import { site } from "@/config/site";
 import { db, isSupabaseConfigured, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
 
 const MAX_SONG_BYTES = 15 * 1024 * 1024;
@@ -201,15 +205,19 @@ export type ChangesInput = { details: unknown; songPath: string | null; photoPat
 
 /**
  * A couple edits their order. Before payment nothing is published, so the edit saves straight
- * to the order. After payment it becomes a change request for us to approve; a newer request
- * replaces one still waiting.
+ * to the order. After payment it uses one of their edits and goes live on its own, unless it
+ * looks like the invite is being reused for another couple: then it waits for us. With no edits
+ * left they're asked to buy a pack first; nothing is saved.
  */
-export async function saveChanges(orderId: string, input: ChangesInput): Promise<{ applied: true } | { pending: true } | { errors: string[] }> {
+export async function saveChanges(
+  orderId: string,
+  input: ChangesInput,
+): Promise<{ applied: true } | { live: true } | { pending: true } | { needsEdits: true } | { errors: string[] }> {
   if (!/^[0-9a-f-]{36}$/.test(orderId)) return { errors: ["We couldn't find this order."] };
   const checked = validateDetails(input.details);
   if (!checked.ok) return { errors: checked.errors };
 
-  const { data: order } = await db().from("orders").select("id, status, details, song_path, photo_paths").eq("id", orderId).maybeSingle();
+  const { data: order } = await db().from("orders").select("id, status, details, song_path, photo_paths, extra_edits").eq("id", orderId).maybeSingle();
   if (!order) return { errors: ["We couldn't find this order."] };
   if (order.status === "cancelled") return { errors: ["This order is cancelled. Message us on WhatsApp if that's a mistake."] };
 
@@ -220,13 +228,88 @@ export async function saveChanges(orderId: string, input: ChangesInput): Promise
   if (order.status === "awaiting_payment" || order.status === "payment_submitted") {
     const { error } = await db().from("orders").update({ details, song_path: songPath, photo_paths: photoPaths }).eq("id", orderId);
     if (error) return { errors: ["We couldn't save your changes. Please try again."] };
-    await logOrderEdit(orderId, order as Order, { details, song_path: songPath, photo_paths: photoPaths }, "couple");
+    await logOrderEdit(orderId, order as unknown as Order, { details, song_path: songPath, photo_paths: photoPaths }, "couple");
     return { applied: true };
   }
 
+  const c = await changeSummary(orderId, order.extra_edits ?? 0);
+  if (!c) return { errors: ["We couldn't send your changes. Please try again in a moment."] };
+  if (c.left <= 0) return { needsEdits: true };
+
+  const note = String(input.note ?? "").trim().slice(0, 1000) || null;
+  const request = { order_id: orderId, details, song_path: songPath, photo_paths: photoPaths, note };
+  const hold = holdReason(order.details as InviteDetails, details);
   await db().from("change_requests").delete().eq("order_id", orderId).eq("status", "pending");
-  const { error } = await db()
+  if (hold) {
+    const { error } = await db().from("change_requests").insert({ ...request, hold_reason: hold });
+    return error ? { errors: ["We couldn't send your changes. Please try again in a moment."] } : { pending: true };
+  }
+
+  // Recorded as approved first, so it counts as an edit; if applying fails it goes to us instead.
+  const { data: req, error } = await db()
     .from("change_requests")
-    .insert({ order_id: orderId, details, song_path: songPath, photo_paths: photoPaths, note: String(input.note ?? "").trim().slice(0, 1000) || null });
-  return error ? { errors: ["We couldn't send your changes. Please try again in a moment."] } : { pending: true };
+    .insert({ ...request, status: "approved", auto: true, decided_at: new Date().toISOString() })
+    .select("id")
+    .single();
+  if (error || !req) return { errors: ["We couldn't save your changes. Please try again in a moment."] };
+  const res = await applyChanges(orderId, { details, song_path: songPath, photo_paths: photoPaths }, "approved", req.id);
+  if ("errors" in res) {
+    await db()
+      .from("change_requests")
+      .update({ status: "pending", auto: false, decided_at: null, hold_reason: `Couldn't apply on its own: ${res.errors[0]}` })
+      .eq("id", req.id);
+    return { pending: true };
+  }
+  revalidatePath("/admin/changes");
+  return { live: true };
+}
+
+/** Opens Razorpay for a pack of edits, once a couple has used theirs. */
+export async function startEditPack(orderId: string): Promise<PaymentStart | { error: string }> {
+  if (!/^[0-9a-f-]{36}$/.test(orderId)) return { error: "We couldn't find this order." };
+  if (!isRazorpayConfigured()) return { error: "Online payment isn't set up yet. Please message us on WhatsApp." };
+  const { data: order } = await db()
+    .from("orders")
+    .select("id, code, status, template, customer_name, customer_phone, customer_email")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (!order) return { error: "We couldn't find this order." };
+  if (order.status !== "paid" && order.status !== "live") return { error: "Edits are free until your invite is paid for." };
+  const { price, edits } = site.editPack;
+  const { count } = await db().from("edit_packs").select("id", { count: "exact", head: true }).eq("order_id", orderId);
+  let rzp: { id: string };
+  try {
+    rzp = await createRazorpayOrder(price, `${order.code}-E${(count ?? 0) + 1}`, { order_id: order.id, code: order.code, kind: "edit_pack" });
+  } catch {
+    return { error: "We couldn't start the payment. Please try again in a moment." };
+  }
+  const { error } = await db().from("edit_packs").insert({ order_id: order.id, edits, amount: price, razorpay_order_id: rzp.id });
+  if (error) return { error: "We couldn't start the payment. Please try again in a moment." };
+  return {
+    keyId: razorpayKeyId(),
+    razorpayOrderId: rzp.id,
+    amount: price,
+    code: order.code,
+    name: order.customer_name,
+    phone: order.customer_phone,
+    email: order.customer_email ?? "",
+    label: `${edits} more edits · order ${order.code}`,
+  };
+}
+
+/** Checkout's success callback for a pack: verify the signature, then add the edits (once). */
+export async function confirmEditPack(
+  orderId: string,
+  r: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string },
+): Promise<{ ok: true } | { error: string }> {
+  if (!/^[0-9a-f-]{36}$/.test(orderId)) return { error: "We couldn't find this order." };
+  const { data: pack } = await db().from("edit_packs").select("order_id").eq("razorpay_order_id", r.razorpay_order_id).maybeSingle();
+  if (!pack || pack.order_id !== orderId) return { error: "This payment doesn't match your order. Please message us on WhatsApp." };
+  if (!isValidPaymentSignature(r.razorpay_order_id, r.razorpay_payment_id, r.razorpay_signature)) {
+    return { error: "We couldn't verify this payment. If money was deducted, message us on WhatsApp with your order code." };
+  }
+  await creditEditPack(r.razorpay_order_id, r.razorpay_payment_id);
+  revalidatePath(`/order/${orderId}`);
+  revalidatePath(`/admin/orders/${orderId}`);
+  return { ok: true };
 }

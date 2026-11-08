@@ -19,6 +19,7 @@ import { autoPublishOn, freeSlug } from "@/lib/publish";
 import { CopyLink } from "@/site/copy-link";
 import { RememberOrder } from "@/site/my-orders";
 import { AskAboutOrder } from "./AskAboutOrder";
+import { EditPackOnPage } from "./EditPackButton";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false } };
 export const instant = false;
@@ -39,7 +40,7 @@ function Step({ n, done, children }: { n: number; done?: boolean; children: Reac
 }
 
 /** Asking for changes, and where the last request stands. */
-async function Changes({ order, sent }: { order: Order; sent: boolean }) {
+async function Changes({ order, sent, live }: { order: Order; sent: boolean; live: boolean }) {
   if (order.status === "cancelled") return null;
   const editHref = `/order/${order.id}/edit`;
   // Before payment nothing is published yet, so edits save straight away.
@@ -54,22 +55,27 @@ async function Changes({ order, sent }: { order: Order; sent: boolean }) {
       </Panel>
     );
 
-  const c = await changeSummary(order.id);
+  const c = await changeSummary(order.id, order.extra_edits ?? 0);
   const latest = c?.latest;
   const waiting = latest?.status === "pending";
+  const out = c ? c.left === 0 : false;
   return (
     <Panel className="p-6 sm:p-8">
       <p className="text-title">{waiting ? "Your changes are with us" : "Need to change something?"}</p>
       {waiting ? (
         <p className="mt-1 text-body text-muted">
-          Sent {longDate(latest.created_at)}. We&rsquo;ll check them and update your invite, usually within {site.publishWithin}. You can still edit them: sending again replaces this request.
+          Sent {longDate(latest.created_at)}. These need a quick check from us before they go live, usually within {site.publishWithin}. You can still edit them: saving
+          again replaces them.
         </p>
       ) : (
         <p className="mt-1 text-body text-muted">
-          Change any detail, function, wording, photo or song in the same form you filled in. We check every change before it goes live on your invite.
+          Change any detail, function, wording, photo or song in the same form you filled in. Your invite updates straight away, on the same link.
         </p>
       )}
-      {latest?.status === "approved" && !waiting && <p className="mt-3 text-body font-medium text-[#1d6b35]">✓ Your last changes are live on your invite.</p>}
+      {live && !waiting && (
+        <p className="mt-4 rounded-tile bg-whatsapp-wash p-4 text-body font-medium">Your changes are live ✓ Open your invite to see them. Guests see them too, on the same link.</p>
+      )}
+      {!live && latest?.status === "approved" && !waiting && <p className="mt-3 text-body font-medium text-[#1d6b35]">✓ Your last changes are live on your invite.</p>}
       {latest?.status === "declined" && !waiting && (
         <p className="mt-3 text-body text-[#8a1c1c]">We couldn&rsquo;t make your last changes{latest.reply ? `: ${latest.reply}` : "."} Message us if you&rsquo;d like to talk about it.</p>
       )}
@@ -78,16 +84,25 @@ async function Changes({ order, sent }: { order: Order; sent: boolean }) {
           Changes sent ✓ They come straight to us, so there&rsquo;s no need to message. This page shows when they&rsquo;re live.
         </p>
       )}
-      <div className="mt-5 flex flex-wrap items-center gap-3">
-        <ButtonLink href={editHref} variant={waiting ? "secondary" : "primary"}>
-          {waiting ? "Edit your request" : "Ask for changes"}
-        </ButtonLink>
-        {c && (
-          <span className="text-caption text-subtle">
-            {c.used} of {c.free} free change rounds used{c.left === 0 ? ". More changes may carry a small fee." : ""}
-          </span>
-        )}
-      </div>
+      {out && !waiting ? (
+        <div className="mt-5">
+          <p className="text-body text-muted">
+            You&rsquo;ve used all {c!.allowed} edits. Get {site.editPack.edits} more for {formatINR(site.editPack.price)}.
+          </p>
+          <EditPackOnPage orderId={order.id} />
+        </div>
+      ) : (
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <ButtonLink href={editHref} variant={waiting ? "secondary" : "primary"}>
+            {waiting ? "Edit your changes" : "Change your invite"}
+          </ButtonLink>
+          {c && (
+            <span className="text-caption text-subtle">
+              {c.left} of {c.allowed} edits left
+            </span>
+          )}
+        </div>
+      )}
     </Panel>
   );
 }
@@ -177,7 +192,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
                 </div>
                 <ul className="mt-5 grid gap-2 text-body text-ink sm:grid-cols-2">
                   {[
-                    `${site.revisionRounds} rounds of changes included`,
+                    `${site.revisionRounds} free edits included`,
                     "UPI, cards or netbanking, secured by Razorpay",
                     "Ask for changes anytime from this page",
                   ].map((x) => (
@@ -251,7 +266,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
           </Panel>
         )}
 
-        <Changes order={order} sent={sent} />
+        <Changes order={order} sent={sent} live={query.live === "1"} />
 
         <Panel className="p-6 sm:p-8">
           <p className="text-title">What happens next</p>

@@ -12,7 +12,8 @@ import { Panel } from "@/ui";
 import { paysOnline } from "@/lib/razorpay";
 import { nudgeMessage } from "@/lib/urgency";
 import { AdminHeader, statusTone } from "../../AdminHeader";
-import { DetailsEditor, NotesAndCancel, PaymentActions, PublishActions } from "./OrderActions";
+import { DetailsEditor, EditsActions, NotesAndCancel, PaymentActions, PublishActions } from "./OrderActions";
+import { changeSummary } from "@/lib/change-requests";
 
 export const instant = false;
 
@@ -25,7 +26,7 @@ function Row({ k, children }: { k: string; children: React.ReactNode }) {
   );
 }
 
-const editSource: Record<EditSource, string> = { couple: "The couple", admin: "Admin", approved: "Approved request", "by hand": "Edited by hand" };
+const editSource: Record<EditSource, string> = { couple: "The couple", admin: "Admin", approved: "The couple's edit", "by hand": "Edited by hand" };
 
 export default async function AdminOrder({ params }: PageProps<"/admin/orders/[id]">) {
   await requireAdmin();
@@ -37,10 +38,12 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
   const d = o.details;
   const t = getTemplate(o.template);
   // Both lookups only need the order, so run them together rather than one after the other.
-  const [{ data: inv }, { data: waiting }, history] = await Promise.all([
+  const [{ data: inv }, { data: waiting }, history, edits, { data: packs }] = await Promise.all([
     o.invite_slug ? db().from("invites").select("is_published, live_until").eq("slug", o.invite_slug).maybeSingle() : Promise.resolve({ data: null }),
     db().from("change_requests").select("id").eq("order_id", o.id).eq("status", "pending").maybeSingle(),
     orderHistory(o.id),
+    changeSummary(o.id, o.extra_edits ?? 0),
+    db().from("edit_packs").select("amount, edits, razorpay_payment_id, paid_at").eq("order_id", o.id).eq("status", "paid").order("paid_at"),
   ]);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const couple = `${d.groom.first} & ${d.bride.first}`;
@@ -208,6 +211,33 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
                 <Row k="Song">{o.song_path ? <audio controls src={songPublicUrl(o.song_path)} className="h-9 w-full" /> : "Design's own music"}</Row>
               </div>
             </Panel>
+            {edits && (o.status === "paid" || o.status === "live") && (
+              <Panel className="p-6">
+                <p className="text-title">Couple&rsquo;s edits</p>
+                <p className="mt-2 text-[28px] font-semibold tracking-[-0.02em]">
+                  {edits.left} left <span className="text-body font-normal text-muted">· {edits.used} of {edits.allowed} used</span>
+                </p>
+                <p className="mt-1 text-caption text-subtle">
+                  {edits.free} free{edits.extra ? ` + ${edits.extra} extra (packs and given by you)` : ""}. Each save after payment uses one; the History below shows
+                  what each one changed.
+                </p>
+                {!!packs?.length && (
+                  <ul className="mt-3 space-y-1 text-[14px]">
+                    {packs.map((p) => (
+                      <li key={p.razorpay_payment_id}>
+                        {formatINR(p.amount)} pack · {p.edits} edits · {p.paid_at ? fmtDate(p.paid_at, { day: "numeric", month: "short" }) : ""} ·{" "}
+                        <a href={`https://dashboard.razorpay.com/app/payments/${p.razorpay_payment_id}`} target="_blank" rel="noreferrer" className="underline underline-offset-4">
+                          Razorpay
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div className="mt-4">
+                  <EditsActions id={o.id} />
+                </div>
+              </Panel>
+            )}
             <Panel className="p-6">
               <p className="text-title">Notes</p>
               <div className="mt-4">

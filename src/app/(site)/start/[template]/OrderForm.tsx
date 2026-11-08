@@ -17,6 +17,8 @@ import { useInviteMusic } from "@/invites/music";
 import type { EventKind } from "@/data/invites";
 import { eventKinds, kindName } from "@/lib/orders";
 import { checkPartnerCode, createOrder, createPhotoUpload, createSongUpload, saveChanges } from "@/lib/order-actions";
+import { EditPackButton } from "@/app/(site)/order/[id]/EditPackButton";
+import { formatINR, site } from "@/config/site";
 import { adminSaveOrder, approveChange } from "@/app/admin/actions";
 import type { InviteDetails } from "@/lib/orders";
 import { cleanPartnerCode, readRefCookie } from "@/config/partners";
@@ -329,7 +331,7 @@ async function shrink(file: File): Promise<Blob> {
  */
 export type FormMode =
   | { kind: "new" }
-  | { kind: "change"; orderId: string; prepaid: boolean }
+  | { kind: "change"; orderId: string; prepaid: boolean; editsLeft?: number }
   | { kind: "admin"; orderId: string; requestId?: string; back: string };
 
 /** The order being edited, as saved. */
@@ -356,6 +358,9 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
   const [songState, setSongState] = useState<"idle" | "uploading" | "error">("idle");
   const [songError, setSongError] = useState("");
   const [songProgress, setSongProgress] = useState(0);
+  // After payment each change uses an edit; at none left, the last step offers a pack instead.
+  const [editsLeft, setEditsLeft] = useState(mode.kind === "change" && !mode.prepaid ? (mode.editsLeft ?? 1) : Infinity);
+  const outOfEdits = editsLeft <= 0;
   const [touched, setTouched] = useState<Set<string>>(() => new Set());
   const [attempted, setAttempted] = useState<Set<StepId>>(() => new Set());
   const [serverErrors, setServerErrors] = useState<string[]>([]);
@@ -605,7 +610,8 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
         if (mode.kind === "change") {
           const res = await saveChanges(mode.orderId, input);
           if ("errors" in res) return setServerErrors(res.errors);
-          router.push(`/order/${mode.orderId}${"pending" in res ? "?sent=1" : ""}`);
+          if ("needsEdits" in res) return setEditsLeft(0);
+          router.push(`/order/${mode.orderId}${"pending" in res ? "?sent=1" : "live" in res ? "?live=1" : ""}`);
         } else if (mode.kind === "admin") {
           const res = mode.requestId ? await approveChange(mode.requestId, input) : await adminSaveOrder(mode.orderId, input);
           if ("errors" in res) return setServerErrors(res.errors);
@@ -1162,13 +1168,31 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
       {mode.kind === "change" && !mode.prepaid && (
         <TextArea k="note" label="Anything else we should know?" hint="optional" value={note} onChange={setNote} onBlur={() => {}} placeholder="e.g. Please make the Haldi card yellow" maxLength={1000} rows={3} />
       )}
+      {mode.kind === "change" && !mode.prepaid && outOfEdits && (
+        <div className="rounded-tile bg-[#fff3c4] p-5">
+          <p className="text-[15px] font-semibold text-ink">You&rsquo;ve used all your edits</p>
+          <p className="mt-1 text-body text-muted">
+            Get {site.editPack.edits} more for {formatINR(site.editPack.price)}. Your changes stay right here, and go live as soon as you&rsquo;ve paid.
+          </p>
+          <EditPackButton
+            orderId={mode.orderId}
+            className="mt-4"
+            onPaid={() => {
+              setEditsLeft(site.editPack.edits);
+              saveEdit();
+            }}
+          />
+        </div>
+      )}
       <p className="pt-2 text-caption text-subtle">
         {mode.kind === "new"
           ? "After you submit, you\u2019ll pay securely online by UPI, card or netbanking."
           : mode.kind === "change"
             ? mode.prepaid
               ? "Your invite isn\u2019t published yet, so these changes save straight away."
-              : "We\u2019ll check your changes and update your invite, usually within a day. Your current invite stays live meanwhile."
+              : outOfEdits
+                ? ""
+                : `Your invite updates straight away. This uses 1 of your ${editsLeft} remaining edit${editsLeft === 1 ? "" : "s"}.`
             : mode.requestId
               ? "Saving approves the couple\u2019s request with your edits. A live invite updates straight away."
               : "Saving updates the order. A live invite updates straight away."}
@@ -1179,7 +1203,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
   const bodies: Record<StepId, ReactNode> = { couple, wedding, functions, wording, style: styleStep, photos: photosStep, music, contact, review };
   const isLast = step === steps.length - 1;
   const submitLabel =
-    mode.kind === "new" ? "Submit order" : mode.kind === "change" ? (mode.prepaid ? "Save changes" : "Send changes") : mode.requestId ? "Save and approve" : "Save changes";
+    mode.kind === "new" ? "Submit order" : mode.kind === "change" ? (mode.prepaid ? "Save changes" : "Save and update my invite") : mode.requestId ? "Save and approve" : "Save changes";
 
   const phone = (
     <PhoneFrame className="shadow-phone">
@@ -1256,7 +1280,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
                         Skip
                       </button>
                     )}
-                    <Button type="submit" disabled={pending || songState === "uploading" || photoBusy > 0}>
+                    <Button type="submit" disabled={pending || songState === "uploading" || photoBusy > 0 || (isLast && outOfEdits)}>
                       {isLast ? (pending ? "Sending…" : submitLabel) : `Continue to ${steps[step + 1].title.toLowerCase()} →`}
                     </Button>
                   </div>

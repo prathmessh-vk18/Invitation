@@ -10,18 +10,22 @@ import { AdminHeader } from "../AdminHeader";
 export const instant = false;
 
 const tabs = [
-  { id: "pending", label: "Waiting" },
-  { id: "approved", label: "Approved" },
-  { id: "declined", label: "Declined" },
+  { id: "pending", label: "Held for you", status: "pending", auto: null },
+  { id: "auto", label: "Applied automatically", status: "approved", auto: true },
+  { id: "approved", label: "Approved by you", status: "approved", auto: false },
+  { id: "declined", label: "Declined", status: "declined", auto: null },
 ] as const;
 
 export default async function AdminChanges({ searchParams }: PageProps<"/admin/changes">) {
   await requireAdmin();
   if (!isSupabaseConfigured()) return <AdminHeader />;
   const raw = (await searchParams).status;
-  const active = tabs.find((x) => x.id === raw)?.id ?? "pending";
+  const tab = tabs.find((x) => x.id === raw) ?? tabs[0];
+  const active = tab.id;
 
-  const { data, error } = await db().from("change_requests").select("*").eq("status", active).order("created_at", { ascending: active === "pending" }).limit(100);
+  let q = db().from("change_requests").select("*").eq("status", tab.status);
+  if (tab.auto !== null) q = q.eq("auto", tab.auto);
+  const { data, error } = await q.order("created_at", { ascending: active === "pending" }).limit(100);
   const requests = (data ?? []) as ChangeRequest[];
   const ids = [...new Set(requests.map((r) => r.order_id))];
   const { data: o } = ids.length ? await db().from("orders").select("*").in("id", ids) : { data: [] };
@@ -31,9 +35,11 @@ export default async function AdminChanges({ searchParams }: PageProps<"/admin/c
     <>
       <AdminHeader />
       <main className="mx-auto max-w-wide px-5 py-10">
-        <h1 className="text-heading">Changes requested</h1>
-        <p className="mt-2 text-lead text-muted">Couples&rsquo; edits to paid and live orders. Nothing changes on their invite until you approve.</p>
-        {error && <p className="mt-4 text-body text-[#b42318]">Couldn&rsquo;t load requests. Have you run supabase/migrations/0005_change_requests.sql?</p>}
+        <h1 className="text-heading">Couples&rsquo; changes</h1>
+        <p className="mt-2 text-lead text-muted">
+          Edits to paid and live orders go live on their own. Only ones that look like an invite being reused for another couple wait here for you.
+        </p>
+        {error && <p className="mt-4 text-body text-[#b42318]">Couldn&rsquo;t load requests. Have you run supabase/migrations/0010_edit_allowance.sql?</p>}
         <div className="no-scrollbar mt-6 flex gap-1.5 overflow-x-auto">
           {tabs.map((x) => (
             <Link
@@ -60,8 +66,10 @@ export default async function AdminChanges({ searchParams }: PageProps<"/admin/c
                     <span className="text-caption text-subtle tabular-nums">{fmtDate(r.created_at, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</span>
                   </p>
                   <p className="mt-1 text-body text-muted">
-                    {getTemplate(order.template)?.name} · {order.status === "live" ? "Live" : "Paid"} · {n} change{n === 1 ? "" : "s"}
-                    {r.note && <span className="block truncate text-caption">“{r.note}”</span>}
+                    {getTemplate(order.template)?.name} · {order.status === "live" ? "Live" : "Paid"}
+                    {r.status === "pending" && ` · ${n} change${n === 1 ? "" : "s"}`}
+                    {r.hold_reason && <span className="mt-1 block text-caption font-medium text-[#7a5b00]">Held: {r.hold_reason}</span>}
+                    {r.note && <span className="block truncate text-caption">Note from the couple: “{r.note}”</span>}
                   </p>
                 </Link>
               </li>

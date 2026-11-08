@@ -1,4 +1,4 @@
-import { site } from "@/config/site";
+import { formatINR, site } from "@/config/site";
 import { LegalPage } from "@/site/legal";
 
 export const metadata = { title: "Terms", description: "Terms of service for Aavjoo digital wedding invitations.", alternates: { canonical: "/terms" } };
@@ -10,7 +10,8 @@ export default function TermsPage() {
         <h2>The service</h2>
         <p>
           {site.name} designs and hosts invitation websites. Each order includes delivery within {site.deliveryDays} days of receiving your complete details and{" "}
-          {site.revisionRounds} rounds of changes.
+          {site.revisionRounds} free edits after your invite is published. After those, you can buy {site.editPack.edits} more edits for {formatINR(site.editPack.price)}{" "}
+          at a time from your order page. Edits that replace both names or move the wedding by months are checked by us before they go live.
         </p>
       </div>
       <div>

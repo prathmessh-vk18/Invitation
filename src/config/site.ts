@@ -12,7 +12,9 @@ export const site = {
   email: "vishwakarmaprathmesh1818@gmail.com",
   hours: "9 am – 10 pm IST",
   deliveryDays: 3,
-  revisionRounds: 2,
+  // Changes after payment go live on their own: this many are free, then packs are sold.
+  revisionRounds: 3,
+  editPack: { price: 99, edits: 3 },
 
   // UPI payments. Use a business UPI ID (current account or a business app), not a personal one.
   upiId: "vishwakarmaprathmesh18-1@okicici",

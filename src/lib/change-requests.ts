@@ -19,15 +19,24 @@ export type ChangeRequest = {
   reply: string | null;
   created_at: string;
   decided_at: string | null;
+  /** Applied by the site on its own, not approved by us. */
+  auto?: boolean;
+  /** Why the site held it for us instead of applying it. */
+  hold_reason?: string | null;
 };
 
-/** The order's latest request and how many free change rounds it has used. Null when the table isn't set up yet. */
-export async function changeSummary(orderId: string) {
+/**
+ * The order's latest request and its edits: each approved request (applied on its own or by us)
+ * uses one; the first few are free and `extra` more come from packs or from us. Null when the
+ * table isn't set up yet.
+ */
+export async function changeSummary(orderId: string, extra = 0) {
   const { data, error } = await db().from("change_requests").select("*").eq("order_id", orderId).order("created_at", { ascending: false });
   if (error) return null;
   const all = (data ?? []) as ChangeRequest[];
   const used = all.filter((r) => r.status === "approved").length;
-  return { latest: all[0] ?? null, used, free: site.revisionRounds, left: Math.max(0, site.revisionRounds - used) };
+  const allowed = site.revisionRounds + extra;
+  return { latest: all[0] ?? null, used, free: site.revisionRounds, extra, allowed, left: Math.max(0, allowed - used) };
 }
 
 /* ───────── What changed, in words ───────── */

@@ -44,7 +44,7 @@ const liveRightAway = autoPublishOn();
 const highlights = [
   ["Opens in seconds", "On any phone, straight from WhatsApp. No app to install."],
   liveRightAway ? ["Live right after you pay", "Your link is ready as soon as the payment goes through."] : [`Live within ${site.publishWithin}`, "Once your payment is confirmed."],
-  [`${site.revisionRounds} rounds of changes`, "Venue moved or a name misspelt? We update the same link."],
+  [`${site.revisionRounds} free edits`, "Venue moved or a name misspelt? Fix it yourself and the same link updates."],
   ["One tap to the venue", "Google Maps directions on every function card."],
   ["Live through the wedding", `Your link works until ${site.inviteDaysAfterWedding} days after the big day.`],
   ["A real person on WhatsApp", `We reply ${site.hours}, not a bot.`],

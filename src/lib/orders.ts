@@ -27,6 +27,8 @@ export type Order = {
   razorpay_payment_id?: string | null;
   nudge_count?: number | null;
   nudged_at?: string | null;
+  /** Edits on top of the free ones, from packs or given in admin. */
+  extra_edits?: number | null;
   admin_notes: string | null;
   invite_slug: string | null;
   partner_code?: string | null;

@@ -85,6 +85,12 @@ export default async function AdminChange({ params }: PageProps<"/admin/changes/
           </div>
         )}
 
+        {r.status === "pending" && r.hold_reason && (
+          <p className="mt-6 rounded-tile bg-[#fff3c4] px-5 py-4 text-body text-[#7a5b00]">
+            <span className="font-semibold">Held for you, not applied:</span> {r.hold_reason}. Approving it uses one of the couple&rsquo;s edits.
+          </p>
+        )}
+        {r.auto && <p className="mt-6 rounded-tile bg-whatsapp-wash px-5 py-4 text-body">Applied automatically when the couple saved it.</p>}
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
           <Panel className="p-6">
             <p className="text-title">What they changed</p>

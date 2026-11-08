@@ -5,6 +5,9 @@ import { redirect } from "next/navigation";
 import { endAdminSession, passwordMatches, requireAdmin, startAdminSession } from "@/lib/admin-auth";
 import { cleanPhotoPaths, cleanSongPath, validateDetails, type Order, keepInviteSettings } from "@/lib/orders";
 import type { ChangesInput } from "@/lib/order-actions";
+import { applyChanges } from "@/lib/apply-changes";
+import { changeSummary } from "@/lib/change-requests";
+import { site } from "@/config/site";
 import { logOrderEdit, type EditSource } from "@/lib/order-edits";
 import { publishOrder, warmShareCard } from "@/lib/publish";
 import { db } from "@/lib/supabase";
@@ -136,22 +139,13 @@ export async function setInvitePublished(id: string, slug: string, published: bo
   refresh(id);
 }
 
-/** Writes new details, song and photos to an order and, if its invite is live, updates the invite too. */
+/** Validates an admin's or a request's changes, keeps our hand-made settings, and applies them. */
 async function applyToOrder(id: string, input: ChangesInput, source: EditSource, requestId?: string): Promise<{ ok: true } | { errors: string[] }> {
   const checked = validateDetails(input.details);
   if (!checked.ok) return { errors: checked.errors };
   const before = await loadOrder(id);
   const after = { details: keepInviteSettings(before.details, checked.details), song_path: cleanSongPath(input.songPath), photo_paths: cleanPhotoPaths(input.photoPaths) };
-  const { error } = await db().from("orders").update(after).eq("id", id);
-  if (error) return { errors: ["Saving failed. Please try again."] };
-  await logOrderEdit(id, before, after, source, requestId);
-  const order = await loadOrder(id);
-  if (order.status === "live" && order.invite_slug) {
-    const res = await publishInvite(id, order.invite_slug);
-    if ("error" in res) return { errors: [`Saved, but updating the live invite failed: ${res.error}`] };
-  }
-  refresh(id);
-  return { ok: true };
+  return applyChanges(id, after, source, requestId);
 }
 
 /** Admin edits an order in the form. A live invite updates straight away. */
@@ -181,4 +175,22 @@ export async function declineChange(requestId: string, reply: string) {
     .eq("id", requestId)
     .eq("status", "pending");
   revalidatePath("/admin/changes");
+}
+
+/** Gives a couple more edits for free (goodwill), or puts them back to a fresh set of free edits. */
+export async function changeEdits(id: string, how: "plus1" | "plus3" | "reset") {
+  await requireAdmin();
+  const order = await loadOrder(id);
+  const extra = order.extra_edits ?? 0;
+  const c = await changeSummary(id, extra);
+  if (!c) return;
+  // Reset: as many extra as they've used, so exactly the free ones are left again.
+  const next = how === "plus1" ? extra + 1 : how === "plus3" ? extra + 3 : Math.max(0, c.used);
+  if (next === extra) return;
+  await db().from("orders").update({ extra_edits: next }).eq("id", id);
+  const left = (n: number) => `${Math.max(0, site.revisionRounds + n - c.used)} left`;
+  await db()
+    .from("order_edits")
+    .insert({ order_id: id, source: "admin", changes: [{ label: how === "reset" ? "Edits (reset)" : "Edits (given free)", before: left(extra), after: left(next) }] });
+  refresh(id);
 }

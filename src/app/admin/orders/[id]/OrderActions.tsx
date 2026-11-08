@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { site } from "@/config/site";
 import { Button } from "@/ui";
 import type { OrderStatus } from "@/lib/orders";
-import { cancelOrder, publishInvite, recordNudge, saveDetails, saveNotes, setInvitePublished, setPaymentVerified } from "../../actions";
+import { cancelOrder, changeEdits, publishInvite, recordNudge, saveDetails, saveNotes, setInvitePublished, setPaymentVerified } from "../../actions";
 
 type Props = {
   id: string;
@@ -225,6 +225,30 @@ export function NotesAndCancel({ id, notes, status, slug }: Pick<Props, "id" | "
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Admin's buttons for a couple's edits: give one or three free, or reset to a fresh free set. */
+export function EditsActions({ id }: { id: string }) {
+  const [pending, start] = useTransition();
+  const btn = "rounded-full bg-panel px-4 py-2 text-[14px] font-medium transition hover:bg-panel-strong disabled:opacity-50";
+  return (
+    <div className="flex flex-wrap gap-2">
+      <button type="button" disabled={pending} className={btn} onClick={() => start(() => changeEdits(id, "plus1"))}>
+        +1 free edit
+      </button>
+      <button type="button" disabled={pending} className={btn} onClick={() => start(() => changeEdits(id, "plus3"))}>
+        +3 free edits
+      </button>
+      <button
+        type="button"
+        disabled={pending}
+        className={btn}
+        onClick={() => confirm(`Reset to ${site.revisionRounds} free edits left?`) && start(() => changeEdits(id, "reset"))}
+      >
+        Reset
+      </button>
     </div>
   );
 }

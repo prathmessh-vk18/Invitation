@@ -67,3 +67,10 @@ export async function markPaidByRazorpayOrder(razorpayOrderId: string, paymentId
     .maybeSingle();
   return (data?.id as string | undefined) ?? null;
 }
+
+/** Adds a paid pack's edits to its order, exactly once. The order's id, or null if already credited / not a pack. */
+export async function creditEditPack(razorpayOrderId: string, paymentId: string) {
+  const { data, error } = await db().rpc("credit_edit_pack", { p_razorpay_order: razorpayOrderId, p_payment: paymentId });
+  if (error) console.error("Crediting an edit pack failed", error);
+  return (data as string | null) ?? null;
+}

@@ -22,7 +22,7 @@ async function EditView({ params }: { params: PageProps<"/order/[id]/edit">["par
   const prepaid = order.status === "awaiting_payment" || order.status === "payment_submitted";
 
   // A request still waiting is what they edit: sending again replaces it.
-  const c = prepaid ? null : await changeSummary(order.id);
+  const c = prepaid ? null : await changeSummary(order.id, order.extra_edits ?? 0);
   const waiting = c?.latest?.status === "pending" ? c.latest : null;
   const source = waiting ? { details: waiting.details, songPath: waiting.song_path, photoPaths: waiting.photo_paths } : { details: order.details, songPath: order.song_path, photoPaths: order.photo_paths ?? [] };
 
@@ -34,17 +34,19 @@ async function EditView({ params }: { params: PageProps<"/order/[id]/edit">["par
         </Link>
       </Eyebrow>
       <Heading as="h2" className="mt-4">
-        {prepaid ? "Edit your details." : waiting ? "Edit your change request." : "Ask for changes."}
+        {prepaid ? "Edit your details." : waiting ? "Edit your changes." : "Change your invite."}
       </Heading>
       <Lead className="mt-3 max-w-[640px]">
         {prepaid
           ? "Change anything below. Your invite isn't published yet, so it saves straight away."
-          : `Change anything below, then send it to us on the last step. We check every change before it goes live.${c ? ` You've used ${c.used} of ${c.free} free change rounds.` : ""}`}
+          : waiting
+            ? "Your last changes are with us for a quick check. Change anything below and save again to replace them."
+            : `Change anything below and save on the last step: your invite updates straight away, on the same link.${c ? ` You have ${c.left} of ${c.allowed} edits left.` : ""}`}
       </Lead>
       <div className="mt-10">
         <OrderForm
           t={t}
-          mode={{ kind: "change", orderId: order.id, prepaid }}
+          mode={{ kind: "change", orderId: order.id, prepaid, editsLeft: waiting ? Math.max(1, c?.left ?? 1) : (c?.left ?? 1) }}
           start={{ ...source, customer: { name: order.customer_name, phone: order.customer_phone, email: order.customer_email ?? "" } }}
         />
       </div>

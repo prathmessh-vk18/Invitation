@@ -21,9 +21,9 @@ export default function RefundsPage() {
       <div>
         <h2>Changes instead</h2>
         <p>
-          Your {site.revisionRounds} rounds of changes are always included. Ask
-          for them from your order page and we&rsquo;ll keep working until the
-          details are right.
+          Your {site.revisionRounds} free edits are always included. Make them
+          from your order page and your invite updates straight away, on the
+          same link.
         </p>
       </div>
       <div>

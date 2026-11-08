@@ -24,7 +24,7 @@ export default function AboutPage() {
           {[
             ["Why we started", "Printed cards cost a fortune and can't change once they're printed. WhatsApp videos are hard to read and impossible to update. We wanted something in between: beautiful, easy to share and easy to fix."],
             ["What you get", `A designed invitation website with an opening animation, every function with its venue and map, a countdown, music and RSVP on WhatsApp. ${templates.length} designs to choose from.`],
-            ["How we work", `Every invite is made for one family by a real person. We work with you on WhatsApp, deliver in ${site.deliveryDays} days and include ${site.revisionRounds} rounds of changes.`],
+            ["How we work", `Every invite is made for one family by a real person. We work with you on WhatsApp, deliver in ${site.deliveryDays} days and include ${site.revisionRounds} free edits.`],
           ].map(([h, b], i) => (
             <Reveal key={h} delay={i * 0.08}>
               <Panel className="h-full p-7">
