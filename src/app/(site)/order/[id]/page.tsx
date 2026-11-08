@@ -40,7 +40,7 @@ function Step({ n, done, children }: { n: number; done?: boolean; children: Reac
 }
 
 /** Asking for changes, and where the last request stands. */
-async function Changes({ order, sent, live }: { order: Order; sent: boolean; live: boolean }) {
+async function Changes({ order, sent, live, same }: { order: Order; sent: boolean; live: boolean; same: boolean }) {
   if (order.status === "cancelled") return null;
   const editHref = `/order/${order.id}/edit`;
   // Before payment nothing is published yet, so edits save straight away.
@@ -75,6 +75,7 @@ async function Changes({ order, sent, live }: { order: Order; sent: boolean; liv
       {live && !waiting && (
         <p className="mt-4 rounded-tile bg-whatsapp-wash p-4 text-body font-medium">Your changes are live ✓ Open your invite to see them. Guests see them too, on the same link.</p>
       )}
+      {same && <p className="mt-4 rounded-tile bg-surface p-4 text-body">Nothing had changed, so no edit was used.</p>}
       {!live && latest?.status === "approved" && !waiting && <p className="mt-3 text-body font-medium text-[#1d6b35]">✓ Your last changes are live on your invite.</p>}
       {latest?.status === "declined" && !waiting && (
         <p className="mt-3 text-body text-[#8a1c1c]">We couldn&rsquo;t make your last changes{latest.reply ? `: ${latest.reply}` : "."} Message us if you&rsquo;d like to talk about it.</p>
@@ -266,7 +267,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
           </Panel>
         )}
 
-        <Changes order={order} sent={sent} live={query.live === "1"} />
+        <Changes order={order} sent={sent} live={query.live === "1"} same={query.same === "1"} />
 
         <Panel className="p-6 sm:p-8">
           <p className="text-title">What happens next</p>

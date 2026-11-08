@@ -5,7 +5,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { getTemplate } from "@/data/templates";
 import { cleanPhone, cleanPhotoPaths, cleanSongPath, keepInviteSettings, orderTotal, validateDetails, type InviteDetails, type Order } from "@/lib/orders";
 import { findActivePartner } from "@/lib/partners";
-import { logOrderEdit } from "@/lib/order-edits";
+import { logOrderEdit, orderChanges } from "@/lib/order-edits";
 import { autoPublish, warmShareCard } from "@/lib/publish";
 import { createRazorpayOrder, creditEditPack, isRazorpayConfigured, paysOnline, isValidPaymentSignature, markPaidByRazorpayOrder, razorpayKeyId } from "@/lib/razorpay";
 import { r2UploadUrl } from "@/lib/r2";
@@ -212,7 +212,7 @@ export type ChangesInput = { details: unknown; songPath: string | null; photoPat
 export async function saveChanges(
   orderId: string,
   input: ChangesInput,
-): Promise<{ applied: true } | { live: true } | { pending: true } | { needsEdits: true } | { errors: string[] }> {
+): Promise<{ applied: true } | { live: true } | { unchanged: true } | { pending: true } | { needsEdits: true } | { errors: string[] }> {
   if (!/^[0-9a-f-]{36}$/.test(orderId)) return { errors: ["We couldn't find this order."] };
   const checked = validateDetails(input.details);
   if (!checked.ok) return { errors: checked.errors };
@@ -231,6 +231,10 @@ export async function saveChanges(
     await logOrderEdit(orderId, order as unknown as Order, { details, song_path: songPath, photo_paths: photoPaths }, "couple");
     return { applied: true };
   }
+
+  // Saving without changing anything (or only re-sending a held request's twin) never uses an edit.
+  const note0 = String(input.note ?? "").trim();
+  if (!note0 && !orderChanges(order as unknown as Order, { details, song_path: songPath, photo_paths: photoPaths }).length) return { unchanged: true };
 
   const c = await changeSummary(orderId, order.extra_edits ?? 0);
   if (!c) return { errors: ["We couldn't send your changes. Please try again in a moment."] };

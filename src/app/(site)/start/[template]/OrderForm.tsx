@@ -611,7 +611,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
           const res = await saveChanges(mode.orderId, input);
           if ("errors" in res) return setServerErrors(res.errors);
           if ("needsEdits" in res) return setEditsLeft(0);
-          router.push(`/order/${mode.orderId}${"pending" in res ? "?sent=1" : "live" in res ? "?live=1" : ""}`);
+          router.push(`/order/${mode.orderId}${"pending" in res ? "?sent=1" : "live" in res ? "?live=1" : "unchanged" in res ? "?same=1" : ""}`);
         } else if (mode.kind === "admin") {
           const res = mode.requestId ? await approveChange(mode.requestId, input) : await adminSaveOrder(mode.orderId, input);
           if ("errors" in res) return setServerErrors(res.errors);
