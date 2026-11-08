@@ -205,13 +205,6 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
         <Rosette className="absolute inset-[3cqw] animate-spin-slow" />
         <Crescent className="relative w-[20cqw]" />
       </motion.button>
-      <motion.p
-        className="inv-label absolute inset-x-0 bottom-[14%] text-center text-[2.8cqw] text-[#e3b964]"
-        animate={{ opacity: opened ? 0 : [0.5, 1, 0.5] }}
-        transition={{ duration: 2.4, repeat: opened ? 0 : Infinity }}
-      >
-        Tap the moon to enter
-      </motion.p>
     </div>
   );
 }
@@ -400,6 +393,7 @@ function Title({ kicker, children }: { kicker?: string; children: React.ReactNod
 
 export const noor: InviteTheme = {
   id: "noor",
+  tapHint: "tapMoon",
   root: "bg-[#0c3b33] text-[#f4efe2]",
   vars: {
     "--inv-script": "var(--font-amiri), serif",

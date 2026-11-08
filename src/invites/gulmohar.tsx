@@ -165,13 +165,6 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
         </motion.div>
       </button>
 
-      <motion.p
-        className="inv-label absolute inset-x-0 bottom-[22%] text-center text-[2.6cqw] text-[#869d7a]"
-        animate={{ opacity: opened ? 0 : [0.4, 1, 0.4] }}
-        transition={{ duration: 2.4, repeat: opened ? 0 : Infinity }}
-      >
-        Tap the seal to open
-      </motion.p>
     </motion.div>
   );
 }
@@ -353,6 +346,7 @@ function Title({ kicker, children }: { kicker?: string; children: React.ReactNod
 
 export const gulmohar: InviteTheme = {
   id: "gulmohar",
+  tapHint: "tapSeal",
   root: "bg-[#fdf6f2] text-[#5a2236]",
   vars: {
     "--inv-script": "var(--font-pinyon), cursive",

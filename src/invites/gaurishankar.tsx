@@ -214,15 +214,6 @@ function Meeting({ invite, opened, onOpen }: OpeningProps) {
         >
           {a.first} <span style={{ fontSize: u(10) }}>{invite.joiner ?? "&"}</span> {b.first}
         </motion.p>
-        <motion.p
-          className="inv-label relative font-semibold"
-          style={{ fontSize: u(2.9), marginTop: u(4), color: c.ink, textShadow: HALO }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 1, 0.7, 1] }}
-          transition={{ duration: 2.6, delay: at(6), repeat: Infinity, repeatType: "reverse" }}
-        >
-          {invite.openHint ?? (hi ? "प्रवेश के लिए स्पर्श करें" : "Tap anywhere to enter")}
-        </motion.p>
       </div>
     </motion.button>
   );
@@ -288,7 +279,6 @@ function Kailash({ invite }: { invite: Invite }) {
   const textY = useTransform(p, [0, 0.3], ["0%", "-40%"]);
   const textOpacity = useTransform(p, [0.03, 0.26], [1, 0]);
   const sceneOpacity = useTransform(p, [0.66, 0.98], [1, 0]);
-  const cue = useTransform(p, [0, 0.06], [1, 0]);
   return (
     <section ref={ref} className="relative" style={{ height: "210svh" }}>
       <motion.div className="sticky top-0 h-[100svh] w-full overflow-hidden" style={{ opacity: sceneOpacity }}>
@@ -300,21 +290,6 @@ function Kailash({ invite }: { invite: Invite }) {
         <motion.div className="absolute inset-x-[7%] top-[6%]" style={{ y: textY, opacity: textOpacity }}>
           <Details invite={invite} show={showAfterOpen(opened)} />
         </motion.div>
-        <motion.button
-          type="button"
-          onClick={() => window.scrollBy({ top: window.innerHeight, behavior: "smooth" })}
-          className="absolute bottom-[3%] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1 px-[6cqw] py-[2cqw] text-white [text-shadow:0_1px_8px_rgba(0,0,0,.55)]"
-          initial={{ opacity: 0 }}
-          animate={opened ? { opacity: 1, y: [0, 6, 0] } : {}}
-          transition={{ opacity: { delay: 1.8, duration: 0.6 }, y: { delay: 1.8, duration: 1.8, repeat: Infinity } }}
-          style={{ opacity: cue }}
-          aria-label="Scroll"
-        >
-          <span className="inv-label text-[2.3cqw]">Scroll</span>
-          <svg viewBox="0 0 24 24" className="size-[4cqw]" fill="none" stroke="currentColor" strokeWidth={1.6}>
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </motion.button>
       </motion.div>
     </section>
   );
@@ -511,6 +486,7 @@ function Backdrop() {
 export const gaurishankar: InviteTheme = {
   ...base,
   id: "gaurishankar",
+  tapHint: "tapAnywhere",
   vars: { ...base.vars, "--inv-accent": c.rose } as CSSProperties,
   accent: c.rose,
   // Shared sections fade secondary text to 70%; over this sky it needs to stay near full strength.

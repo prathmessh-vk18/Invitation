@@ -56,7 +56,6 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
         />
         <motion.span className="relative flex h-full flex-col items-center justify-center text-[#f5ede1]" animate={{ opacity: opened ? 0 : 1 }}>
           <span className="inv-deva text-[7cqw] leading-none">ॐ</span>
-          <span className="mt-[2cqw] text-[2.4cqw] font-semibold tracking-[0.3em] uppercase">Tap to open</span>
         </motion.span>
       </button>
 
@@ -267,6 +266,7 @@ function Title({ kicker, children }: { kicker?: string; children: React.ReactNod
 
 export const agni: InviteTheme = {
   id: "agni",
+  tapHint: "tapCircle",
   root: "bg-[#f5ede1] text-[#2a1c15]",
   vars: {
     "--inv-script": "var(--font-bodoni), serif",

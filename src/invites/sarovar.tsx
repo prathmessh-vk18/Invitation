@@ -243,14 +243,6 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
           />
         </span>
       </motion.button>
-      <motion.p
-        className="inv-label mt-[8cqw] text-[3.2cqw] tracking-[0.3em]"
-        style={{ color: "#b4636e" }}
-        animate={{ opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 2.4, repeat: Infinity }}
-      >
-        Tap the ring
-      </motion.p>
     </motion.div>
   );
 }
@@ -329,12 +321,6 @@ function Hero({ invite }: { invite: Invite }) {
           {invite.city}
         </motion.p>
       </div>
-      <motion.p
-        {...show(1.6)}
-        className="inv-label absolute bottom-[2.5%] left-1/2 -translate-x-1/2 text-[2.6cqw] tracking-[0.3em] text-white [text-shadow:0_1px_8px_rgba(0,0,0,.5)]"
-      >
-        Scroll
-      </motion.p>
     </motion.section>
   );
 }
@@ -927,6 +913,7 @@ function Backdrop() {
 
 export const sarovar: InviteTheme = {
   id: "sarovar",
+  tapHint: "tapRing",
   root: "",
   vars: {
     "--inv-script": "var(--font-dancing), cursive",

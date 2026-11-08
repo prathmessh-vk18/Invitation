@@ -93,13 +93,6 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
         <Mandala color="#6d1328" className="absolute inset-[2cqw] animate-spin-slow opacity-50" stroke={1.4} />
         <span className="inv-script relative text-[12cqw] leading-none text-[#4f0c1d]">{initials(invite)}</span>
       </motion.button>
-      <motion.p
-        className="inv-label absolute inset-x-0 bottom-[16cqw] text-center text-[3cqw] font-semibold text-[#f6d987] [text-shadow:0_1px_8px_#000]"
-        animate={{ opacity: opened ? 0 : [0.5, 1, 0.5] }}
-        transition={{ duration: 2.4, repeat: opened ? 0 : Infinity }}
-      >
-        Tap the seal to enter
-      </motion.p>
     </div>
   );
 }
@@ -147,17 +140,6 @@ function Hero({ invite }: { invite: Invite }) {
         </div>
       </div>
 
-      <motion.div
-        className="inv-label absolute bottom-[6cqw] flex flex-col items-center gap-1 text-[2.2cqw] text-[#f6d987]/80"
-        initial={{ opacity: 0 }}
-        animate={opened ? { opacity: 1, y: [0, 6, 0] } : {}}
-        transition={{ delay: 2.2, y: { repeat: Infinity, duration: 2 } }}
-      >
-        Scroll
-        <svg viewBox="0 0 24 24" className="size-[4cqw]" fill="none" stroke="currentColor" strokeWidth={1.5}>
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </motion.div>
     </section>
   );
 }
@@ -289,6 +271,7 @@ function Title({ kicker, children }: { kicker?: string; children: React.ReactNod
 
 export const rajwada: InviteTheme = {
   id: "rajwada",
+  tapHint: "tapSeal",
   root: "bg-[#4a0b1b] text-[#fbf1dc]",
   vars: {
     "--inv-script": "var(--font-parisienne), cursive",

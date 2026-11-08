@@ -184,7 +184,6 @@ function Hero({ invite }: { invite: Invite }) {
 
 function Walk({ invite }: { invite: Invite }) {
   const opened = useOpened();
-  const { t } = useT();
   const [a, b] = couple(invite);
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start start", "end end"] });
@@ -195,7 +194,6 @@ function Walk({ invite }: { invite: Invite }) {
   const nameOpacity = useTransform(p, [0.03, 0.26], [1, 0]);
   // …and the temple dissolves into the painted arch behind it.
   const sceneOpacity = useTransform(p, [0.68, 0.98], [1, 0]);
-  const cue = useTransform(p, [0, 0.06], [1, 0]);
   return (
     <section ref={ref} className="relative" style={{ height: "210svh" }}>
       <motion.div className="sticky top-0 h-[100svh] w-full overflow-hidden" style={{ opacity: sceneOpacity }}>
@@ -205,22 +203,6 @@ function Walk({ invite }: { invite: Invite }) {
         <motion.div className="absolute inset-x-[14%] top-[8%]" style={{ y: nameY, opacity: nameOpacity }}>
           <Names invite={invite} show={showAfterOpen(opened)} />
         </motion.div>
-        <motion.button
-          type="button"
-          onClick={() => window.scrollBy({ top: window.innerHeight, behavior: "smooth" })}
-          // On a soft dark pill: plain white text vanished against the cream carpet.
-          className="absolute bottom-[4%] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-[0.5cqw] rounded-full bg-[rgba(70,32,16,.58)] px-[6cqw] pt-[1.8cqw] pb-[1.2cqw] text-white shadow-[0_4px_18px_rgba(40,18,8,.35)] backdrop-blur-[3px]"
-          initial={{ opacity: 0 }}
-          animate={opened ? { opacity: 1, y: [0, 6, 0] } : {}}
-          transition={{ opacity: { delay: 1.8, duration: 0.6 }, y: { delay: 1.8, duration: 1.8, repeat: Infinity } }}
-          style={{ opacity: cue }}
-          aria-label={t.scrollToWalkIn}
-        >
-          <span className="inv-label text-[2.6cqw] font-semibold tracking-[0.2em] whitespace-nowrap">{t.scrollToWalkIn}</span>
-          <svg viewBox="0 0 24 24" className="size-[4cqw]" fill="none" stroke="currentColor" strokeWidth={1.6}>
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </motion.button>
       </motion.div>
     </section>
   );
@@ -506,6 +488,7 @@ function Frame() {
 export const mandir: InviteTheme = {
   ...base,
   id: "mandir",
+  scrollHint: "scrollToWalkIn",
   root: "inv-mandir",
   vars: { ...base.vars, "--inv-accent": c.name } as CSSProperties,
   accent: c.name,

@@ -9,7 +9,6 @@ import type { Invite } from "@/data/invites";
 import type { TemplateId } from "@/data/templates";
 import { dayNum, fmtDate, monthName, time, weekday, yearNum } from "@/lib/format";
 import { couple, EventActions, initials, Reveal } from "./shared";
-import { useT } from "./i18n";
 import { INVITE_ART_SIZES, PREVIEW_ART_SIZES, useOpened, usePreview } from "./opened";
 import type { InviteTheme, OpeningProps } from "./types";
 
@@ -147,7 +146,6 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           </motion.div>
         )}
         <Seal invite={invite} opened={opened} onOpen={onOpen} className="top-1/2 left-1/2" />
-        <Hint opened={opened} text={invite.openHint} />
       </div>
     );
   }
@@ -185,7 +183,6 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
         >
           <span className="absolute inset-0 animate-ping rounded-full bg-white/40 [animation-duration:2.2s]" />
         </motion.button>
-        <Hint opened={opened} text={invite.openHint ?? "Tap the seal to open"} />
       </div>
     );
   }
@@ -228,19 +225,6 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           </>
         )}
       </motion.button>
-    );
-  }
-
-  function Hint({ opened, text }: { opened: boolean; text?: string }) {
-    const { t } = useT();
-    return (
-      <motion.p
-        className="inv-label absolute inset-x-[16%] bottom-[7%] rounded-full bg-black/35 py-[1.8cqw] text-center text-[2.8cqw] text-white backdrop-blur-sm"
-        animate={{ opacity: opened ? 0 : [0.7, 1, 0.7] }}
-        transition={{ duration: 2.4, repeat: opened ? 0 : Infinity }}
-      >
-        {text ?? t.tapToOpen}
-      </motion.p>
     );
   }
 
@@ -294,21 +278,6 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
             we invite you to bless {a.first} &amp; {b.first}.
           </motion.p>
         </div>
-        <motion.button
-          type="button"
-          onClick={() => ref.current?.nextElementSibling?.scrollIntoView({ behavior: "smooth", block: "start" })}
-          className="absolute bottom-[19%] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1 px-[6cqw] py-[2cqw]"
-          style={{ color: c.accent }}
-          initial={{ opacity: 0 }}
-          animate={opened ? { opacity: 1, y: [0, 6, 0] } : {}}
-          transition={{ opacity: { delay: 1.8, duration: 0.6 }, y: { delay: 1.8, duration: 1.8, repeat: Infinity } }}
-          aria-label="Scroll to the invitation"
-        >
-          <span className="inv-label text-[2.3cqw]">Scroll</span>
-          <svg viewBox="0 0 24 24" className="size-[4cqw]" fill="none" stroke="currentColor" strokeWidth={1.6}>
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </motion.button>
       </section>
     );
   }
@@ -370,21 +339,6 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
             {invite.city}
           </motion.p>
         </motion.div>
-        <motion.button
-          type="button"
-          onClick={() => ref.current?.nextElementSibling?.scrollIntoView({ behavior: "smooth", block: "start" })}
-          className="absolute bottom-[3%] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1 px-[6cqw] py-[2cqw] text-white [text-shadow:0_1px_8px_rgba(0,0,0,.5)]"
-          initial={{ opacity: 0 }}
-          animate={opened ? { opacity: 1, y: [0, 6, 0] } : {}}
-          transition={{ opacity: { delay: 1.8, duration: 0.6 }, y: { delay: 1.8, duration: 1.8, repeat: Infinity } }}
-          style={{ opacity: textFade }}
-          aria-label="Scroll to the invitation"
-        >
-          <span className="inv-label text-[2.3cqw]">Scroll</span>
-          <svg viewBox="0 0 24 24" className="size-[4cqw]" fill="none" stroke="currentColor" strokeWidth={1.6}>
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </motion.button>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[10%] bg-gradient-to-b from-transparent" style={{ backgroundImage: `linear-gradient(to bottom, transparent, ${c.paper})` }} />
       </section>
       </>
@@ -719,6 +673,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
 
   const theme: InviteTheme = {
     id: spec.id,
+    tapHint: spec.opening === "doors" ? "tapDoors" : "tapSeal",
     root: "",
     vars: {
       "--inv-script": spec.fonts.script,

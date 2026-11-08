@@ -32,6 +32,9 @@ export type InviteTheme = {
   Frame?: FC;
   Divider: FC<{ className?: string }>;
   Title: FC<{ kicker?: string; children: ReactNode }>;
+  // The words on the shared "tap to open" pill and the "scroll" pill after opening (keys into i18n).
+  tapHint?: "tapSeal" | "tapDoors" | "tapRing" | "tapMoon" | "tapKolam" | "tapDupatta" | "tapCircle" | "tapAnywhere";
+  scrollHint?: "scrollToSeeMore" | "scrollToWalkIn";
   // A design's own countdown heading (e.g. "Anand Karaj in"), unless the couple set one.
   countdownTitle?: string;
 };

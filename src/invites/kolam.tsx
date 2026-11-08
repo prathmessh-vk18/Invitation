@@ -239,7 +239,6 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
         <p className="inv-script mt-[5cqw] text-[8cqw] leading-none text-[#3b0a1f]">
           {a.first} <span className="text-[#d9a53c]">&amp;</span> {b.first}
         </p>
-        <p className="inv-label mt-[3cqw] text-[2.4cqw] text-[#3b0a1f]/60">Tap the kolam to step inside</p>
       </motion.div>
     </div>
   );
@@ -443,6 +442,7 @@ function Title({ kicker, children }: { kicker?: string; children: React.ReactNod
 
 export const kolam: InviteTheme = {
   id: "kolam",
+  tapHint: "tapKolam",
   root: "bg-[#fbf6ea] text-[#3b0a1f]",
   vars: {
     "--inv-script": "var(--font-yeseva), serif",

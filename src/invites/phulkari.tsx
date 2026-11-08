@@ -198,14 +198,6 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
           {invite.invocation}
         </span>
       </motion.button>
-      <motion.p
-        className="absolute inset-x-0 bottom-[12%] text-center text-[3.4cqw] font-bold text-[#fff4e0] [text-shadow:0_0.5cqw_0_#5a0f2a]"
-        style={gurmukhi}
-        animate={{ opacity: opened ? 0 : 1, y: opened ? 0 : [0, -6, 0] }}
-        transition={{ duration: 1.4, repeat: opened ? 0 : Infinity }}
-      >
-        Tap to open the dupatta ✨
-      </motion.p>
     </div>
   );
 }
@@ -428,6 +420,7 @@ function Title({ kicker, children }: { kicker?: string; children: React.ReactNod
 
 export const phulkari: InviteTheme = {
   id: "phulkari",
+  tapHint: "tapDupatta",
   root: "bg-[#5a0f2a] text-[#fff4e0]",
   vars: {
     "--inv-script": "var(--font-rozha), serif",
