@@ -1,4 +1,4 @@
-import { isMailConfigured } from "@/lib/mail";
+import { checkMail, closeMail, isMailConfigured } from "@/lib/mail";
 import { sendDueReminders } from "@/lib/reminders";
 
 /**
@@ -12,6 +12,11 @@ export const maxDuration = 60;
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) return new Response("Unauthorized", { status: 401 });
+  if (new URL(request.url).searchParams.get("verify") === "1") return Response.json(await checkMail());
   if (new URL(request.url).searchParams.get("dry") === "1") return Response.json({ mailConfigured: isMailConfigured(), ...(await sendDueReminders({ dryRun: true })) });
-  return Response.json(await sendDueReminders());
+  try {
+    return Response.json(await sendDueReminders());
+  } finally {
+    closeMail();
+  }
 }
