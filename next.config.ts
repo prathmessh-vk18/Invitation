@@ -5,6 +5,10 @@ const WEEK = 7 * 24 * 60 * 60;
 const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
+  // The printable-PDF add-on renders pages in a serverless Chrome: keep it out of the bundle and
+  // ship its compressed browser with the PDF route.
+  serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
+  outputFileTracingIncludes: { "/order/**": ["./node_modules/@sparticuz/chromium/bin/**"] },
   partialPrefetching: true,
   // Optimised copies of the design art keep for a week, like the art itself (below).
   images: { minimumCacheTTL: WEEK },

@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { site } from "@/config/site";
 import { Button } from "@/ui";
 import type { OrderStatus } from "@/lib/orders";
-import { cancelOrder, changeEdits, setEmailOptOut, publishInvite, recordNudge, saveDetails, saveNotes, setInvitePublished, setPaymentVerified } from "../../actions";
+import { cancelOrder, changeEdits, setEmailOptOut, setPdfAddon, publishInvite, recordNudge, saveDetails, saveNotes, setInvitePublished, setPaymentVerified } from "../../actions";
 
 type Props = {
   id: string;
@@ -259,6 +259,16 @@ export function EmailOptOut({ id, optOut }: { id: string; optOut: boolean }) {
   return (
     <button type="button" disabled={pending} onClick={() => start(() => setEmailOptOut(id, !optOut))} className="ml-2 text-caption text-subtle underline underline-offset-4 hover:text-ink">
       {optOut ? "Allow emails again" : "Stop emails"}
+    </button>
+  );
+}
+
+/** Gives the printable PDF free (or removes it). */
+export function PdfAdmin({ id, owned }: { id: string; owned: boolean }) {
+  const [pending, start] = useTransition();
+  return (
+    <button type="button" disabled={pending} onClick={() => start(() => setPdfAddon(id, !owned))} className="ml-2 text-caption text-subtle underline underline-offset-4 hover:text-ink">
+      {owned ? "Remove" : "Give free"}
     </button>
   );
 }

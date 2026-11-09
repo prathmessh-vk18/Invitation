@@ -358,6 +358,8 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
   const [songState, setSongState] = useState<"idle" | "uploading" | "error">("idle");
   const [songError, setSongError] = useState("");
   const [songProgress, setSongProgress] = useState(0);
+  // The ₹99 printable-PDF add-on, ticked on the last step of a new order.
+  const [pdfAddon, setPdfAddon] = useState(false);
   // After payment each change uses an edit; at none left, the last step offers a pack instead.
   const [editsLeft, setEditsLeft] = useState(mode.kind === "change" && !mode.prepaid ? (mode.editsLeft ?? 1) : Infinity);
   const outOfEdits = editsLeft <= 0;
@@ -590,6 +592,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
           photoPaths: showing("gallery") ? photos.map((x) => x.path) : [],
           customer: { ...s.customer, phone: `+${waNumber(s.customer.phone)}` },
           ...(refCode ? { partnerCode: refCode } : {}),
+          ...(pdfAddon ? { addons: ["pdf"] } : {}),
         });
       } catch (e) {
         if (!isStale(e)) throw e;
@@ -1186,6 +1189,20 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
             }}
           />
         </div>
+      )}
+      {mode.kind === "new" && !t.payDirect && (
+        <label className={`flex cursor-pointer items-start gap-3 rounded-tile border-2 p-4 transition ${pdfAddon ? "border-ink bg-surface" : "border-line bg-surface"}`}>
+          <input type="checkbox" checked={pdfAddon} onChange={(e) => setPdfAddon(e.target.checked)} className="mt-1 size-5 shrink-0 accent-[#141414]" />
+          <span>
+            <span className="block text-[15px] font-semibold text-ink">
+              Add a printable PDF for elders · {formatINR(site.pdfAddon.price)}
+            </span>
+            <span className="mt-0.5 block text-caption text-subtle">
+              Your invite as a PDF in the same design, with large, clear text. For grandparents who don&rsquo;t open links, family WhatsApp groups and printing.
+            </span>
+            {pdfAddon && <span className="mt-1.5 block text-[14px] font-medium text-ink">Total {formatINR(t.price + site.pdfAddon.price)}</span>}
+          </span>
+        </label>
       )}
       <p className="pt-2 text-caption text-subtle">
         {mode.kind === "new"

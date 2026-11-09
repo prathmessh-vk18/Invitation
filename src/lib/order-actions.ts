@@ -7,7 +7,7 @@ import { cleanPhone, cleanPhotoPaths, cleanSongPath, keepInviteSettings, orderTo
 import { findActivePartner } from "@/lib/partners";
 import { logOrderEdit, orderChanges } from "@/lib/order-edits";
 import { autoPublish, warmShareCard } from "@/lib/publish";
-import { createRazorpayOrder, creditEditPack, isRazorpayConfigured, paysOnline, isValidPaymentSignature, markPaidByRazorpayOrder, razorpayKeyId } from "@/lib/razorpay";
+import { createRazorpayOrder, creditAddon, creditEditPack, isRazorpayConfigured, paysOnline, isValidPaymentSignature, markPaidByRazorpayOrder, razorpayKeyId } from "@/lib/razorpay";
 import { r2UploadUrl } from "@/lib/r2";
 import { applyChanges } from "@/lib/apply-changes";
 import { changeSummary } from "@/lib/change-requests";
@@ -85,6 +85,8 @@ export type CreateOrderInput = {
   photoPaths?: string[];
   customer: { name: string; phone: string; email: string };
   partnerCode?: string;
+  /** Add-ons ticked at checkout: "pdf" (the printable PDF). */
+  addons?: string[];
 };
 
 /** Checks a partner code for the order form, so the couple sees it applied. */
@@ -116,12 +118,16 @@ export async function createOrder(input: CreateOrderInput): Promise<{ id: string
 
   const songPath = cleanSongPath(input.songPath);
   const photoPaths = cleanPhotoPaths(input.photoPaths);
+  // Orders paid to us directly can't add online extras at checkout.
+  const pdf = Boolean(input.addons?.includes("pdf")) && !t.payDirect;
 
   const { data, error } = await db()
     .from("orders")
     .insert({
       template: t.id,
-      amount: orderTotal(t.id),
+      // The add-on's price comes from our config, never from the browser.
+      amount: orderTotal(t.id) + (pdf ? site.pdfAddon.price : 0),
+      addons: pdf ? ["pdf"] : [],
       customer_name: name,
       customer_phone: phone,
       customer_email: email || null,
@@ -313,6 +319,53 @@ export async function confirmEditPack(
     return { error: "We couldn't verify this payment. If money was deducted, message us on WhatsApp with your order code." };
   }
   await creditEditPack(r.razorpay_order_id, r.razorpay_payment_id);
+  revalidatePath(`/order/${orderId}`);
+  revalidatePath(`/admin/orders/${orderId}`);
+  return { ok: true };
+}
+
+/** Opens Razorpay for an add-on (the printable PDF) on a paid order. */
+export async function startAddon(orderId: string, addon: "pdf"): Promise<PaymentStart | { error: string }> {
+  if (!/^[0-9a-f-]{36}$/.test(orderId) || addon !== "pdf") return { error: "We couldn't find this order." };
+  if (!isRazorpayConfigured()) return { error: "Online payment isn't set up yet. Please message us on WhatsApp." };
+  const { data: order } = await db().from("orders").select("id, code, status, addons, customer_name, customer_phone, customer_email").eq("id", orderId).maybeSingle();
+  if (!order) return { error: "We couldn't find this order." };
+  if (order.status !== "paid" && order.status !== "live") return { error: "Add the PDF once your invite is paid for, or tick it on the order form." };
+  if ((order.addons ?? []).includes(addon)) return { error: "You already have the PDF. Download it from your order page." };
+  const price = site.pdfAddon.price;
+  const { count } = await db().from("addon_purchases").select("id", { count: "exact", head: true }).eq("order_id", orderId);
+  let rzp: { id: string };
+  try {
+    rzp = await createRazorpayOrder(price, `${order.code}-P${(count ?? 0) + 1}`, { order_id: order.id, code: order.code, kind: "addon_pdf" });
+  } catch {
+    return { error: "We couldn't start the payment. Please try again in a moment." };
+  }
+  const { error } = await db().from("addon_purchases").insert({ order_id: order.id, addon, amount: price, razorpay_order_id: rzp.id });
+  if (error) return { error: "We couldn't start the payment. Please try again in a moment." };
+  return {
+    keyId: razorpayKeyId(),
+    razorpayOrderId: rzp.id,
+    amount: price,
+    code: order.code,
+    name: order.customer_name,
+    phone: order.customer_phone,
+    email: order.customer_email ?? "",
+    label: `Printable PDF · order ${order.code}`,
+  };
+}
+
+/** Checkout's success callback for an add-on: verify the signature, then unlock it (once). */
+export async function confirmAddon(
+  orderId: string,
+  r: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string },
+): Promise<{ ok: true } | { error: string }> {
+  if (!/^[0-9a-f-]{36}$/.test(orderId)) return { error: "We couldn't find this order." };
+  const { data: buy } = await db().from("addon_purchases").select("order_id").eq("razorpay_order_id", r.razorpay_order_id).maybeSingle();
+  if (!buy || buy.order_id !== orderId) return { error: "This payment doesn't match your order. Please message us on WhatsApp." };
+  if (!isValidPaymentSignature(r.razorpay_order_id, r.razorpay_payment_id, r.razorpay_signature)) {
+    return { error: "We couldn't verify this payment. If money was deducted, message us on WhatsApp with your order code." };
+  }
+  await creditAddon(r.razorpay_order_id, r.razorpay_payment_id);
   revalidatePath(`/order/${orderId}`);
   revalidatePath(`/admin/orders/${orderId}`);
   return { ok: true };

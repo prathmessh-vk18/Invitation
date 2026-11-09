@@ -15,6 +15,8 @@ export const site = {
   // Changes after payment go live on their own: this many are free, then packs are sold.
   revisionRounds: 3,
   editPack: { price: 99, edits: 3 },
+  // The printable PDF of the invite, for elders and family WhatsApp groups.
+  pdfAddon: { price: 99 },
 
   // UPI payments. Use a business UPI ID (current account or a business app), not a personal one.
   upiId: "vishwakarmaprathmesh18-1@okicici",

@@ -74,3 +74,10 @@ export async function creditEditPack(razorpayOrderId: string, paymentId: string)
   if (error) console.error("Crediting an edit pack failed", error);
   return (data as string | null) ?? null;
 }
+
+/** Unlocks a paid add-on (the printable PDF) on its order, exactly once. The order's id, or null. */
+export async function creditAddon(razorpayOrderId: string, paymentId: string) {
+  const { data, error } = await db().rpc("credit_addon", { p_razorpay_order: razorpayOrderId, p_payment: paymentId });
+  if (error) console.error("Crediting an add-on failed", error);
+  return (data as string | null) ?? null;
+}

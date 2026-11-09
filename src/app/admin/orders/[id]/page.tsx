@@ -12,7 +12,7 @@ import { Panel } from "@/ui";
 import { paysOnline } from "@/lib/razorpay";
 import { nudgeMessage } from "@/lib/urgency";
 import { AdminHeader, statusTone } from "../../AdminHeader";
-import { DetailsEditor, EditsActions, EmailOptOut, NotesAndCancel, PaymentActions, PublishActions } from "./OrderActions";
+import { DetailsEditor, EditsActions, EmailOptOut, PdfAdmin, NotesAndCancel, PaymentActions, PublishActions } from "./OrderActions";
 import { changeSummary } from "@/lib/change-requests";
 
 export const instant = false;
@@ -167,6 +167,18 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
                   ) : (
                     "Not started"
                   )}
+                </Row>
+                <Row k="Printable PDF">
+                  {(o.addons ?? []).includes("pdf") ? (
+                    <>
+                      <a href={`/order/${o.id}/pdf`} className="underline underline-offset-4">
+                        Bought · download
+                      </a>
+                    </>
+                  ) : (
+                    "Not bought"
+                  )}
+                  <PdfAdmin id={o.id} owned={(o.addons ?? []).includes("pdf")} />
                 </Row>
                 <Row k="Order page">
                   <Link href={`/order/${o.id}`} target="_blank" className="underline underline-offset-4">

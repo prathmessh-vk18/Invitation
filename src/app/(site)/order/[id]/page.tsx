@@ -20,6 +20,7 @@ import { CopyLink } from "@/site/copy-link";
 import { RememberOrder } from "@/site/my-orders";
 import { AskAboutOrder } from "./AskAboutOrder";
 import { EditPackOnPage } from "./EditPackButton";
+import { PdfAddon } from "./PdfAddon";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false } };
 export const instant = false;
@@ -268,6 +269,16 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
         )}
 
         <Changes order={order} sent={sent} live={query.live === "1"} same={query.same === "1"} />
+        {(order.status === "paid" || order.status === "live") && (
+          <Panel className="p-6 sm:p-8">
+            <p className="text-title">Printable PDF for elders</p>
+            <p className="mt-1 text-body text-muted">
+              Your invite as a PDF in the same design, with large, clear text for grandparents and relatives who don&rsquo;t open links. Easy to forward on family
+              WhatsApp groups or to print. {(order.addons ?? []).includes("pdf") ? "" : `${formatINR(site.pdfAddon.price)}, one time.`}
+            </p>
+            <PdfAddon orderId={order.id} owned={(order.addons ?? []).includes("pdf")} autoOpen={query.pdf === "1"} />
+          </Panel>
+        )}
 
         <Panel className="p-6 sm:p-8">
           <p className="text-title">What happens next</p>

@@ -204,3 +204,15 @@ export async function setEmailOptOut(id: string, optOut: boolean) {
   await db().from("orders").update({ email_opt_out: optOut }).eq("id", id);
   refresh(id);
 }
+
+/** Gives (or takes back) the printable-PDF add-on without payment, for goodwill or a WhatsApp payment. */
+export async function setPdfAddon(id: string, on: boolean) {
+  await requireAdmin();
+  const order = await loadOrder(id);
+  const addons = new Set(order.addons ?? []);
+  if (on) addons.add("pdf");
+  else addons.delete("pdf");
+  await db().from("orders").update({ addons: [...addons] }).eq("id", id);
+  await db().from("order_edits").insert({ order_id: id, source: "admin", changes: [{ label: "Printable PDF", before: on ? "—" : "Yes", after: on ? "Given free" : "Removed" }] });
+  refresh(id);
+}

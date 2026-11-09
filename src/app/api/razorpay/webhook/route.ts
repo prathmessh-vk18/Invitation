@@ -1,6 +1,6 @@
 import { revalidateTag } from "next/cache";
 import { autoPublish, warmShareCard } from "@/lib/publish";
-import { creditEditPack, isValidWebhookSignature, markPaidByRazorpayOrder } from "@/lib/razorpay";
+import { creditAddon, creditEditPack, isValidWebhookSignature, markPaidByRazorpayOrder } from "@/lib/razorpay";
 
 /**
  * Razorpay calls this when a payment is captured, so an order is marked paid even if the couple
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     // The couple may have closed the page before Checkout reported back; publish here instead.
     const orderId = await markPaidByRazorpayOrder(payment.order_id, payment.id);
     // Not an order's own payment? Then it may be a pack of edits.
-    if (!orderId) await creditEditPack(payment.order_id, payment.id);
+    if (!orderId) (await creditEditPack(payment.order_id, payment.id)) ?? (await creditAddon(payment.order_id, payment.id));
     const slug = orderId ? await autoPublish(orderId) : null;
     if (slug) {
       revalidateTag(`invite:${slug}`, { expire: 0 });
