@@ -1,0 +1,124 @@
+import { chromium } from "playwright-core";
+import { readFileSync, mkdirSync } from "node:fs";
+
+// Preview PDFs for every design, from its demo invite. Art is read from the local web project.
+const WEB = "/Users/prathmesh/Documents/Development/Invitation Card/web/public";
+const img = (p) => `data:image/${p.endsWith(".webp") ? "webp" : "jpeg"};base64,${readFileSync(`${WEB}${p}`).toString("base64")}`;
+const I = (f) => `/art/illus/${f}`;
+const P = (id) => `/art/pdf/${id}-paper.jpg`;
+
+// Each design's PDF look: cover painting (or its paper for designs without one), section paper,
+// colours and typefaces (Google Fonts names matching the invite's own).
+const skins = {
+  sarovar: { cover: I("sarovar-hero.jpg"), paper: P("sarovar"), ink: "#3a1d20", accent: "#8a1c2b", soft: "#6b4a4c", script: "Dancing Script", label: "Cinzel" },
+  gaurishankar: { cover: I("shiv-kailash.jpg"), paper: I("shiv-card.webp"), ink: "#36101c", accent: "#9a1d45", soft: "#55303b", script: "Pinyon Script", label: "Cinzel", coverTop: 6 },
+  haveli: { cover: I("haveli-gate.jpg"), paper: I("haveli-card.jpg"), ink: "#5a1f2b", accent: "#9c4a3c", soft: "#6e564a", script: "Pinyon Script", label: "Cinzel" },
+  mandir: { cover: I("mandir-temple.jpg"), paper: I("mandir-card.jpg"), ink: "#5b2615", accent: "#a8573a", soft: "#86553f", script: "Bodoni Moda", label: "Marcellus", scriptScale: 0.8 },
+  khat: { cover: I("khat-hero.jpg"), paper: I("khat-card.jpg"), ink: "#5b2a3a", accent: "#b2566c", soft: "#7e5a62", script: "Pinyon Script", label: "Manrope" },
+  bagh: { cover: I("bagh-hero.jpg"), paper: I("bagh-card.jpg"), ink: "#3d1633", accent: "#b5603a", soft: "#6a4a4a", script: "Dancing Script", label: "Cinzel" },
+  gulmohar: { paper: P("gulmohar"), ink: "#5a2236", accent: "#a2405f", soft: "#7a5a62", script: "Pinyon Script", label: "Manrope" },
+  rajwada: { paper: P("rajwada"), dark: true, ink: "#fbf1dc", accent: "#e9bf62", soft: "#f3dfb6", script: "Parisienne", label: "Cinzel" },
+  mahal: { cover: I("mahal-hero.jpg"), paper: I("mahal-card.jpg"), ink: "#4a1426", accent: "#a8462c", soft: "#6e4a3a", script: "Parisienne", label: "Cinzel" },
+  gopuram: { cover: I("gopuram-hero.jpg"), paper: I("gopuram-card.jpg"), ink: "#5a0d2b", accent: "#a6175a", soft: "#6b4a3a", script: "Yeseva One", label: "Marcellus", scriptScale: 0.75 },
+  agni: { paper: P("agni"), ink: "#2a1c15", accent: "#c0502a", soft: "#6b5a50", script: "Bodoni Moda", label: "Manrope", scriptScale: 0.8 },
+  noor: { paper: P("noor"), dark: true, ink: "#f4efe2", accent: "#e3b964", soft: "#e9e1cc", script: "Amiri", label: "Marcellus", scriptScale: 0.85 },
+  phulkari: { paper: P("phulkari"), dark: true, ink: "#fff4e0", accent: "#f6c445", soft: "#ffe7c4", script: "Rozha One", label: "Manrope", scriptScale: 0.75 },
+  kolam: { paper: P("kolam"), ink: "#3b0a1f", accent: "#9c1650", soft: "#6b4a4a", script: "Yeseva One", label: "Marcellus", scriptScale: 0.75 },
+  chandni: { cover: I("chandni-hero.jpg"), paper: I("chandni-card.jpg"), ink: "#3d2b4f", accent: "#9a4f7c", soft: "#6d5a73", script: "Parisienne", label: "Manrope" },
+  angoothi: { cover: I("angoothi-hero.jpg"), paper: I("angoothi-card.jpg"), ink: "#5a2414", accent: "#b5482a", soft: "#7a4b36", script: "Pinyon Script", label: "Cinzel" },
+  roka: { cover: I("roka-hero.jpg"), paper: I("roka-card.jpg"), ink: "#6e1320", accent: "#b3261e", soft: "#7a4741", script: "Yeseva One", label: "Marcellus", scriptScale: 0.75 },
+  vachan: { cover: I("mandir-temple.jpg"), paper: I("mandir-card.jpg"), ink: "#5b2615", accent: "#a8573a", soft: "#86553f", script: "Bodoni Moda", label: "Marcellus", scriptScale: 0.8 },
+  mudrika: { cover: I("khat-hero.jpg"), paper: I("khat-card.jpg"), ink: "#5b2a3a", accent: "#b2566c", soft: "#7e5a62", script: "Pinyon Script", label: "Manrope" },
+};
+
+const tz = { timeZone: "Asia/Kolkata" };
+const f = (iso, o) => new Intl.DateTimeFormat("en-IN", { ...tz, ...o }).format(new Date(iso));
+const time = (iso) => f(iso, { hour: "numeric", minute: "2-digit", hour12: true }).toUpperCase();
+const esc = (s = "") => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
+const mapOf = (e) => e.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([e.venue, e.address].filter(Boolean).join(", "))}`;
+
+function html(id, d, s) {
+  const [A, B] = d.lead === "groom" ? [d.groom, d.bride] : [d.bride, d.groom];
+  const occ = d.occasion === "engagement" ? "engagement" : d.occasion === "reception" ? "wedding reception" : "wedding";
+  const k = s.scriptScale ?? 1;
+  const paperBg = `url(${img(s.paper)}) center/cover`;
+  const page = (inner) => `<section class="page" style="background:${paperBg}"><div class="in">${inner}</div></section>`;
+  const events = [...d.events].sort((x, y) => x.start.localeCompare(y.start));
+  const chunks = [];
+  for (let i = 0; i < events.length; i += 2) chunks.push(events.slice(i, i + 2));
+  const ev = (e) => `<div class="ev">
+    <p class="lab">${esc(f(e.start, { weekday: "long" }))} · ${esc(f(e.start, { day: "numeric", month: "short" }))} · ${time(e.start)}</p>
+    <p class="evn">${esc(e.name)}</p>
+    <p class="ven">${esc(e.venue)}${e.address ? `<br><span>${esc(e.address)}</span>` : ""}</p>
+    ${e.dress ? `<p class="dress">Dress: ${esc(e.dress)}</p>` : ""}${e.note ? `<p class="dress">${esc(e.note)}</p>` : ""}
+    <a class="btn" href="${mapOf(e)}">Directions →</a></div>`;
+  const coverTop = s.coverTop ?? 9;
+  const coverInner = `<p class="inv">${esc(d.invocation ?? "")}</p>
+    <p class="lab" style="margin-top:12px;color:${s.ink}">${esc(d.heroKicker ?? `The ${occ} of`)}</p>
+    <p class="script names">${esc(A.first)} <span class="amp">&amp;</span> ${esc(B.first)}</p>
+    <div class="dl"><span class="lab rule">${esc(f(d.date, { weekday: "long" }))}</span><span class="big">${esc(f(d.date, { day: "numeric" }))}</span><span class="lab rule">${esc(f(d.date, { month: "long", year: "numeric" }))}</span></div>
+    <p class="serif" style="font-style:italic;font-size:17px;margin-top:10px">${esc(d.city)}</p>`;
+  const cover = s.cover
+    ? `<section class="page" style="background:url(${img(s.cover)}) center/cover"><div class="glow"></div><div class="top" style="top:${coverTop}%">${coverInner}</div></section>`
+    : `<section class="page" style="background:${paperBg}"><div class="in">${coverInner}</div></section>`;
+  return `<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(s.script)}&family=${encodeURIComponent(s.label)}:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Serif+Devanagari:wght@500&family=Noto+Sans+Gurmukhi:wght@500&family=Noto+Serif+Tamil:wght@500&family=Amiri&display=block" rel="stylesheet">
+<style>
+@page{size:540px 960px;margin:0}
+*{box-sizing:border-box;margin:0;font-variant-numeric:lining-nums}
+body{color:${s.ink};-webkit-print-color-adjust:exact}
+.page{position:relative;width:540px;height:960px;overflow:hidden;break-after:page}
+.in{position:absolute;inset:150px 56px 140px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.top{position:absolute;left:40px;right:40px;text-align:center}
+.glow{position:absolute;inset:0 0 45% 0;background:linear-gradient(180deg,rgba(255,250,242,.72),rgba(255,250,242,.35) 60%,transparent)}
+.script{font-family:'${s.script}',serif;color:${s.dark ? s.accent : s.ink}}
+.lab{font-family:'${s.label}',sans-serif;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:${s.soft}}
+.serif{font-family:'Cormorant Garamond',serif}
+.inv{font-family:'Noto Serif Devanagari','Noto Sans Gurmukhi','Noto Serif Tamil',Amiri,serif;color:${s.accent};font-size:17px}
+.names{font-size:${Math.round(62 * k)}px;line-height:1.08;margin-top:12px}
+.names .amp{font-size:${Math.round(40 * k)}px;color:${s.accent}}
+.dl{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:16px}
+.dl .rule{border-top:1px solid ${s.soft};border-bottom:1px solid ${s.soft};padding:5px 10px;color:${s.ink}}
+.dl .big{font-family:'Cormorant Garamond',serif;font-size:40px;line-height:1}
+.msg{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:19px;line-height:1.5;white-space:pre-line;margin-top:18px}
+.who{margin-top:30px}.who .n{font-size:${Math.round(40 * k)}px;line-height:1.1}
+.who .p{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:${s.soft};margin-top:4px;white-space:pre-line}
+.orn{color:${s.accent};margin:16px 0;font-size:14px;letter-spacing:.4em}
+.title{font-size:${Math.round(48 * k)}px;line-height:1.1;margin-top:6px}
+.day{font-family:'Cormorant Garamond',serif;font-size:120px;line-height:.9;color:${s.accent};margin-top:18px}
+.mon{font-family:'${s.label}',sans-serif;letter-spacing:.3em;font-size:15px;margin-top:10px}
+.ev{width:100%;border:1px solid ${s.accent}55;background:${s.dark ? "rgba(0,0,0,.22)" : "rgba(255,251,246,.8)"};border-radius:18px;padding:20px 20px;margin-top:16px}
+.evn{font-family:'${s.script}',serif;font-size:${Math.round(36 * k)}px;line-height:1.15;margin-top:6px;color:${s.dark ? s.accent : s.ink}}
+.ven{font-family:'Cormorant Garamond',serif;font-size:17px;margin-top:6px}.ven span{font-size:14px;color:${s.soft}}
+.dress{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:${s.accent};margin-top:6px}
+.btn{display:inline-block;margin-top:12px;background:${s.accent};color:${s.dark ? "#2a0d10" : "#fff"};text-decoration:none;font-family:'${s.label}',sans-serif;font-size:12px;font-weight:600;padding:8px 18px;border-radius:999px;letter-spacing:.05em}
+.link{font-family:'${s.label}',sans-serif;font-size:12px;color:${s.soft};margin-top:26px;line-height:1.6}.link a{color:${s.accent}}
+</style></head><body>
+${cover}
+${page(`${d.invocationMeaning ? `<p class="lab">${esc(d.invocationMeaning)}</p>` : ""}<p class="lab" style="margin-top:10px">${esc(d.hosts)}</p><p class="msg">${esc(d.message)}</p>
+<div class="who"><p class="script n">${esc(A.full || A.first)}</p><p class="p">${esc(A.parents ?? "")}</p></div><p class="orn">✦</p>
+<div class="who" style="margin-top:0"><p class="script n">${esc(B.full || B.first)}</p><p class="p">${esc(B.parents ?? "")}</p></div>`)}
+${page(`<p class="lab">A little surprise</p><p class="script title">Save the date</p><p class="day">${esc(f(d.date, { day: "numeric" }))}</p><p class="mon">${esc(f(d.date, { month: "long", year: "numeric" })).toUpperCase()}</p><p class="lab" style="margin-top:14px">${esc(f(d.date, { weekday: "long" }))} · ${time(d.date)}</p><p class="serif" style="font-size:18px;margin-top:10px">${esc(d.city)}</p>`)}
+${chunks.map((ch, i) => page(`${i === 0 ? `<p class="lab">Join us for</p><p class="script title">The celebrations</p>` : ""}${ch.map(ev).join("")}`)).join("")}
+${page(`<p class="msg" style="font-size:20px">${esc(d.closing ?? "")}</p><p class="script title" style="margin-top:26px">${esc(A.first)} &amp; ${esc(B.first)}</p>${d.hashtag ? `<p class="lab" style="margin-top:10px;text-transform:none;letter-spacing:.12em;color:${s.accent}">${esc(d.hashtag)}</p>` : ""}<p class="link">See the full invite with music and maps:<br><a href="https://aavjoo.in/i/${d.slug}">aavjoo.in/i/${d.slug}</a></p>`)}
+</body></html>`;
+}
+
+const demos = JSON.parse(readFileSync("demos.json", "utf8"));
+const only = process.argv[2]?.split(",");
+mkdirSync("pdfs", { recursive: true });
+const b = await chromium.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" });
+for (const { id, name, demo } of demos) {
+  if (only && !only.includes(id)) continue;
+  const s = skins[id];
+  if (!s || !demo) { console.log("skip", id); continue; }
+  const p = await b.newPage({ viewport: { width: 540, height: 960 } });
+  await p.setContent(html(id, demo, s), { waitUntil: "networkidle", timeout: 120000 });
+  await p.evaluate(() => document.fonts.ready);
+  await p.pdf({ path: `pdfs/${name.replace(/\s+/g, "-")}-sample.pdf`, preferCSSPageSize: true, printBackground: true });
+  const n = await p.locator(".page").count();
+  for (let i = 0; i < n; i++) await p.locator(".page").nth(i).screenshot({ path: `pdfs/${id}-${i}.png` });
+  console.log(id, n, "pages");
+  await p.close();
+}
+await b.close();
