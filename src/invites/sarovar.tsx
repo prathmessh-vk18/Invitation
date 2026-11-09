@@ -833,7 +833,7 @@ function Closing({ invite }: { invite: Invite }) {
             {ist(invite.date, { year: "numeric" })}
           </p>
           {invite.hashtag && (
-            <p className="inv-label normal-case mt-[5cqw] text-[3cqw] tracking-[0.25em] opacity-80">
+            <p className="inv-label !normal-case mt-[5cqw] text-[3cqw] tracking-[0.25em] opacity-80">
               {invite.hashtag}
             </p>
           )}

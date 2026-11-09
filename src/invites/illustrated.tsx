@@ -595,7 +595,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
             </p>
           )}
           {invite.hashtag && (
-            <p className={`inv-label normal-case mt-[3cqw] ${L ? "text-[3.4cqw] font-semibold" : "text-[2.8cqw]"}`} style={{ color: c.accent }}>
+            <p className={`inv-label !normal-case mt-[3cqw] ${L ? "text-[3.4cqw] font-semibold" : "text-[2.8cqw]"}`} style={{ color: c.accent }}>
               {invite.hashtag}
             </p>
           )}
