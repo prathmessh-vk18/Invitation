@@ -180,6 +180,60 @@ export function HangingDiya({ className, style, chain = 60, delay = 0 }: Svg & {
   );
 }
 
+/* ───────────────────────── Rings (engagement) ───────────────────────── */
+
+/**
+ * Two interlocked gold engagement rings, the front one set with a small diamond, with a soft
+ * glow and a twinkle on the stone. Takes the place of the diya on engagement invites.
+ */
+export function RingPair({ className, style, glow = true }: Svg & { glow?: boolean }) {
+  const id = cleanId(useId());
+  return (
+    <svg viewBox="0 0 100 100" className={className} style={style} aria-hidden>
+      <defs>
+        <radialGradient id={`${id}g`} cx="50%" cy="55%" r="50%">
+          <stop offset="0%" stopColor="#ffe9a8" stopOpacity={0.55} />
+          <stop offset="100%" stopColor="#ffb347" stopOpacity={0} />
+        </radialGradient>
+        <linearGradient id={`${id}r`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#fff1c2" />
+          <stop offset="45%" stopColor="#e9bf62" />
+          <stop offset="100%" stopColor="#9a6a1f" />
+        </linearGradient>
+        <linearGradient id={`${id}d`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#cfe8ff" />
+        </linearGradient>
+      </defs>
+      {glow && <circle cx={50} cy={58} r={44} fill={`url(#${id}g)`} />}
+      {/* back ring */}
+      <ellipse cx={60} cy={62} rx={20} ry={20} fill="none" stroke={`url(#${id}r)`} strokeWidth={5} />
+      {/* front ring, drawn over the back one except where it passes behind */}
+      <ellipse cx={40} cy={62} rx={20} ry={20} fill="none" stroke={`url(#${id}r)`} strokeWidth={5.5} />
+      <path d="M58.5 45 A20 20 0 0 1 72 52" fill="none" stroke={`url(#${id}r)`} strokeWidth={5} />
+      {/* setting and stone on the front ring */}
+      <path d="M34 43 L46 43 L44 39 L36 39 Z" fill="#c99a3c" />
+      <path d="M40 22 L48 31 L40 40 L32 31 Z" fill={`url(#${id}d)`} stroke="#e9bf62" strokeWidth={1.2} />
+      <path d="M32 31 H48 M36 31 L40 22 L44 31 L40 40" fill="none" stroke="#9fc3e6" strokeWidth={0.8} opacity={0.8} />
+      <g className="animate-flicker" style={{ transformOrigin: "52px 22px", transformBox: "view-box" }}>
+        <path d="M52 14 L53.5 20 L59 21.5 L53.5 23 L52 29 L50.5 23 L45 21.5 L50.5 20 Z" fill="#fffef5" opacity={0.9} />
+      </g>
+    </svg>
+  );
+}
+
+/** A gold ring hanging on a chain and swaying, in place of a hanging diya. */
+export function HangingRing({ className, style, chain = 60, delay = 0 }: Svg & { chain?: number; delay?: number }) {
+  return (
+    <div className={className} style={style}>
+      <div className="animate-sway" style={{ transformOrigin: "top center", animationDelay: `${delay}s` }}>
+        <div className="mx-auto w-px bg-gradient-to-b from-transparent via-[#e9bf62] to-[#e9bf62]" style={{ height: chain }} />
+        <RingPair className="-mt-2 w-full" />
+      </div>
+    </div>
+  );
+}
+
 /* ───────────────────────── Jharokha ───────────────────────── */
 
 export function JharokhaFrame({

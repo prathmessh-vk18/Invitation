@@ -1,4 +1,5 @@
 import { makeIllustrated } from "./illustrated";
+import { rajwada } from "./rajwada";
 
 const base = "/art/illus";
 
@@ -144,3 +145,20 @@ export const roka = ring(
     scriptScale: 0.8,
   }),
 );
+
+/**
+ * Rajwada Sagai, made for one couple: Khat's sealed-envelope opening, repainted on maroon velvet,
+ * then the whole Rajwada palace invite, worded for an engagement with gold rings in place of diyas.
+ */
+const rajwadaEnvelope = makeIllustrated({
+  id: "rajwadasagai",
+  images: { opening: `${base}/rajwada-envelope.jpg`, hero: `${base}/khat-hero.jpg`, card: `${base}/khat-card.jpg` },
+  opening: "envelope",
+  sealAt: { x: 51.4, y: 49.9 },
+  openingInk: "#f6d987",
+  heroTextTop: 12,
+  frame: { top: 15, bottom: 15, side: 3 },
+  colors: { ink: "#4a0b1b", accent: "#e9bf62", soft: "#7a4741", paper: "#fbf1dc", onAccent: "#4a0b1b" },
+  fonts: { script: "var(--font-parisienne), cursive", serif: "var(--font-cormorant), serif", label: "var(--font-cinzel), serif" },
+});
+export const rajwadasagai = { ...rajwada, id: "rajwadasagai" as const, Opening: rajwadaEnvelope.Opening, tapHint: "tapSeal" as const, countdownTitle: "Until the ring ceremony" };

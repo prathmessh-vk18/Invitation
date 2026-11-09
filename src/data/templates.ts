@@ -1,4 +1,4 @@
-export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli" | "khatred" | "sarovar" | "vachan" | "mudrika" | "angoothi" | "chandni" | "roka";
+export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli" | "khatred" | "sarovar" | "vachan" | "mudrika" | "angoothi" | "chandni" | "roka" | "rajwadasagai";
 export type CategoryId = "hindu" | "muslim" | "sikh" | "south-indian" | "engagement";
 
 export type TemplateMeta = {
@@ -610,6 +610,31 @@ export const privateTemplates: TemplateMeta[] = [
     tint: "#fbf1ec",
     icon: { bg: "#a3192b", fg: "#fbf1ec" },
     addedOn: "2026-11-06",
+  },
+  {
+    id: "rajwadasagai",
+    category: "engagement",
+    occasion: "engagement",
+    name: "Rajwada Sagai",
+    native: "राजवाड़ा",
+    nativeFont: DEVA,
+    mood: "Engagement · Khat's sealed letter into the Rajwada palace",
+    tagline: "A sealed envelope on maroon velvet opens into Rajwada's maroon-and-gold palace, with gold rings in place of diyas.",
+    description: ["A custom engagement combo made for one couple: Khat's envelope opening, then all of Rajwada."],
+    price: 299,
+    mrp: 299,
+    payDirect: true,
+    demoSlug: "aarav-and-meera-engagement",
+    palette: [
+      { name: "Maroon", hex: "#4a0b1b" },
+      { name: "Gold", hex: "#e9bf62" },
+      { name: "Ivory", hex: "#fbf1dc" },
+    ],
+    suits: ["An engagement in royal maroon and gold"],
+    signature: ["Sealed envelope on maroon velvet", "Rajwada palace", "Hanging gold rings"],
+    tint: "#f6e6d6",
+    icon: { bg: "#4a0b1b", fg: "#e9bf62" },
+    addedOn: "2026-11-09",
   },
 ];
 

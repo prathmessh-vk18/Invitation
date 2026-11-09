@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { EventGlyph } from "@/art/glyphs";
-import { HangingDiya, Diya, JharokhaFrame, LotusDivider, Mandala, Toran } from "@/art/ornaments";
+import { HangingDiya, HangingRing, Diya, JharokhaFrame, LotusDivider, Mandala, RingPair, Toran } from "@/art/ornaments";
 import { dayNum, monthName, time, weekday, yearNum } from "@/lib/format";
 import { site } from "@/config/site";
 import { couple, EventActions, initials, Reveal } from "./shared";
@@ -110,8 +110,18 @@ function Hero({ invite }: { invite: Invite }) {
   return (
     <section className="relative flex min-h-[var(--screen-h,100svh)] flex-col items-center justify-center overflow-hidden px-[6cqw] pt-[30cqw] pb-[18cqw]">
       <Toran className="absolute inset-x-0 top-0 h-[28cqw] w-full" />
-      <HangingDiya className="absolute top-[22cqw] left-[3cqw] w-[13cqw]" chain={70} />
-      <HangingDiya className="absolute top-[22cqw] right-[3cqw] w-[13cqw]" chain={110} delay={-1.6} />
+      {/* Engagements hang gold rings where weddings hang diyas. */}
+      {invite.occasion === "engagement" ? (
+        <>
+          <HangingRing className="absolute top-[22cqw] left-[3cqw] w-[14cqw]" chain={70} />
+          <HangingRing className="absolute top-[22cqw] right-[3cqw] w-[14cqw]" chain={110} delay={-1.6} />
+        </>
+      ) : (
+        <>
+          <HangingDiya className="absolute top-[22cqw] left-[3cqw] w-[13cqw]" chain={70} />
+          <HangingDiya className="absolute top-[22cqw] right-[3cqw] w-[13cqw]" chain={110} delay={-1.6} />
+        </>
+      )}
 
       <div className="relative w-[80cqw]">
         <Mandala color={GOLD} className="absolute top-[18cqw] left-1/2 w-[110cqw] -translate-x-1/2 animate-spin-slow opacity-[0.13]" />
@@ -121,11 +131,11 @@ function Hero({ invite }: { invite: Invite }) {
             {invite.invocation}
           </motion.p>
           <motion.p {...show(0.6)} className="inv-label mt-[3cqw] text-[2.3cqw] text-[#fbf1dc]/70">
-            The wedding of
+            {invite.heroKicker ?? (invite.occasion === "engagement" ? "The engagement of" : "The wedding of")}
           </motion.p>
           <motion.h1 {...show(0.9)} className="mt-[3cqw] flex flex-col items-center leading-[0.9]">
             <span className="inv-script text-gold-shimmer text-[17cqw]">{a.first}</span>
-            <span className="inv-serif my-[1cqw] text-[6cqw] text-[#f6d987] italic">weds</span>
+            <span className="inv-serif my-[1cqw] text-[6cqw] text-[#f6d987] italic">{invite.joiner ?? (invite.occasion === "engagement" ? "&" : "weds")}</span>
             <span className="inv-script text-gold-shimmer text-[17cqw]">{b.first}</span>
           </motion.h1>
           <motion.div {...show(1.3)} className="mt-[5cqw] w-full">
@@ -165,7 +175,10 @@ function Blessing({ invite }: { invite: Invite }) {
             </div>
           </Reveal>
         ))}
-        <Diya className={invite.stackNames ? "row-start-2 mx-auto w-[10cqw]" : "col-start-2 row-start-1 w-[10cqw]"} />
+        {(() => {
+          const at = invite.stackNames ? "row-start-2 mx-auto w-[10cqw]" : "col-start-2 row-start-1 w-[10cqw]";
+          return invite.occasion === "engagement" ? <RingPair className={at} /> : <Diya className={at} />;
+        })()}
       </div>
     </section>
   );
@@ -177,7 +190,7 @@ function Events({ invite }: { invite: Invite }) {
   return (
     <section className="relative px-[7cqw] py-[14cqw]">
       <Reveal>
-        <Title kicker="The celebrations">Wedding festivities</Title>
+        <Title kicker="The celebrations">{invite.occasion === "engagement" ? "Engagement festivities" : "Wedding festivities"}</Title>
       </Reveal>
       <div className="mt-[10cqw] space-y-[8cqw]">
         {invite.events.map((e, i) => (
@@ -223,7 +236,7 @@ function Closing({ invite }: { invite: Invite }) {
     <section className="relative overflow-hidden px-[7cqw] pt-[16cqw] pb-[24cqw] text-center">
       <Mandala color={GOLD} className="absolute top-[4cqw] left-1/2 w-[120cqw] -translate-x-1/2 animate-spin-slow opacity-10" />
       <Reveal className="relative">
-        <Diya className="mx-auto w-[22cqw]" />
+        {invite.occasion === "engagement" ? <RingPair className="mx-auto w-[24cqw]" /> : <Diya className="mx-auto w-[22cqw]" />}
         <p className="inv-serif mx-auto mt-[4cqw] max-w-[70cqw] text-[5.4cqw] leading-snug text-[#fbf1dc]/90 italic">{invite.closing}</p>
         <p className="inv-script text-gold-shimmer mt-[6cqw] text-[13cqw] leading-none">
           {a.first} & {b.first}

@@ -850,6 +850,19 @@ invites.forEach((i, n) => (i.music ??= demoTracks[(n * 5 + 2) % demoTracks.lengt
 export const privateInvites: Invite[] = [
   // Khat in ivory red, to show a client before she orders: the Khat demo couple in the new colours.
   { ...invites.find((i) => i.slug === "rhea-weds-arjun")!, slug: "rhea-weds-arjun-red", template: "khatred" },
+  // Rajwada Sagai (Khat's opening + Rajwada, rings for diyas): the Rajwada demo couple, engaged.
+  {
+    ...invites.find((i) => i.slug === "aarav-weds-meera")!,
+    slug: "aarav-and-meera-engagement",
+    template: "rajwadasagai",
+    occasion: "engagement",
+    message: "joyfully invite you to the engagement ceremony of their children, and seek your blessings as they begin a new journey together.",
+    events: [
+      { kind: "engagement", name: "Ring Ceremony", start: "2026-12-12T19:00:00+05:30", venue: "The Durbar Hall, Jagmandir Palace", address: "Lake Pichola, Udaipur, Rajasthan 313001", dress: "Royal & regal" },
+      { kind: "other", name: "Dinner", start: "2026-12-12T21:00:00+05:30", venue: "The Durbar Hall, Jagmandir Palace", address: "Lake Pichola, Udaipur, Rajasthan 313001" },
+    ],
+    closing: "Your blessings will make our day complete.",
+  },
 ];
 
 export function getInvite(slug: string) {
