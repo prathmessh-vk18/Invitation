@@ -345,7 +345,7 @@ function Closing({ invite }: { invite: Invite }) {
         <p className="inv-script mt-[6cqw] text-[11cqw] leading-none text-[#e3b964]">
           {a.first} &amp; {b.first}
         </p>
-        {invite.hashtag && <p className="inv-label mt-[5cqw] text-[2.6cqw] text-[#f4efe2]/70">{invite.hashtag}</p>}
+        {invite.hashtag && <p className="inv-label normal-case mt-[5cqw] text-[2.6cqw] text-[#f4efe2]/70">{invite.hashtag}</p>}
       </Reveal>
       <Link href="/" className="inv-label absolute inset-x-0 bottom-[6cqw] text-[2cqw] text-[#f4efe2]/40">
         Crafted by {site.name}

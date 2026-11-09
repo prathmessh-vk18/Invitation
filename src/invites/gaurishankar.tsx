@@ -457,7 +457,7 @@ function Closing({ invite }: { invite: Invite }) {
           {a.first} {invite.joiner ?? "&"} {b.first}
         </p>
         {invite.hashtag && (
-          <p className="inv-label mt-[3cqw] text-[3cqw] font-semibold" style={{ color: c.gold, textShadow: HALO }}>
+          <p className="inv-label normal-case mt-[3cqw] text-[3cqw] font-semibold" style={{ color: c.gold, textShadow: HALO }}>
             {invite.hashtag}
           </p>
         )}
