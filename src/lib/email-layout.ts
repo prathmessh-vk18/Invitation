@@ -42,4 +42,4 @@ ${o.image ? `<tr><td style="padding:0 14px"><a href="${o.image.href}"><img src="
 }
 
 /** "Questions? Reply or WhatsApp us" line. */
-export const helpLine = `<p style="margin:22px 0 0;font-size:14px;line-height:1.55;color:#666">Questions? Just reply to this email, or WhatsApp us at <a href="https://wa.me/${site.whatsapp}" style="color:#141414">${site.whatsappDisplay}</a>.</p>`;
+export const helpLine = `<p style="margin:22px 0 0;font-size:14px;line-height:1.55;color:#666">Questions? Just reply to this email.</p>`;

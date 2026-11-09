@@ -110,7 +110,7 @@ ${helpLine}`;
     ...gets.map((g) => `- ${g}`),
     proof,
     "",
-    `Questions? Reply to this email or WhatsApp us at ${site.whatsappDisplay}.`,
+    "Questions? Just reply to this email.",
     `Order ${order.code}. Don't want reminders? ${unsubscribeUrl(order.id)}`,
   ]
     .filter((l, i, all) => !(l === "" && all[i - 1] === ""))

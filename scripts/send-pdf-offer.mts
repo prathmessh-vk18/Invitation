@@ -12,7 +12,8 @@ import { sendMail } from "../src/lib/mail";
 import { pdfOfferEmail } from "../src/lib/offer-emails";
 import type { Order } from "../src/lib/orders";
 
-const BATCH = 80;
+// Up to 80 a run, or --limit N.
+const BATCH = process.argv.includes("--limit") ? Number(process.argv[process.argv.indexOf("--limit") + 1]) : 80;
 const mode = process.argv.includes("--send") ? "send" : process.argv.includes("--test") ? "test" : "list";
 
 const { data } = await db().from("orders").select("*").in("status", ["paid", "live"]).not("customer_email", "is", null);

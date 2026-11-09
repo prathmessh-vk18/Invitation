@@ -60,7 +60,7 @@ ${helpLine}`;
     `Your order page: ${orderUrl}`,
     "",
     `Order ${order.code} · ${t?.name ?? ""}${order.amount > 1 ? ` · paid ${formatINR(order.amount)}` : ""}`,
-    `Questions? Reply to this email or WhatsApp us at ${site.whatsappDisplay}.`,
+    "Questions? Just reply to this email.",
   ].join("\n");
   return { subject: `🎉 ${pair}'s ${occ} invite is live`, html, text };
 }
