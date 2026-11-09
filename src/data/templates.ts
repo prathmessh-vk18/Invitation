@@ -1,4 +1,4 @@
-export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli" | "khatred" | "sarovar" | "vachan" | "mudrika" | "angoothi" | "chandni" | "roka" | "rajwadasagai";
+export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli" | "khatred" | "sarovar" | "vachan" | "mudrika" | "angoothi" | "chandni" | "roka" | "rajwadasagai" | "rangmahal";
 export type CategoryId = "hindu" | "muslim" | "sikh" | "south-indian" | "engagement";
 
 export type TemplateMeta = {
@@ -634,6 +634,30 @@ export const privateTemplates: TemplateMeta[] = [
     signature: ["Sealed envelope on maroon velvet", "Rajwada palace", "Hanging gold rings"],
     tint: "#f6e6d6",
     icon: { bg: "#4a0b1b", fg: "#e9bf62" },
+    addedOn: "2026-11-09",
+  },
+  {
+    id: "rangmahal",
+    category: "hindu",
+    name: "Rang Mahal",
+    native: "रंग महल",
+    nativeFont: DEVA,
+    mood: "Custom · Palace doors, timeline and a video per function",
+    tagline: "Painted palace doors open with a heart onto a balcony, then a gold timeline, photos, the venue map and a video for every function.",
+    description: ["A custom invite rebuilt for one client from her own concept."],
+    price: 299,
+    mrp: 299,
+    payDirect: true,
+    demoSlug: "samantha-weds-smith",
+    palette: [
+      { name: "Cream", hex: "#f8f3ee" },
+      { name: "Gold", hex: "#c9993a" },
+      { name: "Blush", hex: "#e8c4c4" },
+    ],
+    suits: ["One client's custom wedding invite"],
+    signature: ["Palace doors with a heart", "Gold timeline", "A video per function"],
+    tint: "#f8f3ee",
+    icon: { bg: "#c9993a", fg: "#f8f3ee" },
     addedOn: "2026-11-09",
   },
 ];

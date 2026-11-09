@@ -70,7 +70,7 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
         {opened && (
           <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center">
             <div className="relative w-full max-w-[480px]">
-              <ScrollHint theme={theme} ready={gone} />
+              {!theme.ownHints && <ScrollHint theme={theme} ready={gone} />}
               <MusicToggle
                 playing={music.playing}
                 onToggle={music.toggle}
@@ -84,7 +84,7 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
           <div className={`fixed inset-0 z-50 flex justify-center ${opened ? "pointer-events-none" : ""}`}>
             <div className="@container relative h-full w-full max-w-[480px]">
               <theme.Opening invite={invite} opened={opened} onOpen={open} />
-              <TapHint theme={theme} text={invite.openHint} opened={opened} onOpen={open} />
+              {!theme.ownHints && <TapHint theme={theme} text={invite.openHint} opened={opened} onOpen={open} />}
             </div>
           </div>
         )}

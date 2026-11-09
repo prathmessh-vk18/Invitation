@@ -863,6 +863,36 @@ export const privateInvites: Invite[] = [
     ],
     closing: "Your blessings will make our day complete.",
   },
+  // Rang Mahal (custom, one client): mock details until she sends hers.
+  {
+    slug: "samantha-weds-smith",
+    template: "rangmahal",
+    groom: { first: "Smith", full: "Smith Kapoor", parents: "Son of Mrs. & Mr. Kapoor" },
+    bride: { first: "Samantha", full: "Samantha Mehra", parents: "Daughter of Mrs. & Mr. Mehra" },
+    lead: "bride",
+    invocation: "॥ श्री गणेशाय नमः ॥",
+    invocationMeaning: "With the blessings of Lord Ganesha",
+    hosts: "Together with their families",
+    message: "request the pleasure of your company as their children begin their life together.",
+    date: "2026-08-17T15:00:00+05:30",
+    city: "Jaipur, Rajasthan",
+    hashtag: "#SamKiSmith",
+    // Like the original: no countdown, and photos in its own carousels instead of the polaroid wall.
+    hide: ["countdown", "gallery"],
+    gallery: ["/art/illus/rangmahal-savedate.jpg", "/art/moments/m1.jpg", "/art/moments/m2.jpg", "/art/moments/m3.jpg", "/art/moments/m4.jpg"],
+    events: [
+      { kind: "other", name: "High Tea", start: "2026-08-15T16:00:00+05:30", venue: "Fairmont Jaipur", address: "Kukas, Jaipur, Rajasthan 302028" },
+      { kind: "sangeet", name: "Sangeet", start: "2026-08-16T16:00:00+05:30", venue: "Fairmont Jaipur", address: "Kukas, Jaipur, Rajasthan 302028" },
+      { kind: "haldi", name: "Haldi", start: "2026-08-17T09:00:00+05:30", venue: "Fairmont Jaipur", address: "Kukas, Jaipur, Rajasthan 302028" },
+      { kind: "engagement", name: "Engagement", start: "2026-08-17T12:00:00+05:30", venue: "Fairmont Jaipur", address: "Kukas, Jaipur, Rajasthan 302028" },
+      { kind: "phere", name: "Wedding", start: "2026-08-17T15:00:00+05:30", venue: "Fairmont Jaipur", address: "Kukas, Jaipur, Rajasthan 302028" },
+      { kind: "reception", name: "Reception", start: "2026-08-17T18:00:00+05:30", venue: "Fairmont Jaipur", address: "Kukas, Jaipur, Rajasthan 302028" },
+      { kind: "other", name: "Royal Dinner", start: "2026-08-17T19:00:00+05:30", venue: "Fairmont Jaipur", address: "Kukas, Jaipur, Rajasthan 302028" },
+      { kind: "other", name: "Vidaai", start: "2026-08-17T23:00:00+05:30", venue: "Fairmont Jaipur", address: "Kukas, Jaipur, Rajasthan 302028" },
+    ],
+    rsvp: { phone: "919699711809", by: "2026-08-01T00:00:00+05:30", contact: "Mehra family" },
+    closing: "We can't wait to celebrate with you.",
+  },
 ];
 
 export function getInvite(slug: string) {

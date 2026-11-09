@@ -8,7 +8,8 @@ import { mandir, vachan } from "./mandir";
 import { noor } from "./noor";
 import { phulkari } from "./phulkari";
 import { rajwada } from "./rajwada";
+import { rangmahal } from "./rangmahal";
 import { sarovar } from "./sarovar";
 import type { InviteTheme } from "./types";
 
-export const themes: Record<TemplateId, InviteTheme> = { gaurishankar, mandir, mahal, khat, gopuram, bagh, rajwada, gulmohar, agni, noor, phulkari, kolam, haveli, khatred, sarovar, vachan, mudrika, angoothi, chandni, roka, rajwadasagai };
+export const themes: Record<TemplateId, InviteTheme> = { gaurishankar, mandir, mahal, khat, gopuram, bagh, rajwada, gulmohar, agni, noor, phulkari, kolam, haveli, khatred, sarovar, vachan, mudrika, angoothi, chandni, roka, rajwadasagai, rangmahal };

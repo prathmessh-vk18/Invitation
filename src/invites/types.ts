@@ -35,6 +35,8 @@ export type InviteTheme = {
   // The words on the shared "tap to open" pill and the "scroll" pill after opening (keys into i18n).
   tapHint?: "tapSeal" | "tapDoors" | "tapRing" | "tapMoon" | "tapKolam" | "tapDupatta" | "tapCircle" | "tapAnywhere";
   scrollHint?: "scrollToSeeMore" | "scrollToWalkIn";
+  // The design draws its own open button and scroll cue (Rang Mahal's heart), so skip the shared pills.
+  ownHints?: boolean;
   // A design's own countdown heading (e.g. "Anand Karaj in"), unless the couple set one.
   countdownTitle?: string;
 };
