@@ -11,9 +11,15 @@ import { site } from "@/config/site";
 import { logOrderEdit, type EditSource } from "@/lib/order-edits";
 import { publishOrder, refreshInvitesBackup, warmShareCard } from "@/lib/publish";
 import { db } from "@/lib/supabase";
+import { recentHits, recordHit } from "@/lib/rate-limit";
 
 export async function login(_: unknown, form: FormData) {
-  if (!passwordMatches(String(form.get("password") ?? ""))) return { error: "That password isn't right." };
+  // Five wrong passwords from one place locks that place out for 15 minutes.
+  if ((await recentHits("admin-login-fail", 15)) >= 5) return { error: "Too many wrong tries. Wait 15 minutes and try again." };
+  if (!passwordMatches(String(form.get("password") ?? ""))) {
+    await recordHit("admin-login-fail");
+    return { error: "That password isn't right." };
+  }
   await startAdminSession();
   redirect("/admin");
 }

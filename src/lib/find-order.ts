@@ -2,6 +2,7 @@
 
 import { cleanPhone } from "@/lib/orders";
 import { db, isSupabaseConfigured } from "@/lib/supabase";
+import { overLimit, TOO_MANY } from "@/lib/rate-limit";
 
 const notFound = { error: "We couldn't find an order with those details. Check the link, the order number and the phone number you ordered with." };
 
@@ -29,6 +30,8 @@ export async function findMyOrder(link: string, code: string, phone: string): Pr
   if (!c) return { error: "Add your order number, e.g. AAV-1203." };
   if (p.length < 10) return { error: "Add the phone number you ordered with." };
   if (!isSupabaseConfigured()) return notFound;
+  // Stops anyone guessing order numbers and phone numbers until one matches.
+  if (await overLimit("find-order", 8, 15)) return { error: TOO_MANY };
 
   const { data } = await db().from("orders").select("id").eq("code", c).eq("customer_phone", p).eq("invite_slug", slug).neq("status", "cancelled").maybeSingle();
   return data ? { id: data.id as string } : notFound;

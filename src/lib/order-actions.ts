@@ -14,6 +14,7 @@ import { changeSummary } from "@/lib/change-requests";
 import { holdReason } from "@/lib/edit-hold";
 import { site } from "@/config/site";
 import { db, isSupabaseConfigured, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
+import { overLimit, TOO_MANY } from "@/lib/rate-limit";
 
 const MAX_SONG_BYTES = 15 * 1024 * 1024;
 
@@ -54,6 +55,7 @@ export async function createSongUpload(fileName: string, contentType: string, si
       : { error: "We can't play this file in an invite. Please choose an MP3, M4A, AAC, WAV or OGG song." };
   }
   if (size > MAX_SONG_BYTES) return { error: "That file is over 15 MB. Please trim it or choose a shorter version." };
+  if (await overLimit("song-upload", 15, 60)) return { error: TOO_MANY };
   const path = `uploads/${randomUUID()}.${format.ext}`;
   const r2 = r2UploadUrl(SONGS_BUCKET, path, format.type, size);
   if (r2) return { path, url: r2.url, headers: r2.headers, contentType: format.type };
@@ -69,6 +71,7 @@ const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 export async function createPhotoUpload(contentType: string, size: number) {
   if (!IMAGE.test(contentType)) return { error: "Please choose a JPG, PNG or WebP photo." };
   if (size > MAX_PHOTO_BYTES) return { error: "That photo is over 10 MB." };
+  if (await overLimit("photo-upload", 40, 60)) return { error: TOO_MANY };
   const ext = contentType === "image/png" ? "png" : contentType === "image/webp" ? "webp" : "jpg";
   const path = `moments/${randomUUID()}.${ext}`;
   const r2 = r2UploadUrl(PHOTOS_BUCKET, path, contentType, size);
@@ -92,6 +95,7 @@ export type CreateOrderInput = {
 /** Checks a partner code for the order form, so the couple sees it applied. */
 export async function checkPartnerCode(code: string): Promise<{ code: string; name: string } | null> {
   if (!isSupabaseConfigured()) return null;
+  if (await overLimit("partner-code", 20, 60)) return null;
   const p = await findActivePartner(code);
   return p ? { code: p.code, name: p.name } : null;
 }
@@ -110,6 +114,8 @@ export async function createOrder(input: CreateOrderInput): Promise<{ id: string
   if (phone.length < 10) errors.push("Add your WhatsApp number so we can send your link.");
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("Check your email address.");
   if (errors.length || !checked.ok) return { errors };
+  // Counted only once the form is valid, so fixing mistakes never uses up a couple's tries.
+  if ((await overLimit("order", 8, 60)) || (await overLimit("order-day", 20, 24 * 60))) return { errors: [TOO_MANY] };
 
   // A partner can't earn on their own order.
   const partner = input.partnerCode ? await findActivePartner(input.partnerCode) : null;

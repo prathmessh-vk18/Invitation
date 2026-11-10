@@ -5,7 +5,8 @@ import { connection } from "next/server";
 import { redirect } from "next/navigation";
 
 const COOKIE = "nim_admin";
-const SESSION_DAYS = 7;
+// Shorter than before (7 days) so a lost or shared device stops working soon.
+const SESSION_DAYS = 2;
 
 function secret() {
   const s = process.env.ADMIN_SESSION_SECRET;
@@ -28,9 +29,12 @@ export function passwordMatches(input: string) {
   return safeEqual(sign(`pw:${input}`), sign(`pw:${expected}`));
 }
 
+// Sessions are tied to the current password, so changing ADMIN_PASSWORD signs out every device.
+const sessionPayload = (expires: string | number) => `admin:${expires}:${sign(`pw:${process.env.ADMIN_PASSWORD ?? ""}`).slice(0, 16)}`;
+
 export async function startAdminSession() {
   const expires = Date.now() + SESSION_DAYS * 86_400_000;
-  const value = `${expires}.${sign(`admin:${expires}`)}`;
+  const value = `${expires}.${sign(sessionPayload(expires))}`;
   (await cookies()).set(COOKIE, value, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -51,7 +55,7 @@ export async function isAdmin() {
   if (!value) return false;
   const [expires, sig] = value.split(".");
   if (!expires || !sig || Number(expires) < Date.now()) return false;
-  return safeEqual(sig, sign(`admin:${expires}`));
+  return safeEqual(sig, sign(sessionPayload(expires)));
 }
 
 /** Call at the top of every admin page and admin server action. */

@@ -17,7 +17,20 @@ const nextConfig: NextConfig = {
   // browsers can keep them for a week.
   async headers() {
     const cache = [{ key: "Cache-Control", value: `public, max-age=${WEEK}, stale-while-revalidate=86400` }];
-    return ["/art/:path*", "/music/:path*", "/brand/:path*", "/icon.png", "/apple-icon.png"].map((source) => ({ source, headers: cache }));
+    // On every page: other sites can't frame ours (clickjacking), browsers don't guess file types,
+    // links to other sites don't carry full addresses, and pages can't ask for camera, microphone
+    // or location. Our own iframes (design demos, the full-invite preview) are same-site, so allowed.
+    const security = [
+      { key: "Content-Security-Policy", value: "frame-ancestors 'self'; object-src 'none'; base-uri 'self'" },
+      { key: "X-Frame-Options", value: "SAMEORIGIN" },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), browsing-topics=()" },
+    ];
+    return [
+      { source: "/:path*", headers: security },
+      ...["/art/:path*", "/music/:path*", "/brand/:path*", "/icon.png", "/apple-icon.png"].map((source) => ({ source, headers: cache })),
+    ];
   },
   // Invite addresses that were renamed after being shared, so old links keep working.
   async redirects() {

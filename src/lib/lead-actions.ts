@@ -1,6 +1,7 @@
 "use server";
 
 import { db, isSupabaseConfigured } from "@/lib/supabase";
+import { overLimit, TOO_MANY } from "@/lib/rate-limit";
 
 /** The chat's choices, so only known values are stored. */
 const PLANNER = ["Bride", "Groom", "Family", "Wedding planner"];
@@ -16,6 +17,7 @@ export type LeadAnswers = { planner: string; month: string; tradition: string; d
 /** Saves a chat once they pick a design or reach the end. Returns its id, so what they do next can be added. */
 export async function saveLead(a: LeadAnswers, outcome?: "order"): Promise<string | null> {
   if (!isSupabaseConfigured()) return null;
+  if (await overLimit("lead", 20, 60)) return null;
   const month = /^\d{4}-\d{2}$|^Later$/.test(String(a.month)) ? a.month : null;
   const { data } = await db()
     .from("leads")
@@ -49,6 +51,7 @@ export async function submitTicket(id: string | null, question: string, contact:
   const phone = c.replace(/\D/g, "").length >= 10;
   if (!email && !phone) return { error: "Add an email or phone number so we can reply." };
   if (!isSupabaseConfigured()) return { error: "We couldn't send that. Please try again.", failed: true };
+  if (await overLimit("ticket", 6, 60)) return { error: TOO_MANY };
   const row = { question: q, contact: c, status: "new" };
   const { error } = id && /^[0-9a-f-]{36}$/.test(id) ? await db().from("leads").update(row).eq("id", id) : await db().from("leads").insert(row);
   return error ? { error: "We couldn't send that. Please try again.", failed: true } : { ok: true };
