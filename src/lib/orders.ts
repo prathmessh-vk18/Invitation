@@ -242,6 +242,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.doors === "maroon" ? { doors: "maroon" as const } : {}),
       ...(typeof d.invocationArt === "string" && /^\/art\/seals\/[\w-]+\.(png|webp)$/.test(d.invocationArt) ? { invocationArt: d.invocationArt } : {}),
       ...(d.hideHeroDate === true ? { hideHeroDate: true } : {}),
+      ...(d.hideHeroCity === true ? { hideHeroCity: true } : {}),
       ...(d.eventsByDay === true ? { eventsByDay: true } : {}),
       ...(Array.isArray(d.dayNames) && d.dayNames.length ? { dayNames: d.dayNames.slice(0, 10).map((x) => str(x, 30)) } : {}),
       ...(d.lang === "hi" ? { lang: "hi" as const } : {}),

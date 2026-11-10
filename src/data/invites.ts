@@ -118,6 +118,8 @@ export type Invite = {
   invocationArt?: string;
   // Leave the date line off the cover (the dates still show on every function card). Rajwada and Gauri Shankar.
   hideHeroDate?: boolean;
+  // Leave the city off the cover too (Rajwada). Venues still show on every function card.
+  hideHeroCity?: boolean;
   // Functions grouped into one card per day, instead of a card each.
   eventsByDay?: boolean;
   // With eventsByDay: a name for each day, in order ("Sagai", "Shaadi"…), shown beside its date in the RSVP.

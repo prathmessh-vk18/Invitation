@@ -154,7 +154,7 @@ function Hero({ invite }: { invite: Invite }) {
                 <span className="text-[2.6cqw]">{yearNum(invite.date)}</span>
               </div>
             )}
-            <p className="inv-serif mt-[2cqw] text-[3.8cqw] text-[#fbf1dc]/75 italic">{invite.city}</p>
+            {!invite.hideHeroCity && <p className="inv-serif mt-[2cqw] text-[3.8cqw] text-[#fbf1dc]/75 italic">{invite.city}</p>}
           </motion.div>
         </div>
       </div>
