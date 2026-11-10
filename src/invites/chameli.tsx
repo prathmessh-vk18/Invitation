@@ -159,8 +159,8 @@ function WaxSeal({ text }: { text: string }) {
 }
 
 /**
- * The envelope opens where it lies, as in a filmed invitation: the flap lifts on its hinge with
- * the seal riding on its point, the inside glows, and golden light, petals and sparkle trails pour
+ * The envelope opens where it lies, as in a filmed invitation: the flap swings up towards the
+ * guest on its hinge, the seal riding on its point, the inside glows, and golden light, petals and sparkle trails pour
  * out of it before everything dissolves into the card.
  */
 function Opening({ invite, opened, onOpen }: OpeningProps) {
@@ -202,10 +202,10 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
           />
         )}
 
-        {/* The flap, hinged along the top, with the seal riding on its point: it lifts up and away. */}
+        {/* The flap, hinged along the top, with the seal riding on its point: it swings up towards the guest. */}
         <motion.div
           className="absolute inset-0 origin-top"
-          animate={go ? { rotateX: [0, 0, -96], opacity: [1, 1, 1, 0] } : { rotateX: 0, opacity: 1 }}
+          animate={go ? { rotateX: [0, 0, 92], opacity: [1, 1, 1, 0] } : { rotateX: 0, opacity: 1 }}
           transition={go ? { rotateX: { duration: 1.05, times: [0, 0.18, 1], ease: [0.45, 0, 0.75, 0.4] }, opacity: { duration: 1.06, times: [0, 0.5, 0.97, 1] } } : {}}
         >
           <div className="absolute inset-0" style={{ clipPath: flapShape, background: envelope }} />
