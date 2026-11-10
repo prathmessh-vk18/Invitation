@@ -245,9 +245,11 @@ function Details({ invite, show }: { invite: Invite; show: (d: number) => object
         <span className="mx-[2cqw] text-[9cqw]">{invite.joiner ?? "&"}</span>
         {b.first}
       </motion.h1>
-      <motion.p {...show(1)} className="inv-label relative mt-[3cqw] text-[3.4cqw] font-bold" style={{ color: c.crimson, letterSpacing: "0.1em", textShadow: HALO }}>
-        {weekday(invite.date)} · {fmtDate(invite.date, { day: "numeric" })} {monthName(invite.date)} {yearNum(invite.date)}
-      </motion.p>
+      {!invite.hideHeroDate && (
+        <motion.p {...show(1)} className="inv-label relative mt-[3cqw] text-[3.4cqw] font-bold" style={{ color: c.crimson, letterSpacing: "0.1em", textShadow: HALO }}>
+          {weekday(invite.date)} · {fmtDate(invite.date, { day: "numeric" })} {monthName(invite.date)} {yearNum(invite.date)}
+        </motion.p>
+      )}
       <motion.p {...show(1.15)} className="inv-serif relative mt-[1.5cqw] text-[4.8cqw] font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
         {invite.city}
       </motion.p>

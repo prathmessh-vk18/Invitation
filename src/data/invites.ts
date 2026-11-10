@@ -116,7 +116,7 @@ export type Invite = {
   doors?: "maroon";
   // A small image above the invocation on the cover (e.g. a gold Ganesha), transparent PNG in /art/seals.
   invocationArt?: string;
-  // Leave the date line off the cover (the dates still show on every function card).
+  // Leave the date line off the cover (the dates still show on every function card). Rajwada and Gauri Shankar.
   hideHeroDate?: boolean;
   // Functions grouped into one card per day, instead of a card each.
   eventsByDay?: boolean;
