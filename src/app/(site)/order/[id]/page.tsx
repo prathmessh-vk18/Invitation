@@ -279,6 +279,16 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
             <PdfAddon orderId={order.id} owned={(order.addons ?? []).includes("pdf")} autoOpen={query.pdf === "1"} />
           </Panel>
         )}
+        {(order.status === "paid" || order.status === "live") && (
+          <Panel className="p-6 sm:p-8">
+            <p className="text-title">Remove our branding</p>
+            <p className="mt-1 text-body text-muted">
+              Hides the small &ldquo;Crafted with love by Aavjoo&rdquo; line at the end of your invite, so it&rsquo;s entirely yours. It stays hidden after every edit.{" "}
+              {order.details.noBranding ? "" : `${formatINR(site.brandingAddon.price)}, one time.`}
+            </p>
+            <PdfAddon addon="nobrand" orderId={order.id} owned={Boolean(order.details.noBranding)} />
+          </Panel>
+        )}
 
         <Panel className="p-6 sm:p-8">
           <p className="text-title">What happens next</p>

@@ -12,6 +12,7 @@ import { logOrderEdit, type EditSource } from "@/lib/order-edits";
 import { publishOrder, refreshInvitesBackup, warmShareCard } from "@/lib/publish";
 import { db } from "@/lib/supabase";
 import { recentHits, recordHit } from "@/lib/rate-limit";
+import { setNoBranding } from "@/lib/branding";
 
 export async function login(_: unknown, form: FormData) {
   // Five wrong passwords from one place locks that place out for 15 minutes.
@@ -208,6 +209,18 @@ export async function changeEdits(id: string, how: "plus1" | "plus3" | "reset") 
 export async function setEmailOptOut(id: string, optOut: boolean) {
   await requireAdmin();
   await db().from("orders").update({ email_opt_out: optOut }).eq("id", id);
+  refresh(id);
+}
+
+/** Gives (or takes back) "hide Aavjoo branding" without payment; updates the live invite too. */
+export async function setBrandingAddon(id: string, on: boolean) {
+  await requireAdmin();
+  const order = await loadOrder(id);
+  const addons = new Set(order.addons ?? []);
+  if (on) addons.add("nobrand");
+  else addons.delete("nobrand");
+  await db().from("orders").update({ addons: [...addons] }).eq("id", id);
+  await setNoBranding(id, on, "admin");
   refresh(id);
 }
 

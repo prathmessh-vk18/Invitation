@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { site } from "@/config/site";
 import { Button } from "@/ui";
 import type { OrderStatus } from "@/lib/orders";
-import { cancelOrder, changeEdits, setEmailOptOut, setPdfAddon, publishInvite, recordNudge, saveDetails, saveNotes, setInvitePublished, setPaymentVerified } from "../../actions";
+import { cancelOrder, changeEdits, setEmailOptOut, setPdfAddon, setBrandingAddon, publishInvite, recordNudge, saveDetails, saveNotes, setInvitePublished, setPaymentVerified } from "../../actions";
 
 type Props = {
   id: string;
@@ -269,6 +269,15 @@ export function PdfAdmin({ id, owned }: { id: string; owned: boolean }) {
   return (
     <button type="button" disabled={pending} onClick={() => start(() => setPdfAddon(id, !owned))} className="ml-2 text-caption text-subtle underline underline-offset-4 hover:text-ink">
       {owned ? "Remove" : "Give free"}
+    </button>
+  );
+}
+
+export function BrandingAdmin({ id, owned }: { id: string; owned: boolean }) {
+  const [pending, start] = useTransition();
+  return (
+    <button type="button" disabled={pending} onClick={() => start(() => setBrandingAddon(id, !owned))} className="ml-2 text-caption text-subtle underline underline-offset-4 hover:text-ink">
+      {owned ? "Show again" : "Give free"}
     </button>
   );
 }

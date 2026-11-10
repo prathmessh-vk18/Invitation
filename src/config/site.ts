@@ -17,6 +17,8 @@ export const site = {
   editPack: { price: 99, edits: 3 },
   // The printable PDF of the invite, for elders and family WhatsApp groups.
   pdfAddon: { price: 99 },
+  // Hides "Crafted with love by Aavjoo" at the end of the invite.
+  brandingAddon: { price: 99 },
 
   // UPI payments. Use a business UPI ID (current account or a business app), not a personal one.
   upiId: "vishwakarmaprathmesh18-1@okicici",

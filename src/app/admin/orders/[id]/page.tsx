@@ -12,7 +12,7 @@ import { Panel } from "@/ui";
 import { paysOnline } from "@/lib/razorpay";
 import { nudgeMessage } from "@/lib/urgency";
 import { AdminHeader, statusTone } from "../../AdminHeader";
-import { DetailsEditor, EditsActions, EmailOptOut, PdfAdmin, NotesAndCancel, PaymentActions, PublishActions } from "./OrderActions";
+import { DetailsEditor, EditsActions, EmailOptOut, PdfAdmin, BrandingAdmin, NotesAndCancel, PaymentActions, PublishActions } from "./OrderActions";
 import { changeSummary } from "@/lib/change-requests";
 
 export const instant = false;
@@ -179,6 +179,10 @@ export default async function AdminOrder({ params }: PageProps<"/admin/orders/[i
                     "Not bought"
                   )}
                   <PdfAdmin id={o.id} owned={(o.addons ?? []).includes("pdf")} />
+                </Row>
+                <Row k="Aavjoo branding">
+                  {o.details.noBranding ? ((o.addons ?? []).includes("nobrand") ? "Hidden (add-on)" : "Hidden") : "Shown"}
+                  <BrandingAdmin id={o.id} owned={Boolean(o.details.noBranding)} />
                 </Row>
                 <Row k="Order page">
                   <Link href={`/order/${o.id}`} target="_blank" className="underline underline-offset-4">

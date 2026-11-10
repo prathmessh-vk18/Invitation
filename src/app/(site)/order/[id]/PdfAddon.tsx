@@ -10,17 +10,17 @@ import { loadCheckout, type RazorpayResponse } from "./checkout";
  * The printable PDF on the order page: a download once bought, otherwise a ₹99 Razorpay purchase.
  * With `autoOpen` (the ?pdf=1 link in our emails) the checkout opens straight away.
  */
-export function PdfAddon({ orderId, owned, autoOpen }: { orderId: string; owned: boolean; autoOpen?: boolean }) {
+export function PdfAddon({ orderId, owned, autoOpen, addon = "pdf" }: { orderId: string; owned: boolean; autoOpen?: boolean; addon?: "pdf" | "nobrand" }) {
   const router = useRouter();
   const [state, setState] = useState<"idle" | "opening" | "verifying" | "done">("idle");
   const [error, setError] = useState("");
   const opened = useRef(false);
-  const price = formatINR(site.pdfAddon.price);
+  const price = formatINR(addon === "pdf" ? site.pdfAddon.price : site.brandingAddon.price);
 
   async function buy() {
     setError("");
     setState("opening");
-    const [ready, start] = await Promise.all([loadCheckout(), startAddon(orderId, "pdf")]);
+    const [ready, start] = await Promise.all([loadCheckout(), startAddon(orderId, addon)]);
     if ("error" in start) {
       setState("idle");
       return setError(start.error);
@@ -37,7 +37,7 @@ export function PdfAddon({ orderId, owned, autoOpen }: { orderId: string; owned:
       name: "Aavjoo",
       description: start.label,
       prefill: { name: start.name, contact: `+${start.phone}`, email: start.email || undefined },
-      notes: { order: start.code, kind: "addon_pdf" },
+      notes: { order: start.code, kind: `addon_${addon}` },
       theme: { color: "#141414" },
       handler: async (r: RazorpayResponse) => {
         setState("verifying");
@@ -64,6 +64,8 @@ export function PdfAddon({ orderId, owned, autoOpen }: { orderId: string; owned:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoOpen, owned]);
 
+  if ((owned || state === "done") && addon === "nobrand")
+    return <p className="mt-4 text-body font-medium text-ink">✓ Branding is hidden on your invite.</p>;
   if (owned || state === "done")
     return (
       <div className="mt-4">
@@ -81,7 +83,7 @@ export function PdfAddon({ orderId, owned, autoOpen }: { orderId: string; owned:
         disabled={state !== "idle"}
         className="btn-shine inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-[16px] font-medium text-white transition disabled:opacity-60"
       >
-        {state === "opening" ? "Opening payment…" : state === "verifying" ? "Confirming payment…" : `Get the PDF · ${price}`}
+        {state === "opening" ? "Opening payment…" : state === "verifying" ? "Confirming payment…" : addon === "pdf" ? `Get the PDF · ${price}` : `Remove branding · ${price}`}
       </button>
       {error && (
         <p role="alert" className="mt-3 text-[14px] text-[#b42318]">

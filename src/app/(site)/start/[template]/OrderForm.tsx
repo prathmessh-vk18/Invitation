@@ -360,6 +360,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
   const [songProgress, setSongProgress] = useState(0);
   // The ₹99 printable-PDF add-on, ticked on the last step of a new order.
   const [pdfAddon, setPdfAddon] = useState(false);
+  const [brandAddon, setBrandAddon] = useState(false);
   // After payment each change uses an edit; at none left, the last step offers a pack instead.
   const [editsLeft, setEditsLeft] = useState(mode.kind === "change" && !mode.prepaid ? (mode.editsLeft ?? 1) : Infinity);
   const outOfEdits = editsLeft <= 0;
@@ -435,7 +436,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
   // Engagement designs word the form for an engagement, everything else for a wedding.
   const occasion = t.occasion ?? "wedding";
   const Occasion = occasion === "engagement" ? "Engagement" : "Wedding";
-  const errors = useMemo(() => validate(s, isNew ? today : "", occasion), [s, today, isNew, occasion]);
+  const errors = useMemo(() => validate(s, isNew ? today : "", occasion, isNew), [s, today, isNew, occasion]);
   const shown = (k: string) => (touched.has(k) || attempted.has(stepOf(k)) ? errors[k] : undefined);
   const touch = (k: string) => setTouched((p) => (p.has(k) ? p : new Set(p).add(k)));
   const stepHasErrors = (id: StepId) => Object.keys(errors).some((k) => stepOf(k) === id);
@@ -592,7 +593,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
           photoPaths: showing("gallery") ? photos.map((x) => x.path) : [],
           customer: { ...s.customer, phone: `+${waNumber(s.customer.phone)}` },
           ...(refCode ? { partnerCode: refCode } : {}),
-          ...(pdfAddon ? { addons: ["pdf"] } : {}),
+          ...(pdfAddon || brandAddon ? { addons: [...(pdfAddon ? ["pdf"] : []), ...(brandAddon ? ["nobrand"] : [])] } : {}),
         });
       } catch (e) {
         if (!isStale(e)) throw e;
@@ -1033,10 +1034,11 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
       </div>
       <Input
         k="customer.email"
+        placeholder="name@gmail.com"
         type="email"
         inputMode="email"
         label="Email"
-        hint="optional"
+        help="We'll email your invite link, payment details and your private edit link, so they're always easy to find, even if a WhatsApp chat gets lost. No spam."
         value={s.customer.email}
         onChange={(v) => set("customer", { ...s.customer, email: v })}
         onBlur={() => touch("customer.email")}
@@ -1200,9 +1202,26 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
             <span className="mt-0.5 block text-caption text-subtle">
               Your invite as a PDF in the same design, with large, clear text. For grandparents who don&rsquo;t open links, family WhatsApp groups and printing.
             </span>
-            {pdfAddon && <span className="mt-1.5 block text-[14px] font-medium text-ink">Total {formatINR(t.price + site.pdfAddon.price)}</span>}
           </span>
         </label>
+      )}
+      {mode.kind === "new" && !t.payDirect && (
+        <label className={`flex cursor-pointer items-start gap-3 rounded-tile border-2 p-4 transition ${brandAddon ? "border-ink bg-surface" : "border-line bg-surface"}`}>
+          <input type="checkbox" checked={brandAddon} onChange={(e) => setBrandAddon(e.target.checked)} className="mt-1 size-5 shrink-0 accent-[#141414]" />
+          <span>
+            <span className="block text-[15px] font-semibold text-ink">
+              Remove our branding · {formatINR(site.brandingAddon.price)}
+            </span>
+            <span className="mt-0.5 block text-caption text-subtle">
+              Hides the small &ldquo;Crafted with love by Aavjoo&rdquo; line at the end, so the invite is entirely yours. Stays hidden after every edit.
+            </span>
+          </span>
+        </label>
+      )}
+      {mode.kind === "new" && !t.payDirect && (pdfAddon || brandAddon) && (
+        <p className="text-[15px] font-semibold text-ink">
+          Total {formatINR(t.price + (pdfAddon ? site.pdfAddon.price : 0) + (brandAddon ? site.brandingAddon.price : 0))}
+        </p>
       )}
       <p className="pt-2 text-caption text-subtle">
         {mode.kind === "new"

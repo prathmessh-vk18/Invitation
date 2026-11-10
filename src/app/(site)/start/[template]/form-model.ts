@@ -79,7 +79,7 @@ export const steps = [
   { id: "style", title: "Look & sections", note: "Try a different font style, and turn off any part of the invite you don't want.", optional: true },
   { id: "photos", title: "Our moments", note: "Add up to 8 photos of the two of you. Guests see them as polaroids they can swipe through.", optional: true },
   { id: "music", title: "Your song", note: "It plays softly when guests open the invite. Pick one of ours or upload your own.", optional: true },
-  { id: "contact", title: "Your contact", note: "We'll send your invite link here on WhatsApp." },
+  { id: "contact", title: "Your contact", note: "We'll send your invite link here, on WhatsApp and by email." },
   { id: "review", title: "Review", note: "Check everything once. You can go back to any step." },
 ] as const;
 
@@ -162,7 +162,8 @@ function phoneError(v: string, empty: string) {
  * which skips the past-date checks).
  */
 /** `occasion` words the messages for an engagement design ("Pick the engagement date."). */
-export function validate(s: FormState, today: string, occasion: "wedding" | "engagement" = "wedding"): Record<string, string> {
+/** `requireEmail` is on for new orders only: older orders without an email can still be edited. */
+export function validate(s: FormState, today: string, occasion: "wedding" | "engagement" = "wedding", requireEmail = false): Record<string, string> {
   const e: Record<string, string> = {};
 
   personErrors(s.bride, "bride", e);
@@ -193,7 +194,8 @@ export function validate(s: FormState, today: string, occasion: "wedding" | "eng
   if (!s.customer.name.trim()) e["customer.name"] = "Enter your name.";
   const phone = phoneError(s.customer.phone, "Enter your WhatsApp number. We'll send your link here.");
   if (phone) e["customer.phone"] = phone;
-  if (s.customer.email.trim() && !EMAIL.test(s.customer.email.trim())) e["customer.email"] = "Check the email address, e.g. name@gmail.com.";
+  if (requireEmail && !s.customer.email.trim()) e["customer.email"] = "Enter your email. We'll send your invite link and edit link here.";
+  else if (s.customer.email.trim() && !EMAIL.test(s.customer.email.trim())) e["customer.email"] = "Check the email address, e.g. name@gmail.com.";
   if (!s.hide.includes("rsvp") && !s.rsvpSame) {
     const rsvp = phoneError(s.rsvpPhone, "Enter the number guests should RSVP to.");
     if (rsvp) e.rsvpPhone = rsvp;

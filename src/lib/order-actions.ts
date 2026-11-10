@@ -15,6 +15,7 @@ import { holdReason } from "@/lib/edit-hold";
 import { site } from "@/config/site";
 import { db, isSupabaseConfigured, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
 import { overLimit, TOO_MANY } from "@/lib/rate-limit";
+import { applyPaidAddons } from "@/lib/branding";
 
 const MAX_SONG_BYTES = 15 * 1024 * 1024;
 
@@ -88,7 +89,7 @@ export type CreateOrderInput = {
   photoPaths?: string[];
   customer: { name: string; phone: string; email: string };
   partnerCode?: string;
-  /** Add-ons ticked at checkout: "pdf" (the printable PDF). */
+  /** Add-ons ticked at checkout: "pdf" (the printable PDF), "nobrand" (hide our branding). */
   addons?: string[];
 };
 
@@ -112,7 +113,8 @@ export async function createOrder(input: CreateOrderInput): Promise<{ id: string
   const email = String(input.customer?.email ?? "").trim().slice(0, 120);
   if (!name) errors.push("Add your name so we know who to contact.");
   if (phone.length < 10) errors.push("Add your WhatsApp number so we can send your link.");
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("Check your email address.");
+  if (!email) errors.push("Add your email so we can send your invite link and edit link.");
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("Check your email address.");
   if (errors.length || !checked.ok) return { errors };
   // Counted only once the form is valid, so fixing mistakes never uses up a couple's tries.
   if ((await overLimit("order", 8, 60)) || (await overLimit("order-day", 20, 24 * 60))) return { errors: [TOO_MANY] };
@@ -126,18 +128,23 @@ export async function createOrder(input: CreateOrderInput): Promise<{ id: string
   const photoPaths = cleanPhotoPaths(input.photoPaths);
   // Orders paid to us directly can't add online extras at checkout.
   const pdf = Boolean(input.addons?.includes("pdf")) && !t.payDirect;
+  const nobrand = Boolean(input.addons?.includes("nobrand")) && !t.payDirect;
+  // Hiding our branding is a paid add-on, so it's never taken from the browser's details.
+  const details = { ...checked.details } as InviteDetails;
+  delete details.noBranding;
+  if (nobrand) details.noBranding = true;
 
   const { data, error } = await db()
     .from("orders")
     .insert({
       template: t.id,
       // The add-on's price comes from our config, never from the browser.
-      amount: orderTotal(t.id) + (pdf ? site.pdfAddon.price : 0),
-      addons: pdf ? ["pdf"] : [],
+      amount: orderTotal(t.id) + (pdf ? site.pdfAddon.price : 0) + (nobrand ? site.brandingAddon.price : 0),
+      addons: [...(pdf ? ["pdf"] : []), ...(nobrand ? ["nobrand"] : [])],
       customer_name: name,
       customer_phone: phone,
       customer_email: email || null,
-      details: checked.details,
+      details,
       song_path: songPath,
       // Only sent when there are photos, so orders still save on a database without the photos column.
       ...(photoPaths.length ? { photo_paths: photoPaths } : {}),
@@ -235,7 +242,10 @@ export async function saveChanges(
 
   const songPath = cleanSongPath(input.songPath);
   const photoPaths = cleanPhotoPaths(input.photoPaths);
-  const details = keepInviteSettings(order.details as InviteDetails, checked.details);
+  // "Hide branding" is paid for, so it only ever carries over from the order, never from the browser.
+  const fromForm = { ...checked.details } as InviteDetails;
+  delete fromForm.noBranding;
+  const details = keepInviteSettings(order.details as InviteDetails, fromForm);
 
   if (order.status === "awaiting_payment" || order.status === "payment_submitted") {
     const { error } = await db().from("orders").update({ details, song_path: songPath, photo_paths: photoPaths }).eq("id", orderId);
@@ -330,19 +340,25 @@ export async function confirmEditPack(
   return { ok: true };
 }
 
-/** Opens Razorpay for an add-on (the printable PDF) on a paid order. */
-export async function startAddon(orderId: string, addon: "pdf"): Promise<PaymentStart | { error: string }> {
-  if (!/^[0-9a-f-]{36}$/.test(orderId) || addon !== "pdf") return { error: "We couldn't find this order." };
+const ADDONS = {
+  pdf: { price: () => site.pdfAddon.price, label: "Printable PDF", owned: "You already have the PDF. Download it from your order page.", tag: "P" },
+  nobrand: { price: () => site.brandingAddon.price, label: "Hide Aavjoo branding", owned: "Branding is already hidden on your invite.", tag: "B" },
+} as const;
+
+/** Opens Razorpay for an add-on (the printable PDF, or hiding our branding) on a paid order. */
+export async function startAddon(orderId: string, addon: "pdf" | "nobrand"): Promise<PaymentStart | { error: string }> {
+  if (!/^[0-9a-f-]{36}$/.test(orderId) || !(addon in ADDONS)) return { error: "We couldn't find this order." };
+  const a = ADDONS[addon];
   if (!isRazorpayConfigured()) return { error: "Online payment isn't set up yet. Please message us on WhatsApp." };
   const { data: order } = await db().from("orders").select("id, code, status, addons, customer_name, customer_phone, customer_email").eq("id", orderId).maybeSingle();
   if (!order) return { error: "We couldn't find this order." };
-  if (order.status !== "paid" && order.status !== "live") return { error: "Add the PDF once your invite is paid for, or tick it on the order form." };
-  if ((order.addons ?? []).includes(addon)) return { error: "You already have the PDF. Download it from your order page." };
-  const price = site.pdfAddon.price;
+  if (order.status !== "paid" && order.status !== "live") return { error: "Add this once your invite is paid for, or tick it on the order form." };
+  if ((order.addons ?? []).includes(addon)) return { error: a.owned };
+  const price = a.price();
   const { count } = await db().from("addon_purchases").select("id", { count: "exact", head: true }).eq("order_id", orderId);
   let rzp: { id: string };
   try {
-    rzp = await createRazorpayOrder(price, `${order.code}-P${(count ?? 0) + 1}`, { order_id: order.id, code: order.code, kind: "addon_pdf" });
+    rzp = await createRazorpayOrder(price, `${order.code}-${a.tag}${(count ?? 0) + 1}`, { order_id: order.id, code: order.code, kind: `addon_${addon}` });
   } catch {
     return { error: "We couldn't start the payment. Please try again in a moment." };
   }
@@ -356,7 +372,7 @@ export async function startAddon(orderId: string, addon: "pdf"): Promise<Payment
     name: order.customer_name,
     phone: order.customer_phone,
     email: order.customer_email ?? "",
-    label: `Printable PDF · order ${order.code}`,
+    label: `${a.label} · order ${order.code}`,
   };
 }
 
@@ -372,6 +388,7 @@ export async function confirmAddon(
     return { error: "We couldn't verify this payment. If money was deducted, message us on WhatsApp with your order code." };
   }
   await creditAddon(r.razorpay_order_id, r.razorpay_payment_id);
+  await applyPaidAddons(orderId);
   revalidatePath(`/order/${orderId}`);
   revalidatePath(`/admin/orders/${orderId}`);
   return { ok: true };
