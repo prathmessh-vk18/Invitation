@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
 import { getInvite, invites, type Invite } from "@/data/invites";
 import { getPublishedInvite } from "@/lib/invites-db";
@@ -21,8 +22,25 @@ async function resolve(slug: string): Promise<Invite | null> {
   return getInvite(slug) ?? (await getPublishedInvite(slug))?.invite ?? null;
 }
 
+/**
+ * The finished JPEG, kept until the invite changes (publishing or editing clears `invite:<slug>`).
+ * Without this every WhatsApp fetch rebuilt the card from scratch, about 0.65 s of work each time.
+ */
+async function cardBytes(slug: string): Promise<Uint8Array | null> {
+  "use cache";
+  cacheTag(`invite:${slug}`);
+  cacheLife("days");
+  const invite = await resolve(slug);
+  if (!invite) return null;
+  return new Uint8Array(await (await shareCard(invite)).arrayBuffer());
+}
+
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
-  const invite = await resolve((await params).slug);
-  if (!invite) notFound();
-  return shareCard(invite);
+  const bytes = await cardBytes((await params).slug);
+  if (!bytes) notFound();
+  // Vercel's CDN also holds it for 10 minutes, so a burst of shares never reaches the function.
+  // Kept short so a couple's edit shows on new shares soon after.
+  return new Response(bytes as BodyInit, {
+    headers: { "Content-Type": "image/jpeg", "Cache-Control": "public, max-age=0, s-maxage=600, stale-while-revalidate=3600" },
+  });
 }
