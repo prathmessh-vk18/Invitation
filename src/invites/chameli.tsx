@@ -385,7 +385,6 @@ function Blessing({ invite }: { invite: Invite }) {
         </p>
       </Reveal>
       {person(b, 1)}
-      <Divider className="mt-[9cqw]" />
     </section>
   );
 }
@@ -403,22 +402,13 @@ function Glance({ invite }: { invite: Invite }) {
         {events.map((e, i) => (
           <motion.div
             key={e.name + i}
-            className="relative overflow-hidden rounded-[3cqw] border px-[6cqw] pt-[7cqw] pb-[6cqw]"
+            className="relative overflow-hidden rounded-[3cqw] border px-[6cqw] pt-[6cqw] pb-[6cqw]"
             style={{ borderColor: `${c.gold}66`, background: "rgba(251,247,239,.82)" }}
             initial={{ opacity: 0, y: 36, scale: 0.97 }}
             whileInView={{ opacity: 1, y: 0, scale: 1 }}
             viewport={{ once: true, amount: 0.35 }}
             transition={{ duration: 0.9, ease }}
           >
-            {/* A thin gold rule that runs in along the card's top. */}
-            <motion.span
-              className="absolute inset-x-[6cqw] top-[3cqw] h-px origin-center"
-              style={{ background: c.gold }}
-              initial={{ scaleX: 0 }}
-              whileInView={{ scaleX: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1, delay: 0.25, ease }}
-            />
             <motion.p
               className="inv-label mx-auto w-fit px-[5cqw] py-[1.8cqw] text-[3.1cqw] tracking-[0.14em] uppercase"
               style={{ background: c.ribbon }}
@@ -455,41 +445,10 @@ function Glance({ invite }: { invite: Invite }) {
   );
 }
 
-function Details({ invite }: { invite: Invite }) {
-  const days = [...new Map(invite.events.map((e) => [ist(e.start, { year: "numeric", month: "2-digit", day: "2-digit" }), e.start])).values()].sort();
-  const venues = [...new Map(invite.events.map((e) => [e.address || e.venue, e])).values()];
-  return (
-    <section className="relative px-[11cqw] pt-[14cqw] text-center">
-      <Reveal>
-        <Title>The Details</Title>
-        <p className={`${caps} text-[3.2cqw]`}>{days.length > 1 ? "Dates" : "Date"}</p>
-        {days.map((d) => (
-          <p key={d} className="inv-serif mt-[1cqw] text-[4.3cqw] font-semibold">
-            <DayLine iso={d} />
-          </p>
-        ))}
-        <p className={`${caps} mt-[6cqw] text-[3.2cqw]`}>{venues.length > 1 ? "Venues" : "Venue"}</p>
-        {venues.map((e) => (
-          <p key={e.venue + e.address} className={`${italic} mt-[1.5cqw] text-[4.2cqw] leading-relaxed`} style={{ color: c.soft }}>
-            {e.venue}
-            {e.address && (
-              <>
-                <br />
-                {e.address}
-              </>
-            )}
-          </p>
-        ))}
-      </Reveal>
-    </section>
-  );
-}
-
 function Events({ invite }: { invite: Invite }) {
   return (
     <>
       <Glance invite={invite} />
-      <Details invite={invite} />
     </>
   );
 }
