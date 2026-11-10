@@ -25,9 +25,9 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
   useEffect(() => {
     document.documentElement.style.overflow = opened ? "" : "hidden";
     if (!opened) return;
-    const t = window.setTimeout(() => setGone(true), 1900);
+    const t = window.setTimeout(() => setGone(true), theme.openingMs ?? 1900);
     return () => window.clearTimeout(t);
-  }, [opened]);
+  }, [opened, theme.openingMs]);
 
   const open = () => {
     setOpened(true);

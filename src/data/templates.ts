@@ -1,4 +1,4 @@
-export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli" | "khatred" | "sarovar" | "vachan" | "mudrika" | "angoothi" | "chandni" | "roka" | "rajwadasagai";
+export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli" | "khatred" | "sarovar" | "vachan" | "mudrika" | "angoothi" | "chandni" | "roka" | "rajwadasagai" | "chameli";
 export type CategoryId = "hindu" | "muslim" | "sikh" | "south-indian" | "engagement";
 
 export type TemplateMeta = {
@@ -430,6 +430,35 @@ export const templates: TemplateMeta[] = [
     tint: "#f8f0d8",
     icon: { bg: "#9c1650", fg: "#d9a53c" },
     addedOn: "2026-10-12",
+  },
+  {
+    id: "chameli",
+    category: "hindu",
+    name: "Chameli",
+    native: "चमेली",
+    nativeFont: DEVA,
+    mood: "Illustrated · Ivory, jasmine and the hills",
+    tagline: "A gold-sealed ivory envelope bursts open in golden light and petals, onto a jasmine-and-lantern card above the Himalayas.",
+    description: [
+      "Chameli means jasmine. It opens on an embossed ivory envelope, sealed in gold wax with your initials. Tap the seal and it lifts away, the flap opens in a bloom of golden light, and jasmine and rose petals scatter as sparkle trails swirl up.",
+      "Your names write themselves in, letter by letter, on an ivory card framed by a jasmine spray with a glowing brass lantern and, along the bottom, an urn, the Himalayan hills and a carved jaali balustrade, all staying in place as the invite scrolls.",
+      "Every function on its own card, a scratch-to-reveal date, countdown, RSVP and music are all included.",
+    ],
+    price: 299,
+    mrp: 999,
+    demoSlug: "vivaan-weds-ira",
+    palette: [
+      { name: "Ivory", hex: "#f3ece0" },
+      { name: "Antique gold", hex: "#b19254" },
+      { name: "Jasmine", hex: "#ffffff" },
+      { name: "Hill blue", hex: "#9fb3c8" },
+    ],
+    suits: ["Elegant, understated weddings", "Hill-station and heritage venues", "Couples who love an ivory-and-gold look"],
+    signature: ["Gold wax seal with your initials", "Golden light and petal burst", "Fixed jasmine-and-lantern frame", "Names that write themselves in"],
+    tint: "#f3ece0",
+    icon: { bg: "#b19254", fg: "#f8f3e8" },
+    addedOn: "2026-11-10",
+    isNew: true,
   },
   {
     id: "chandni",

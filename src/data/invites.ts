@@ -836,6 +836,28 @@ export const invites: Invite[] = [
     rsvp: { phone: "919699711809", by: "2027-01-05T00:00:00+05:30", contact: "Khanna family" },
     closing: "Rab rakha. We can't wait to celebrate with you.",
   },
+  {
+    slug: "vivaan-weds-ira",
+    template: "chameli",
+    groom: { first: "Vivaan", full: "Vivaan Malhotra", parents: "Son of Mrs. Shalini & Mr. Rohit Malhotra" },
+    bride: { first: "Ira", full: "Ira Bhandari", parents: "Daughter of Mrs. Meenakshi & Mr. Alok Bhandari" },
+    lead: "groom",
+    invocation: "॥ श्री गणेशाय नमः ॥",
+    invocationMeaning: "With the blessings of Lord Ganesha",
+    hosts: "The Malhotra & Bhandari families",
+    message: "request the pleasure of your company as their children\nexchange vows in the company of those they hold dear.",
+    date: "2027-02-20T19:30:00+05:30",
+    city: "Dehradun, Uttarakhand",
+    hashtag: "#VivaanFoundHisIra",
+    events: [
+      { kind: "haldi", name: "Haldi", start: "2027-02-19T11:00:00+05:30", venue: "The Courtyard, Ira's family home", address: "Rajpur Road, Dehradun, Uttarakhand 248001", dress: "Shades of yellow" },
+      { kind: "mehndi", name: "Mehndi & Sangeet", start: "2027-02-19T18:30:00+05:30", venue: "The Lawns, JW Marriott Mussoorie", address: "Kempty Fall Road, Mussoorie, Uttarakhand 248179", dress: "Festive pastels" },
+      { kind: "phere", name: "Wedding", start: "2027-02-20T19:30:00+05:30", venue: "The Grand Terrace, JW Marriott Mussoorie", address: "Kempty Fall Road, Mussoorie, Uttarakhand 248179", dress: "Traditional" },
+      { kind: "reception", name: "Reception", start: "2027-02-21T20:00:00+05:30", venue: "The Ballroom, Hyatt Regency Dehradun", address: "Rajpur Road, Dehradun, Uttarakhand 248001" },
+    ],
+    rsvp: { phone: "919699711809", by: "2027-02-05T00:00:00+05:30", contact: "Malhotra family" },
+    closing: "Your blessings will make our day complete.",
+  },
 ];
 
 // Sample "Our moments" photos for the demos (illustrations of a fictional couple, see public/art/moments).

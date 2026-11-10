@@ -47,6 +47,7 @@ export const skins: Record<string, Skin> = {
   chandni: { cover: I("chandni-hero.jpg"), paper: I("chandni-card.jpg"), ink: "#3d2b4f", accent: "#9a4f7c", soft: "#6d5a73", script: "Parisienne", label: "Manrope" },
   angoothi: { cover: I("angoothi-hero.jpg"), paper: I("angoothi-card.jpg"), ink: "#5a2414", accent: "#b5482a", soft: "#7a4b36", script: "Pinyon Script", label: "Cinzel" },
   roka: { cover: I("roka-hero.jpg"), paper: I("roka-card.jpg"), ink: "#6e1320", accent: "#b3261e", soft: "#7a4741", script: "Yeseva One", label: "Marcellus", scriptScale: 0.75 },
+  chameli: { cover: I("chameli-cover.jpg"), paper: I("chameli-paper.jpg"), ink: "#4f4020", accent: "#b19254", soft: "#6a5b38", script: "Pinyon Script", label: "Cinzel" },
   vachan: mandirSkin,
   mudrika: khatSkin,
 };
