@@ -162,7 +162,7 @@ function Meeting({ invite, opened, onOpen }: OpeningProps) {
       {/* Shiv's open palm reaches in from beyond the left edge… */}
       <motion.div
         className="absolute"
-        style={{ left: u(-12), top: u(76), width: u(112), aspectRatio: "1100 / 618" }}
+        style={{ left: u(-12), top: u(68), width: u(112), aspectRatio: "1100 / 618" }}
         initial={still ? false : { x: "-100%", opacity: 0 }}
         animate={{ x: "0%", opacity: 1 }}
         transition={{ duration: 2, delay: at(0.2), ease: "easeOut" }}
@@ -173,8 +173,8 @@ function Meeting({ invite, opened, onOpen }: OpeningProps) {
       {/* …as Parvati steps down from the upper right, her lehenga running off the top and right
           edges, until her foot hovers just above his palm. */}
       <motion.div
-        className="absolute top-0"
-        style={{ right: `min(calc(100cqw - ${u(130)}), 0px)`, width: u(90), aspectRatio: "788 / 890" }}
+        className="absolute"
+        style={{ top: u(-8), right: `min(calc(100cqw - ${u(130)}), 0px)`, width: u(90), aspectRatio: "788 / 890" }}
         initial={still ? false : { x: "35%", y: "-35%", opacity: 0 }}
         animate={{ x: "0%", y: "0%", opacity: 1 }}
         transition={{ duration: 2.6, delay: at(1), ease: [0.25, 0.8, 0.3, 1] }}
@@ -186,13 +186,14 @@ function Meeting({ invite, opened, onOpen }: OpeningProps) {
       <motion.div
         aria-hidden
         className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
-        style={{ left: u(62), top: u(86), width: u(54), height: u(54), background: "radial-gradient(closest-side, rgba(255,240,230,.9), rgba(255,220,225,0))" }}
+        style={{ left: u(62), top: u(78), width: u(54), height: u(54), background: "radial-gradient(closest-side, rgba(255,240,230,.9), rgba(255,220,225,0))" }}
         initial={{ opacity: 0, scale: 0.4 }}
         animate={{ opacity: [0, 0.95, 0.4], scale: [0.4, 1.2, 1] }}
         transition={{ duration: 2.2, delay: at(3.4), ease }}
       />
 
-      <div className="absolute inset-x-[4%] bottom-[6%] text-center">
+      {/* The names sit just under the garland, clear of the "Tap anywhere to open" pill at the bottom. */}
+      <div className="absolute inset-x-[4%] text-center" style={{ top: u(132) }}>
         <div aria-hidden className="absolute -inset-x-[6%] -inset-y-[18%] rounded-[50%] bg-[radial-gradient(closest-side,rgba(255,248,250,.78),rgba(255,248,250,0))]" />
         <motion.p
           className={`${hi ? "" : "inv-label"} relative leading-snug font-bold`}
