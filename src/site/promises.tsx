@@ -57,9 +57,9 @@ function ChatScene() {
   );
 }
 
-/* ───────── 2 · Live within 24 hours ───────── */
+/* ───────── 2 · Live in under a minute ───────── */
 
-const track = ["Ordered", "Paid", "Designing", "Live"];
+const track = ["Ordered", "Paid", "Live", "Shared"];
 
 function TimelineScene() {
   const [ref, seen] = useSeen();
@@ -68,7 +68,7 @@ function TimelineScene() {
       <div className="flex items-baseline justify-between">
         <p className="text-[13px] font-semibold">Order AAV-1024</p>
         <motion.p className="text-[12px] font-medium text-[#1d6b35]" initial={{ opacity: 0 }} animate={seen ? { opacity: 1 } : {}} transition={{ delay: 2.4 }}>
-          Live in 6 hrs
+          Live in 40 sec
         </motion.p>
       </div>
       <div className="relative mt-5">
@@ -251,7 +251,7 @@ function Card({ title, body, scene, className }: { title: string; body: string; 
 export function Promises() {
   const cards = [
     { title: "A real person on WhatsApp", body: `Every order is looked after by us, not a bot. We reply ${site.hours}.`, scene: <ChatScene /> },
-    { title: `Live within ${site.publishWithin}`, body: "Once your payment is confirmed, we publish your invite and send you the link.", scene: <TimelineScene /> },
+    { title: "Live in under a minute", body: "Pay and your invite goes live instantly. The link is ready to share on WhatsApp straight away.", scene: <TimelineScene /> },
     { title: "Changes until the big day", body: "Venue moved or a name misspelt? We update the same link, so no one needs a new invite.", scene: <EditScene /> },
     { title: "Easy for every guest", body: "One tap from WhatsApp. No app, no login, big clear text for every generation.", scene: <LinkScene /> },
     { title: "Your details stay private", body: "Your photos and details are used only for your invite, and taken down when you ask.", scene: <PrivateScene /> },

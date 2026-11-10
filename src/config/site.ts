@@ -21,8 +21,10 @@ export const site = {
   // UPI payments. Use a business UPI ID (current account or a business app), not a personal one.
   upiId: "vishwakarmaprathmesh18-1@okicici",
   upiPayee: "Aavjoo",
-  // When an order is paid we aim to publish within this time.
+  // When an order is paid we aim to publish within this time (the fallback promise if auto-publish is off).
   publishWithin: "24 hours",
+  // With auto-publish on, the invite goes live the moment payment goes through.
+  linkReady: "under a minute",
   // A published invite stays live until this many days after the wedding date.
   inviteDaysAfterWedding: 15,
 

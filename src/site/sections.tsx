@@ -153,7 +153,7 @@ export function HowItWorks() {
     },
     {
       n: "Pay, then get your link",
-      b: `You pay online right after the form, by UPI, card or netbanking. Your invite goes live within ${site.publishWithin} of payment.`,
+      b: `You pay online right after the form, by UPI, card or netbanking. Your invite goes live in ${site.linkReady}, ready to share.`,
       v: (
         <div className="flex h-full flex-col justify-center gap-2 bg-whatsapp-wash px-5">
           <ChatBubble>Is the invite ready? 👀</ChatBubble>
@@ -243,7 +243,7 @@ export const generalFaqs = [
   { q: "What if a venue or time changes?", a: "Message us with your order code and we'll update the same link, so nobody needs a new invite." },
   { q: "Can it include Hindi, Urdu, Punjabi or Tamil?", a: "Yes. Invocations, blessings and event names can be set in their own script alongside English." },
   { q: "How long does the link stay live?", a: `Until ${site.inviteDaysAfterWedding} days after your wedding, so guests can look back at it after the celebrations.` },
-  { q: "How do we pay?", a: `Submit your details first, no payment needed. We then message you on WhatsApp with a UPI QR code, and publish your invite within ${site.publishWithin} of payment.` },
+  { q: "How do we pay?", a: `Online, right after you fill in your details, by UPI, card or netbanking. Your invite goes live in ${site.linkReady} after payment.` },
 ];
 
 export function Faq({ items = generalFaqs, title = "Questions, answered." }: { items?: { q: string; a: string }[]; title?: string }) {
