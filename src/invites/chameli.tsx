@@ -600,3 +600,6 @@ export const chameli: InviteTheme = {
   Divider,
   Title,
 };
+
+/** Chameli for an engagement: the same design, worded by the occasion ("The Engagement Celebrations"). */
+export const chamelisagai: InviteTheme = { ...chameli, id: "chamelisagai" };

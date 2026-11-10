@@ -859,6 +859,28 @@ export const invites: Invite[] = [
     rsvp: { phone: "919699711809", by: "2027-02-05T00:00:00+05:30", contact: "The Malhotra & Bhandari families" },
     closing: "Your blessings will make our day complete.",
   },
+  {
+    slug: "arnav-and-kiara",
+    template: "chamelisagai",
+    occasion: "engagement",
+    groom: { first: "Arnav", full: "Arnav Rawat", parents: "Son of Mrs. Anjali & Mr. Deepak Rawat" },
+    bride: { first: "Kiara", full: "Kiara Negi", parents: "Daughter of Mrs. Sunita & Mr. Harish Negi" },
+    lead: "bride",
+    invocation: "॥ श्री गणेशाय नमः ॥",
+    invocationMeaning: "With the blessings of Lord Ganesha",
+    hosts: "The Negi & Rawat families",
+    message: "request the pleasure of your company at the engagement ceremony of their children,\nand your blessings as they begin a new journey together.",
+    date: "2027-01-23T18:30:00+05:30",
+    city: "Mussoorie, Uttarakhand",
+    hashtag: "#KiaraSaysYes",
+    events: [
+      { kind: "engagement", name: "Ring Ceremony", start: "2027-01-23T18:30:00+05:30", venue: "The Terrace, JW Marriott Mussoorie", address: "Kempty Fall Road, Mussoorie, Uttarakhand 248179", dress: "Pastels and ivory" },
+      { kind: "other", name: "Dinner", start: "2027-01-23T20:30:00+05:30", venue: "The Terrace, JW Marriott Mussoorie", address: "Kempty Fall Road, Mussoorie, Uttarakhand 248179" },
+    ],
+    // The form always saves "Hosted by" as the RSVP contact.
+    rsvp: { phone: "919699711809", by: "2027-01-16T00:00:00+05:30", contact: "The Negi & Rawat families" },
+    closing: "Your blessings will make our day complete.",
+  },
 ];
 
 // Sample "Our moments" photos for the demos (illustrations of a fictional couple, see public/art/moments).

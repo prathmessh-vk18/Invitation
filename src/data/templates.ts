@@ -1,4 +1,4 @@
-export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli" | "khatred" | "sarovar" | "vachan" | "mudrika" | "angoothi" | "chandni" | "roka" | "rajwadasagai" | "chameli";
+export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli" | "khatred" | "sarovar" | "vachan" | "mudrika" | "angoothi" | "chandni" | "roka" | "rajwadasagai" | "chameli" | "chamelisagai";
 export type CategoryId = "hindu" | "muslim" | "sikh" | "south-indian" | "engagement";
 
 export type TemplateMeta = {
@@ -607,6 +607,36 @@ export const templates: TemplateMeta[] = [
     tint: "#fbe6dd",
     icon: { bg: "#b2566c", fg: "#fbe6dd" },
     addedOn: "2026-11-08",
+    isNew: true,
+  },
+  {
+    id: "chamelisagai",
+    category: "engagement",
+    occasion: "engagement",
+    name: "Chameli Sagai",
+    native: "चमेली",
+    nativeFont: DEVA,
+    mood: "Illustrated · Ivory, jasmine and the hills",
+    tagline: "A gold-sealed ivory envelope opens in golden light and petals, onto a jasmine-and-lantern engagement card above the Himalayas.",
+    description: [
+      "Chameli means jasmine. It opens on an embossed ivory envelope, sealed in gold wax with your initials. Tap the seal and the flap lifts towards you, golden light pours out, and jasmine and rose petals scatter as sparkle trails swirl up.",
+      "Your names write themselves in, letter by letter, on an ivory card framed by a jasmine spray with a glowing brass lantern and, along the bottom, an urn, the Himalayan hills and a carved jaali balustrade, all staying in place as the invite scrolls.",
+      "Your ring ceremony and every other function on its own card, a scratch-to-reveal date, a countdown, RSVP and music are all included.",
+    ],
+    price: 299,
+    mrp: 999,
+    demoSlug: "arnav-and-kiara",
+    palette: [
+      { name: "Ivory", hex: "#f3ece0" },
+      { name: "Antique gold", hex: "#b19254" },
+      { name: "Jasmine", hex: "#ffffff" },
+      { name: "Hill blue", hex: "#9fb3c8" },
+    ],
+    suits: ["Sagai, Roka and ring ceremonies", "Hill-station and garden venues", "Couples who love an ivory-and-gold look"],
+    signature: ["Gold wax seal with your initials", "Golden light and petal burst", "Fixed jasmine-and-lantern frame", "Names that write themselves in"],
+    tint: "#f3ece0",
+    icon: { bg: "#b19254", fg: "#f8f3e8" },
+    addedOn: "2026-11-10",
     isNew: true,
   },
 ];
