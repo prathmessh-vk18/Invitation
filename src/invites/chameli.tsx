@@ -18,7 +18,8 @@ import type { InviteTheme, OpeningProps } from "./types";
  * lifts the seal away, the flap opens in a bloom of golden light, petals scatter and sparkle
  * trails swirl, then it all dissolves into the card. The card scrolls inside a fixed frame: a
  * jasmine-and-lantern spray at the top left and the urn, hills and jaali balustrade along the
- * bottom, like Mandir and Haveli. Everything shown comes from the order form.
+ * bottom, like Mandir and Haveli. Everything a couple sees is either a fixed design label or
+ * comes from the order form (the Gulmohar rule): no sample wording they can't change.
  */
 
 const art = "/art/illus";
@@ -331,10 +332,7 @@ function Hero({ invite }: { invite: Invite }) {
         Celebrations
       </motion.p>
       <Divider className="my-[5cqw]" delay={AFTER_OPEN + 0.5} />
-      <motion.p {...show(0.7)} className={`${italic} max-w-[64cqw] text-[3.9cqw] leading-relaxed`} style={{ color: c.soft }}>
-        As family and friends come together for this joyous occasion, we would be delighted to have you join us for the celebrations of
-      </motion.p>
-      <p className="mt-[7cqw] leading-tight">
+      <p className="mt-[3cqw] leading-tight">
         <Letters text={a.first.toUpperCase()} delay={AFTER_OPEN + 1.0} className={`${caps} text-[7.4cqw] tracking-[0.24em]`} />
       </p>
       <motion.p
@@ -510,7 +508,6 @@ function Closing({ invite }: { invite: Invite }) {
           {a.first} <span style={{ color: c.gold }}>&amp;</span> {b.first}
         </p>
         {invite.hashtag && <p className="inv-serif mt-[4cqw] text-[4.2cqw] font-semibold tracking-[0.04em]" style={{ color: c.gold }}>{invite.hashtag}</p>}
-        {!invite.noSignoff && invite.hosts && <p className={`${italic} mt-[4cqw] text-[3.8cqw]`} style={{ color: c.soft }}>With love, {invite.hosts}</p>}
         {!invite.noBranding && (
           <Link href="/" className="inv-label mt-[8cqw] inline-block text-[2.4cqw] tracking-[0.26em] opacity-70">
             Crafted with love by {site.name}
@@ -619,7 +616,6 @@ export const chameli: InviteTheme = {
     muted: "opacity-80",
     tile: "rounded-[3cqw] border border-[#b19254]/60 bg-[#fbf7ef]/95",
   },
-  countdownTitle: "Until we celebrate",
   Opening,
   Hero,
   Blessing,

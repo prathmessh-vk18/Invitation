@@ -855,7 +855,8 @@ export const invites: Invite[] = [
       { kind: "phere", name: "Wedding", start: "2027-02-20T19:30:00+05:30", venue: "The Grand Terrace, JW Marriott Mussoorie", address: "Kempty Fall Road, Mussoorie, Uttarakhand 248179", dress: "Traditional" },
       { kind: "reception", name: "Reception", start: "2027-02-21T20:00:00+05:30", venue: "The Ballroom, Hyatt Regency Dehradun", address: "Rajpur Road, Dehradun, Uttarakhand 248001" },
     ],
-    rsvp: { phone: "919699711809", by: "2027-02-05T00:00:00+05:30", contact: "Malhotra family" },
+    // The form always saves "Hosted by" as the RSVP contact.
+    rsvp: { phone: "919699711809", by: "2027-02-05T00:00:00+05:30", contact: "The Malhotra & Bhandari families" },
     closing: "Your blessings will make our day complete.",
   },
 ];
