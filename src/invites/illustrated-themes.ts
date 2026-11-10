@@ -72,8 +72,10 @@ export const bagh = makeIllustrated({
   opening: "doors",
   heroTextTop: 7,
   frame: { top: 14, bottom: 21, side: 3 },
-  colors: { ink: "#3d1633", accent: "#b5603a", soft: "#6a4a4a", paper: "#f3eadb", onAccent: "#fff" },
+  colors: { ink: "#2e0f27", accent: "#a14f2c", soft: "#4f3434", paper: "#f3eadb", onAccent: "#fff" },
   fonts: { script: "var(--font-dancing), cursive", serif: "var(--font-cormorant), serif", label: "var(--font-cinzel), serif" },
+  // Couples asked for easier reading: large, bold, full-ink text on every Bagh invite.
+  largeText: true,
 });
 
 // A Rajput palace gatefold (first made for Akshay & Vidhi). The couple arriving on elephants

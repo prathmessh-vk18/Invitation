@@ -37,6 +37,8 @@ export type InviteTheme = {
   scrollHint?: "scrollToSeeMore" | "scrollToWalkIn";
   // How long the opening stays on screen after the tap (ms), for longer intros like Chameli's. Default 1900.
   openingMs?: number;
+  // Large, bold text by default for every invite of this design.
+  largeText?: boolean;
   // A design's own countdown heading (e.g. "Anand Karaj in"), unless the couple set one.
   countdownTitle?: string;
 };

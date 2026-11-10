@@ -55,6 +55,8 @@ export type IllustratedSpec = {
   doorShade?: boolean;
   // Envelope only: a light colour for "You're invited" when the opening art is dark (Roka's red silk).
   openingInk?: string;
+  // Large, bold, full-ink text for every invite of this design (Bagh), as couples can't set it in the form.
+  largeText?: boolean;
 };
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -378,7 +380,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
   }
 
   function Blessing({ invite }: { invite: Invite }) {
-    const L = invite.largeText;
+    const L = invite.largeText ?? spec.largeText;
     const [a, b] = couple(invite);
     return (
       <section className="relative px-[14cqw] pt-[16cqw] pb-[14cqw] text-center">
@@ -425,14 +427,26 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
                 </p>
               )}
             </Reveal>
-          ))}
+          )).flatMap((block, i) =>
+            // "weds" (or "&" for an engagement) between the two names; a hand-set joiner wins.
+            i === 0
+              ? [
+                  block,
+                  <Reveal key="joiner" delay={0.16}>
+                    <p className="inv-script leading-none" style={{ color: c.accent, ...sz(L ? 7 : 6) }}>
+                      {invite.joiner ?? (invite.occasion === "engagement" ? "&" : "weds")}
+                    </p>
+                  </Reveal>,
+                ]
+              : [block],
+          )}
         </div>
       </section>
     );
   }
 
   function Events({ invite }: { invite: Invite }) {
-    const L = invite.largeText;
+    const L = invite.largeText ?? spec.largeText;
     // boldEvents: a darker, heavier date line and venue, for couples who asked for easier reading.
     const B = invite.boldEvents;
     return (
@@ -519,7 +533,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
   }
 
   function Closing({ invite }: { invite: Invite }) {
-    const L = invite.largeText;
+    const L = invite.largeText ?? spec.largeText;
     const [a, b] = couple(invite);
     const memorial = (className: string) =>
       invite.memorial && (
@@ -676,6 +690,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
   const theme: InviteTheme = {
     id: spec.id,
     tapHint: spec.opening === "doors" ? "tapDoors" : "tapSeal",
+    largeText: spec.largeText,
     root: "",
     vars: {
       "--inv-script": spec.fonts.script,
