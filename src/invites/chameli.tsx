@@ -33,7 +33,7 @@ const c = {
 };
 const ease = [0.22, 1, 0.36, 1] as const;
 // When the card starts writing itself in, after the envelope's light has filled the screen.
-const AFTER_OPEN = 2.15;
+const AFTER_OPEN = 2.95;
 
 const ist = (iso: string, o: Intl.DateTimeFormatOptions) => fmtDate(iso, o);
 const suffix = (d: number) => (d % 10 === 1 && d !== 11 ? "st" : d % 10 === 2 && d !== 12 ? "nd" : d % 10 === 3 && d !== 13 ? "rd" : "th");
@@ -111,25 +111,25 @@ function seeded(seed: number) {
   let s = seed;
   return () => ((s = (s * 16807) % 2147483647) - 1) / 2147483646;
 }
-const SEAL = { x: 50, y: 59 };
+// Where the flap's edge meets the sides, and its point, as % of the envelope (from the painting).
+const FLAP = { side: 34, tip: 58.5 };
+const flapShape = `polygon(0 0, 100% 0, 100% ${FLAP.side}%, 50% ${FLAP.tip}%, 0 ${FLAP.side}%)`;
+const bodyShape = `polygon(0 ${FLAP.side}%, 50% ${FLAP.tip}%, 100% ${FLAP.side}%, 100% 100%, 0 100%)`;
+// A few petals and sparks that float up out of the opened envelope with the card.
 const PETALS = (() => {
   const r = seeded(7);
-  return Array.from({ length: 30 }, (_, i) => {
-    const angle = -Math.PI / 2 + (r() - 0.5) * Math.PI * 1.5;
-    const dist = 45 + r() * 70;
-    return {
-      x: Math.cos(angle) * dist,
-      y: Math.sin(angle) * dist - 10 - r() * 25,
-      rot: (r() - 0.5) * 720,
-      size: 2.4 + r() * 3.2,
-      delay: 0.7 + r() * 0.5,
-      blush: i % 3 !== 0,
-    };
-  });
+  return Array.from({ length: 16 }, (_, i) => ({
+    x: (r() - 0.5) * 70,
+    y: -40 - r() * 70,
+    rot: (r() - 0.5) * 360,
+    size: 2.2 + r() * 2.4,
+    delay: 1.75 + r() * 0.6,
+    blush: i % 3 !== 0,
+  }));
 })();
 const SPARKS = (() => {
   const r = seeded(31);
-  return Array.from({ length: 26 }, () => ({ x: (r() - 0.5) * 90, y: -10 - r() * 70, d: 0.8 + r() * 0.9, s: 0.6 + r() * 1.2 }));
+  return Array.from({ length: 14 }, () => ({ x: (r() - 0.5) * 60, y: -20 - r() * 60, d: 1.6 + r() * 0.7, s: 0.5 + r() * 0.8 }));
 })();
 
 /** The gold wax seal with the couple's initials, drawn so every couple gets their own. */
@@ -160,35 +160,146 @@ function WaxSeal({ text }: { text: string }) {
   );
 }
 
+/**
+ * The envelope opens like a real one. The painting is cut into its flap and its front panel: the
+ * camera eases back to show the whole envelope, the flap swings up on its hinge (seal and all),
+ * the inside glows, the card slides out with the couple's names, and the camera moves into the
+ * card until it becomes the invitation.
+ */
 function Opening({ invite, opened, onOpen }: OpeningProps) {
   const reduce = useReducedMotion();
   const [a, b] = couple(invite);
   const go = opened && !reduce;
+  const envelope = `url(${art}/chameli-envelope.jpg) center/cover`;
+  const t = (from: number, dur: number, extra: object = {}) => ({ delay: from, duration: dur, ease, ...extra });
   return (
     <motion.div
       className="absolute inset-0 overflow-hidden"
-      style={{ background: c.paper, color: c.ink }}
+      style={{ background: "radial-gradient(120% 90% at 50% 40%, #d9cdb6, #b3a284 70%, #8f7f63)", color: c.ink }}
       animate={{ opacity: opened ? 0 : 1 }}
-      transition={{ delay: opened ? (reduce ? 0 : 2.05) : 0, duration: 0.8, ease }}
+      transition={{ delay: opened ? (reduce ? 0 : 3.15) : 0, duration: 0.45, ease }}
     >
-      {/* The closed envelope breathes; once opened, the open one shows under the light. */}
-      <motion.div className="absolute inset-0" animate={go ? { scale: 1.08 } : { scale: [1, 1.012, 1] }} transition={go ? { duration: 2.4, ease } : { duration: 7, repeat: Infinity, ease: "easeInOut" }}>
-        <Art src={`${art}/chameli-envelope.jpg`} alt="An ivory envelope with embossed jasmine, sealed in gold" priority />
-        <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: go ? 1 : 0 }} transition={{ delay: 0.55, duration: 0.5 }}>
-          <Art src={`${art}/chameli-envelope-open.jpg`} />
-        </motion.div>
-        {/* A sheen that sweeps across the paper while it waits. */}
-        {!opened && (
-          <motion.div
-            className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 bg-[linear-gradient(105deg,transparent,rgba(255,250,235,.45),transparent)]"
-            animate={{ x: ["0%", "320%"] }}
-            transition={{ duration: 2.6, repeat: Infinity, repeatDelay: 2.4, ease: "easeInOut" }}
+      {/* The envelope: eases back, then follows the card in. */}
+      <motion.div
+        className="absolute inset-0 [perspective:1400px]"
+        animate={go ? { scale: [1, 0.82, 0.82, 1.75], y: ["0%", "5%", "5%", "30%"] } : { scale: 1 }}
+        transition={go ? { duration: 3.2, times: [0, 0.16, 0.74, 1], ease: "easeInOut" } : {}}
+        style={{ boxShadow: go ? "0 40px 80px -30px rgba(40,28,10,.55)" : undefined }}
+      >
+        {/* The inside: the paper of the envelope's back, in shadow, showing once the flap lifts. */}
+        <div className="absolute inset-0" style={{ clipPath: flapShape }}>
+          <div className="absolute inset-0" style={{ background: `url(${art}/chameli-paper.jpg) center/cover`, filter: "brightness(.86) sepia(.15)" }} />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(60,42,15,.28), rgba(60,42,15,.05) 60%, rgba(60,42,15,.22))" }} />
+          {go && (
+            <motion.div
+              className="absolute inset-x-0 bottom-0 h-3/4"
+              style={{ background: "radial-gradient(60% 70% at 50% 100%, rgba(255,233,175,.95), rgba(255,220,150,.35) 55%, transparent)" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 1, 0.85] }}
+              transition={t(1.3, 1.1)}
+            />
+          )}
+        </div>
+
+        {/* The flap's inside, folded up behind the card once it's past upright. */}
+        <motion.div
+          className="absolute inset-0 origin-top"
+          style={{ zIndex: 1 }}
+          initial={{ rotateX: -90, opacity: 0 }}
+          animate={go ? { rotateX: [-90, -90, -178], opacity: [0, 0, 1, 1] } : { rotateX: -90, opacity: 0 }}
+          transition={go ? { rotateX: { duration: 1.85, times: [0, 0.62, 1], ease: "easeOut" }, opacity: { duration: 1.85, times: [0, 0.62, 0.63, 1] } } : {}}
+        >
+          <div
+            className="absolute inset-0"
+            style={{
+              clipPath: flapShape,
+              background: "linear-gradient(180deg, #ddd0b6, #ece2cf)",
+              boxShadow: "inset 0 0 40px rgba(80,60,25,.25)",
+            }}
           />
+        </motion.div>
+
+        {/* The card inside, which slides out. */}
+        <motion.div
+          className="absolute left-[10%] w-[80%] rounded-[1.5cqw] shadow-[0_18px_40px_-18px_rgba(60,40,10,.55)]"
+          style={{ top: "22%", aspectRatio: "0.72", background: `url(${art}/chameli-paper.jpg) center/cover`, zIndex: 2 }}
+          initial={{ y: "20%" }}
+          animate={go ? { y: ["20%", "20%", "-36%"] } : { y: "20%" }}
+          transition={go ? { duration: 2.55, times: [0, 0.62, 1], ease: [0.5, 0, 0.2, 1] } : {}}
+        >
+          <div className="absolute inset-[4%] border" style={{ borderColor: `${c.gold}aa` }} />
+          <div className="absolute inset-[5.5%] border" style={{ borderColor: `${c.gold}55` }} />
+          <motion.div className="absolute inset-x-0 top-[16%] text-center" animate={go ? { opacity: [1, 1, 0] } : {}} transition={go ? { duration: 3.1, times: [0, 0.84, 1] } : {}}>
+            <p className="inv-label text-[2.6cqw] tracking-[0.3em]" style={{ color: c.soft }}>
+              The {invite.occasion === "engagement" ? "Engagement" : invite.occasion === "reception" ? "Reception" : "Wedding"} of
+            </p>
+            <p className="inv-script mt-[2cqw] text-[10cqw] leading-tight" style={{ color: c.ink }}>{a.first}</p>
+            <p className="inv-script text-[5.5cqw] leading-none" style={{ color: c.gold }}>&amp;</p>
+            <p className="inv-script text-[10cqw] leading-tight" style={{ color: c.ink }}>{b.first}</p>
+          </motion.div>
+        </motion.div>
+
+        {/* The front panel, in front of the card. */}
+        <div className="absolute inset-0" style={{ clipPath: bodyShape, background: envelope, zIndex: 3 }} />
+
+        {/* The flap's outside, hinged along the top, with the seal riding on its point. It turns until
+            it's edge-on, and the inside (above) takes over from there. */}
+        <motion.div
+          className="absolute inset-0 origin-top"
+          style={{ zIndex: 4 }}
+          initial={{ rotateX: 0, opacity: 1 }}
+          animate={go ? { rotateX: [0, 0, -90], opacity: [1, 1, 1, 0] } : { rotateX: 0, opacity: 1 }}
+          transition={go ? { rotateX: { duration: 1.15, times: [0, 0.43, 1], ease: "easeIn" }, opacity: { duration: 1.16, times: [0, 0.5, 0.99, 1] } } : {}}
+        >
+          <div className="absolute inset-0" style={{ clipPath: flapShape, background: envelope }} />
+          {/* A shadow under the flap's edge, as it lifts off the panel. */}
+          {go && <motion.div className="absolute inset-0" style={{ clipPath: flapShape, background: "linear-gradient(180deg, transparent 50%, rgba(255,248,230,.55))" }} initial={{ opacity: 0 }} animate={{ opacity: [0, 0.9] }} transition={t(0.55, 0.2)} />}
+          <button
+            type="button"
+            onClick={onOpen}
+            aria-label="Open the invitation"
+            className="absolute size-[30cqw] -translate-x-1/2 -translate-y-1/2"
+            style={{ left: "50%", top: `${FLAP.tip}%` }}
+          >
+            <motion.span className="block size-full" animate={go ? { scale: [1, 1.1, 1] } : { scale: [1, 1.035, 1] }} transition={go ? { duration: 0.5 } : { duration: 2.6, repeat: Infinity, ease: "easeInOut" }}>
+              <WaxSeal text={initials(invite)} />
+            </motion.span>
+          </button>
+        </motion.div>
+
+        {/* Petals and sparks float up out of the envelope as the card rises. */}
+        {go && (
+          <div className="pointer-events-none absolute left-1/2 z-[5]" style={{ top: `${FLAP.side + 2}%` }}>
+            {SPARKS.map((sp, i) => (
+              <motion.span
+                key={`s${i}`}
+                className="absolute rounded-full bg-[#fff6d6] shadow-[0_0_6px_2px_rgba(255,226,150,.8)]"
+                style={{ width: `${sp.s}cqw`, height: `${sp.s}cqw` }}
+                initial={{ x: 0, y: 0, opacity: 0 }}
+                animate={{ x: `${sp.x}cqw`, y: `${sp.y}cqw`, opacity: [0, 1, 0] }}
+                transition={{ delay: sp.d, duration: 1.4, ease: "easeOut" }}
+              />
+            ))}
+            {PETALS.map((p, i) => (
+              <motion.span
+                key={`p${i}`}
+                className="absolute rounded-[60%_40%_60%_40%] shadow-sm"
+                style={{
+                  width: `${p.size}cqw`,
+                  height: `${p.size * 1.35}cqw`,
+                  background: p.blush ? "radial-gradient(circle at 30% 30%, #fde0e3, #f1a7b2)" : "radial-gradient(circle at 30% 30%, #ffffff, #efe6d2)",
+                }}
+                initial={{ x: 0, y: 0, rotate: 0, opacity: 0 }}
+                animate={{ x: `${p.x}cqw`, y: `${p.y}cqw`, rotate: p.rot, opacity: [0, 1, 1, 0] }}
+                transition={{ delay: p.delay, duration: 1.6, ease: "easeOut" }}
+              />
+            ))}
+          </div>
         )}
       </motion.div>
 
-      {/* Title above the flap */}
-      <motion.div className="pointer-events-none absolute inset-x-0 top-[9%] text-center" animate={{ opacity: opened ? 0 : 1, y: opened ? -16 : 0 }} transition={{ duration: 0.5 }}>
+      {/* Title above the flap, while it waits. */}
+      <motion.div className="pointer-events-none absolute inset-x-0 top-[9%] text-center" animate={{ opacity: opened ? 0 : 1, y: opened ? -16 : 0 }} transition={{ duration: 0.45 }}>
         <p className="inv-label text-[2.9cqw] tracking-[0.34em]" style={{ color: c.soft }}>
           A special invitation awaits
         </p>
@@ -197,93 +308,8 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
         </p>
       </motion.div>
 
-      {/* The seal: lifts, then flies off. */}
-      <motion.button
-        type="button"
-        onClick={onOpen}
-        aria-label="Open the invitation"
-        className="absolute size-[30cqw] -translate-x-1/2 -translate-y-1/2"
-        style={{ left: `${SEAL.x}%`, top: `${SEAL.y}%` }}
-        animate={
-          go
-            ? { scale: [1, 1.18, 0.55], y: ["0%", "-12%", "-260%"], rotate: [0, -6, -28], opacity: [1, 1, 0] }
-            : opened
-              ? { opacity: 0 }
-              : { scale: [1, 1.04, 1] }
-        }
-        transition={go ? { duration: 1.25, times: [0, 0.35, 1], ease: "easeInOut" } : { duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-      >
-        {!opened && <span className="absolute -inset-[3cqw] animate-ping rounded-full bg-[#f3d98a]/35 [animation-duration:2.6s]" />}
-        <WaxSeal text={initials(invite)} />
-      </motion.button>
-
-      {go && (
-        <>
-          {/* A line of light along the flap, then a golden bloom that fills the screen. */}
-          <motion.div
-            className="pointer-events-none absolute h-[1cqw] w-[70cqw] -translate-x-1/2 rounded-full bg-[#fff6d8] blur-[1.5cqw]"
-            style={{ left: `${SEAL.x}%`, top: `${SEAL.y - 1}%` }}
-            initial={{ opacity: 0, scaleX: 0.2 }}
-            animate={{ opacity: [0, 1, 0], scaleX: [0.2, 1.2, 1.4] }}
-            transition={{ delay: 0.35, duration: 0.9 }}
-          />
-          <motion.div
-            className="pointer-events-none absolute size-[60cqw] -translate-x-1/2 -translate-y-1/2 rounded-full"
-            style={{ left: `${SEAL.x}%`, top: `${SEAL.y - 6}%`, background: "radial-gradient(closest-side, #fffaf0, #fbe6ad 45%, rgba(246,214,140,.4) 70%, transparent)" }}
-            initial={{ scale: 0.1, opacity: 0 }}
-            animate={{ scale: [0.1, 1.4, 5.5], opacity: [0, 1, 1] }}
-            transition={{ delay: 0.6, duration: 1.7, times: [0, 0.4, 1], ease: "easeIn" }}
-          />
-          {/* Sparkle trails swirling up out of the envelope. */}
-          <svg className="pointer-events-none absolute inset-0 size-full" viewBox="0 0 100 177" preserveAspectRatio="none" aria-hidden>
-            {[
-              "M50 104 C 20 90, 80 70, 40 50 S 70 20, 55 2",
-              "M50 104 C 85 92, 25 72, 68 52 S 30 24, 46 0",
-              "M50 104 C 40 80, 95 76, 80 46 S 92 18, 78 -4",
-            ].map((d, i) => (
-              <motion.path
-                key={d}
-                d={d}
-                fill="none"
-                stroke={i === 1 ? "#fff3cf" : "#f5d989"}
-                strokeWidth={0.7}
-                strokeLinecap="round"
-                style={{ filter: "drop-shadow(0 0 1.2px #fff3cf)" }}
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: [0, 1, 1], opacity: [0, 1, 0] }}
-                transition={{ delay: 0.75 + i * 0.12, duration: 1.4, times: [0, 0.6, 1], ease: "easeOut" }}
-              />
-            ))}
-          </svg>
-          {SPARKS.map((s, i) => (
-            <motion.span
-              key={`s${i}`}
-              className="pointer-events-none absolute rounded-full bg-[#fff6d6] shadow-[0_0_6px_2px_rgba(255,226,150,.8)]"
-              style={{ left: `${SEAL.x}%`, top: `${SEAL.y}%`, width: `${s.s}cqw`, height: `${s.s}cqw` }}
-              initial={{ x: 0, y: 0, opacity: 0 }}
-              animate={{ x: `${s.x}cqw`, y: `${s.y}cqw`, opacity: [0, 1, 0] }}
-              transition={{ delay: s.d, duration: 1.3, ease: "easeOut" }}
-            />
-          ))}
-          {/* Jasmine and rose petals scatter. */}
-          {PETALS.map((p, i) => (
-            <motion.span
-              key={`p${i}`}
-              className="pointer-events-none absolute rounded-[60%_40%_60%_40%] shadow-sm"
-              style={{
-                left: `${SEAL.x}%`,
-                top: `${SEAL.y}%`,
-                width: `${p.size}cqw`,
-                height: `${p.size * 1.35}cqw`,
-                background: p.blush ? "radial-gradient(circle at 30% 30%, #fde0e3, #f1a7b2)" : "radial-gradient(circle at 30% 30%, #ffffff, #efe6d2)",
-              }}
-              initial={{ x: 0, y: 0, rotate: 0, opacity: 0 }}
-              animate={{ x: `${p.x}cqw`, y: [`0cqw`, `${p.y}cqw`, `${p.y + 30}cqw`], rotate: p.rot, opacity: [0, 1, 1, 0] }}
-              transition={{ delay: p.delay, duration: 1.9, ease: "easeOut" }}
-            />
-          ))}
-        </>
-      )}
+      {/* The card fills the screen at the end and becomes the invitation's paper. */}
+      {go && <motion.div className="pointer-events-none absolute inset-0" style={{ background: c.paper }} initial={{ opacity: 0 }} animate={{ opacity: [0, 0, 1] }} transition={{ duration: 3.2, times: [0, 0.82, 1] }} />}
     </motion.div>
   );
 }
@@ -553,7 +579,7 @@ export const chameli: InviteTheme = {
   id: "chameli",
   tapHint: "tapSeal",
   // The seal, the bloom and the petals take a little longer than other openings.
-  openingMs: 2900,
+  openingMs: 3700,
   root: "",
   vars: {
     "--inv-script": "var(--font-pinyon), cursive",
