@@ -112,6 +112,12 @@ export type Invite = {
   memorial?: { photo: string; name?: string; large?: boolean; last?: boolean };
   // `seal` is a whole seal of its own (shape, colour and all), shown in place of the gold one.
   sealFull?: boolean;
+  // Open on Mandir's carved temple doors re-coloured in Rajwada's maroon, whatever the design (first for Srinita & Smruti).
+  doors?: "maroon";
+  // A small image above the invocation on the cover (e.g. a gold Ganesha), transparent PNG in /art/seals.
+  invocationArt?: string;
+  // Leave the date line off the cover (the dates still show on every function card).
+  hideHeroDate?: boolean;
   // Functions grouped into one card per day, instead of a card each.
   eventsByDay?: boolean;
   // With eventsByDay: a name for each day, in order ("Sagai", "Shaadi"…), shown beside its date in the RSVP.

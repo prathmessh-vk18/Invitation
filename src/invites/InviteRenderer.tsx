@@ -10,6 +10,7 @@ import { LangContext, langOf, langVars } from "./i18n";
 import { OpenedContext } from "./opened";
 import { themes } from "./registry";
 import { ScrollHint, TapHint } from "./hints";
+import { maroonDoors as MaroonDoors } from "./mandir";
 import { ScratchDate } from "./scratch";
 import { Countdown, Gallery, MusicToggle, Rsvp, Story } from "./shared";
 
@@ -84,8 +85,8 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
         {!gone && (
           <div className={`fixed inset-0 z-50 flex justify-center ${opened ? "pointer-events-none" : ""}`}>
             <div className="@container relative h-full w-full max-w-[480px]">
-              <theme.Opening invite={invite} opened={opened} onOpen={open} />
-              <TapHint theme={theme} text={invite.openHint} opened={opened} onOpen={open} />
+              {invite.doors === "maroon" ? <MaroonDoors invite={invite} opened={opened} onOpen={open} /> : <theme.Opening invite={invite} opened={opened} onOpen={open} />}
+              <TapHint theme={invite.doors === "maroon" ? { ...theme, tapHint: "tapDoors" } : theme} text={invite.openHint} opened={opened} onOpen={open} />
             </div>
           </div>
         )}

@@ -48,6 +48,21 @@ const base = makeIllustrated({
   fonts: { script: "var(--font-bodoni), serif", serif: "var(--font-cormorant), serif", label: "var(--font-marcellus), serif" },
 });
 
+/**
+ * Mandir's doors re-coloured in Rajwada's maroon and gold, for an invite of any design that asks
+ * for them (`doors: "maroon"`). They open straight onto that design's own cover.
+ */
+export const maroonDoors = makeIllustrated({
+  id: "mandir",
+  images: { opening: `${art}/mandir-gate-maroon.jpg`, hero: `${art}/mandir-temple.jpg`, card: `${art}/mandir-card.jpg` },
+  opening: "doors",
+  frameOverHero: true,
+  heroTextTop: 8,
+  frame: FRAME,
+  colors: { ink: c.ink, accent: c.name, soft: c.soft, paper: c.paper, onAccent: "#fff" },
+  fonts: { script: "var(--font-bodoni), serif", serif: "var(--font-cormorant), serif", label: "var(--font-marcellus), serif" },
+}).Opening;
+
 /* ───────── Ornaments ───────── */
 
 /** A fine gold line with a half sun of rays below it, the design's divider. */

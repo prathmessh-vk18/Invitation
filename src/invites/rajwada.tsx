@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { EventGlyph } from "@/art/glyphs";
@@ -127,6 +129,11 @@ function Hero({ invite }: { invite: Invite }) {
         <Mandala color={GOLD} className="absolute top-[18cqw] left-1/2 w-[110cqw] -translate-x-1/2 animate-spin-slow opacity-[0.13]" />
         <JharokhaFrame className="absolute inset-0 h-full w-full" />
         <div className="relative flex min-h-[118cqw] flex-col items-center px-[8cqw] pt-[26cqw] pb-[10cqw] text-center">
+          {invite.invocationArt && (
+            <motion.div {...show(0.3)} className="relative -mt-[6cqw] mb-[2cqw] h-[20cqw] w-[16cqw]">
+              <Image src={invite.invocationArt} alt="" fill sizes="120px" className="object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,.35)]" />
+            </motion.div>
+          )}
           <motion.p {...show(0.4)} className="inv-deva text-[4.6cqw] text-[#f6d987]">
             {invite.invocation}
           </motion.p>
@@ -140,11 +147,13 @@ function Hero({ invite }: { invite: Invite }) {
           </motion.h1>
           <motion.div {...show(1.3)} className="mt-[5cqw] w-full">
             <LotusDivider color={GOLD} className="mx-auto w-[50cqw]" />
-            <div className="inv-label mt-[3cqw] flex items-center justify-center gap-[3cqw] text-[#fbf1dc]">
-              <span className="text-[2.6cqw]">{monthName(invite.date)}</span>
-              <span className="inv-serif text-[9cqw] leading-none tracking-normal text-[#f6d987]">{dayNum(invite.date)}</span>
-              <span className="text-[2.6cqw]">{yearNum(invite.date)}</span>
-            </div>
+            {!invite.hideHeroDate && (
+              <div className="inv-label mt-[3cqw] flex items-center justify-center gap-[3cqw] text-[#fbf1dc]">
+                <span className="text-[2.6cqw]">{monthName(invite.date)}</span>
+                <span className="inv-serif text-[9cqw] leading-none tracking-normal text-[#f6d987]">{dayNum(invite.date)}</span>
+                <span className="text-[2.6cqw]">{yearNum(invite.date)}</span>
+              </div>
+            )}
             <p className="inv-serif mt-[2cqw] text-[3.8cqw] text-[#fbf1dc]/75 italic">{invite.city}</p>
           </motion.div>
         </div>
