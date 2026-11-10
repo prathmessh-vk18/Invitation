@@ -61,7 +61,8 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
 
         {opened && theme.Frame && (
           <div className="pointer-events-none fixed inset-0 z-30 flex justify-center">
-            <div className="relative h-full w-full max-w-[480px]">
+            {/* A size container, so a frame drawn in cqw scales with the invite (≤480px), not the window. */}
+            <div className="@container relative h-full w-full max-w-[480px] overflow-hidden">
               <theme.Frame />
             </div>
           </div>
