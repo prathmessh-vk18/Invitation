@@ -253,9 +253,11 @@ function Closing({ invite }: { invite: Invite }) {
         {invite.hashtag && <p className="inv-label !normal-case mt-[5cqw] text-[2.8cqw] text-[#f6d987]">{invite.hashtag}</p>}
         {!invite.noSignoff && <p className="inv-label mt-[3cqw] text-[2.2cqw] text-[#fbf1dc]/60">With love · {invite.hosts}</p>}
       </Reveal>
-      <Link href="/" className="inv-label absolute inset-x-0 bottom-[6cqw] text-[2cqw] text-[#fbf1dc]/40">
-        Crafted by {site.name}
-      </Link>
+      {!invite.noBranding && (
+        <Link href="/" className="inv-label absolute inset-x-0 bottom-[6cqw] text-[2cqw] text-[#fbf1dc]/40">
+          Crafted by {site.name}
+        </Link>
+      )}
     </section>
   );
 }

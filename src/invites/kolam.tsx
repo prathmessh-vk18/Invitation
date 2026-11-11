@@ -402,9 +402,11 @@ function Closing({ invite }: { invite: Invite }) {
         </p>
         <p className="inv-label mt-[4cqw] text-[2.4cqw] text-[#fbf6ea]/70">{invite.hosts}</p>
       </Reveal>
-      <Link href="/" className="inv-label absolute inset-x-0 bottom-[6cqw] text-[2cqw] text-[#fbf6ea]/45">
-        Crafted by {site.name}
-      </Link>
+      {!invite.noBranding && (
+        <Link href="/" className="inv-label absolute inset-x-0 bottom-[6cqw] text-[2cqw] text-[#fbf6ea]/45">
+          Crafted by {site.name}
+        </Link>
+      )}
     </section>
   );
 }

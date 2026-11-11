@@ -234,9 +234,11 @@ function Closing({ invite }: { invite: Invite }) {
         </p>
         <p className="mt-[4cqw] text-[2.6cqw] tracking-[0.3em] uppercase opacity-70">{invite.hosts}</p>
       </Reveal>
-      <Link href="/" className="absolute inset-x-0 bottom-[6cqw] text-[2.2cqw] tracking-[0.3em] uppercase opacity-50">
-        Crafted by {site.name}
-      </Link>
+      {!invite.noBranding && (
+        <Link href="/" className="absolute inset-x-0 bottom-[6cqw] text-[2.2cqw] tracking-[0.3em] uppercase opacity-50">
+          Crafted by {site.name}
+        </Link>
+      )}
     </section>
   );
 }

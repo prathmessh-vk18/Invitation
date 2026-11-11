@@ -384,9 +384,11 @@ function Closing({ invite }: { invite: Invite }) {
           )}
         </Reveal>
       </div>
-      <Link href="/" className="absolute inset-x-0 bottom-[6cqw] text-[2.4cqw] font-semibold text-[#fff4e0]/50" style={gurmukhi}>
-        Crafted by {site.name}
-      </Link>
+      {!invite.noBranding && (
+        <Link href="/" className="absolute inset-x-0 bottom-[6cqw] text-[2.4cqw] font-semibold text-[#fff4e0]/50" style={gurmukhi}>
+          Crafted by {site.name}
+        </Link>
+      )}
     </section>
   );
 }

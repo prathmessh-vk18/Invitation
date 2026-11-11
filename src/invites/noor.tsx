@@ -347,9 +347,11 @@ function Closing({ invite }: { invite: Invite }) {
         </p>
         {invite.hashtag && <p className="inv-label !normal-case mt-[5cqw] text-[2.6cqw] text-[#f4efe2]/70">{invite.hashtag}</p>}
       </Reveal>
-      <Link href="/" className="inv-label absolute inset-x-0 bottom-[6cqw] text-[2cqw] text-[#f4efe2]/40">
-        Crafted by {site.name}
-      </Link>
+      {!invite.noBranding && (
+        <Link href="/" className="inv-label absolute inset-x-0 bottom-[6cqw] text-[2cqw] text-[#f4efe2]/40">
+          Crafted by {site.name}
+        </Link>
+      )}
     </section>
   );
 }
