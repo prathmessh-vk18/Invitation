@@ -134,6 +134,8 @@ export type Invite = {
   extras?: { title: string; lines: string[] }[];
   // A welcome line from the family, under those lists.
   welcome?: string;
+  // People guests can call, in their own section after the photos. Phones with the country code.
+  contacts?: { name: string; phones: string[] }[];
   // "hi" prints the invite's own words (headings, buttons, dates) in Hindi. Set by an admin for now.
   lang?: "hi";
 };

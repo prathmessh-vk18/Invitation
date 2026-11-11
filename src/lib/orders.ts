@@ -203,6 +203,14 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
           }
         : {}),
       ...(str(d.welcome, 200) ? { welcome: str(d.welcome, 200) } : {}),
+      ...(Array.isArray(d.contacts) && d.contacts.length
+        ? {
+            contacts: d.contacts.slice(0, 6).map((p) => {
+              const o = (p ?? {}) as Record<string, unknown>;
+              return { name: str(o.name, 60), phones: (Array.isArray(o.phones) ? o.phones : []).slice(0, 4).map(cleanPhone).filter((x) => x.length >= 10) };
+            }),
+          }
+        : {}),
       ...(typeof d.joiner === "string" && d.joiner.trim() ? { joiner: str(d.joiner, 12) } : {}),
       ...(d.plainCover === true ? { plainCover: true } : {}),
       ...(typeof d.monogram === "string" && d.monogram.trim() ? { monogram: str(d.monogram, 6) } : {}),

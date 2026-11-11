@@ -455,12 +455,49 @@ export function MusicToggle({ playing, onToggle, className }: { playing: boolean
   );
 }
 
+/* ───────── Contacts ───────── */
+
+/** "+91 97714 27915" from 919771427915; other numbers as they were saved. */
+const showPhone = (p: string) => (p.length === 12 && p.startsWith("91") ? `+91 ${p.slice(2, 7)} ${p.slice(7)}` : `+${p}`);
+
+/** People guests can call about the wedding, a tap on a number to ring it. Only when the invite lists them. */
+export function Contacts({ invite, theme }: { invite: Invite; theme: InviteTheme }) {
+  const { t } = useT();
+  if (!invite.contacts?.length) return null;
+  return (
+    <section className={theme.ui.section}>
+      <Reveal>
+        <theme.Title kicker={t.contactKicker}>{t.contactTitle}</theme.Title>
+        <div className="mt-[8cqw] space-y-[4cqw]">
+          {invite.contacts.map((p) => (
+            <div key={p.name} className={`${theme.ui.tile} px-[6cqw] py-[6cqw] text-center`}>
+              <p className="inv-serif text-[5.6cqw] leading-snug font-semibold">{p.name}</p>
+              <div className="mt-[4cqw] flex flex-wrap justify-center gap-[2.5cqw]">
+                {p.phones.map((ph) => (
+                  <a key={ph} href={`tel:+${ph}`} aria-label={t.call(p.name, showPhone(ph))} className={theme.ui.button}>
+                    <PhoneIcon /> {showPhone(ph)}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
 /* ───────── Icons ───────── */
 
 export const PinIcon = () => (
   <svg viewBox="0 0 24 24" className="size-[1.1em]" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
     <path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" />
     <circle cx="12" cy="9.5" r="2.5" />
+  </svg>
+);
+export const PhoneIcon = () => (
+  <svg viewBox="0 0 24 24" className="size-[1.1em]" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
+    <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z" />
   </svg>
 );
 export const CalIcon = () => (

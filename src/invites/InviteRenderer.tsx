@@ -12,7 +12,7 @@ import { themes } from "./registry";
 import { ScrollHint, TapHint } from "./hints";
 import { maroonDoors as MaroonDoors } from "./mandir";
 import { ScratchDate } from "./scratch";
-import { Countdown, Gallery, MusicToggle, Rsvp, Story } from "./shared";
+import { Contacts, Countdown, Gallery, MusicToggle, Rsvp, Story } from "./shared";
 
 export function InviteRenderer({ invite: given }: { invite: Invite }) {
   const invite = useMemo(() => withMapLinks(given), [given]);
@@ -44,6 +44,7 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
     <theme.Events key="events" invite={invite} />,
     <Story key="story" invite={invite} theme={theme} />,
     shows(invite, "gallery") && <Gallery key="gallery" invite={invite} theme={theme} />,
+    <Contacts key="contacts" invite={invite} theme={theme} />,
     shows(invite, "rsvp") && <Rsvp key="rsvp" invite={invite} theme={theme} />,
     <theme.Closing key="closing" invite={invite} />,
   ].filter(Boolean);
