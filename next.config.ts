@@ -37,8 +37,7 @@ const nextConfig: NextConfig = {
     return [
       // One address for search: www served a full copy of every page, which Google crawled twice
       // and listed as "Alternate page with proper canonical tag". Paths and queries carry over.
-      // /api stays on www, since a webhook set up with www may not follow a redirect.
-      { source: "/:path((?!api(?:/|$)).*)", has: [{ type: "host", value: "www.aavjoo.in" }], destination: "https://aavjoo.in/:path", permanent: true },
+      { source: "/:path*", has: [{ type: "host", value: "www.aavjoo.in" }], destination: "https://aavjoo.in/:path*", permanent: true },
       { source: "/i/vidhi-weds-akshay", destination: "/i/akshay-weds-vidhi", permanent: false },
       { source: "/i/priya-weds-samridha", destination: "/i/samriddha-weds-priya", permanent: false },
       { source: "/i/simran-weds-sahil", destination: "/i/simran-and-sahil", permanent: false },
