@@ -93,6 +93,8 @@ export const haveli = makeIllustrated({
   sealImageFor: ["akshay-weds-vidhi", "akshay-weds-vidhi-reception"],
   heroTextTop: 18,
   heroLead: 25,
+  // Two names side by side overflow the jaali arch (Kushagra & Poorva), so they stack.
+  stackNames: true,
   frame: { top: 12, bottom: 11, side: 6 },
   colors: { ink: "#5a1f2b", accent: "#9c4a3c", soft: "#6e564a", paper: "#f8f3e8", onAccent: "#fff" },
   fonts: { script: "var(--font-pinyon), cursive", serif: "var(--font-cormorant), serif", label: "var(--font-cinzel), serif" },

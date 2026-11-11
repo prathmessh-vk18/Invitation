@@ -57,6 +57,8 @@ export type IllustratedSpec = {
   openingInk?: string;
   // Large, bold, full-ink text for every invite of this design (Bagh), as couples can't set it in the form.
   largeText?: boolean;
+  // Names one below the other on the cover and closing, for designs whose arch is too narrow for both on one line (Haveli).
+  stackNames?: boolean;
 };
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -313,13 +315,15 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           <motion.p {...show(0.45)} className="inv-label relative mt-[2cqw] text-[2.5cqw]" style={{ color: c.ink }}>
             {invite.heroKicker ?? (invite.occasion === "engagement" ? "The engagement of" : "The wedding of")}
           </motion.p>
-          {invite.stackNames ? (
-            <motion.h1 {...show(0.7)} className="inv-script relative mt-[1.5cqw] flex flex-col items-center leading-[0.95] [text-shadow:0_1px_14px_rgba(255,250,240,.7)]" style={{ color: c.ink, ...sz(12) }}>
-              <span>{a.first}</span>
-              <span className="my-[0.6cqw] text-[7cqw]" style={{ color: c.accent }}>
+          {(invite.stackNames ?? spec.stackNames) ? (
+            // Each line is its own script block, so the fitter sizes each name to the width alone
+            // (measured together, "Kushagra&Poorva" read as one long word and both names shrank).
+            <motion.h1 {...show(0.7)} className="relative mt-[1.5cqw] flex flex-col items-center leading-[0.95] [text-shadow:0_1px_14px_rgba(255,250,240,.7)]" style={{ color: c.ink, ...sz(12) }}>
+              <span className="inv-script">{a.first}</span>
+              <span className="inv-script my-[0.6cqw] text-[7cqw]" style={{ color: c.accent }}>
                 {invite.joiner ?? "&"}
               </span>
-              <span>{b.first}</span>
+              <span className="inv-script">{b.first}</span>
             </motion.h1>
           ) : (
             <motion.h1 {...show(0.7)} className="inv-script relative mt-[1cqw] leading-[1] [text-shadow:0_1px_14px_rgba(255,250,240,.7)]" style={{ color: c.ink, ...sz(14) }}>
@@ -595,13 +599,13 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           <p className={`inv-serif mt-[6cqw] leading-snug italic ${L ? "text-[5.6cqw] font-medium" : "text-[5cqw]"}`} style={{ color: c.ink }}>
             {invite.closing}
           </p>
-          {invite.stackNames ? (
-            <p className="inv-script mt-[4cqw] flex flex-col items-center leading-[0.95]" style={{ color: c.ink, ...sz(10.5) }}>
-              <span>{a.first}</span>
-              <span className="my-[0.6cqw] text-[6.5cqw]" style={{ color: c.accent }}>
+          {(invite.stackNames ?? spec.stackNames) ? (
+            <p className="mt-[4cqw] flex flex-col items-center leading-[0.95]" style={{ color: c.ink, ...sz(10.5) }}>
+              <span className="inv-script">{a.first}</span>
+              <span className="inv-script my-[0.6cqw] text-[6.5cqw]" style={{ color: c.accent }}>
                 {invite.joiner ?? "&"}
               </span>
-              <span>{b.first}</span>
+              <span className="inv-script">{b.first}</span>
             </p>
           ) : (
             <p className="inv-script mt-[4cqw] leading-none" style={{ color: c.ink, ...sz(12) }}>
