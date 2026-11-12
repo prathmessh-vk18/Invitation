@@ -8,15 +8,15 @@ import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from
  * The Marathi design, storybook style. The mandap's gold arch, pillars, jasmine and lamps form a
  * frame that stays fixed while the whole invite scrolls under it.
  *
- * Opening, "Shubhamangal Saavdhaan", kept calm: the screen is the silk antarpat with "You're invited"
- * on it. Tap, and "शुभमंगल सावधान" glows softly onto the silk; the antarpat is then drawn up and
- * away, uncovering the couple from their feet up, while a little akshata drifts down. The frame
- * settles into place around them and their names write themselves in.
+ * Opening, "Shubh Mangal Saavdhan": the screen is the silk antarpat with "You're invited" on it.
+ * Tap, and the blessing writes itself onto the silk letter by letter; then the antarpat is drawn up
+ * and away, uncovering the couple from their feet up. As it rises, golden light blooms out from
+ * where they stand, sparkle trails swirl up after the cloth, jasmine and marigold petals scatter and
+ * akshata drifts down, while the camera pulls back. The frame settles in and the names write in.
+ * Everything is in English.
  */
 
 const C = { maroon: "#7a1424", ink: "#4a1d14", gold: "#b88a2e", goldLight: "#f6d98c", green: "#2d6a35", paper: "#fbf0d6" };
-const deva = "var(--font-deva)";
-const yatra = "var(--font-yatra)";
 const label = "var(--font-cinzel)";
 const serif = "var(--font-cormorant)";
 const script = "var(--font-great-vibes)";
@@ -24,8 +24,8 @@ const art = (f: string) => `/art/illus/${f}`;
 const ease = [0.22, 1, 0.36, 1] as const;
 
 // The opening's beats (seconds after the tap).
-// Calm and unhurried: the blessing glows in, then the antarpat is drawn up and away.
-const T = { blessing: 0, lift: 0.9, frame: 1.7, names: 2.2, done: 3.6 };
+// The blessing writes in, then the antarpat is drawn up and away into golden light.
+const T = { blessing: 0, lift: 1.3, frame: 2.3, names: 2.8, done: 4.4 };
 
 /** A small seeded random, so every burst plays the same way. */
 function seeded(seed: number) {
@@ -113,8 +113,14 @@ function Opening({ opened, onOpen }: { opened: boolean; onOpen: () => void }) {
   return (
     <div className="fixed inset-y-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 overflow-hidden" style={{ pointerEvents: opened ? "none" : "auto" }}>
       <div className="@container absolute inset-0">
+        {opened && <Glow />}
         <Antarpat opened={opened} />
-        {opened && <Akshata />}
+        {opened && (
+          <>
+            <Trails />
+            <Akshata />
+          </>
+        )}
         <AnimatePresence>
           {!opened && (
             <motion.button
@@ -154,7 +160,7 @@ function Silk({ children }: { children?: ReactNode }) {
 }
 
 /**
- * The antarpat fills the screen. At the tap, "शुभमंगल सावधान" glows softly onto it, then it is drawn
+ * The antarpat fills the screen. At the tap the blessing writes itself onto it, then it is drawn
  * up and away, uncovering the couple from their feet up. Its tasselled hem sways as it rises.
  */
 function Antarpat({ opened }: { opened: boolean }) {
@@ -172,18 +178,13 @@ function Antarpat({ opened }: { opened: boolean }) {
       >
         <Silk>
           <Invitation opened={opened} />
-          {/* The blessing, glowing softly onto the silk. */}
-          <motion.p
-            className="absolute inset-x-0 top-[34%] text-center text-[12cqw] leading-[1.2]"
-            style={{ fontFamily: yatra, color: "#ffe6a6", textShadow: "0 0 14px rgba(255,205,110,.55)" }}
-            initial={{ opacity: 0, y: 8 }}
-            animate={opened ? { opacity: 1, y: 0 } : { opacity: 0 }}
-            transition={{ duration: 0.9, delay: T.blessing + 0.15, ease }}
-          >
-            शुभमंगल
-            <br />
-            सावधान
-          </motion.p>
+          {/* The blessing, written onto the silk letter by letter. */}
+          {opened && (
+            <div className="absolute inset-x-0 top-[33%] flex flex-col items-center text-center" style={{ color: "#ffe6a6", textShadow: "0 0 14px rgba(255,205,110,.6)" }}>
+              <Letters text="SHUBH MANGAL" delay={T.blessing + 0.1} className="text-[7.6cqw] tracking-[0.16em]" style={{ fontFamily: label }} />
+              <Letters text="Saavdhan" delay={T.blessing + 0.55} className="mt-[2cqw] text-[17cqw] leading-none" style={{ fontFamily: script }} />
+            </div>
+          )}
         </Silk>
         <motion.div
           className="absolute inset-y-0 w-[55%] opacity-30 mix-blend-screen"
@@ -200,8 +201,8 @@ function Antarpat({ opened }: { opened: boolean }) {
 function Invitation({ opened }: { opened: boolean }) {
   return (
     <motion.div className="absolute inset-x-0 top-[18%] flex flex-col items-center text-center" animate={{ opacity: opened ? 0 : 1 }} transition={{ duration: 0.5 }}>
-      <p className="text-[4.4cqw]" style={{ fontFamily: yatra, color: C.goldLight }}>
-        ॥ श्री गणेशाय नमः ॥
+      <p className="text-[3cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: C.goldLight }}>
+        Shri Ganeshaya Namah
       </p>
       <p className="mt-[5cqw] text-[3cqw] tracking-[0.34em] uppercase" style={{ fontFamily: label, color: C.goldLight }}>
         You&rsquo;re invited
@@ -222,6 +223,105 @@ function Invitation({ opened }: { opened: boolean }) {
         <Image src={art("marathi-swastik.webp")} alt="" fill sizes="80px" className="object-contain" />
       </div>
     </motion.div>
+  );
+}
+
+/** A name or phrase arriving one letter at a time out of a soft blur, as on Chameli's cover. */
+function Letters({ text, delay, className, style }: { text: string; delay: number; className?: string; style?: CSSProperties }) {
+  return (
+    <span className={`inline-block ${className ?? ""}`} style={style} aria-label={text}>
+      {[...text].map((ch, i) => (
+        <motion.span
+          key={i}
+          aria-hidden
+          className="inline-block whitespace-pre"
+          initial={{ opacity: 0, y: "0.3em", filter: "blur(6px)" }}
+          animate={{ opacity: 1, y: "0em", filter: "blur(0px)" }}
+          transition={{ delay: delay + i * 0.045, duration: 0.7, ease }}
+        >
+          {ch}
+        </motion.span>
+      ))}
+    </span>
+  );
+}
+
+// Where the light comes from: between the couple, at the height of their garlands.
+const SOURCE = { x: 50, y: 62 };
+
+/** Warm golden light blooming out from where the couple stand as the cloth starts to rise. */
+function Glow() {
+  return (
+    <motion.div
+      className="pointer-events-none absolute size-[70cqw] -translate-x-1/2 -translate-y-1/2 rounded-full"
+      style={{ left: `${SOURCE.x}%`, top: `${SOURCE.y}%`, background: "radial-gradient(closest-side, #fffaf0, #fbe3a0 45%, rgba(246,210,130,.4) 70%, transparent)" }}
+      initial={{ scale: 0.1, opacity: 0 }}
+      animate={{ scale: [0.1, 1.3, 4.5], opacity: [0, 1, 0] }}
+      transition={{ delay: T.lift + 0.15, duration: 2.4, times: [0, 0.35, 1], ease: "easeOut" }}
+    />
+  );
+}
+
+const SPARKS = (() => {
+  const r = seeded(29);
+  return Array.from({ length: 24 }, () => ({ x: (r() - 0.5) * 90, y: -20 - r() * 90, d: T.lift + 0.35 + r() * 1.1, s: 0.6 + r() * 1.2 }));
+})();
+const PETALS = (() => {
+  const r = seeded(7);
+  return Array.from({ length: 26 }, (_, i) => {
+    const a = -Math.PI / 2 + (r() - 0.5) * Math.PI * 1.6;
+    const d = 40 + r() * 60;
+    return { x: Math.cos(a) * d, y: Math.sin(a) * d - 10, rot: (r() - 0.5) * 720, size: 2.4 + r() * 2.8, delay: T.lift + 0.4 + r() * 0.6, jasmine: i % 2 === 0 };
+  });
+})();
+
+/** Sparkle trails swirling up after the rising cloth, with sparks and a scatter of petals. */
+function Trails() {
+  return (
+    <>
+      <svg className="pointer-events-none absolute inset-0 size-full" viewBox="0 0 100 177" preserveAspectRatio="none" aria-hidden>
+        {["M50 110 C 22 96, 78 80, 40 60 S 70 30, 54 -6", "M50 110 C 82 98, 26 82, 64 62 S 30 32, 46 -8", "M50 110 C 38 88, 92 80, 78 52 S 90 20, 76 -8"].map((d, i) => (
+          <motion.path
+            key={d}
+            d={d}
+            fill="none"
+            stroke={i === 1 ? "#fff3cf" : "#f5d989"}
+            strokeWidth={0.6}
+            strokeLinecap="round"
+            style={{ filter: "drop-shadow(0 0 1.2px #fff3cf)" }}
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: [0, 1, 1], opacity: [0, 1, 0] }}
+            transition={{ delay: T.lift + 0.3 + i * 0.15, duration: 1.8, times: [0, 0.6, 1], ease: "easeOut" }}
+          />
+        ))}
+      </svg>
+      {SPARKS.map((sp, i) => (
+        <motion.span
+          key={`s${i}`}
+          className="pointer-events-none absolute rounded-full bg-[#fff6d6] shadow-[0_0_6px_2px_rgba(255,226,150,.8)]"
+          style={{ left: `${SOURCE.x}%`, top: `${SOURCE.y}%`, width: `${sp.s}cqw`, height: `${sp.s}cqw` }}
+          initial={{ x: 0, y: 0, opacity: 0 }}
+          animate={{ x: `${sp.x}cqw`, y: `${sp.y}cqw`, opacity: [0, 1, 0] }}
+          transition={{ delay: sp.d, duration: 1.5, ease: "easeOut" }}
+        />
+      ))}
+      {PETALS.map((p, i) => (
+        <motion.span
+          key={`p${i}`}
+          className="pointer-events-none absolute rounded-[60%_40%_60%_40%] shadow-sm"
+          style={{
+            left: `${SOURCE.x}%`,
+            top: `${SOURCE.y}%`,
+            width: `${p.size}cqw`,
+            height: `${p.size * 1.35}cqw`,
+            background: p.jasmine ? "radial-gradient(circle at 30% 30%, #ffffff, #efe6d2)" : "radial-gradient(circle at 30% 30%, #ffd27a, #f08a1c)",
+          }}
+          initial={{ x: 0, y: 0, rotate: 0, opacity: 0 }}
+          animate={{ x: `${p.x}cqw`, y: ["0cqw", `${p.y}cqw`, `${p.y + 35}cqw`], rotate: p.rot, opacity: [0, 1, 1, 0] }}
+          transition={{ delay: p.delay, duration: 2.2, ease: "easeOut" }}
+        />
+      ))}
+    </>
   );
 }
 
@@ -280,15 +380,15 @@ function Cover({ opened }: { opened: boolean }) {
   return (
     <section className="relative h-svh min-h-[170cqw] w-full overflow-hidden">
       {/* The camera eases back from close on the couple as the light clears. */}
-      <motion.div className="absolute inset-0" style={{ transformOrigin: "50% 60%" }} initial={{ scale: 1.1 }} animate={opened ? { scale: 1 } : {}} transition={{ duration: 3, delay: T.lift, ease }}>
+      <motion.div className="absolute inset-0" style={{ transformOrigin: "50% 60%" }} initial={{ scale: 1.3 }} animate={opened ? { scale: 1 } : {}} transition={{ duration: 2.8, delay: T.lift + 0.2, ease }}>
         <Image src={art("marathi-couple.jpg")} alt="A Marathi bride and groom face each other under the mandap" fill priority sizes="480px" className="object-cover object-bottom" />
       </motion.div>
-      <div className="absolute inset-x-[16%] top-[17cqw] flex flex-col items-center text-center">
-        <motion.p {...show(0)} className="text-[3.8cqw]" style={{ fontFamily: deva, color: C.maroon }}>
-          ॥ श्री गणेशाय नमः ॥
+      <div className="absolute inset-x-[16%] top-[22cqw] flex flex-col items-center text-center">
+        <motion.p {...show(0)} className="text-[2.8cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: C.gold }}>
+          Shri Ganeshaya Namah
         </motion.p>
-        <motion.p {...show(0.2)} className="mt-[1cqw] text-[10cqw] leading-none" style={{ fontFamily: yatra, color: C.maroon }}>
-          शुभविवाह
+        <motion.p {...show(0.2)} className="mt-[2cqw] text-[7.4cqw] leading-none tracking-[0.14em]" style={{ fontFamily: label, color: C.maroon }}>
+          SHUBH VIVAH
         </motion.p>
         {opened && (
           <p className="mt-[2cqw] text-[12cqw] leading-[1.1] whitespace-nowrap" style={{ fontFamily: script, color: C.ink }}>
@@ -339,8 +439,8 @@ function Families() {
   return (
     <Page>
       <Reveal>
-        <p className="text-[3.6cqw]" style={{ fontFamily: deva, color: C.maroon }}>
-          ॥ वक्रतुंड महाकाय सूर्यकोटि समप्रभ ॥
+        <p className="text-[2.8cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: C.gold }}>
+          Shri Ganeshaya Namah
         </p>
         <Small className="mt-[4cqw]">With the blessings of our elders</Small>
         <p className="mt-[3.5cqw] text-[4.4cqw] leading-snug font-semibold" style={{ fontFamily: serif, color: C.ink }}>
@@ -349,13 +449,13 @@ function Families() {
       </Reveal>
       <Divider />
       <Reveal delay={0.15}>
-        <p className="text-[4cqw]" style={{ fontFamily: deva, color: C.green }}>चि. सौ. कां.</p>
+        <Small color={C.green}>The bride</Small>
         <p className="text-[12cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>Aditi</p>
         <p className="mt-[1cqw] text-[3.6cqw] italic" style={{ fontFamily: serif, color: C.ink }}>daughter of Mr. Vijay &amp; Mrs. Sunanda Kulkarni</p>
       </Reveal>
       <p className="my-[2.5cqw] text-[6cqw]" style={{ fontFamily: serif, color: C.gold }}>&amp;</p>
       <Reveal delay={0.3}>
-        <p className="text-[4cqw]" style={{ fontFamily: deva, color: C.green }}>चि.</p>
+        <Small color={C.green}>The groom</Small>
         <p className="text-[12cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>Sameer</p>
         <p className="mt-[1cqw] text-[3.6cqw] italic" style={{ fontFamily: serif, color: C.ink }}>son of Mr. Prakash &amp; Mrs. Meera Deshpande</p>
       </Reveal>
@@ -366,7 +466,7 @@ function Families() {
 function Event({ mr, en, when, venue, dress }: { mr: string; en: string; when: string; venue: string; dress: string }) {
   return (
     <Reveal>
-      <p className="text-[7cqw] leading-tight" style={{ fontFamily: yatra, color: C.maroon }}>{mr}</p>
+      <p className="text-[11cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>{mr}</p>
       <Small className="mt-[1cqw]" color={C.gold}>{en}</Small>
       <p className="mt-[2.5cqw] text-[4.4cqw] font-semibold" style={{ fontFamily: serif, color: C.ink }}>{when}</p>
       <p className="mt-[0.5cqw] text-[3.8cqw] leading-snug" style={{ fontFamily: serif, color: C.ink }}>{venue}</p>
@@ -386,9 +486,9 @@ function Functions() {
         <p className="text-[11cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>The celebrations</p>
       </Reveal>
       <div className="mt-[3cqw]" />
-      <Event mr="हळद" en="Haldi" when="Friday, 19 Feb · 10:00 am" venue="Kulkarni Wada, Sadashiv Peth, Pune" dress="Shades of yellow" />
+      <Event mr="Haldi" en="The turmeric ceremony" when="Friday, 19 Feb · 10:00 am" venue="Kulkarni Wada, Sadashiv Peth, Pune" dress="Shades of yellow" />
       <Divider />
-      <Event mr="शुभमुहूर्त · लग्न" en="Lagna · Muhurta 11:45 am" when="Saturday, 20 Feb · 11:45 am" venue="Shree Ganesh Mangal Karyalay, Kothrud, Pune" dress="Paithani & pheta" />
+      <Event mr="Lagna" en="The wedding · Muhurta 11:45 am" when="Saturday, 20 Feb · 11:45 am" venue="Shree Ganesh Mangal Karyalay, Kothrud, Pune" dress="Paithani & pheta" />
     </Page>
   );
 }
@@ -405,8 +505,8 @@ function Closing() {
           <p className="mt-[1cqw] text-[11cqw] leading-tight whitespace-nowrap" style={{ fontFamily: script, color: C.maroon }}>
             Aditi &amp; Sameer
           </p>
-          <p className="mt-[1cqw] text-[3.8cqw]" style={{ fontFamily: yatra, color: C.maroon }}>
-            आपली उपस्थिती प्रार्थनीय
+          <p className="mt-[2cqw] text-[2.8cqw] tracking-[0.28em] uppercase" style={{ fontFamily: label, color: C.maroon }}>
+            We await your presence
           </p>
         </Reveal>
       </div>

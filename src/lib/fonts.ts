@@ -18,7 +18,6 @@ import {
   Manrope,
   Pinyon_Script,
   Tiro_Devanagari_Hindi,
-  Yatra_One,
   Great_Vibes,
 } from "next/font/google";
 
@@ -72,11 +71,9 @@ export const dancing = Dancing_Script({ preload: false, subsets: ["latin"], vari
 export const alexBrush = Alex_Brush({ preload: false, subsets: ["latin"], variable: "--font-alex-brush", weight: "400" });
 export const italiana = Italiana({ preload: false, subsets: ["latin"], variable: "--font-italiana", weight: "400" });
 
-// The Marathi design: Yatra One is a hand-lettered Devanagari display face (with matching Latin),
-// paired with Great Vibes for the couple's names.
-export const yatra = Yatra_One({ preload: false, subsets: ["devanagari", "latin"], variable: "--font-yatra", weight: "400" });
+// The Marathi design's script for the couple's names.
 export const greatVibes = Great_Vibes({ preload: false, subsets: ["latin"], variable: "--font-great-vibes", weight: "400" });
 
-export const fontVars = [yatra, greatVibes, alexBrush, italiana, dancing, amiri, marcellus, gurmukhi, rozha, tamil, yeseva, fraunces, geist, inter, manrope, cinzel, cormorant, parisienne, pinyon, bodoni, devanagari]
+export const fontVars = [greatVibes, alexBrush, italiana, dancing, amiri, marcellus, gurmukhi, rozha, tamil, yeseva, fraunces, geist, inter, manrope, cinzel, cormorant, parisienne, pinyon, bodoni, devanagari]
   .map((f) => f.variable)
   .join(" ");
