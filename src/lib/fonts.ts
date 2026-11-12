@@ -18,6 +18,9 @@ import {
   Manrope,
   Pinyon_Script,
   Tiro_Devanagari_Hindi,
+  Yatra_One,
+  Great_Vibes,
+  Playfair_Display,
 } from "next/font/google";
 
 // Site shell. Only these two are preloaded on every page; each invitation face loads when a page
@@ -70,6 +73,12 @@ export const dancing = Dancing_Script({ preload: false, subsets: ["latin"], vari
 export const alexBrush = Alex_Brush({ preload: false, subsets: ["latin"], variable: "--font-alex-brush", weight: "400" });
 export const italiana = Italiana({ preload: false, subsets: ["latin"], variable: "--font-italiana", weight: "400" });
 
-export const fontVars = [alexBrush, italiana, dancing, amiri, marcellus, gurmukhi, rozha, tamil, yeseva, fraunces, geist, inter, manrope, cinzel, cormorant, parisienne, pinyon, bodoni, devanagari]
+// The Marathi design: Yatra One is a hand-lettered Devanagari display face (with matching Latin),
+// paired with Great Vibes and Playfair Display italic as name options.
+export const yatra = Yatra_One({ preload: false, subsets: ["devanagari", "latin"], variable: "--font-yatra", weight: "400" });
+export const greatVibes = Great_Vibes({ preload: false, subsets: ["latin"], variable: "--font-great-vibes", weight: "400" });
+export const playfair = Playfair_Display({ preload: false, subsets: ["latin"], variable: "--font-playfair", style: ["normal", "italic"], weight: ["500", "700"] });
+
+export const fontVars = [yatra, greatVibes, playfair, alexBrush, italiana, dancing, amiri, marcellus, gurmukhi, rozha, tamil, yeseva, fraunces, geist, inter, manrope, cinzel, cormorant, parisienne, pinyon, bodoni, devanagari]
   .map((f) => f.variable)
   .join(" ");

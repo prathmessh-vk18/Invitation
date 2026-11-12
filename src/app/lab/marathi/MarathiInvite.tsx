@@ -5,29 +5,38 @@ import { motion } from "framer-motion";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 /**
- * The Marathi design, storybook style. It opens on the antarpat held between bride and groom:
- * tap, "शुभमंगल सावधान" glows above them, akshata showers down, the cloth is lowered out of sight
- * and the camera eases back onto the two of them face to face, as the cover writes itself in.
- * Then the Paithani cards (families, functions) and the closing walk home to the wada.
+ * The Marathi design, storybook style, inside a carved wada frame (sanai and dhol on its balconies)
+ * that stays put while the invite scrolls under it, as Haveli's arch does.
+ *
+ * It opens on the antarpat, hanging from behind the frame's arch between bride and groom with
+ * "You're invited" on it. Tap: the words become "शुभमंगल सावधान", akshata showers down, the cloth
+ * is lowered out of sight and the camera eases back onto the two of them face to face, as the cover
+ * writes itself in. Then the families, the functions and the walk home to the wada.
+ *
+ * ?font=yatra (default) | vibes | playfair picks the face for the couple's names.
  */
 
-const C = { maroon: "#7a1424", ink: "#4a1d14", gold: "#b88a2e", green: "#2d6a35", paper: "#fbf0dc" };
-const deva = "var(--font-deva)";
-const rozha = "var(--font-rozha)";
+const C = { maroon: "#7a1424", ink: "#4a1d14", gold: "#b88a2e", goldLight: "#f6d98c", green: "#2d6a35", paper: "#fbf0d6" };
+const deva = "var(--font-yatra)";
 const label = "var(--font-cinzel)";
 const serif = "var(--font-cormorant)";
-const script = "var(--font-pinyon)";
 const art = (f: string) => `/art/illus/${f}`;
 const ease = [0.65, 0, 0.35, 1] as const;
 
-// The antarpat's place in the scene, between the two of them (% of the painting).
-const CLOTH = { left: 35.5, width: 30, top: 35 };
-// The floor line: the cloth is lowered behind it.
-const FLOOR = 93;
+type FontId = "yatra" | "vibes" | "playfair";
+const NAME_FONT: Record<FontId, { family: string; scale: number; italic?: boolean }> = {
+  yatra: { family: "var(--font-yatra)", scale: 0.82 },
+  vibes: { family: "var(--font-great-vibes)", scale: 1.05 },
+  playfair: { family: "var(--font-playfair)", scale: 0.8, italic: true },
+};
 
-export function MarathiInvite() {
+// The antarpat in the scene (% of the section): it hangs from behind the frame's arch.
+const CLOTH = { left: 33, width: 34, top: 9, height: 41 };
+
+export function MarathiInvite({ font = "yatra" }: { font?: string }) {
   const [opened, setOpened] = useState(false);
   const [run, setRun] = useState(0);
+  const [fontId, setFontId] = useState<FontId>(font === "vibes" || font === "playfair" ? font : "yatra");
   useEffect(() => {
     document.documentElement.style.overflow = opened ? "" : "hidden";
     return () => {
@@ -39,69 +48,61 @@ export function MarathiInvite() {
     setOpened(false);
     setRun((r) => r + 1);
   };
+  const nameFont = NAME_FONT[fontId];
 
   return (
     <div className="flex min-h-svh justify-center bg-[#1b1412]">
       <div className="@container relative w-full max-w-[480px]" style={{ background: C.paper }}>
-        <Opening key={run} opened={opened} onOpen={() => setOpened(true)} />
+        <Opening key={run} opened={opened} onOpen={() => setOpened(true)} nameFont={nameFont} />
         {opened && (
           <>
-            <Families />
+            <Families nameFont={nameFont} />
             <Functions />
-            <Closing />
+            <Closing nameFont={nameFont} />
           </>
         )}
-        <button type="button" onClick={replay} className="fixed top-3 right-3 z-[70] rounded-full bg-black/55 px-3 py-1.5 text-[12px] text-white backdrop-blur">
-          ↻ Replay
-        </button>
+        {/* The wada frame stays in place over everything. */}
+        <div className="pointer-events-none fixed inset-y-0 left-1/2 z-40 w-full max-w-[480px] -translate-x-1/2">
+          <Image src={art("marathi-frame.webp")} alt="" fill priority sizes="480px" className="object-fill" />
+        </div>
+        <div className="fixed top-2 left-1/2 z-[70] flex -translate-x-1/2 gap-1 text-[11px]">
+          {(["yatra", "vibes", "playfair"] as const).map((f) => (
+            <button key={f} type="button" onClick={() => setFontId(f)} className={`rounded-full px-2.5 py-1 ${fontId === f ? "bg-white text-black" : "bg-black/55 text-white"}`}>
+              {f === "yatra" ? "Yatra One" : f === "vibes" ? "Great Vibes" : "Playfair"}
+            </button>
+          ))}
+          <button type="button" onClick={replay} className="rounded-full bg-black/55 px-2.5 py-1 text-white">
+            ↻
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-/* ───────── Opening and cover: one painting, the antarpat lowered out of it ───────── */
+type NameFont = (typeof NAME_FONT)[FontId];
+const nameStyle = (f: NameFont, cqw: number, color: string) => ({ fontFamily: f.family, fontSize: `${cqw * f.scale}cqw`, fontStyle: f.italic ? "italic" : undefined, color });
 
-function Opening({ opened, onOpen }: { opened: boolean; onOpen: () => void }) {
+/* ───────── Opening and cover ───────── */
+
+function Opening({ opened, onOpen, nameFont }: { opened: boolean; onOpen: () => void; nameFont: NameFont }) {
   return (
-    <section className="relative w-full overflow-hidden" style={{ aspectRatio: "864 / 1536" }}>
+    <section className="relative h-svh min-h-[178cqw] w-full overflow-hidden">
       {/* The camera: close on the couple and the cloth, easing back to the whole mandap. */}
       <motion.div
         className="absolute inset-0"
-        style={{ transformOrigin: "50% 62%" }}
-        initial={{ scale: 1.28 }}
-        animate={{ scale: opened ? 1 : 1.28 }}
-        transition={{ duration: 2.4, delay: opened ? 1.5 : 0, ease }}
+        style={{ transformOrigin: "50% 58%" }}
+        initial={{ scale: 1.14 }}
+        animate={{ scale: opened ? 1 : 1.14 }}
+        transition={{ duration: 2.4, delay: opened ? 2.2 : 0, ease }}
       >
-        <Image src={art("marathi-scene.jpg")} alt="A Marathi bride and groom face each other under the mandap" fill priority sizes="480px" className="object-cover" />
-        {/* The antarpat, lowered behind the floor line. */}
-        <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height: `${FLOOR}%` }}>
-          <motion.div
-            className="absolute origin-top"
-            style={{ left: `${CLOTH.left}%`, width: `${CLOTH.width}%`, top: `${CLOTH.top}%`, aspectRatio: "561 / 983" }}
-            initial={false}
-            animate={opened ? { y: "240%", rotate: 0 } : { y: "0%", rotate: [-0.6, 0.6, -0.6] }}
-            transition={opened ? { duration: 1.9, delay: 0.75, ease: [0.5, 0, 0.75, 0.3] } : { rotate: { duration: 4.5, repeat: Infinity, ease: "easeInOut" } }}
-          >
-            <Image src={art("marathi-antarpat-cloth.webp")} alt="" fill priority sizes="160px" className="object-contain drop-shadow-[0_6px_10px_rgba(70,30,10,.25)]" />
-          </motion.div>
-        </div>
+        <Image src={art("marathi-couple.jpg")} alt="A Marathi bride and groom face each other under the mandap" fill priority sizes="480px" className="object-cover" />
+        <Antarpat opened={opened} nameFont={nameFont} />
       </motion.div>
 
       {!opened && <Petals />}
       {opened && <Akshata />}
-
-      {/* "शुभमंगल सावधान" glows in at the tap, and gives way to the cover. */}
-      <motion.p
-        className="pointer-events-none absolute inset-x-0 top-[17%] text-center text-[9cqw] leading-none"
-        style={{ fontFamily: rozha, color: C.maroon, textShadow: "0 0 18px rgba(255,214,120,.9)" }}
-        initial={{ opacity: 0, scale: 0.85 }}
-        animate={opened ? { opacity: [0, 1, 1, 0], scale: [0.85, 1, 1, 1.04] } : { opacity: 0 }}
-        transition={{ duration: 3.2, times: [0, 0.18, 0.78, 1] }}
-      >
-        ॥ शुभमंगल सावधान ॥
-      </motion.p>
-
-      <Cover opened={opened} />
+      <Cover opened={opened} nameFont={nameFont} />
 
       {!opened && (
         <>
@@ -109,7 +110,7 @@ function Opening({ opened, onOpen }: { opened: boolean; onOpen: () => void }) {
           <motion.button
             type="button"
             onClick={onOpen}
-            className="absolute bottom-[6%] left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full bg-[rgba(24,14,10,.74)] px-5 py-3 text-[clamp(14px,3.9cqw,17px)] font-semibold whitespace-nowrap text-white shadow-[0_6px_24px_rgba(0,0,0,.35)] ring-1 ring-white/25 backdrop-blur-md"
+            className="absolute bottom-[14%] left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-[rgba(24,14,10,.78)] px-5 py-3 text-[clamp(14px,3.9cqw,17px)] font-semibold whitespace-nowrap text-white shadow-[0_6px_24px_rgba(0,0,0,.35)] ring-1 ring-white/25 backdrop-blur-md"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: [0, -4, 0] }}
             transition={{ opacity: { delay: 0.8, duration: 0.5 }, y: { delay: 1.2, duration: 1.8, repeat: Infinity, ease: "easeInOut" } }}
@@ -122,25 +123,91 @@ function Opening({ opened, onOpen }: { opened: boolean; onOpen: () => void }) {
   );
 }
 
-function Cover({ opened }: { opened: boolean }) {
+/**
+ * The antarpat: maroon silk with Paithani borders, drawn as a border-image so it can be any length
+ * without stretching its peacocks. "You're invited" on it turns into "शुभमंगल सावधान" at the tap;
+ * then it is lowered out of sight.
+ */
+function Antarpat({ opened, nameFont }: { opened: boolean; nameFont: NameFont }) {
+  return (
+    <motion.div
+      className="absolute origin-top"
+      style={{
+        left: `${CLOTH.left}%`,
+        width: `${CLOTH.width}%`,
+        top: `${CLOTH.top}%`,
+        height: `${CLOTH.height}%`,
+        borderStyle: "solid",
+        borderWidth: "3.6cqw 5.9cqw 7cqw 5.9cqw",
+        borderImage: `url(${art("marathi-antarpat-plain.webp")}) 6% 17.5% 12% 17.5% / 3.6cqw 5.9cqw 7cqw 5.9cqw stretch round`,
+        background: `url(${art("marathi-antarpat-silk.webp")}) center / 100% 100% no-repeat padding-box`,
+        filter: "drop-shadow(0 8px 12px rgba(70,30,10,.28))",
+      }}
+      initial={false}
+      animate={opened ? { y: "190%", opacity: [1, 1, 0] } : { y: "0%", skewX: [-0.4, 0.4, -0.4] }}
+      transition={
+        opened
+          ? { duration: 2, delay: 1.5, ease: [0.5, 0, 0.75, 0.3], opacity: { duration: 2, delay: 1.5, times: [0, 0.8, 1] } }
+          : { skewX: { duration: 5, repeat: Infinity, ease: "easeInOut" } }
+      }
+    >
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+        {/* Before the tap: the invitation. */}
+        <motion.div className="absolute inset-x-0 top-[21%] flex flex-col items-center" animate={{ opacity: opened ? 0 : 1 }} transition={{ duration: 0.4 }}>
+          <p className="text-[2.2cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: C.goldLight }}>
+            You&rsquo;re invited
+          </p>
+          <p className="mt-[1.5cqw] leading-tight" style={nameStyle(nameFont, 7.6, C.goldLight)}>
+            Aditi
+          </p>
+          <p className="text-[4cqw] leading-none" style={{ fontFamily: serif, color: C.goldLight }}>
+            &amp;
+          </p>
+          <p className="leading-tight" style={nameStyle(nameFont, 7.6, C.goldLight)}>
+            Sameer
+          </p>
+        </motion.div>
+        {/* At the tap: the blessing. */}
+        <motion.p
+          className="absolute inset-x-0 top-[27%] text-[6cqw] leading-[1.25] whitespace-nowrap"
+          style={{ fontFamily: deva, color: C.goldLight, textShadow: "0 0 14px rgba(255,214,120,.8)" }}
+          initial={{ opacity: 0, scale: 0.85 }}
+          animate={opened ? { opacity: 1, scale: 1 } : { opacity: 0 }}
+          transition={{ duration: 0.8, delay: 0.35 }}
+        >
+          शुभमंगल
+          <br />
+          सावधान
+        </motion.p>
+        <div className="absolute top-[62%] left-1/2 w-[34%] -translate-x-1/2" style={{ aspectRatio: "1" }}>
+          <Image src={art("marathi-swastik.webp")} alt="" fill sizes="80px" className="object-contain" />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function Cover({ opened, nameFont }: { opened: boolean; nameFont: NameFont }) {
   const show = (d: number) => ({
     initial: { opacity: 0, y: 14, filter: "blur(6px)" },
     animate: opened ? { opacity: 1, y: 0, filter: "blur(0px)" } : {},
-    transition: { duration: 1.1, delay: 3.4 + d, ease },
+    transition: { duration: 1.1, delay: 4.2 + d, ease },
   });
   return (
-    <div className="pointer-events-none absolute inset-x-[10%] top-[10.5%] flex flex-col items-center text-center">
-      <motion.p {...show(0)} className="text-[4.2cqw]" style={{ fontFamily: deva, color: C.maroon }}>
+    <div className="pointer-events-none absolute inset-x-[19%] top-[17%] flex flex-col items-center text-center">
+      <motion.p {...show(0)} className="text-[3.8cqw]" style={{ fontFamily: deva, color: C.maroon }}>
         ॥ श्री गणेशाय नमः ॥
       </motion.p>
-      <motion.p {...show(0.25)} className="mt-[1.5cqw] text-[11cqw] leading-none" style={{ fontFamily: rozha, color: C.maroon }}>
+      <motion.p {...show(0.25)} className="mt-[1cqw] text-[10cqw] leading-none" style={{ fontFamily: deva, color: C.maroon }}>
         शुभविवाह
       </motion.p>
-      <motion.p {...show(0.55)} className="mt-[3cqw] text-[12cqw] leading-[0.95]" style={{ fontFamily: script, color: C.ink }}>
-        Aditi <span className="text-[7cqw]" style={{ color: C.gold }}>&amp;</span> Sameer
+      <motion.p {...show(0.55)} className="mt-[2cqw] leading-[1.05] whitespace-nowrap" style={nameStyle(nameFont, 8.6, C.ink)}>
+        Aditi <span style={{ color: C.gold }}>&amp;</span> Sameer
       </motion.p>
-      <motion.p {...show(0.8)} className="mt-[3cqw] text-[2.6cqw] tracking-[0.28em] uppercase" style={{ fontFamily: label, color: C.ink }}>
-        Saturday · 20 February 2027 · Pune
+      <motion.p {...show(0.8)} className="mt-[2cqw] text-[2.4cqw] leading-relaxed tracking-[0.2em] uppercase" style={{ fontFamily: label, color: C.ink }}>
+        Saturday · 20 February 2027
+        <br />
+        Pune
       </motion.p>
     </div>
   );
@@ -150,13 +217,12 @@ function Cover({ opened }: { opened: boolean }) {
 
 const GRAIN = ["#fff6dc", "#f6e7b8", "#fffaf0", "#f1dc9f"];
 
-/** Akshata showering down over the mandap as the antarpat is lowered. */
 function Akshata() {
   const grains = useMemo(
     () =>
       Array.from({ length: 90 }, (_, i) => ({
-        x: (i * 37) % 100,
-        d: 0.55 + ((i * 13) % 100) / 70,
+        x: 8 + ((i * 37) % 84),
+        d: 0.9 + ((i * 13) % 100) / 70,
         t: 2.4 + ((i * 7) % 10) / 6,
         sway: ((i * 17) % 10) - 5,
         rot: (i * 61) % 360,
@@ -165,11 +231,11 @@ function Akshata() {
     [],
   );
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
       {grains.map((g, i) => (
         <motion.span
           key={i}
-          className="absolute -top-[3cqw]"
+          className="absolute top-[10%]"
           style={{
             left: `${g.x}%`,
             width: g.red ? "1.3cqw" : "2.4cqw",
@@ -179,7 +245,7 @@ function Akshata() {
             border: g.red ? "none" : "1px solid #b98c3c",
           }}
           initial={{ y: 0, x: 0, rotate: g.rot, opacity: 0 }}
-          animate={{ y: "180cqw", x: ["0cqw", `${g.sway}cqw`, `${-g.sway / 2}cqw`], rotate: g.rot + 420, opacity: [0, 1, 1, 0] }}
+          animate={{ y: "170cqw", x: ["0cqw", `${g.sway}cqw`, `${-g.sway / 2}cqw`], rotate: g.rot + 420, opacity: [0, 1, 1, 0] }}
           transition={{ duration: g.t, delay: g.d, ease: "easeIn", times: [0, 0.08, 0.85, 1] }}
         />
       ))}
@@ -187,17 +253,16 @@ function Akshata() {
   );
 }
 
-/** A few petals drifting while the antarpat is held up. */
 function Petals() {
-  const petals = useMemo(() => Array.from({ length: 10 }, (_, i) => ({ x: 8 + ((i * 41) % 84), d: (i * 0.9) % 6, t: 7 + (i % 4), pink: i % 2 === 0 })), []);
+  const petals = useMemo(() => Array.from({ length: 10 }, (_, i) => ({ x: 12 + ((i * 41) % 76), d: (i * 0.9) % 6, t: 7 + (i % 4), pink: i % 2 === 0 })), []);
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
       {petals.map((p, i) => (
         <motion.span
           key={i}
-          className="absolute -top-[3cqw] h-[2cqw] w-[1.4cqw] rounded-[60%_40%_60%_40%]"
+          className="absolute top-[12%] h-[2cqw] w-[1.4cqw] rounded-[60%_40%_60%_40%]"
           style={{ left: `${p.x}%`, background: p.pink ? "#f29bb4" : "#fff4f0", border: "1px solid rgba(160,60,80,.35)" }}
-          animate={{ y: ["0cqw", "180cqw"], x: ["0cqw", "6cqw", "-4cqw"], rotate: [0, 260] }}
+          animate={{ y: ["0cqw", "170cqw"], x: ["0cqw", "6cqw", "-4cqw"], rotate: [0, 260] }}
           transition={{ duration: p.t, delay: p.d, repeat: Infinity, ease: "linear" }}
         />
       ))}
@@ -205,14 +270,11 @@ function Petals() {
   );
 }
 
-/* ───────── The Paithani cards and the closing ───────── */
+/* ───────── Families, functions, closing: plain paper under the wada frame ───────── */
 
-function Card({ children }: { children: ReactNode }) {
+function Page({ children }: { children: ReactNode }) {
   return (
-    <section className="relative w-full overflow-hidden" style={{ aspectRatio: "864 / 1536" }}>
-      <Image src={art("marathi-paithani-card.jpg")} alt="" fill sizes="480px" className="object-cover" />
-      <div className="absolute inset-x-[13%] top-[13%] bottom-[16%] flex flex-col items-center justify-center text-center">{children}</div>
-    </section>
+    <section className="relative flex min-h-svh w-full flex-col items-center justify-center px-[19%] pt-[34cqw] pb-[34cqw] text-center">{children}</section>
   );
 }
 
@@ -225,7 +287,7 @@ function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: number }
 }
 
 const Small = ({ children, color = C.ink, className = "" }: { children: ReactNode; color?: string; className?: string }) => (
-  <p className={`text-[2.6cqw] tracking-[0.28em] uppercase ${className}`} style={{ fontFamily: label, color }}>
+  <p className={`text-[2.5cqw] tracking-[0.26em] uppercase ${className}`} style={{ fontFamily: label, color }}>
     {children}
   </p>
 );
@@ -240,38 +302,38 @@ function Divider() {
   );
 }
 
-function Families() {
+function Families({ nameFont }: { nameFont: NameFont }) {
   return (
-    <Card>
+    <Page>
       <Reveal>
-        <p className="text-[3.8cqw]" style={{ fontFamily: deva, color: C.maroon }}>
+        <p className="text-[3.6cqw]" style={{ fontFamily: deva, color: C.maroon }}>
           ॥ वक्रतुंड महाकाय सूर्यकोटि समप्रभ ॥
         </p>
         <Small className="mt-[4cqw]">With the blessings of our elders</Small>
-        <p className="mt-[3.5cqw] text-[4.6cqw] leading-snug font-semibold" style={{ fontFamily: serif, color: C.ink }}>
+        <p className="mt-[3.5cqw] text-[4.4cqw] leading-snug font-semibold" style={{ fontFamily: serif, color: C.ink }}>
           Mr. Vijay &amp; Mrs. Sunanda Kulkarni and Mr. Prakash &amp; Mrs. Meera Deshpande request the pleasure of your company at the wedding of their children
         </p>
       </Reveal>
       <Divider />
       <Reveal delay={0.15}>
         <p className="text-[4cqw]" style={{ fontFamily: deva, color: C.green }}>चि. सौ. कां.</p>
-        <p className="text-[11cqw] leading-none" style={{ fontFamily: script, color: C.maroon }}>Aditi</p>
+        <p className="leading-tight" style={nameStyle(nameFont, 11, C.maroon)}>Aditi</p>
         <p className="mt-[1cqw] text-[3.6cqw] italic" style={{ fontFamily: serif, color: C.ink }}>daughter of Mr. Vijay &amp; Mrs. Sunanda Kulkarni</p>
       </Reveal>
-      <p className="my-[2.5cqw] text-[6cqw]" style={{ fontFamily: script, color: C.gold }}>&amp;</p>
+      <p className="my-[2.5cqw] text-[6cqw]" style={{ fontFamily: serif, color: C.gold }}>&amp;</p>
       <Reveal delay={0.3}>
         <p className="text-[4cqw]" style={{ fontFamily: deva, color: C.green }}>चि.</p>
-        <p className="text-[11cqw] leading-none" style={{ fontFamily: script, color: C.maroon }}>Sameer</p>
+        <p className="leading-tight" style={nameStyle(nameFont, 11, C.maroon)}>Sameer</p>
         <p className="mt-[1cqw] text-[3.6cqw] italic" style={{ fontFamily: serif, color: C.ink }}>son of Mr. Prakash &amp; Mrs. Meera Deshpande</p>
       </Reveal>
-    </Card>
+    </Page>
   );
 }
 
 function Event({ mr, en, when, venue, dress }: { mr: string; en: string; when: string; venue: string; dress: string }) {
   return (
     <Reveal>
-      <p className="text-[6.6cqw] leading-tight" style={{ fontFamily: rozha, color: C.maroon }}>{mr}</p>
+      <p className="text-[7cqw] leading-tight" style={{ fontFamily: deva, color: C.maroon }}>{mr}</p>
       <Small className="mt-[1cqw]" color={C.gold}>{en}</Small>
       <p className="mt-[2.5cqw] text-[4.4cqw] font-semibold" style={{ fontFamily: serif, color: C.ink }}>{when}</p>
       <p className="mt-[0.5cqw] text-[3.8cqw] leading-snug" style={{ fontFamily: serif, color: C.ink }}>{venue}</p>
@@ -285,32 +347,32 @@ function Event({ mr, en, when, venue, dress }: { mr: string; en: string; when: s
 
 function Functions() {
   return (
-    <Card>
+    <Page>
       <Reveal>
         <Small color={C.gold}>Join us for</Small>
-        <p className="text-[9cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>The celebrations</p>
+        <p className="text-[8.5cqw] leading-tight" style={{ fontFamily: deva, color: C.maroon }}>सोहळे</p>
       </Reveal>
       <div className="mt-[3cqw]" />
       <Event mr="हळद" en="Haldi" when="Friday, 19 Feb · 10:00 am" venue="Kulkarni Wada, Sadashiv Peth, Pune" dress="Shades of yellow" />
       <Divider />
       <Event mr="शुभमुहूर्त · लग्न" en="Lagna · Muhurta 11:45 am" when="Saturday, 20 Feb · 11:45 am" venue="Shree Ganesh Mangal Karyalay, Kothrud, Pune" dress="Paithani & pheta" />
-    </Card>
+    </Page>
   );
 }
 
-function Closing() {
+function Closing({ nameFont }: { nameFont: NameFont }) {
   return (
-    <section className="relative w-full overflow-hidden" style={{ aspectRatio: "864 / 1536" }}>
+    <section className="relative h-svh min-h-[178cqw] w-full overflow-hidden">
       <Image src={art("marathi-wada.jpg")} alt="The bride and groom walk home together, her pallu tied to his shela" fill sizes="480px" className="object-cover" />
-      <div className="absolute inset-x-[8%] top-[7%] flex flex-col items-center text-center">
+      <div className="absolute inset-x-[19%] top-[16.5%] flex flex-col items-center text-center">
         <Reveal>
-          <p className="text-[5cqw] leading-snug font-semibold italic" style={{ fontFamily: serif, color: C.ink }}>
+          <p className="text-[4cqw] leading-snug font-semibold italic" style={{ fontFamily: serif, color: C.ink }}>
             Two families, one new home. Come, bless the beginning.
           </p>
-          <p className="mt-[3cqw] text-[12cqw] leading-none" style={{ fontFamily: script, color: C.maroon }}>
+          <p className="mt-[1.5cqw] leading-tight whitespace-nowrap" style={nameStyle(nameFont, 8.6, C.maroon)}>
             Aditi &amp; Sameer
           </p>
-          <p className="mt-[3cqw] text-[4.2cqw]" style={{ fontFamily: deva, color: C.maroon }}>
+          <p className="mt-[1.5cqw] text-[3.8cqw]" style={{ fontFamily: deva, color: C.maroon }}>
             आपली उपस्थिती प्रार्थनीय
           </p>
         </Reveal>
