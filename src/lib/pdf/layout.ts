@@ -209,6 +209,10 @@ body{color:${s.ink};font-family:${stack("Cormorant Garamond")};-webkit-print-col
 .tag{font-family:${stack("Cormorant Garamond")};font-size:22px;font-weight:600;color:${s.accent};margin-top:10px}
 .sign{font-size:calc(34px * var(--k,1));line-height:1.2;margin-top:18px;white-space:pre-line}
 .link{font-family:${stack(s.label)};font-size:16px;font-weight:600;margin-top:26px;line-height:1.6}.link a{color:${s.accent}}
+/* Never leave one word alone on a line ("With the blessings of Lord / Ganesha"): short lines split
+   evenly, longer paragraphs keep at least two words on their last line. */
+p{text-wrap:balance}
+.msg,.sign{text-wrap:pretty}
 </style></head><body>
 ${cover}
 ${m && !m.last ? memorial : ""}

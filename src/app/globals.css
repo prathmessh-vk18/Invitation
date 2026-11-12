@@ -156,6 +156,10 @@ body {
 /* Lining figures: the serif's old-style "1" reads as a capital I, so "11" looked like a Roman numeral. */
 .inv-serif { font-family: var(--inv-serif); font-variant-numeric: lining-nums; }
 .inv-label { font-family: var(--inv-label); letter-spacing: 0.28em; text-transform: uppercase; }
+/* No word left alone on a line in any invite: headings and labels split their lines evenly,
+   paragraphs keep at least two words on the last line. */
+.inv-label, .inv-script { text-wrap: balance; }
+.inv-serif, .inv-deva { text-wrap: pretty; }
 /* Mandir's labels (families, RSVP fields…) in a slightly heavier stroke; its label face has one weight. */
 .inv-mandir .inv-label { -webkit-text-stroke: 0.35px currentColor; }
 .inv-deva { font-family: var(--font-deva), serif; }

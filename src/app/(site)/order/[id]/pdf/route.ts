@@ -12,7 +12,7 @@ import { db } from "@/lib/supabase";
 export const maxDuration = 60;
 
 // Bump when the PDF layout changes, so every couple's copy is printed again.
-const LAYOUT = "v2";
+const LAYOUT = "v3";
 
 /**
  * The couple's printable PDF (the ₹99 add-on). Built from the live invite, so it carries every
