@@ -602,7 +602,9 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           {invite.closingNote ? (
             // A line of the couple's choosing in place of their names (e.g. who to RSVP to).
             <>
-              <Divider />
+              <div className="mt-[7cqw]">
+                <Divider />
+              </div>
               <p className={`inv-serif mt-[6cqw] leading-snug font-semibold ${L ? "text-[5.6cqw]" : "text-[5cqw]"}`} style={{ color: c.ink }}>
                 {invite.closingNote}
               </p>
