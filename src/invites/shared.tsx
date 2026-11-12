@@ -478,11 +478,17 @@ export function Contacts({ invite, theme }: { invite: Invite; theme: InviteTheme
             <div key={p.name} className={`${theme.ui.tile} px-[6cqw] py-[6cqw] text-center`}>
               <p className="inv-serif text-[5.6cqw] leading-snug font-semibold">{p.name}</p>
               <div className="mt-[4cqw] flex flex-wrap justify-center gap-[2.5cqw]">
-                {p.phones.map((ph) => (
-                  <a key={ph} href={`tel:+${ph}`} aria-label={t.call(p.name, showPhone(ph))} className={theme.ui.button}>
-                    <PhoneIcon /> {showPhone(ph)}
-                  </a>
-                ))}
+                {p.phones.map((ph) =>
+                  p.whatsapp ? (
+                    <a key={ph} href={`https://wa.me/${ph}`} target="_blank" rel="noreferrer" aria-label={t.whatsapp(p.name, showPhone(ph))} className={theme.ui.button}>
+                      <WaIcon /> {showPhone(ph)}
+                    </a>
+                  ) : (
+                    <a key={ph} href={`tel:+${ph}`} aria-label={t.call(p.name, showPhone(ph))} className={theme.ui.button}>
+                      <PhoneIcon /> {showPhone(ph)}
+                    </a>
+                  ),
+                )}
               </div>
             </div>
           ))}

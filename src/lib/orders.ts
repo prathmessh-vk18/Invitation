@@ -215,7 +215,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
         ? {
             contacts: d.contacts.slice(0, 6).map((p) => {
               const o = (p ?? {}) as Record<string, unknown>;
-              return { name: str(o.name, 60), phones: (Array.isArray(o.phones) ? o.phones : []).slice(0, 4).map(cleanPhone).filter((x) => x.length >= 10) };
+              return { name: str(o.name, 60), phones: (Array.isArray(o.phones) ? o.phones : []).slice(0, 4).map(cleanPhone).filter((x) => x.length >= 10), ...(o.whatsapp === true ? { whatsapp: true } : {}) };
             }),
           }
         : {}),
