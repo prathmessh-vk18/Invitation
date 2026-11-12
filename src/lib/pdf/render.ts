@@ -25,16 +25,11 @@ export async function renderInvitePdf(invite: Invite, opts: { siteUrl: string; i
       await page.setContent(pdfHtml(invite, { ...opts, per }), { waitUntil: "load", timeout: 45_000 });
       await page.waitForNetworkIdle({ idleTime: 400, timeout: 30_000 }).catch(() => {});
       await page.evaluate(() => document.fonts.ready);
-      // Let the fitting script settle after the fonts arrive.
-      await page.evaluate(() => {
-        for (const el of document.querySelectorAll<HTMLElement>(".in")) {
-          let k = 1;
-          el.style.removeProperty("--k");
-          while (el.scrollHeight > el.clientHeight + 1 && k > 0.82) {
-            k -= 0.03;
-            el.style.setProperty("--k", String(k));
-          }
-        }
+      // Fit names and titles to their lines, then shrink any page that still runs over (layout.ts).
+      await page.evaluate(async () => {
+        const w = window as unknown as { fitText: () => Promise<void>; fitPages: () => void };
+        await w.fitText();
+        w.fitPages();
       });
       return page.evaluate(() => [...document.querySelectorAll(".in")].filter((el) => el.scrollHeight > el.clientHeight + 1).length);
     };

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { site } from "@/config/site";
 import type { Invite } from "@/data/invites";
+import { withMovedMedia } from "@/lib/media";
 import { inviteFromOrder } from "@/lib/order-invite";
 import type { Order } from "@/lib/orders";
 import { renderInvitePdf } from "@/lib/pdf/render";
@@ -11,7 +12,7 @@ import { db } from "@/lib/supabase";
 export const maxDuration = 60;
 
 // Bump when the PDF layout changes, so every couple's copy is printed again.
-const LAYOUT = "v1";
+const LAYOUT = "v2";
 
 /**
  * The couple's printable PDF (the ₹99 add-on). Built from the live invite, so it carries every
@@ -31,6 +32,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const { data: live } = await db().from("invites").select("data").eq("slug", order.invite_slug).maybeSingle();
     if (live?.data) invite = live.data as Invite;
   }
+  // Photos saved before the move to R2 still hold Supabase addresses (the memorial photo).
+  invite = withMovedMedia(invite);
   const inviteUrl = order.invite_slug ? `${site.url}/i/${order.invite_slug}` : `${site.url}/order/${id}`;
   const [a, b] = invite.lead === "groom" ? [invite.groom, invite.bride] : [invite.bride, invite.groom];
   const filename = `${a.first}-${b.first}-invitation.pdf`.replace(/[^\w.-]+/g, "-");
