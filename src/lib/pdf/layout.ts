@@ -24,13 +24,16 @@ export type Skin = {
   coverTop?: number;
   // The design's own script when the couple picked another style: wider faces shrink to it.
   ownScript?: string;
+  // Florals that reach in from the corners: a soft, edgeless glow of the paper behind the text
+  // keeps it readable where a petal comes close, without a box over the art.
+  mist?: string;
 };
 
 const I = (f: string) => `/art/illus/${f}`;
 const P = (id: string) => `/art/pdf/${id}-paper.jpg`;
 
 const mandirSkin: Skin = { cover: I("mandir-temple.jpg"), paper: I("mandir-card.jpg"), safe: [14, 18, 11], ink: "#5b2615", accent: "#a8573a", soft: "#86553f", script: "Bodoni Moda", label: "Marcellus", scriptScale: 0.8 };
-const khatSkin: Skin = { cover: I("khat-hero.jpg"), paper: I("khat-card.jpg"), safe: [18, 24, 9], ink: "#5b2a3a", accent: "#b2566c", soft: "#7e5a62", script: "Pinyon Script", label: "Manrope" };
+const khatSkin: Skin = { cover: I("khat-hero.jpg"), paper: I("khat-card.jpg"), safe: [23, 30, 14], mist: "#fbf3ef", ink: "#5b2a3a", accent: "#b2566c", soft: "#7e5a62", script: "Pinyon Script", label: "Manrope" };
 const rajwadaSkin: Skin = { paper: P("rajwada"), safe: [12, 12, 9], dark: true, ink: "#fbf1dc", accent: "#e9bf62", soft: "#f3dfb6", script: "Parisienne", label: "Cinzel" };
 const chameliSkin: Skin = { cover: I("chameli-cover.jpg"), paper: I("chameli-paper.jpg"), safe: [10, 10, 9], ink: "#4f4020", accent: "#b19254", soft: "#6a5b38", script: "Pinyon Script", label: "Cinzel" };
 
@@ -40,7 +43,7 @@ export const skins: Record<string, Skin> = {
   haveli: { cover: I("haveli-gate.jpg"), paper: I("haveli-card.jpg"), safe: [22, 14, 18], ink: "#5a1f2b", accent: "#9c4a3c", soft: "#6e564a", script: "Pinyon Script", label: "Cinzel" },
   mandir: mandirSkin,
   khat: khatSkin,
-  khatred: { cover: I("khat-red-hero.jpg"), paper: I("khat-red-card.jpg"), safe: [18, 26, 9], ink: "#6e1320", accent: "#a3192b", soft: "#7a4741", script: "Pinyon Script", label: "Manrope" },
+  khatred: { cover: I("khat-red-hero.jpg"), paper: I("khat-red-card.jpg"), safe: [23, 31, 14], mist: "#fbf3ea", ink: "#6e1320", accent: "#a3192b", soft: "#7a4741", script: "Pinyon Script", label: "Manrope" },
   bagh: { cover: I("bagh-hero.jpg"), paper: I("bagh-card.jpg"), safe: [15, 27, 8], ink: "#3d1633", accent: "#b5603a", soft: "#6a4a4a", script: "Dancing Script", label: "Cinzel" },
   gulmohar: { paper: P("gulmohar"), safe: [18, 18, 9], ink: "#5a2236", accent: "#a2405f", soft: "#7a5a62", script: "Pinyon Script", label: "Manrope" },
   rajwada: rajwadaSkin,
@@ -72,8 +75,10 @@ export function skinFor(invite: Invite): Skin {
 }
 
 // Every character the couple might type needs a loaded font: Indian scripts, Arabic, general
-// punctuation (₹, –, •) and emoji. Chrome on Vercel has none to fall back on.
-const FALLBACK = `'Noto Serif Devanagari','Noto Sans Gurmukhi','Noto Serif Tamil','Amiri','Noto Sans','Noto Color Emoji',serif`;
+// punctuation (₹, –, •) and emoji. Chrome on Vercel has none to fall back on. Google sends only
+// the parts of each font a page uses, so listing them all costs nothing.
+const SCRIPTS = ["Noto Serif Devanagari", "Noto Sans Gurmukhi", "Noto Serif Bengali", "Noto Serif Gujarati", "Noto Serif Oriya", "Noto Serif Tamil", "Noto Serif Telugu", "Noto Serif Kannada", "Noto Serif Malayalam"];
+const FALLBACK = `${SCRIPTS.map((x) => `'${x}'`).join(",")},'Amiri','Noto Sans','Noto Color Emoji',serif`;
 const stack = (family: string) => `'${family}',${FALLBACK}`;
 
 // Drawn rather than typed, so they never depend on a font.
@@ -122,7 +127,9 @@ export function pdfHtml(invite: Invite, opts: { siteUrl: string; inviteUrl: stri
   const occ = d.occasion === "engagement" ? "engagement" : d.occasion === "reception" ? "wedding reception" : "wedding";
   const k = s.scriptScale ?? 1;
   const [top, bottom, side] = s.safe;
-  const paperBg = `url(${art(s.paper)}) center/cover`;
+  // The glow is painted on the page behind the text's open space, so it never takes up room.
+  const mist = s.mist ? `radial-gradient(${50 - side + 6}% ${(100 - top - bottom) / 2 + 4}% at 50% ${top + (100 - top - bottom) / 2}%,${s.mist}e6 55%,${s.mist}00),` : "";
+  const paperBg = `${mist}url(${art(s.paper)}) center/cover`;
   const page = (inner: string) => `<section class="page" style="background:${paperBg}"><div class="in">${inner}</div></section>`;
   const sep = `<div class="sep"><i></i>${STAR(s.accent)}<i></i></div>`;
   const events = [...d.events].sort((x, y) => x.start.localeCompare(y.start));
@@ -156,9 +163,7 @@ export function pdfHtml(invite: Invite, opts: { siteUrl: string; inviteUrl: stri
     ...(s.ownScript ? [s.ownScript] : []),
     `${s.label}:wght@400;500;600;700`,
     "Cormorant Garamond:ital,wght@0,500;0,600;1,500",
-    "Noto Serif Devanagari:wght@500;600",
-    "Noto Sans Gurmukhi:wght@500;600",
-    "Noto Serif Tamil:wght@500;600",
+    ...SCRIPTS.map((x) => `${x}:wght@500;600`),
     "Amiri",
     "Noto Sans:wght@500;600",
     "Noto Color Emoji",
