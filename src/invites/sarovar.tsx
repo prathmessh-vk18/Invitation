@@ -213,9 +213,11 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
         {/* The couple's initials and date sit inside the band. */}
         <span className="absolute top-[58.5%] left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
           <span className="h-px w-[16cqw]" style={{ background: c.line }} />
+          {/* Initials without letter-spacing, so the gaps either side of "&" are equal (the label
+              style's spacing trails each letter and widened the gap after the first one). */}
           <span className="flex items-center gap-[2.5cqw] py-[2cqw]">
             <span
-              className="inv-label text-[13cqw] leading-none"
+              className="inv-label text-[13cqw] leading-none !tracking-normal"
               style={{ color: c.maroon }}
             >
               {a.first[0]}
@@ -224,14 +226,15 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
               &amp;
             </span>
             <span
-              className="inv-label text-[13cqw] leading-none"
+              className="inv-label text-[13cqw] leading-none !tracking-normal"
               style={{ color: c.maroon }}
             >
               {b.first[0]}
             </span>
           </span>
           <span
-            className="inv-label text-[3cqw] tracking-[0.3em]"
+            // The spacing trails the last digit too; the same space before the first keeps it centred.
+            className="inv-label pl-[0.3em] text-[3cqw] tracking-[0.3em]"
             style={{ color: c.soft }}
           >
             {two(ist(d, { day: "numeric" }))} ·{" "}
