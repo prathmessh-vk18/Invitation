@@ -387,7 +387,7 @@ function Cover({ opened }: { opened: boolean }) {
         <motion.p {...show(0)} className="text-[2.8cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: C.gold }}>
           Shri Ganeshaya Namah
         </motion.p>
-        <motion.p {...show(0.2)} className="mt-[2cqw] text-[7.4cqw] leading-none tracking-[0.14em]" style={{ fontFamily: label, color: C.maroon }}>
+        <motion.p {...show(0.2)} className="mt-[2.5cqw] text-[3.6cqw] leading-none tracking-[0.32em]" style={{ fontFamily: label, color: C.maroon }}>
           SHUBH VIVAH
         </motion.p>
         {opened && (
