@@ -132,7 +132,7 @@ function Opening({ opened, onOpen }: { opened: boolean; onOpen: () => void }) {
               animate={{ opacity: 1, y: [0, -4, 0] }}
               transition={{ opacity: { delay: 0.8, duration: 0.5 }, y: { delay: 1.2, duration: 1.8, repeat: Infinity, ease: "easeInOut" } }}
             >
-              <span aria-hidden>👆</span> Tap for Shubhamangal Saavdhaan
+              <span aria-hidden>👆</span> Tap to draw the curtain
             </motion.button>
           )}
         </AnimatePresence>
@@ -200,28 +200,20 @@ function Antarpat({ opened }: { opened: boolean }) {
 /** What is written on the antarpat before the tap; it fades as the blessing comes in. */
 function Invitation({ opened }: { opened: boolean }) {
   return (
-    <motion.div className="absolute inset-x-0 top-[18%] flex flex-col items-center text-center" animate={{ opacity: opened ? 0 : 1 }} transition={{ duration: 0.5 }}>
-      <p className="text-[3cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: C.goldLight }}>
-        Shri Ganeshaya Namah
-      </p>
-      <p className="mt-[5cqw] text-[3cqw] tracking-[0.34em] uppercase" style={{ fontFamily: label, color: C.goldLight }}>
+    // Only the invitation and the names: nothing else on the silk.
+    <motion.div className="absolute inset-0 flex flex-col items-center justify-center pb-[6%] text-center" animate={{ opacity: opened ? 0 : 1 }} transition={{ duration: 0.5 }}>
+      <p className="text-[3.2cqw] tracking-[0.34em] uppercase" style={{ fontFamily: label, color: C.goldLight }}>
         You&rsquo;re invited
       </p>
       <p className="mt-[2cqw] text-[15cqw] leading-[1.05]" style={{ fontFamily: script, color: C.goldLight }}>
-        Aditi
+        Divyesh
       </p>
       <p className="text-[6cqw] leading-none" style={{ fontFamily: serif, color: C.goldLight }}>
         &amp;
       </p>
       <p className="text-[15cqw] leading-[1.05]" style={{ fontFamily: script, color: C.goldLight }}>
-        Sameer
+        Shruti
       </p>
-      <p className="mt-[4cqw] text-[2.8cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: `${C.goldLight}cc` }}>
-        to their wedding · 20 Feb 2027
-      </p>
-      <div className="relative mt-[9cqw] size-[18cqw]">
-        <Image src={art("marathi-swastik.webp")} alt="" fill sizes="80px" className="object-contain" />
-      </div>
     </motion.div>
   );
 }
@@ -392,9 +384,9 @@ function Cover({ opened }: { opened: boolean }) {
         </motion.p>
         {opened && (
           <p className="mt-[2cqw] text-[12cqw] leading-[1.1] whitespace-nowrap" style={{ fontFamily: script, color: C.ink }}>
-            <Written text="Aditi" delay={T.names + 0.4} />
+            <Written text="Divyesh" delay={T.names + 0.4} />
             <Written text=" & " delay={T.names + 1.1} style={{ color: C.gold }} />
-            <Written text="Sameer" delay={T.names + 1.4} />
+            <Written text="Shruti" delay={T.names + 1.4} />
           </p>
         )}
         <motion.p {...show(1.9)} className="mt-[2cqw] text-[2.5cqw] leading-relaxed tracking-[0.24em] uppercase" style={{ fontFamily: label, color: C.ink }}>
@@ -450,13 +442,13 @@ function Families() {
       <Divider />
       <Reveal delay={0.15}>
         <Small color={C.green}>The bride</Small>
-        <p className="text-[12cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>Aditi</p>
+        <p className="text-[12cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>Shruti</p>
         <p className="mt-[1cqw] text-[3.6cqw] italic" style={{ fontFamily: serif, color: C.ink }}>daughter of Mr. Vijay &amp; Mrs. Sunanda Kulkarni</p>
       </Reveal>
       <p className="my-[2.5cqw] text-[6cqw]" style={{ fontFamily: serif, color: C.gold }}>&amp;</p>
       <Reveal delay={0.3}>
         <Small color={C.green}>The groom</Small>
-        <p className="text-[12cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>Sameer</p>
+        <p className="text-[12cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>Divyesh</p>
         <p className="mt-[1cqw] text-[3.6cqw] italic" style={{ fontFamily: serif, color: C.ink }}>son of Mr. Prakash &amp; Mrs. Meera Deshpande</p>
       </Reveal>
     </Page>
@@ -503,7 +495,7 @@ function Closing() {
             Two families, one new home. Come, bless the beginning.
           </p>
           <p className="mt-[1cqw] text-[11cqw] leading-tight whitespace-nowrap" style={{ fontFamily: script, color: C.maroon }}>
-            Aditi &amp; Sameer
+            Divyesh &amp; Shruti
           </p>
           <p className="mt-[2cqw] text-[2.8cqw] tracking-[0.28em] uppercase" style={{ fontFamily: label, color: C.maroon }}>
             We await your presence
