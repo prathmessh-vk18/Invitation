@@ -599,7 +599,15 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           <p className={`inv-serif mt-[6cqw] leading-snug italic ${L ? "text-[5.6cqw] font-medium" : "text-[5cqw]"}`} style={{ color: c.ink }}>
             {invite.closing}
           </p>
-          {(invite.stackNames ?? spec.stackNames) ? (
+          {invite.closingNote ? (
+            // A line of the couple's choosing in place of their names (e.g. who to RSVP to).
+            <>
+              <Divider />
+              <p className={`inv-serif mt-[6cqw] leading-snug font-semibold ${L ? "text-[5.6cqw]" : "text-[5cqw]"}`} style={{ color: c.ink }}>
+                {invite.closingNote}
+              </p>
+            </>
+          ) : (invite.stackNames ?? spec.stackNames) ? (
             <p className="mt-[4cqw] flex flex-col items-center leading-[0.95]" style={{ color: c.ink, ...sz(10.5) }}>
               <span className="inv-script">{a.first}</span>
               <span className="inv-script my-[0.6cqw] text-[6.5cqw]" style={{ color: c.accent }}>

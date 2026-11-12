@@ -124,6 +124,10 @@ export type Invite = {
   hideHeroDate?: boolean;
   // Leave the city off the cover too (Rajwada). Venues still show on every function card.
   hideHeroCity?: boolean;
+  // Just the date under the countdown, without the place (any design).
+  hideCountdownCity?: boolean;
+  // A line shown at the end in place of the couple's names, after a divider, e.g. "RSVP: Vandana & Sartaj Mathur" (painted designs).
+  closingNote?: string;
   // Functions grouped into one card per day, instead of a card each.
   eventsByDay?: boolean;
   // With eventsByDay: a name for each day, in order ("Sagai", "Shaadi"…), shown beside its date in the RSVP.

@@ -67,7 +67,9 @@ export function Countdown({ invite, theme }: { invite: Invite; theme: InviteThem
             ))}
           </div>
         )}
-        <p className={`mt-6 text-center text-[3.6cqw] ${theme.ui.muted}`}>{d.long(invite.date)} · {invite.city}</p>
+        <p className={`mt-6 text-center text-[3.6cqw] ${theme.ui.muted}`}>{d.long(invite.date)}
+          {invite.hideCountdownCity ? "" : ` · ${invite.city}`}
+        </p>
       </Reveal>
     </section>
   );
