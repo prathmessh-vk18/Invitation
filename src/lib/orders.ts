@@ -246,6 +246,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(typeof d.heroKicker === "string" && d.heroKicker.trim() ? { heroKicker: str(d.heroKicker, 60) } : {}),
       ...(d.parentsWide === true ? { parentsWide: true } : {}),
       ...(d.noBranding === true ? { noBranding: true } : {}),
+      ...(str(d.brandLine, 80) ? { brandLine: str(d.brandLine, 80) } : {}),
       ...(d.padDay === true ? { padDay: true } : {}),
       ...(d.occasion === "engagement" || d.occasion === "reception" ? { occasion: d.occasion as "engagement" | "reception" } : {}),
       ...(d.namesFirst === true ? { namesFirst: true } : {}),

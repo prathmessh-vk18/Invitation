@@ -88,6 +88,8 @@ export type Invite = {
   signoff?: string;
   // Hide "Crafted with love by Aavjoo" at the end.
   noBranding?: boolean;
+  // A family's own last line in its place (e.g. "Made with love for the Multani Family"; Sarovar).
+  brandLine?: string;
   // Show the big date on the save-the-date card as two digits ("01"), since this serif's 1 reads as "I".
   padDay?: boolean;
   // An engagement rather than a wedding: the link title, share card and hidden labels say so.

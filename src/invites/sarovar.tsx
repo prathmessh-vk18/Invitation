@@ -463,7 +463,7 @@ function Pin() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="mt-[0.6cqw] size-[4cqw] shrink-0"
+      className="mr-[1.5cqw] inline-block size-[4cqw] align-[-0.4cqw]"
       fill="#b4636e"
       aria-hidden
     >
@@ -613,20 +613,19 @@ function Event({
             {clock(e.start)}
           </p>
         )}
+        {/* The pin sits on the venue's own line, beside its first word, however wide the address. */}
         <p
-          className="inv-serif mx-auto mt-[4cqw] flex max-w-[68cqw] justify-center gap-[3cqw] text-[4.2cqw] italic"
+          className="inv-serif mx-auto mt-[4cqw] max-w-[62cqw] text-[4.2cqw] italic"
           style={{ color: c.soft }}
         >
           <Pin />
-          <span>
-            {e.venue}
-            {e.address && (
-              <>
-                , <br />
-                {e.address}
-              </>
-            )}
-          </span>
+          {e.venue}
+          {e.address && (
+            <>
+              , <br />
+              {e.address}
+            </>
+          )}
         </p>
         {(e.dress || e.note) && (
           <p
@@ -812,7 +811,7 @@ function Closing({ invite }: { invite: Invite }) {
             {invite.hosts}
           </p>
           {invite.closing && (
-            <p className="inv-serif mx-auto mt-[6cqw] max-w-[80cqw] text-[4.4cqw]">
+            <p className="inv-serif mx-auto mt-[6cqw] max-w-[80cqw] text-[4.4cqw] whitespace-pre-line">
               {invite.closing}
             </p>
           )}
@@ -851,13 +850,19 @@ function Closing({ invite }: { invite: Invite }) {
               {invite.hashtag}
             </p>
           )}
-          {!invite.noBranding && (
-            <Link
-              href="/"
-              className="inv-label mt-[10cqw] inline-block text-[2.3cqw] tracking-[0.26em] uppercase opacity-60"
-            >
-              Crafted with love by {site.name}
-            </Link>
+          {invite.brandLine ? (
+            <p className="inv-label mt-[10cqw] text-[2.6cqw] tracking-[0.26em] uppercase opacity-75">
+              {invite.brandLine}
+            </p>
+          ) : (
+            !invite.noBranding && (
+              <Link
+                href="/"
+                className="inv-label mt-[10cqw] inline-block text-[2.3cqw] tracking-[0.26em] uppercase opacity-60"
+              >
+                Crafted with love by {site.name}
+              </Link>
+            )
           )}
         </Reveal>
       </section>
