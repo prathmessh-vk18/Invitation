@@ -457,8 +457,13 @@ export function MusicToggle({ playing, onToggle, className }: { playing: boolean
 
 /* ───────── Contacts ───────── */
 
-/** "+91 97714 27915" from 919771427915; other numbers as they were saved. */
-const showPhone = (p: string) => (p.length === 12 && p.startsWith("91") ? `+91 ${p.slice(2, 7)} ${p.slice(7)}` : `+${p}`);
+/** "+91 97714 27915" from 919771427915, "+1 (516) 853-5789" from 15168535789; others as saved. */
+const showPhone = (p: string) =>
+  p.length === 12 && p.startsWith("91")
+    ? `+91 ${p.slice(2, 7)} ${p.slice(7)}`
+    : p.length === 11 && p.startsWith("1")
+      ? `+1 (${p.slice(1, 4)}) ${p.slice(4, 7)}-${p.slice(7)}`
+      : `+${p}`;
 
 /** People guests can call about the wedding, a tap on a number to ring it. Only when the invite lists them. */
 export function Contacts({ invite, theme }: { invite: Invite; theme: InviteTheme }) {
