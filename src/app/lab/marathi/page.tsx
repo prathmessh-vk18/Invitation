@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { MarathiIntros } from "./MarathiIntros";
+import { MarathiInvite } from "./MarathiInvite";
 
-// A private test page for the Marathi design's opening (branch marathi-template). Not linked anywhere.
-export const metadata: Metadata = { title: "Marathi intro concepts", robots: { index: false, follow: false } };
+// A private preview of the Marathi design while it is built (branch marathi-template). Not linked anywhere.
+export const metadata: Metadata = { title: "Marathi design preview", robots: { index: false, follow: false } };
 
 export default function Page() {
-  return <MarathiIntros />;
+  return <MarathiInvite />;
 }
