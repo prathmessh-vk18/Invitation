@@ -99,9 +99,11 @@ export function pdfHtml(invite: Invite, opts: { siteUrl: string; inviteUrl: stri
   const events = [...d.events].sort((x, y) => x.start.localeCompare(y.start));
   const chunks: InviteEvent[][] = [];
   for (let i = 0; i < events.length; i += per) chunks.push(events.slice(i, i + per));
+  // A card holding several functions lists each time with what happens then, under the day.
   const ev = (e: InviteEvent) => `<div class="ev">
-    <p class="lab">${esc(f(e.start, { weekday: "long" }))} · ${esc(f(e.start, { day: "numeric", month: "short" }))} · ${time(e.start)}</p>
+    <p class="lab">${esc(f(e.start, { weekday: "long" }))} · ${esc(f(e.start, { day: "numeric", month: "short" }))}${e.schedule?.length ? "" : ` · ${time(e.start)}`}</p>
     <p class="evn">${esc(e.name)}</p>
+    ${(e.schedule ?? []).map((x) => `<p class="ven"><b>${time(x.at)}</b> · ${esc(x.text)}</p>`).join("")}
     <p class="ven">${esc(e.venue)}${e.address ? `<br><span>${esc(e.address)}</span>` : ""}</p>
     ${e.dress ? `<p class="dress">Dress: ${esc(e.dress)}</p>` : ""}${e.note ? `<p class="dress">${esc(e.note)}</p>` : ""}
     <a class="btn" href="${esc(mapOf(e))}">Directions →</a></div>`;

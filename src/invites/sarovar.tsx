@@ -593,12 +593,26 @@ function Event({
         >
           {e.name}
         </h3>
-        <p
-          className="inv-serif mt-[3cqw] text-[4.6cqw] font-semibold"
-          style={{ color: c.deep }}
-        >
-          {clock(e.start)}
-        </p>
+        {e.schedule?.length ? (
+          // Several functions on one card: each time with what happens then.
+          e.schedule.map((s) => (
+            <div key={s.at + s.text} className="mt-[3cqw]">
+              <p className="inv-serif text-[4.6cqw] font-semibold" style={{ color: c.deep }}>
+                {clock(s.at)}
+              </p>
+              <p className="inv-serif mx-auto max-w-[72cqw] text-[4.4cqw] leading-snug" style={{ color: c.deep }}>
+                {s.text}
+              </p>
+            </div>
+          ))
+        ) : (
+          <p
+            className="inv-serif mt-[3cqw] text-[4.6cqw] font-semibold"
+            style={{ color: c.deep }}
+          >
+            {clock(e.start)}
+          </p>
+        )}
         <p
           className="inv-serif mx-auto mt-[4cqw] flex max-w-[68cqw] justify-center gap-[3cqw] text-[4.2cqw] italic"
           style={{ color: c.soft }}

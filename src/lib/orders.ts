@@ -152,6 +152,14 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       dress: str(o.dress, 80) || undefined,
       note: str(o.note, 240) || undefined,
       ...(mapUrl ? { mapUrl } : {}),
+      ...(Array.isArray(o.schedule) && o.schedule.length
+        ? {
+            schedule: o.schedule.slice(0, 8).map((x) => {
+              const s = (x ?? {}) as Record<string, unknown>;
+              return { at: isIso(str(s.at, 40)) ? str(s.at, 40) : "", text: str(s.text, 120) };
+            }).filter((x) => x.at && x.text),
+          }
+        : {}),
     };
   });
   if (!events.length) errors.push("Add at least one function.");
@@ -281,6 +289,14 @@ export function keepInviteSettings(prev: InviteDetails | null | undefined, next:
     for (const [k, v] of Object.entries(was)) if (!FORM_PERSON_FIELDS.has(k) && now[k] === undefined && v !== undefined) now[k] = v;
     out[who] = now;
   }
+  // The form edits a function's own fields; a schedule set by us stays with the function of the
+  // same name.
+  const schedules = new Map(prev.events.filter((e) => e.schedule).map((e) => [e.name.trim().toLowerCase(), e.schedule]));
+  if (schedules.size)
+    out.events = next.events.map((e) => {
+      const schedule = schedules.get(e.name.trim().toLowerCase());
+      return schedule && !e.schedule ? { ...e, schedule } : e;
+    });
   return out as InviteDetails;
 }
 

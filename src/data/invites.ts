@@ -17,6 +17,8 @@ export type InviteEvent = {
   note?: string;
   // The couple's own Google Maps link; Directions opens it instead of searching the address.
   mapUrl?: string;
+  // Several functions on one card, as a timed list (Sehra Bandi, Baraat leaves, Anand Karaj).
+  schedule?: { at: string; text: string }[];
 };
 
 export type Person = {
