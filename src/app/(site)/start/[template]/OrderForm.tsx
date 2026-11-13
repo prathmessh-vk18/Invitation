@@ -680,8 +680,10 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
             />
           </div>
           <div className="mt-4">
-            <Input
+            {/* Two lines, so a line break (Grandson of… / Son of…) survives when the couple saves. */}
+            <TextArea
               k={`${who}.parents`}
+              rows={2}
               label="Parents"
               hint="optional"
               value={s[who].parents}
@@ -1128,8 +1130,8 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
         <p className="text-ink">
           {a.full || a.first} &amp; {b.full || b.first}
         </p>
-        {s.bride.parents && <p>{s.bride.parents}</p>}
-        {s.groom.parents && <p>{s.groom.parents}</p>}
+        {s.bride.parents && <p className="whitespace-pre-line">{s.bride.parents}</p>}
+        {s.groom.parents && <p className="whitespace-pre-line">{s.groom.parents}</p>}
       </ReviewBlock>
       <ReviewBlock title="Date & place" onEdit={() => goTo(stepIndex("wedding"))}>
         <p className="text-ink">{nice(s.weddingDate, s.weddingTime)}</p>
