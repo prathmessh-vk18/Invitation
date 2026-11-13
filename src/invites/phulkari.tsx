@@ -195,9 +195,16 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
         transition={opened ? { duration: 0.5 } : { duration: 1.6, repeat: Infinity }}
       >
         <span className="absolute inset-[2cqw] rounded-full border-[0.6cqw] border-dashed border-[#fff4e0]/80" />
-        <span className="relative text-[15cqw] leading-none text-[#f6c445]" style={gurmukhi}>
-          {invite.invocation}
-        </span>
+        {invite.seal ? (
+          // The couple's own monogram, transparent PNG in /art/seals.
+          <span className="relative block h-[22cqw] w-[10cqw]">
+            <Image src={invite.seal} alt="" fill sizes="120px" className="object-contain" />
+          </span>
+        ) : (
+          <span className="relative text-[15cqw] leading-none text-[#f6c445]" style={gurmukhi}>
+            {invite.invocation}
+          </span>
+        )}
       </motion.button>
     </div>
   );
@@ -228,7 +235,7 @@ function Hero({ invite }: { invite: Invite }) {
         <Confetti />
         {invite.invocationArt && (
           // A couple's own monogram at the top of the cover, transparent PNG in /art/seals.
-          <motion.div {...pop(0.2)} className="relative mb-[3cqw] h-[36cqw] w-[16cqw]">
+          <motion.div {...pop(0.2)} className="relative mb-[3cqw] h-[24cqw] w-[11cqw]">
             <Image src={invite.invocationArt} alt="" fill sizes="160px" className="object-contain drop-shadow-[0_0.8cqw_0_#d6246e]" />
           </motion.div>
         )}
