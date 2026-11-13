@@ -587,7 +587,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
             ))}
             {invite.welcome && (
               <Reveal>
-                <p className="text-[4.4cqw] font-medium" style={{ color: c.ink, fontFamily: "var(--inv-serif), var(--font-deva)" }}>
+                <p className="text-[4.4cqw] font-medium whitespace-pre-line" style={{ color: c.ink, fontFamily: "var(--inv-serif), var(--font-deva)" }}>
                   {invite.welcome}
                 </p>
               </Reveal>

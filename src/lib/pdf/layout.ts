@@ -158,6 +158,19 @@ export function pdfHtml(invite: Invite, opts: { siteUrl: string; inviteUrl: stri
   const contacts = d.contacts?.length
     ? page(`<p class="lab">For any queries</p><p class="script title">Get in touch</p>${d.contacts.map((c, i) => `${i ? sep : ""}<div class="ev"><p class="ven" style="font-size:calc(24px * var(--k,1))">${esc(c.name)}</p>${c.phones.map((p) => phone(c.name, p, c.whatsapp)).join(" ")}</div>`).join("")}`)
     : "";
+  // The family's own lists (who to RSVP to, family members…) and their welcome, as on the invite.
+  const extras = d.extras?.length
+    ? page(
+        `${d.extras
+          .map(
+            (g, i) =>
+              `${i ? sep : ""}<div class="ev"><p class="script title" style="font-size:calc(46px * var(--k,1))">${esc(g.title)}</p>${g.lines
+                .map((l) => `<p class="ven" style="font-size:calc(22px * var(--k,1));margin-top:6px">${esc(l)}</p>`)
+                .join("")}</div>`,
+          )
+          .join("")}${d.welcome ? `<p class="msg" style="margin-top:26px">${esc(d.welcome)}</p>` : ""}`,
+      )
+    : "";
   const fonts = [
     s.script,
     ...(s.ownScript ? [s.ownScript] : []),
@@ -222,6 +235,7 @@ ${page(`${d.invocationMeaning ? `<p class="lab">${esc(d.invocationMeaning)}</p>`
 ${page(`<p class="lab">A little surprise</p><p class="script title">Save the date</p><p class="day">${esc(f(d.date, { day: "numeric" }))}</p><p class="mon">${esc(f(d.date, { month: "long", year: "numeric" }).toUpperCase())}</p><p class="lab" style="margin-top:14px">${esc(f(d.date, { weekday: "long" }))} · ${time(d.date)}</p><p class="serif" style="font-size:24px;font-weight:600;margin-top:12px">${esc(d.city)}</p>`)}
 ${chunks.map((ch, i) => page(`${i === 0 ? `<p class="lab">Join us for</p><p class="script title head">The celebrations</p>` : ""}${ch.map(ev).join(sep)}`)).join("")}
 ${contacts}
+${extras}
 ${m?.last ? memorial : ""}
 ${page(`${d.closing ? `<p class="msg">${esc(d.closing)}</p>` : ""}<p class="script title" style="margin-top:26px">${esc(A.first)} &amp; ${esc(B.first)}</p>${d.hashtag ? `<p class="tag">${esc(d.hashtag)}</p>` : ""}${d.signoff ? `<p class="script sign">${esc(d.signoff)}</p>` : ""}${d.brandLine ? `<p class="lab" style="margin-top:18px">${esc(d.brandLine)}</p>` : ""}<p class="link">See the full invite with music and maps:<br><a href="${esc(opts.inviteUrl)}">${esc(opts.inviteUrl.replace(/^https?:\/\//, ""))}</a></p>`)}
 <script>
