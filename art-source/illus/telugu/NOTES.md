@@ -33,3 +33,10 @@ over the walking couple → tap: Ganesha glows, Srirastu/Shubhamastu/Avighnamast
 turning rays, camera pushes in to the sun, light floods, talambralu + lotus petals fall → dissolve to cover.
 Sections: Cover (flower in hair) → Families (meditation at dawn, small Ganesha) → Countdown (Mansarovar moon)
 → Functions (ivory cards, gold edge) → Closing (dance on the clouds).
+
+## Current = v1 design with v2 backgrounds (2026-11-14) — /lab/telugu
+User: keep the FIRST design exactly (meditation-halo opening, foreheads cover, Kailash families, moon
+countdown, maroon cards, dance closing) — only the background colours change to the ticked scenes, plus the
+gold Ganesha at the start. Art: telugu-v3-opening/v3-cover (repainted in the dawn palette, same compositions),
+telugu-v2-cover (Kailash, families), v2-moon, v2-dance. The walking-couple concept is saved at /lab/telugu/v2.
+(Exact background-only edits of the v1 paintings need Figma Weave linked: app.weavy.ai settings → link Figma.)
