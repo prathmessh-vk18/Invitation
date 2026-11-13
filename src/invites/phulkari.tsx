@@ -235,7 +235,7 @@ function Hero({ invite }: { invite: Invite }) {
         <Confetti />
         {invite.invocationArt && (
           // A couple's own monogram at the top of the cover, transparent PNG in /art/seals.
-          <motion.div {...pop(0.2)} className="relative mb-[3cqw] h-[24cqw] w-[11cqw]">
+          <motion.div {...pop(0.2)} className="relative mb-[3cqw] h-[36cqw] w-[16cqw]">
             <Image src={invite.invocationArt} alt="" fill sizes="160px" className="object-contain drop-shadow-[0_0.8cqw_0_#d6246e]" />
           </motion.div>
         )}
