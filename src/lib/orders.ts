@@ -260,6 +260,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(typeof d.invocationArt === "string" && /^\/art\/seals\/[\w-]+\.(png|webp)$/.test(d.invocationArt) ? { invocationArt: d.invocationArt } : {}),
       ...(d.hideHeroDate === true ? { hideHeroDate: true } : {}),
       ...(d.hideHeroCity === true ? { hideHeroCity: true } : {}),
+      ...(d.hideHeroHosts === true ? { hideHeroHosts: true } : {}),
       ...(d.hideCountdownCity === true ? { hideCountdownCity: true } : {}),
       ...(typeof d.closingNote === "string" && d.closingNote.trim() ? { closingNote: str(d.closingNote, 120) } : {}),
       ...(d.eventsByDay === true ? { eventsByDay: true } : {}),

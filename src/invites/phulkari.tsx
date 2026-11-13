@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useId, useMemo } from "react";
@@ -225,12 +226,20 @@ function Hero({ invite }: { invite: Invite }) {
       <Band className="h-[14cqw] w-full shrink-0" />
       <div className="relative flex flex-1 flex-col items-center justify-center px-[6cqw] py-[8cqw] text-center">
         <Confetti />
+        {invite.invocationArt && (
+          // A couple's own monogram at the top of the cover, transparent PNG in /art/seals.
+          <motion.div {...pop(0.2)} className="relative mb-[3cqw] h-[36cqw] w-[16cqw]">
+            <Image src={invite.invocationArt} alt="" fill sizes="160px" className="object-contain drop-shadow-[0_0.8cqw_0_#d6246e]" />
+          </motion.div>
+        )}
         <motion.p {...pop(0.3)} className="text-[16cqw] leading-none text-[#f6c445] [text-shadow:0_1.2cqw_0_#d6246e]" style={gurmukhi}>
           {invite.invocation}
         </motion.p>
-        <motion.p {...pop(0.45)} className="mt-[2cqw] text-[2.8cqw] font-bold tracking-[0.25em] text-[#fff4e0]/80 uppercase" style={gurmukhi}>
-          {invite.hosts}
-        </motion.p>
+        {!invite.hideHeroHosts && (
+          <motion.p {...pop(0.45)} className="mt-[2cqw] text-[2.8cqw] font-bold tracking-[0.25em] text-[#fff4e0]/80 uppercase" style={gurmukhi}>
+            {invite.hosts}
+          </motion.p>
+        )}
         <motion.h1 className="mt-[5cqw] flex flex-col items-center gap-[2cqw]">
           <motion.span {...pop(0.7, -3)}>
             <Sticker bg={PINK} rotate={0}>

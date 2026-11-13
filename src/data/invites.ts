@@ -118,10 +118,12 @@ export type Invite = {
   sealFull?: boolean;
   // Open on Mandir's carved temple doors re-coloured in Rajwada's maroon, whatever the design (first for Srinita & Smruti).
   doors?: "maroon";
-  // A small image above the invocation on the cover (e.g. a gold Ganesha), transparent PNG in /art/seals.
+  // A small image above the invocation on the cover (e.g. a gold Ganesha or the couple's monogram), transparent PNG in /art/seals. Rajwada and Phulkari.
   invocationArt?: string;
   // Leave the date line off the cover (the dates still show on every function card). Rajwada and Gauri Shankar.
   hideHeroDate?: boolean;
+  // Leave the hosts' line ("The … family") off the cover; it still opens the blessing (Phulkari).
+  hideHeroHosts?: boolean;
   // Leave the city off the cover too (Rajwada). Venues still show on every function card.
   hideHeroCity?: boolean;
   // Just the date under the countdown, without the place (any design).
