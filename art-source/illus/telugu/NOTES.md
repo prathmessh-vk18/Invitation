@@ -23,3 +23,13 @@ turmeric rice, kumkum) falls → dissolves onto the cover (camera pulls back), t
 Sections: Cover (names write in) → Families (Kailash) → Countdown (moon is the dial, diyas flicker)
 → Functions (maroon cards fold open, gold shimmer) → Closing (dance, twinkles). Sample: Karthik & Sravani.
 Kalyanam scene 5 (walking) not used yet.
+
+## Concept v2 (2026-11-14) — client picked ref scenes 3 (Kailash, flower in hair) and 5 (walking hand in hand)
+Palette now from those two: Himalayan dawn — snowy white peaks, pale lavender-blue sky, peach-gold sunrise,
+blush-pink lotuses; text deep maroon + gold on an ivory/blush/lavender page. v1 (beige/gold/maroon) art kept
+here as v1-*.png only. Art: v2-*.png → public/art/illus/telugu-v2-*.webp.
+Opening v2: gold Ganesha (public/art/seals/srinita-ganesha.png, same as Srinita's) + "You're invited" + names
+over the walking couple → tap: Ganesha glows, Srirastu/Shubhamastu/Avighnamastu writes in, sun swells with
+turning rays, camera pushes in to the sun, light floods, talambralu + lotus petals fall → dissolve to cover.
+Sections: Cover (flower in hair) → Families (meditation at dawn, small Ganesha) → Countdown (Mansarovar moon)
+→ Functions (ivory cards, gold edge) → Closing (dance on the clouds).
