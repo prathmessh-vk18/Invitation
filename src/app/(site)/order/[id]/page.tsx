@@ -269,7 +269,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
         )}
 
         <Changes order={order} sent={sent} live={query.live === "1"} same={query.same === "1"} />
-        {(order.status === "paid" || order.status === "live") && (
+        {(order.status === "paid" || order.status === "live") && !t.noPdf && (
           <Panel className="p-6 sm:p-8">
             <p className="text-title">Printable PDF for elders</p>
             <p className="mt-1 text-body text-muted">

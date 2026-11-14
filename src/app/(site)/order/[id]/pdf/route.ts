@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { site } from "@/config/site";
 import type { Invite } from "@/data/invites";
 import { withMovedMedia } from "@/lib/media";
+import { getTemplate } from "@/data/templates";
 import { inviteFromOrder } from "@/lib/order-invite";
 import type { Order } from "@/lib/orders";
 import { renderInvitePdf } from "@/lib/pdf/render";
@@ -25,6 +26,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { data } = await db().from("orders").select("*").eq("id", id).maybeSingle();
   const order = data as Order | null;
   if (!order || order.status === "cancelled") return new Response("Not found", { status: 404 });
+  // Some designs have no printable PDF.
+  if (getTemplate(order.template)?.noPdf) return new Response("Not found", { status: 404 });
   if (!(order.addons ?? []).includes("pdf")) return Response.redirect(`${site.url}/order/${id}?pdf=1`, 303);
 
   let invite: Invite = inviteFromOrder(order, order.invite_slug ?? "preview");

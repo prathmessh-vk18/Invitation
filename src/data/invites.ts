@@ -145,6 +145,8 @@ export type Invite = {
   invocationLines?: boolean;
   // Words shown at the very end in place of the couple's names, e.g. "Agarwal Family" (Mandir).
   closingNames?: string;
+  // "With best compliments from" names, one per line (Shiva Kalyanam's own form field).
+  compliments?: string[];
   // A couple's own wording for the invite's fixed words, by key in src/invites/i18n.ts (e.g.
   // { momentsKicker: "Their moments", scratchTitle: "Date and Place" }). Any design.
   words?: Record<string, string>;
@@ -948,6 +950,48 @@ export const privateInvites: Invite[] = [
       { kind: "other", name: "Dinner", start: "2026-12-12T21:00:00+05:30", venue: "The Durbar Hall, Jagmandir Palace", address: "Lake Pichola, Udaipur, Rajasthan 313001" },
     ],
     closing: "Your blessings will make our day complete.",
+  },
+  // Shiva Kalyanam, made for Srilakshmi & Shiva Chander: their approved content, which also starts
+  // the order form (the design is set to prefill).
+  {
+    slug: "srilakshmi-weds-shiva-chander-design",
+    template: "shivakalyanam",
+    lead: "bride",
+    bride: { first: "Srilakshmi", full: "Srilakshmi", parents: "daughter of Smt. Sridevi & Sri Saranala Srinath" },
+    groom: { first: "Shiva Chander", full: "Shiva Chander Reddy", parents: "elder son of Smt. Kavitha & Sri Chepyala Raji Reddy" },
+    invocation: "వక్రతుండ మహాకాయ కోటిసూర్యసమప్రభ | నిర్విఘ్నం కురుమే దేవ సర్వకార్యేషు సర్వదా ॥",
+    invocationMeaning: "",
+    hosts: "Smt. Jayalakshmi & Sri Saranala Babu Rao",
+    message: "request the pleasure of your company at the wedding ceremony of their granddaughter",
+    date: "2026-12-05T11:43:00+05:30",
+    city: "Hyderabad",
+    hashtag: "#Srilu’sChand",
+    events: [
+      {
+        kind: "muhurtham",
+        name: "Wedding",
+        start: "2026-12-05T11:43:00+05:30",
+        venue: "Sriman Convention",
+        address: "Aziz Nagar, Hyderabad",
+        mapUrl: "https://www.google.com/maps/search/?api=1&query=Sriman+Convention+Aziz+Nagar+Hyderabad",
+        note: "Followed by lunch",
+      },
+    ],
+    rsvp: { phone: "", by: "2026-12-05T11:43:00+05:30", contact: "Smt. Jayalakshmi & Sri Saranala Babu Rao" },
+    closing: "Blessed by Shiva and Parvati, two hearts become one. Come, bless the beginning of forever.",
+    compliments: ["Sri S. Sridhar Rao", "Sri S. Srikrishna", "and near & dear"],
+    signoff: "With love · the Saranala family",
+    // Their photos, graded to the design (on R2), and their song from 0:05.
+    gallery: [
+      "https://media.aavjoo.in/photos/moments/e63371fb-46dd-4d6f-a8ed-1763e856d4a7.jpg",
+      "https://media.aavjoo.in/photos/moments/29a10143-92b5-429a-93a1-3ee9a870cfae.jpg",
+      "https://media.aavjoo.in/photos/moments/52c450ba-eac6-4fa7-80c7-eea5a7c0fc04.jpg",
+      "https://media.aavjoo.in/photos/moments/2b62c77d-3c30-4bb2-9855-367a9b33696c.jpg",
+    ],
+    music: "file:/music/pournami-flute.mp3",
+    // The approved design had no RSVP section; she can turn it on in the form.
+    hide: ["rsvp"],
+    noBranding: true,
   },
 ];
 

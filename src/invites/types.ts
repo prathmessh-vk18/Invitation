@@ -33,7 +33,7 @@ export type InviteTheme = {
   Divider: FC<{ className?: string }>;
   Title: FC<{ kicker?: string; children: ReactNode }>;
   // The words on the shared "tap to open" pill and the "scroll" pill after opening (keys into i18n).
-  tapHint?: "tapSeal" | "tapDoors" | "tapRing" | "tapMoon" | "tapKolam" | "tapDupatta" | "tapCircle" | "tapAnywhere";
+  tapHint?: "tapSeal" | "tapDoors" | "tapRing" | "tapMoon" | "tapKolam" | "tapDupatta" | "tapCircle" | "tapAnywhere" | "tapHere";
   // Seconds before the tap hint shows, for openings with an animation worth watching first.
   tapHintDelay?: number;
   scrollHint?: "scrollToSeeMore" | "scrollToWalkIn";
@@ -43,4 +43,8 @@ export type InviteTheme = {
   largeText?: boolean;
   // A design's own countdown heading (e.g. "Anand Karaj in"), unless the couple set one.
   countdownTitle?: string;
+  // A design's own versions of the shared scratch card, countdown and photo album.
+  ScratchSection?: FC<{ invite: Invite }>;
+  CountdownSection?: FC<{ invite: Invite }>;
+  GallerySection?: FC<{ invite: Invite }>;
 };

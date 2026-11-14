@@ -14,7 +14,7 @@ import { longDate } from "@/lib/format";
 // Each path is written out in full so only these files ship with this route, and they're read
 // once when the module loads (see app/opengraph-image.tsx).
 const jpg = async (file: Promise<Buffer>) => `data:image/jpeg;base64,${(await file).toString("base64")}`;
-const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh, shiv, khatRed, sarovarArt, angoothiArt, chandniArt, rokaArt, chameliArt] = await Promise.all([
+const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh, shiv, khatRed, sarovarArt, angoothiArt, chandniArt, rokaArt, chameliArt, shivKalyanamArt] = await Promise.all([
   readFile(join(process.cwd(), "src/app/i/[slug]/Fraunces-Medium.ttf")),
   readFile(join(process.cwd(), "src/app/i/[slug]/Geist-Medium.ttf")),
   jpg(readFile(join(process.cwd(), "public/art/illus/mandir-temple.jpg"))),
@@ -30,6 +30,7 @@ const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh, shiv, khatRe
   jpg(readFile(join(process.cwd(), "public/art/illus/chandni-hero.jpg"))),
   jpg(readFile(join(process.cwd(), "public/art/illus/roka-hero.jpg"))),
   jpg(readFile(join(process.cwd(), "public/art/illus/chameli-envelope.jpg"))),
+  jpg(readFile(join(process.cwd(), "public/art/illus/telugu-share.jpg"))),
 ]);
 
 // The painted designs' hero art fills the card. The art is portrait (864×1536), so at the card's
@@ -59,6 +60,7 @@ const scenes: Record<string, { src: string; y: number }> = {
   // The sealed ivory envelope from Chameli's opening, its gold-edged flap under the names.
   chameli: { src: chameliArt, y: 0.3 },
   chamelisagai: { src: chameliArt, y: 0.3 },
+  shivakalyanam: { src: shivKalyanamArt, y: 0.38 },
 };
 
 /** Names on one line, as large as fits the card. */

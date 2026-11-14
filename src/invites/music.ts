@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { presets, trackSrc } from "@/config/music";
+import { presets, trackFrom, trackSrc } from "@/config/music";
 
 /**
  * Background music for invitations. `src` is either a recording URL (the couple's upload or a
@@ -96,16 +96,28 @@ export function useInviteMusic(given?: string) {
   const play = useCallback(() => {
     if (src && !src.startsWith("synth:")) {
       if (!audioRef.current) {
-        audioRef.current = new Audio(src);
-        audioRef.current.loop = true;
-        audioRef.current.volume = 0.6;
+        const from = trackFrom(given);
+        const a = new Audio(src);
+        a.volume = 0.6;
+        if (from) {
+          // a song with a slow intro starts, and comes round again, from its chosen second
+          a.currentTime = from;
+          a.addEventListener("loadedmetadata", () => a.currentTime < from && (a.currentTime = from), { once: true });
+          a.addEventListener("ended", () => {
+            a.currentTime = from;
+            void a.play();
+          });
+        } else {
+          a.loop = true;
+        }
+        audioRef.current = a;
       }
       audioRef.current.play().catch(() => setPlaying(false));
     } else if (!synthRef.current) {
       startSynth(src?.slice("synth:".length) ?? "bhupali");
     }
     setPlaying(true);
-  }, [src, startSynth]);
+  }, [src, given, startSynth]);
 
   const pause = useCallback(() => {
     audioRef.current?.pause();

@@ -1,6 +1,7 @@
 import type { SectionId } from "@/config/customise";
 import type { EventKind, Invite } from "@/data/invites";
 import type { InviteDetails } from "@/lib/orders";
+import { getTemplate } from "@/data/templates";
 import { isMapUrl, splitMapLink } from "@/lib/format";
 
 /* ───────── State ───────── */
@@ -33,6 +34,10 @@ export type FormState = {
   font: string;
   // Not in the form: kept so editing a Hindi invite doesn't turn it back into English.
   lang?: "hi";
+  // Only on designs that ask for them (TemplateMeta.extraFields): "With best compliments from"
+  // names, one per line, and a sign-off line at the end.
+  compliments: string;
+  signoff: string;
 };
 
 export const LIMITS = { name: 40, fullName: 80, parents: 160, city: 80, message: 400, closing: 240, venue: 120, address: 200 };
@@ -45,6 +50,8 @@ export const mainCeremonies: EventKind[] = ["phere", "nikah", "anandkaraj", "muh
 
 /** Starts from the design's demo so the wording fits its tradition; personal details are left empty. */
 export function initialState(demo: Invite): FormState {
+  // A design made for one couple starts from their agreed content instead.
+  if (getTemplate(demo.template)?.prefill) return prefilled(demo);
   return {
     lead: demo.lead,
     bride: emptyPerson,
@@ -66,6 +73,40 @@ export function initialState(demo: Invite): FormState {
     music: demo.music ?? "synth:bhupali",
     hide: [],
     font: "",
+    compliments: (demo.compliments ?? []).join("\n"),
+    signoff: demo.signoff ?? "",
+  };
+}
+
+/** Every detail of the demo as the form's starting point. */
+function prefilled(demo: Invite): FormState {
+  const wedding = istParts(demo.date);
+  return {
+    lead: demo.lead,
+    bride: { first: demo.bride.first, full: demo.bride.full === demo.bride.first ? "" : demo.bride.full, parents: demo.bride.parents },
+    groom: { first: demo.groom.first, full: demo.groom.full === demo.groom.first ? "" : demo.groom.full, parents: demo.groom.parents },
+    weddingDate: wedding.date,
+    weddingTime: wedding.time,
+    city: demo.city,
+    invocation: demo.invocation,
+    invocationMeaning: demo.invocationMeaning,
+    hosts: demo.hosts,
+    message: demo.message,
+    closing: demo.closing,
+    hashtag: demo.hashtag ?? "",
+    events: demo.events.map((e) => {
+      const start = istParts(e.start);
+      return { kind: e.kind, name: e.name, date: start.date, time: start.time, venue: e.venue, address: e.address ?? "", mapUrl: e.mapUrl ?? "", dress: e.dress ?? "", note: e.note ?? "" };
+    }),
+    rsvpSame: true,
+    rsvpPhone: "",
+    rsvpBy: "",
+    customer: { name: "", phone: "", email: "" },
+    music: demo.music ?? "synth:bhupali",
+    hide: (demo.hide ?? []) as FormState["hide"],
+    font: demo.font ?? "",
+    compliments: (demo.compliments ?? []).join("\n"),
+    signoff: demo.signoff ?? "",
   };
 }
 
@@ -219,7 +260,7 @@ export function addDays(date: string, n: number) {
 const iso = (date: string, time: string) => (date ? `${date}T${time || "12:00"}:00+05:30` : "");
 
 /** The invite exactly as it will be submitted. */
-export function toDetails(s: FormState) {
+export function toDetails(s: FormState, template?: string) {
   const rsvp = s.rsvpSame ? s.customer.phone : s.rsvpPhone;
   return {
     bride: { ...s.bride, first: s.bride.first.trim() },
@@ -250,6 +291,16 @@ export function toDetails(s: FormState) {
     hide: s.hide,
     font: s.font,
     ...(s.lang ? { lang: s.lang } : {}),
+    ...extras(s, template),
+  };
+}
+
+/** The extra fields' values, only for designs that ask for them (always sent there, so clearing one sticks). */
+function extras(s: FormState, template?: string) {
+  if (!template || !getTemplate(template)?.extraFields?.length) return {};
+  return {
+    compliments: s.compliments.split("\n").map((x) => x.trim()).filter(Boolean),
+    signoff: s.signoff.trim(),
   };
 }
 
@@ -307,6 +358,8 @@ export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState[
     hide: (d.hide ?? []) as FormState["hide"],
     font: d.font ?? "",
     ...(d.lang === "hi" ? { lang: "hi" as const } : {}),
+    compliments: (d.compliments ?? []).join("\n"),
+    signoff: d.signoff ?? "",
   };
 }
 
@@ -338,6 +391,7 @@ export function toPreview(s: FormState, demo: Invite): Invite {
     hide: s.hide,
     font: s.font || undefined,
     ...(s.lang ? { lang: s.lang } : {}),
+    ...extras(s, demo.template),
     events: s.events.map((e) => ({
       kind: e.kind,
       name: e.name || "Function",

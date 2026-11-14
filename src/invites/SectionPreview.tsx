@@ -51,7 +51,7 @@ export function SectionPreview({ invite, part, eventIndex }: { invite: Invite; p
         <theme.Closing invite={invite} />
       </>
     ),
-    gallery: <Gallery invite={invite} theme={theme} />,
+    gallery: theme.GallerySection ? <theme.GallerySection invite={invite} /> : <Gallery invite={invite} theme={theme} />,
     rsvp: (
       <>
         <Rsvp invite={invite} theme={theme} />

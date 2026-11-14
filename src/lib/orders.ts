@@ -243,7 +243,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.boldText === true ? { boldText: true } : {}),
       ...(d.stackNames === true ? { stackNames: true } : {}),
       ...(d.noSignoff === true ? { noSignoff: true } : {}),
-      ...(typeof d.signoff === "string" && d.signoff.trim() ? { signoff: str(d.signoff, 80) } : {}),
+      ...(typeof d.signoff === "string" ? { signoff: str(d.signoff, 80) } : {}),
       ...(typeof d.heroKicker === "string" && d.heroKicker.trim() ? { heroKicker: str(d.heroKicker, 60) } : {}),
       ...(d.parentsWide === true ? { parentsWide: true } : {}),
       ...(d.noBranding === true ? { noBranding: true } : {}),
@@ -271,6 +271,9 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.invocationLines === true ? { invocationLines: true } : {}),
       ...(typeof d.closingNames === "string" && d.closingNames.trim() ? { closingNames: str(d.closingNames, 60) } : {}),
       ...(d.hostsLines === true ? { hostsLines: true } : {}),
+      ...(Array.isArray(d.compliments)
+        ? { compliments: (d.compliments as unknown[]).map((x) => str(x, 80)).filter(Boolean).slice(0, 12) }
+        : {}),
       ...(d.words && typeof d.words === "object" && !Array.isArray(d.words)
         ? {
             words: Object.fromEntries(

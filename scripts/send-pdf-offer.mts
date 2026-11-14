@@ -7,6 +7,7 @@
  * wedding has passed; one email per address. Resend's free plan allows 100 emails a day, so a
  * batch of 80 leaves room for the day's reminders: run --send once a day until nobody's left.
  */
+import { getTemplate } from "../src/data/templates";
 import { db } from "../src/lib/supabase";
 import { sendMail } from "../src/lib/mail";
 import { pdfOfferEmail } from "../src/lib/offer-emails";
@@ -26,7 +27,7 @@ const due = (data as Order[])
   .filter((o) => {
     const email = o.customer_email!.trim().toLowerCase();
     const ok =
-      email.includes("@") && !o.email_opt_out && !(o.addons ?? []).includes("pdf") && !sentOrders.has(o.id) && !sentTo.has(email) &&
+      email.includes("@") && !o.email_opt_out && !(o.addons ?? []).includes("pdf") && !getTemplate(o.template)?.noPdf && !sentOrders.has(o.id) && !sentTo.has(email) &&
       new Date(o.details.date).getTime() > Date.now() && !/test/i.test(o.customer_name ?? "") && !seen.has(email);
     if (ok) seen.add(email);
     return ok;

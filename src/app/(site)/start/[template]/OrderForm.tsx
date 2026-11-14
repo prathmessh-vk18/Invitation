@@ -588,7 +588,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
       try {
         res = await createOrder({
           template: t.id,
-          details: toDetails(s),
+          details: toDetails(s, t.id),
           songPath: song?.path ?? null,
           photoPaths: showing("gallery") ? photos.map((x) => x.path) : [],
           customer: { ...s.customer, phone: `+${waNumber(s.customer.phone)}` },
@@ -611,7 +611,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
   }
 
   function saveEdit() {
-    const input = { details: toDetails(s), songPath: song?.path ?? null, photoPaths: showing("gallery") ? photos.map((x) => x.path) : [], note };
+    const input = { details: toDetails(s, t.id), songPath: song?.path ?? null, photoPaths: showing("gallery") ? photos.map((x) => x.path) : [], note };
     start(async () => {
       try {
         if (mode.kind === "change") {
@@ -839,13 +839,19 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
 
   const wording = (
     <div className="space-y-4">
-      <Input k="invocationMeaning" label="Meaning of the opening line" hint="shown small, with the blessing" value={s.invocationMeaning} onChange={(v) => set("invocationMeaning", v)} onBlur={() => touch("invocationMeaning")} placeholder="With the blessings of Lord Ganesha" maxLength={120} />
+      {!t.noInvocationMeaning && <Input k="invocationMeaning" label="Meaning of the opening line" hint="shown small, with the blessing" value={s.invocationMeaning} onChange={(v) => set("invocationMeaning", v)} onBlur={() => touch("invocationMeaning")} placeholder="With the blessings of Lord Ganesha" maxLength={120} />}
       <Input k="hosts" label="Hosted by" hint="optional" value={s.hosts} onChange={(v) => set("hosts", v)} onBlur={() => touch("hosts")} placeholder={demo.hosts} maxLength={160} />
       <TextArea k="message" label="Invitation message" value={s.message} onChange={(v) => set("message", v)} onBlur={() => touch("message")} error={shown("message")} maxLength={LIMITS.message} />
+      {t.extraFields?.includes("compliments") && (
+        <TextArea k="compliments" label="With best compliments from" hint="optional · one name per line" value={s.compliments} onChange={(v) => set("compliments", v)} onBlur={() => {}} placeholder={"Sri S. Sridhar Rao\nSri S. Srikrishna"} maxLength={800} rows={4} />
+      )}
       <div className="grid gap-4 sm:grid-cols-[1fr_220px]">
         <Input k="closing" label="Closing line" value={s.closing} onChange={(v) => set("closing", v)} onBlur={() => touch("closing")} error={shown("closing")} maxLength={LIMITS.closing} counter />
         <Input k="hashtag" label="Hashtag" hint="optional" value={s.hashtag} onChange={(v) => set("hashtag", v)} onBlur={() => touch("hashtag")} placeholder="#AaravKiMeera" maxLength={40} />
       </div>
+      {t.extraFields?.includes("signoff") && (
+        <Input k="signoff" label="Sign-off" hint="optional · the last line" value={s.signoff} onChange={(v) => set("signoff", v)} onBlur={() => {}} placeholder="With love · the Saranala family" maxLength={80} />
+      )}
       <button
         type="button"
         onClick={() => setS((p) => ({ ...p, invocationMeaning: demo.invocationMeaning, message: demo.message, closing: demo.closing }))}
