@@ -350,7 +350,11 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
   const [furthest, setFurthest] = useState(isNew ? 0 : steps.length - 1);
   const [song, setSong] = useState<Song | null>(given?.songPath ? { path: given.songPath, name: "Your uploaded song" } : null);
   const [previewing, setPreviewing] = useState<string | null>(null);
-  const [photos, setPhotos] = useState<Photo[]>(() => (given?.photoPaths ?? []).map((path) => ({ path })));
+  // A design made for one couple starts with their photos from its demo (already uploaded, so they
+  // behave like any upload: remove, reorder or add more).
+  const [photos, setPhotos] = useState<Photo[]>(() =>
+    (given?.photoPaths ?? (t.prefill ? (demo.gallery ?? []).map((u) => u.match(/\/photos\/(moments\/[0-9a-f-]{36}\.(?:jpg|png|webp))$/)?.[1]).filter((x): x is string => Boolean(x)) : [])).map((path) => ({ path })),
+  );
   // A note for us with a change request.
   const [note, setNote] = useState("");
   const [photoBusy, setPhotoBusy] = useState(0);
