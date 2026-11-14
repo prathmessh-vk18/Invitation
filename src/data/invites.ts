@@ -138,6 +138,8 @@ export type Invite = {
   closingLines?: boolean;
   // A function's venue shown one comma-separated part per line, all in the venue's style (Gauri Shankar).
   venueLines?: boolean;
+  // The invocation broken after each half-verse (after "।" or "|"), one line each (Gauri Shankar).
+  invocationLines?: boolean;
   // Functions grouped into one card per day, instead of a card each.
   eventsByDay?: boolean;
   // With eventsByDay: a name for each day, in order ("Sagai", "Shaadi"…), shown beside its date in the RSVP.

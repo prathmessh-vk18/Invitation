@@ -230,7 +230,13 @@ function Details({ invite, show }: { invite: Invite; show: (d: number) => object
     <div className="relative flex flex-col items-center text-center">
       <div className="absolute -inset-x-[10%] -inset-y-[18%] rounded-[50%] bg-[radial-gradient(closest-side,rgba(255,250,248,.9),rgba(255,250,248,0))]" />
       <motion.p {...show(0.2)} className="relative text-[3.6cqw] leading-snug font-semibold" style={{ color: c.crimson, fontFamily: "var(--font-deva)", textShadow: HALO }}>
-        {invite.invocation}
+        {invite.invocationLines
+          ? invite.invocation.split(/(?<=[।|])(?!\s*$)\s*/).map((line, i) => (
+              <span key={i} className="block whitespace-nowrap">
+                {line}
+              </span>
+            ))
+          : invite.invocation}
       </motion.p>
       {invite.invocationMeaning && (
         <motion.p {...show(0.35)} className="inv-serif relative mt-[1cqw] text-[4cqw] font-semibold italic" style={{ color: c.soft, textShadow: HALO }}>
