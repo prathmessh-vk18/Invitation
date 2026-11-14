@@ -261,10 +261,18 @@ function Details({ invite, show }: { invite: Invite; show: (d: number) => object
         </motion.p>
       )}
       {invite.occasion === "reception" ? (
-        // kept quiet: one serif line, then the names
-        <motion.p {...show(0.5)} className="inv-serif relative mt-[4cqw] text-[4.6cqw] leading-snug font-semibold" style={{ color: c.ink, textShadow: HALO }}>
-          You are cordially invited to the reception of
-        </motion.p>      ) : (
+        // one serif throughout; RECEPTION stands out in bold capitals, in the date's crimson
+        <motion.div {...show(0.5)} className="relative mt-[4cqw] flex flex-col items-center">
+          <p className="inv-serif text-[4.6cqw] leading-snug font-semibold" style={{ color: c.ink, textShadow: HALO }}>
+            You are cordially invited to the
+          </p>
+          <p className="inv-serif mt-[1.5cqw] text-[10cqw] leading-none font-bold tracking-[0.12em]" style={{ color: c.crimson, textShadow: HALO }}>
+            RECEPTION
+          </p>
+          <p className="inv-serif mt-[1.5cqw] -mb-[1cqw] text-[4.6cqw] leading-none font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
+            of
+          </p>
+        </motion.div>      ) : (
         <motion.p {...show(0.5)} className="inv-label relative mt-[3cqw] text-[2.8cqw] leading-relaxed font-semibold" style={{ color: c.ink, textShadow: HALO }}>
           We cordially invite you to the wedding of
         </motion.p>
