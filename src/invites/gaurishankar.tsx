@@ -246,8 +246,7 @@ function Details({ invite, show }: { invite: Invite; show: (d: number) => object
           <p className="mt-[1cqw] text-[8.4cqw] leading-none font-semibold tracking-[0.18em]" style={{ color: c.crimson, fontFamily: "var(--font-cinzel), serif", textShadow: HALO }}>
             RECEPTION
           </p>
-          <Divider className="mt-[2cqw] w-[60cqw]" />
-          <p className="-mb-[2cqw] text-[8cqw] leading-none" style={{ color: c.rose, fontFamily: HAND, textShadow: HALO }}>
+          <p className="mt-[2cqw] -mb-[2cqw] text-[8cqw] leading-none" style={{ color: c.rose, fontFamily: HAND, textShadow: HALO }}>
             of
           </p>
         </motion.div>
@@ -412,19 +411,13 @@ function ArchCard({ e, invite }: { e: InviteEvent; invite: Invite }) {
             {fmtDate(e.start, { month: "long", year: "numeric" })} · {time(e.start)}
           </p>
           {invite.venueLines ? (
-            // one part of the venue per line: its name, then the address
+            // one part of the venue per line, all alike
             <div className="mt-[5cqw]">
-              {e.venue.split(/\s*,\s*/).map((part, i) =>
-                i === 0 ? (
-                  <p key={i} className="inv-serif text-[4.4cqw] leading-tight font-bold whitespace-nowrap" style={{ color: c.ink }}>
-                    {part}
-                  </p>
-                ) : (
-                  <p key={i} className="inv-serif mt-[0.6cqw] text-[3.6cqw] leading-snug font-medium" style={{ color: c.soft }}>
-                    {part}
-                  </p>
-                ),
-              )}
+              {e.venue.split(/\s*,\s*/).map((part, i) => (
+                <p key={i} className={`inv-serif text-[4.4cqw] leading-tight font-bold whitespace-nowrap ${i ? "mt-[1cqw]" : ""}`} style={{ color: c.ink }}>
+                  {part}
+                </p>
+              ))}
             </div>
           ) : (
             <p className="inv-serif mt-[5cqw] text-[4.8cqw] leading-tight font-bold" style={{ color: c.ink }}>
