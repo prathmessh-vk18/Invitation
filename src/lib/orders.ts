@@ -271,6 +271,15 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.invocationLines === true ? { invocationLines: true } : {}),
       ...(typeof d.closingNames === "string" && d.closingNames.trim() ? { closingNames: str(d.closingNames, 60) } : {}),
       ...(d.hostsLines === true ? { hostsLines: true } : {}),
+      ...(d.nameNudge && typeof d.nameNudge === "object"
+        ? {
+            nameNudge: Object.fromEntries(
+              (["bride", "groom"] as const)
+                .map((k) => [k, Number((d.nameNudge as Record<string, unknown>)[k])] as const)
+                .filter(([, v]) => Number.isFinite(v) && Math.abs(v) <= 0.5),
+            ),
+          }
+        : {}),
       ...(Array.isArray(d.compliments)
         ? { compliments: (d.compliments as unknown[]).map((x) => str(x, 80)).filter(Boolean).slice(0, 12) }
         : {}),

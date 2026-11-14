@@ -9,6 +9,7 @@ import type { Invite, InviteEvent } from "@/data/invites";
 import { fmtDate, monthName, time, weekday, yearNum } from "@/lib/format";
 import { langOf } from "./i18n";
 import { makeIllustrated } from "./illustrated";
+import { InkCentered } from "./ink";
 import { INVITE_ART_SIZES, PREVIEW_ART_SIZES, useOpened, usePreview } from "./opened";
 import { couple, EventActions, Reveal } from "./shared";
 import type { InviteTheme, OpeningProps } from "./types";
@@ -216,15 +217,15 @@ function Meeting({ invite, opened, onOpen }: OpeningProps) {
           {invite.stackNames ? (
             // one name per line, the joiner between
             <>
-              <span className="block" style={{ fontSize: u(13) }}>
+              <InkCentered className="block" style={{ fontSize: u(13), display: "block" }} nudge={invite.nameNudge?.[a === invite.bride ? "bride" : "groom"] ?? 0}>
                 {a.first}
-              </span>
+              </InkCentered>
               <span className="block leading-none" style={{ fontSize: u(9) }}>
                 {invite.joiner ?? "&"}
               </span>
-              <span className="block" style={{ fontSize: u(13) }}>
+              <InkCentered className="block" style={{ fontSize: u(13), display: "block" }} nudge={invite.nameNudge?.[b === invite.bride ? "bride" : "groom"] ?? 0}>
                 {b.first}
-              </span>
+              </InkCentered>
             </>
           ) : (
             <>
@@ -266,7 +267,7 @@ function Details({ invite, show }: { invite: Invite; show: (d: number) => object
           <p className="inv-serif text-[4.6cqw] leading-snug font-semibold" style={{ color: c.ink, textShadow: HALO }}>
             You are cordially invited to the
           </p>
-          <p className="inv-script mt-[1.5cqw] text-[12cqw] leading-[1.05]" style={{ color: c.crimson, textShadow: HALO }}>
+          <p className="inv-script mt-[1.5cqw] text-[9.5cqw] leading-[1.05]" style={{ color: "#1c1414", textShadow: HALO }}>
             Reception
           </p>
           <p className="inv-serif mt-[1.5cqw] -mb-[1cqw] text-[4.6cqw] leading-none font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
@@ -377,7 +378,7 @@ function Blessing({ invite }: { invite: Invite }) {
   const person = (p: typeof a) => (
     <div>
       <p className="inv-script mt-[1.5cqw] text-[14cqw] leading-[1.05]" style={{ color: c.rose, textShadow: HALO }}>
-        {p.full || p.first}
+        <InkCentered nudge={invite.nameNudge?.[p === invite.bride ? "bride" : "groom"] ?? 0}>{p.full || p.first}</InkCentered>
       </p>
       {p.elders && !p.eldersBelow && (
         <p className="inv-label mx-auto mt-[1cqw] max-w-[70cqw] text-[2.9cqw] leading-relaxed font-semibold" style={{ color: c.gold, textShadow: HALO }}>
@@ -533,9 +534,9 @@ function Closing({ invite }: { invite: Invite }) {
         <p className="inv-script mt-[3cqw] text-[14cqw] leading-[1.1]" style={{ color: c.rose, textShadow: HALO }}>
           {invite.stackNames ? (
             <>
-              <span className="block">{a.first}</span>
+              <InkCentered style={{ display: "block" }} nudge={invite.nameNudge?.[a === invite.bride ? "bride" : "groom"] ?? 0}>{a.first}</InkCentered>
               <span className="block text-[9cqw] leading-none">{invite.joiner ?? "&"}</span>
-              <span className="block">{b.first}</span>
+              <InkCentered style={{ display: "block" }} nudge={invite.nameNudge?.[b === invite.bride ? "bride" : "groom"] ?? 0}>{b.first}</InkCentered>
             </>
           ) : (
             `${a.first} ${invite.joiner ?? "&"} ${b.first}`
