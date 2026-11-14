@@ -234,7 +234,7 @@ export function ScratchDate({ invite, theme }: { invite: Invite; theme: InviteTh
                 onPointerMove={scratch}
                 onPointerUp={end}
                 onPointerCancel={end}
-                aria-label={invite.occasion === "engagement" ? t.scratchAria.replace("wedding", "engagement") : t.scratchAria}
+                aria-label={invite.occasion ? t.scratchAria.replace("wedding", invite.occasion) : t.scratchAria}
                 role="img"
               />
             )}
