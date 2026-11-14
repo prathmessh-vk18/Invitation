@@ -1074,8 +1074,13 @@ function Wedding() {
 
 /* ───────── Photo album ───────── */
 
-// Sample photos (the site's demo moments) until the couple's own arrive.
-const PHOTOS = ["/art/moments/m1.jpg", "/art/moments/m2.jpg", "/art/moments/m3.jpg", "/art/moments/m4.jpg"];
+// The couple's photos, graded warm and creamy to sit on the page (photographer's credit kept).
+const PHOTOS = [
+  "https://media.aavjoo.in/photos/moments/e63371fb-46dd-4d6f-a8ed-1763e856d4a7.jpg",
+  "https://media.aavjoo.in/photos/moments/29a10143-92b5-429a-93a1-3ee9a870cfae.jpg",
+  "https://media.aavjoo.in/photos/moments/52c450ba-eac6-4fa7-80c7-eea5a7c0fc04.jpg",
+  "https://media.aavjoo.in/photos/moments/2b62c77d-3c30-4bb2-9855-367a9b33696c.jpg",
+];
 
 /** Arch-topped, gold-edged photos in a swipeable row; tap one to see it large. */
 function Album() {
@@ -1095,21 +1100,21 @@ function Album() {
           Photo album
         </p>
       </Reveal>
-      <Reveal delay={0.15}>
-        <div ref={track} onScroll={onScroll} className="no-scrollbar mt-[6cqw] flex snap-x snap-mandatory gap-4 overflow-x-auto px-[18cqw] pt-[3cqw] pb-[6cqw]">
+      <Reveal delay={0.15} className="w-full">
+        <div ref={track} onScroll={onScroll} className="no-scrollbar mt-[6cqw] flex w-full snap-x snap-mandatory gap-4 overflow-x-auto px-[19cqw] pt-[3cqw] pb-[6cqw]">
           {PHOTOS.map((src, i) => (
             <motion.button
               key={src}
               type="button"
               onClick={() => setOpen(i)}
-              className="relative aspect-[3/4] w-[64cqw] shrink-0 snap-center p-[1.2cqw] shadow-[0_2cqw_5cqw_rgba(80,40,20,.22)]"
+              className="relative aspect-[2/3] w-[62cqw] shrink-0 snap-center p-[1.2cqw] shadow-[0_2cqw_5cqw_rgba(80,40,20,.22)]"
               style={{ borderRadius: "32cqw 32cqw 2cqw 2cqw", background: "linear-gradient(135deg, #c99a3e, #f8e2a6 35%, #b8862e 65%, #f3d68d)" }}
               animate={{ scale: active === i ? 1 : 0.92, rotate: active === i ? 0 : i % 2 ? 1.5 : -1.5 }}
               transition={{ duration: 0.5, ease }}
               aria-label={`Open photo ${i + 1}`}
             >
               <div className="relative size-full overflow-hidden" style={{ borderRadius: "31cqw 31cqw 1.4cqw 1.4cqw" }}>
-                <Image src={src} alt="" fill sizes="320px" className="object-cover" />
+                <Image src={src} alt="" fill unoptimized className="object-cover" />
                 <div className="pointer-events-none absolute inset-0" style={{ boxShadow: "inset 0 0 0 0.6cqw rgba(255,240,210,.45)", borderRadius: "inherit" }} />
               </div>
             </motion.button>
@@ -1133,7 +1138,7 @@ function Album() {
             aria-label="Close photo"
           >
             <motion.div className="relative h-[80svh] w-full max-w-[440px]" initial={{ scale: 0.92 }} animate={{ scale: 1 }}>
-              <Image src={PHOTOS[open]} alt="" fill sizes="440px" className="object-contain" />
+              <Image src={PHOTOS[open]} alt="" fill unoptimized className="object-contain" />
             </motion.div>
           </motion.button>
         )}

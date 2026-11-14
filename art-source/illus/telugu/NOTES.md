@@ -78,3 +78,4 @@ Meditation version saved at /lab/telugu/meditation (TeluguInviteMeditation.tsx, 
   Garland/arch removed. All code-drawn SVG/CSS.
 - Subtle round (2026-11-14): client found it too grand → removed gopuram, banana plants, kolam, bells, lamps. Countdown = light ivory panel with a slim gold temple-border trim and maroon numbers that turn over; wedding card = maroon silk with slim trim, brass doors still open on view.
 - Scratch to reveal (2026-11-14): 'A little surprise · Save the date' ivory card under gold foil (same mechanics as src/invites/scratch.tsx), between families and countdown; reveal bursts petals, pearls and rice.
+- Photos (2026-11-14): the couple's 4 photos graded warm/creamy (scratchpad photo-grade.mjs: greens x0.55, sat x0.9, 9% beige wash, lifted blacks), cropped to 2:3, photographer credit kept, uploaded to R2 photos/moments/<uuid>.jpg (unoptimized <Image>). Album frames now 2:3; fixed the strip overflowing the screen.
