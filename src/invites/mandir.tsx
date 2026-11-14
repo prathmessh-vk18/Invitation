@@ -270,9 +270,21 @@ function Blessing({ invite }: { invite: Invite }) {
     <section ref={ref} className={`relative z-10 px-[13cqw] pt-[24cqw] pb-[12cqw] text-center ${still ? "" : "-mt-[55svh]"}`}>
       <motion.div style={still ? undefined : { scale, opacity, filter: blur, transformOrigin: "50% 30%" }}>
         <Divider />
-        <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed" style={{ color: c.goldDeep }}>
-          {invite.hosts || t.togetherWithFamilies}
-        </p>
+        {invite.hostsLines && invite.hosts ? (
+          // one family per line, "&" between them
+          <div className="inv-label mt-[4cqw] text-[3cqw] leading-relaxed font-semibold" style={{ color: c.goldDeep }}>
+            {invite.hosts.split(/\s+&\s+/).map((name, i) => (
+              <p key={i}>
+                {i > 0 && <span className="my-[0.5cqw] block">&amp;</span>}
+                {name}
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed" style={{ color: c.goldDeep }}>
+            {invite.hosts || t.togetherWithFamilies}
+          </p>
+        )}
         <p className="inv-serif mt-[3cqw] text-[4.6cqw] leading-snug" style={{ color: c.ink }}>
           {invite.message}
         </p>

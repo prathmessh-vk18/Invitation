@@ -142,6 +142,11 @@ export type Invite = {
   invocationLines?: boolean;
   // Words shown at the very end in place of the couple's names, e.g. "Agarwal Family" (Mandir).
   closingNames?: string;
+  // A couple's own wording for the invite's fixed words, by key in src/invites/i18n.ts (e.g.
+  // { momentsKicker: "Their moments", scratchTitle: "Date and Place" }). Any design.
+  words?: Record<string, string>;
+  // The hosts' line split at " & " onto separate lines, "&" on its own (Mandir).
+  hostsLines?: boolean;
   // Functions grouped into one card per day, instead of a card each.
   eventsByDay?: boolean;
   // With eventsByDay: a name for each day, in order ("Sagai", "Shaadi"…), shown beside its date in the RSVP.

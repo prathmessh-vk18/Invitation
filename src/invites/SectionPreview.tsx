@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { fontVars } from "@/config/customise";
 import type { Invite } from "@/data/invites";
 import { useFitScript } from "./fit";
-import { LangContext, langOf, langVars } from "./i18n";
+import { LangContext, WordsContext, langOf, langVars, wordsOf } from "./i18n";
 import { OpenedContext, PreviewContext } from "./opened";
 import { themes } from "./registry";
 import { Gallery, Rsvp } from "./shared";
@@ -62,6 +62,7 @@ export function SectionPreview({ invite, part, eventIndex }: { invite: Invite; p
 
   return (
     <LangContext.Provider value={langOf(invite)}>
+    <WordsContext.Provider value={wordsOf(invite)}>
     <PreviewContext.Provider value={true}>
     <OpenedContext.Provider value={true}>
       <div
@@ -79,6 +80,7 @@ export function SectionPreview({ invite, part, eventIndex }: { invite: Invite; p
       </div>
     </OpenedContext.Provider>
     </PreviewContext.Provider>
+    </WordsContext.Provider>
     </LangContext.Provider>
   );
 }

@@ -6,7 +6,7 @@ import type { Invite } from "@/data/invites";
 import { withMapLinks } from "@/lib/format";
 import { useFitScript } from "./fit";
 import { useInviteMusic } from "./music";
-import { LangContext, langOf, langVars } from "./i18n";
+import { LangContext, WordsContext, langOf, langVars, wordsOf } from "./i18n";
 import { OpenedContext } from "./opened";
 import { themes } from "./registry";
 import { ScrollHint, TapHint } from "./hints";
@@ -51,6 +51,7 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
 
   return (
     <LangContext.Provider value={langOf(invite)}>
+    <WordsContext.Provider value={wordsOf(invite)}>
     <OpenedContext.Provider value={opened}>
       <div ref={rootRef} lang={langOf(invite)} data-large-text={invite.largeText ?? theme.largeText ? "" : undefined} style={{ ...theme.vars, ...fontVars(invite.font, (theme.vars as Record<string, unknown>)["--inv-script"]), ...langVars(langOf(invite)) }} className={`${theme.root} min-h-svh`}>
         <main className="@container relative mx-auto w-full max-w-[480px] overflow-x-clip shadow-[0_0_80px_rgba(0,0,0,.25)]">
@@ -93,6 +94,7 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
         )}
       </div>
     </OpenedContext.Provider>
+    </WordsContext.Provider>
     </LangContext.Provider>
   );
 }

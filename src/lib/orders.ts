@@ -269,6 +269,17 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.venueLines === true ? { venueLines: true } : {}),
       ...(d.invocationLines === true ? { invocationLines: true } : {}),
       ...(typeof d.closingNames === "string" && d.closingNames.trim() ? { closingNames: str(d.closingNames, 60) } : {}),
+      ...(d.hostsLines === true ? { hostsLines: true } : {}),
+      ...(d.words && typeof d.words === "object" && !Array.isArray(d.words)
+        ? {
+            words: Object.fromEntries(
+              Object.entries(d.words as Record<string, unknown>)
+                .filter(([k, v]) => /^[a-zA-Z]{2,30}$/.test(k) && typeof v === "string")
+                .slice(0, 20)
+                .map(([k, v]) => [k, str(v as string, 80)]),
+            ),
+          }
+        : {}),
       ...(d.eventsByDay === true ? { eventsByDay: true } : {}),
       ...(Array.isArray(d.dayNames) && d.dayNames.length ? { dayNames: d.dayNames.slice(0, 10).map((x) => str(x, 30)) } : {}),
       ...(d.lang === "hi" ? { lang: "hi" as const } : {}),

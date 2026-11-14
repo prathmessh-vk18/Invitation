@@ -153,6 +153,11 @@ const hi: typeof en = {
 
 export const LangContext = createContext<Lang>("en");
 
+/** A couple's own wording for some of the invite's fixed words (e.g. "Their moments"), by key. */
+export const WordsContext = createContext<Record<string, string>>({});
+const NO_WORDS: Record<string, string> = {};
+export const wordsOf = (invite: { words?: Record<string, string> }) => invite.words ?? NO_WORDS;
+
 /** Date words in the invite's language. Numbers stay as 0–9 in both. */
 function dates(lang: Lang) {
   const loc = lang === "hi" ? "hi-IN-u-nu-latn" : "en-IN";
@@ -178,7 +183,11 @@ function dates(lang: Lang) {
 
 export function useT() {
   const lang = useContext(LangContext);
-  return { lang, t: lang === "hi" ? hi : en, d: dates(lang) };
+  const words = useContext(WordsContext);
+  const base = lang === "hi" ? hi : en;
+  // Only plain words can be replaced; the RSVP message builders stay as they are.
+  const t = words === NO_WORDS ? base : ({ ...base, ...Object.fromEntries(Object.entries(words).filter(([k]) => typeof (base as Record<string, unknown>)[k] === "string")) } as typeof en);
+  return { lang, t, d: dates(lang) };
 }
 
 export const langOf = (invite: { lang?: string }): Lang => (invite.lang === "hi" ? "hi" : "en");
