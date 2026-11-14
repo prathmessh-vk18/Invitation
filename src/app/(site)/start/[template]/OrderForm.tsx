@@ -400,7 +400,8 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
           setStep(Math.min(d.step, steps.length - 1));
           setFurthest(Math.min(d.furthest, steps.length - 1));
           setSong(d.song ?? null);
-          setPhotos(d.photos ?? []);
+          // A draft from before a design came with its couple's photos keeps those photos.
+          if (d.photos?.length || !t.prefill) setPhotos(d.photos ?? []);
         }
         // Back from a reload onto a new deploy (see `stale`): ask them to repeat what didn't go through.
         const retry = draftKey ? (window.sessionStorage.getItem(RETRY_KEY) as Retry | null) : null;
