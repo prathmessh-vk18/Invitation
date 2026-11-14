@@ -5,14 +5,14 @@ import { AnimatePresence, motion, useInView } from "framer-motion";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 /**
- * The Telugu design (one client: Shiva & Srilakshmi), the walking-couple concept she chose.
+ * The Telugu design (one client: Srilakshmi & Shiva Chander, details from the family's printed card), the walking-couple concept she chose.
  * Colours from her note: mostly beige, a little blue, a little maroon. Shiva–Parvati only at the start
  * (the walking-couple opening, then Gauri Shankar's palm-and-step on the hero) and the end (seated on
  * Kailash); the rest is paper, ornament and a drawn moon. Photo album and Best Compliments added. She has one function, so it gets a single show-piece card. Names in Great Vibes (as Marathi).
  * English first; Telugu once she approves.
  *
  * Opening: the gold Ganesha, "You're invited" and the names over Shiva and Parvati walking hand in
- * hand towards the rising sun. Tap: Ganesha glows, "Srirastu Shubhamastu" writes in, the sun swells
+ * hand towards the rising sun. Tap: Ganesha glows, "Srirasthu Subhamasthu" writes in, the sun swells
  * with turning rays, the camera pushes in, light floods and talambralu falls as it dissolves onto the
  * hero. A thin gold-and-blue frame settles around the page and the names write in.
  */
@@ -29,7 +29,9 @@ const GLOW = "0 0 16px rgba(255,250,245,.95), 0 0 4px rgba(255,250,245,.9)";
 const T = { blessing: 0.25, sun: 0.4, push: 0.5, bloom: 1.8, shower: 1.7, fade: 2.4, frame: 3, names: 3.1, done: 6.2 };
 
 // Sample couple until the client's details come in.
-const S = { groom: "Shiva", bride: "Srilakshmi", date: new Date("2027-02-14T07:42:00+05:30"), day: "Sunday · 14 February 2027", city: "Hyderabad" };
+// From the family's printed card (Saranala's wedding invitation).
+const S = { groom: "Shiva Chander", bride: "Srilakshmi", date: new Date("2026-12-05T11:43:00+05:30"), day: "Saturday · 5 December 2026", city: "Hyderabad" };
+const MAP = "https://www.google.com/maps/search/?api=1&query=Sriman+Convention+Aziz+Nagar+Hyderabad";
 
 /** A small seeded random, so every burst plays the same way. */
 function seeded(seed: number) {
@@ -377,13 +379,13 @@ function Invitation({ opened }: { opened: boolean }) {
         You&rsquo;re invited
       </p>
       <p className="mt-[2cqw] text-[14cqw] leading-[1.1]" style={{ fontFamily: script, color: C.maroon, textShadow: GLOW }}>
-        {S.groom}
+        {S.bride}
       </p>
       <p className="text-[6cqw] leading-none" style={{ fontFamily: serif, color: C.gold, textShadow: GLOW }}>
         &amp;
       </p>
       <p className="text-[14cqw] leading-[1.1]" style={{ fontFamily: script, color: C.maroon, textShadow: GLOW }}>
-        {S.bride}
+        {S.groom}
       </p>
     </motion.div>
   );
@@ -393,9 +395,9 @@ function Invitation({ opened }: { opened: boolean }) {
 function Blessing() {
   return (
     <div className="col-start-1 row-start-1 flex flex-col items-center" style={{ color: C.maroon, textShadow: GLOW }}>
-      <Letters text="SRIRASTU" delay={T.blessing} className="text-[6.4cqw] tracking-[0.22em]" style={{ fontFamily: label }} />
-      <Letters text="Shubhamastu" delay={T.blessing + 0.45} className="mt-[1cqw] text-[15cqw] leading-[1.15]" style={{ fontFamily: script }} />
-      <Letters text="AVIGHNAMASTU" delay={T.blessing + 1} className="mt-[1cqw] text-[3.2cqw] tracking-[0.34em]" style={{ fontFamily: label, color: C.gold }} />
+      <Letters text="SRIRASTHU" delay={T.blessing} className="text-[6.4cqw] tracking-[0.22em]" style={{ fontFamily: label }} />
+      <Letters text="Subhamasthu" delay={T.blessing + 0.45} className="mt-[1cqw] text-[15cqw] leading-[1.15]" style={{ fontFamily: script }} />
+      <Letters text="AVIGHNAMASTHU" delay={T.blessing + 1} className="mt-[1cqw] text-[3.2cqw] tracking-[0.34em]" style={{ fontFamily: label, color: C.gold }} />
     </div>
   );
 }
@@ -567,16 +569,16 @@ function Cover({ opened }: { opened: boolean }) {
 
       <div className="absolute inset-x-[8%] flex flex-col items-center text-center" style={{ top: u(134) }}>
         <motion.p {...show(H.kicker)} className="text-[2.7cqw] tracking-[0.34em] uppercase" style={{ fontFamily: label, color: C.gold }}>
-          Srirastu · Shubhamastu
+          Srirasthu · Subhamasthu
         </motion.p>
         <motion.p {...show(H.kicker + 0.2)} className="mt-[2cqw] text-[3cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: C.maroon }}>
           The wedding of
         </motion.p>
         {opened && (
           <p className="mt-[1cqw] flex flex-col items-center leading-[1.1]" style={{ fontFamily: script, color: C.maroon, fontSize: u(12.5) }}>
-            <Written text={S.groom} delay={H.names} />
+            <Written text={S.bride} delay={H.names} />
             <Written text="&" delay={H.names + 0.6} style={{ color: C.gold, fontSize: u(9), lineHeight: 1 }} />
-            <Written text={S.bride} delay={H.names + 0.9} />
+            <Written text={S.groom} delay={H.names + 0.9} />
           </p>
         )}
         <motion.div {...show(H.details)} className="mt-[2cqw] flex flex-col items-center">
@@ -614,37 +616,44 @@ function Lotus({ className = "" }: { className?: string }) {
 
 function Families() {
   return (
-    <section className="relative flex w-full flex-col items-center px-[13%] pt-[20cqw] pb-[16cqw] text-center">
+    <section className="relative flex w-full flex-col items-center px-[11%] pt-[20cqw] pb-[16cqw] text-center">
       <Reveal>
-        <Ganesha className="w-[13cqw]" />
-        <Small color={C.gold} className="mt-[4cqw]">
-          Srirastu · Shubhamastu
-        </Small>
-        <p className="mt-[4cqw] text-[4.5cqw] leading-snug font-semibold" style={{ fontFamily: serif, color: C.ink }}>
-          With the blessings of Lord Shiva &amp; Goddess Parvati, Smt. Padma &amp; Sri Srinivas Rao and Smt. Lakshmi &amp; Sri Venkata Reddy request the honour of your presence at the
-          marriage of their children
+        {/* the three blessings spread across the top, as on their printed card */}
+        <div className="flex w-[84cqw] items-start justify-between">
+          {["Srirasthu", "Subhamasthu", "Avighnamasthu"].map((w) => (
+            <Small key={w} color={C.gold} className="!tracking-[0.16em]">
+              {w}
+            </Small>
+          ))}
+        </div>
+        <Ganesha className="mt-[4cqw] w-[13cqw]" />
+        <p className="mt-[5cqw] text-[4.8cqw] leading-snug font-semibold" style={{ fontFamily: serif, color: C.maroon, textWrap: "balance" }}>
+          Smt. Jayalakshmi &amp; Sri&nbsp;Saranala Babu&nbsp;Rao
+        </p>
+        <p className="mt-[2cqw] text-[4.2cqw] leading-snug" style={{ fontFamily: serif, color: C.ink }}>
+          request the pleasure of your company at the wedding ceremony of their granddaughter
         </p>
       </Reveal>
       <Lotus className="my-[7cqw]" />
       <Reveal delay={0.1}>
-        <Small color={C.gold}>The bride</Small>
+        <Small color={C.gold}>Chi. Sow.</Small>
         <p className="mt-[1cqw] text-[13cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>
-          {S.bride}
+          Srilakshmi
         </p>
         <p className="mt-[1cqw] text-[3.8cqw] italic" style={{ fontFamily: serif, color: C.ink }}>
-          daughter of Smt. Padma &amp; Sri Srinivas Rao
+          daughter of Smt. Sridevi &amp; Sri Saranala Srinath
         </p>
       </Reveal>
       <p className="my-[4cqw] text-[8cqw] leading-none" style={{ fontFamily: script, color: C.gold }}>
-        &amp;
+        with
       </p>
       <Reveal delay={0.2}>
-        <Small color={C.gold}>The groom</Small>
-        <p className="mt-[1cqw] text-[13cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>
-          {S.groom}
+        <Small color={C.gold}>Chi.</Small>
+        <p className="mt-[1cqw] text-[11cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>
+          Shiva Chander Reddy
         </p>
         <p className="mt-[1cqw] text-[3.8cqw] italic" style={{ fontFamily: serif, color: C.ink }}>
-          son of Smt. Lakshmi &amp; Sri Venkata Reddy
+          elder son of Smt. Kavitha &amp; Sri Cheryala Raji Reddy
         </p>
       </Reveal>
     </section>
@@ -678,7 +687,7 @@ function Countdown() {
       <Reveal>
         <Small color={C.gold}>Counting the days</Small>
         <p className="text-[10.5cqw] leading-tight whitespace-nowrap" style={{ fontFamily: script, color: C.maroon }}>
-          Until the Muhurtham
+          Until the Sumuhurtham
         </p>
       </Reveal>
       <motion.div
@@ -727,7 +736,7 @@ function Countdown() {
         </div>
       </motion.div>
       <Small color={C.ink} className="mt-[10cqw]">
-        {S.day} · 7:42 am
+        {S.day} · 11:43 am
       </Small>
     </section>
   );
@@ -750,7 +759,7 @@ const THORANAM = (() => {
 
 function Thoranam({ on }: { on: boolean }) {
   return (
-    <svg viewBox="0 0 78 150" className="pointer-events-none absolute inset-0 size-full overflow-visible" aria-hidden>
+    <svg viewBox="0 0 78 136" className="pointer-events-none absolute inset-0 size-full overflow-visible" aria-hidden>
       <motion.path
         d="M13 21 Q39 33 65 21"
         fill="none"
@@ -802,7 +811,7 @@ function CardShower() {
             background: b.pearl ? "radial-gradient(circle at 32% 30%, #fff, #e9dcc0)" : "linear-gradient(180deg, #ffd45a, #e8a317)",
             opacity: 0.8,
           }}
-          animate={{ y: ["0cqw", "152cqw"], rotate: [0, 300] }}
+          animate={{ y: ["0cqw", "138cqw"], rotate: [0, 300] }}
           transition={{ duration: b.t, delay: b.d, repeat: Infinity, ease: "linear" }}
         />
       ))}
@@ -817,17 +826,11 @@ function Wedding() {
   const inner = { borderRadius: "37.6cqw 37.6cqw 2cqw 2cqw / 37.6cqw 37.6cqw 2cqw 2cqw" };
   return (
     <section className="relative flex w-full flex-col items-center px-[11%] pt-[8cqw] pb-[22cqw] text-center">
-      <Reveal>
-        <Small color={C.gold}>Join us for the</Small>
-        <p className="text-[12cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>
-          Wedding
-        </p>
-      </Reveal>
-      <div ref={ref} className="relative mt-[6cqw] h-[150cqw] w-[78cqw]">
+      <div ref={ref} className="relative h-[136cqw] w-[78cqw]">
         {/* the gold zari edge, drawn round the arch first */}
-        <svg viewBox="0 0 78 150" className="pointer-events-none absolute inset-0 z-10 size-full overflow-visible" aria-hidden>
+        <svg viewBox="0 0 78 136" className="pointer-events-none absolute inset-0 z-10 size-full overflow-visible" aria-hidden>
           <motion.path
-            d="M0.6 149.4 V39 A38.4 38.4 0 0 1 77.4 39 V149.4 Z"
+            d="M0.6 135.4 V39 A38.4 38.4 0 0 1 77.4 39 V135.4 Z"
             fill="none"
             stroke="#f7dc95"
             strokeWidth="0.5"
@@ -858,45 +861,40 @@ function Wedding() {
             />
             <div className="relative flex size-full flex-col items-center px-[7cqw] pt-[40cqw] text-center">
               <Reveal delay={0.9}>
-                <p className="text-[15cqw] leading-none" style={{ fontFamily: script, color: C.goldLight }}>
-                  Kalyanam
-                </p>
-                <p className="mt-[1.5cqw] text-[2.5cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: "#e9c77e" }}>
-                  The wedding ceremony
+                <p className="text-[16cqw] leading-none" style={{ fontFamily: script, color: C.goldLight }}>
+                  Wedding
                 </p>
               </Reveal>
               <Reveal delay={1.2} className="mt-[5cqw]">
-                <p className="text-[2.6cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: "#e9c77e" }}>
-                  {S.day.split(" · ")[0]}
+                <p className="text-[5.4cqw] font-semibold" style={{ fontFamily: serif, color: "#fff3dc" }}>
+                  Saturday, 5 December 2026
                 </p>
-                <p className="mt-[0.5cqw] text-[5.6cqw] font-semibold" style={{ fontFamily: serif, color: "#fff3dc" }}>
-                  {S.day.split(" · ")[1]}
-                </p>
-                <p className="mt-[3cqw] text-[2.4cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: "#e9c77e" }}>
-                  Muhurtham
+                <p className="mt-[4cqw] text-[2.5cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: "#e9c77e" }}>
+                  Sumuhurtham
                 </p>
                 <p className="text-[12cqw] leading-tight" style={{ fontFamily: script, color: C.goldLight }}>
-                  7:42 am
+                  11:43 am
                 </p>
               </Reveal>
-              <Reveal delay={1.5} className="mt-[2cqw]">
-                <p className="text-[4.4cqw] leading-snug font-semibold" style={{ fontFamily: serif, color: "#fff3dc" }}>
-                  Sri Sai Convention
+              <Reveal delay={1.5} className="mt-[3cqw]">
+                <p className="text-[4.6cqw] leading-snug font-semibold" style={{ fontFamily: serif, color: "#fff3dc" }}>
+                  Sriman Convention
                 </p>
-                <p className="text-[3.8cqw] leading-snug" style={{ fontFamily: serif, color: "#f0dcc0" }}>
-                  Gachibowli, {S.city}
+                <p className="text-[3.9cqw] leading-snug" style={{ fontFamily: serif, color: "#f0dcc0" }}>
+                  Aziz Nagar, {S.city}
                 </p>
-                <p className="mt-[2.5cqw] text-[3.5cqw] italic" style={{ fontFamily: serif, color: "#e9c77e" }}>
-                  Jeelakarra Bellam &amp; Talambralu
+                <p className="mt-[2.5cqw] text-[3.6cqw] italic" style={{ fontFamily: serif, color: "#e9c77e" }}>
+                  Followed by lunch
                 </p>
-                <div className="mt-[5cqw] flex items-center gap-[2.5cqw]">
-                  <span className="rounded-full border border-transparent px-[3.6cqw] py-[1.8cqw] text-[2.4cqw] tracking-[0.12em] whitespace-nowrap" style={{ background: C.goldLight, color: C.maroon, fontFamily: label }}>
-                    DIRECTIONS →
-                  </span>
-                  <span className="rounded-full border px-[3.6cqw] py-[1.8cqw] text-[2.4cqw] tracking-[0.12em] whitespace-nowrap" style={{ borderColor: "#e9c77e", color: C.goldLight, fontFamily: label }}>
-                    ADD TO CALENDAR
-                  </span>
-                </div>
+                <a
+                  href={MAP}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-[5cqw] inline-block rounded-full px-[5cqw] py-[2cqw] text-[2.6cqw] tracking-[0.14em] whitespace-nowrap"
+                  style={{ background: C.goldLight, color: C.maroon, fontFamily: label }}
+                >
+                  DIRECTIONS →
+                </a>
               </Reveal>
             </div>
           </div>
@@ -981,9 +979,8 @@ function Album() {
 
 /* ───────── With best compliments ───────── */
 
-// Sample names until the family sends theirs.
-const COMPLIMENTS = ["Sri Ramesh Rao & Family", "Sri Suresh Reddy & Family", "Sri Narayana Murthy & Family", "Smt. & Sri Prasad Varma"];
-const LITTLE_ONES = ["Aadya", "Vihaan", "Saanvi", "Arjun"];
+// As on the family's printed card.
+const COMPLIMENTS = ["Sri S. Sridhar Rao", "Sri S. Srikrishna"];
 
 function Compliments() {
   return (
@@ -1011,14 +1008,8 @@ function Compliments() {
               </motion.p>
             ))}
           </div>
-          <p className="mt-[6cqw] text-[2.5cqw] tracking-[0.26em] uppercase" style={{ fontFamily: label, color: C.gold }}>
-            And our little ones
-          </p>
-          <p className="mt-[1.5cqw] text-[6.5cqw] leading-snug" style={{ fontFamily: script, color: C.maroon }}>
-            {LITTLE_ONES.join(", ")}
-          </p>
-          <p className="mt-[5cqw] text-[3.8cqw] italic" style={{ fontFamily: serif, color: C.ink }}>
-            with all our relatives &amp; friends
+          <p className="mt-[4cqw] text-[4cqw] italic" style={{ fontFamily: serif, color: C.ink }}>
+            and near &amp; dear
           </p>
         </div>
       </Reveal>
@@ -1043,11 +1034,15 @@ function Closing() {
           <p className="text-[4.4cqw] leading-snug font-semibold italic" style={{ fontFamily: serif, color: C.ink }}>
             Blessed by Shiva and Parvati, two hearts become one. Come, bless the beginning of forever.
           </p>
-          <p className="mt-[3cqw] text-[11cqw] leading-tight whitespace-nowrap" style={{ fontFamily: script, color: C.maroon }}>
-            {S.groom} &amp; {S.bride}
+          <p className="mt-[3cqw] flex flex-col items-center text-[11cqw] leading-[1.1]" style={{ fontFamily: script, color: C.maroon }}>
+            <span>{S.bride}</span>
+            <span className="text-[7cqw]" style={{ color: C.gold }}>
+              &amp;
+            </span>
+            <span>{S.groom}</span>
           </p>
           <Small className="mt-[2cqw]" color={C.maroon}>
-            With love · the Rao &amp; Reddy families
+            With love · the Saranala family
           </Small>
         </Reveal>
       </div>

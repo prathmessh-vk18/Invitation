@@ -64,3 +64,10 @@ Meditation version saved at /lab/telugu/meditation (TeluguInviteMeditation.tsx, 
   compliments → closing.
 - Shared with the client at https://aavjoo.in/lab/telugu (lab pages merged to main; noindex, unlinked).
 - Music: "Pournami - Flute Music" (public/music/pournami-flute.mp3, from the client's file) starts on the opening tap from 0:05 and loops back to 0:05; maroon music toggle bottom-right.
+- Real details (2026-11-14) from the family's printed card proof: Srilakshmi (bride, first, as on their card) with
+  Shiva Chander Reddy; hosts Smt. Jayalakshmi & Sri Saranala Babu Rao (grandparents); bride's parents Smt. Sridevi
+  & Sri Saranala Srinath; groom's Smt. Kavitha & Sri Cheryala Raji Reddy; Sumuhurtham Sat 5 Dec 2026, 11:43 am,
+  followed by lunch; Sriman Convention, Aziz Nagar, Hyderabad; compliments Sri S. Sridhar Rao, Sri S. Srikrishna
+  and near & dear. Their spellings: Srirasthu / Subhamasthu / Avighnamasthu.
+- Function card simplified to one title ("Wedding", not Kalyanam too): date, Sumuhurtham time, venue, lunch,
+  Directions (Google Maps search for the venue; swap in their QR's link if they send it). Photos still demo.
