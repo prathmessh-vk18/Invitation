@@ -136,6 +136,8 @@ export type Invite = {
   justifyMessage?: boolean;
   // The closing line shown one sentence per line (Gauri Shankar). Kept as a setting so the couple's own edits keep it.
   closingLines?: boolean;
+  // A function's venue shown one comma-separated part per line, the first as the venue's name (Gauri Shankar).
+  venueLines?: boolean;
   // Functions grouped into one card per day, instead of a card each.
   eventsByDay?: boolean;
   // With eventsByDay: a name for each day, in order ("Sagai", "Shaadi"…), shown beside its date in the RSVP.

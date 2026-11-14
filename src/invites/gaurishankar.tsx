@@ -369,7 +369,7 @@ function Blessing({ invite }: { invite: Invite }) {
         </p>
         <p
           className="inv-serif mt-[2.5cqw] text-[5cqw] leading-snug font-semibold italic"
-          style={{ color: c.ink, textShadow: HALO, ...(invite.justifyMessage ? { textAlign: "justify", textAlignLast: "center", hyphens: "auto" } : {}) }}
+          style={{ color: c.ink, textShadow: HALO, ...(invite.justifyMessage ? { textAlign: "justify", textAlignLast: "center", hyphens: "none" } : {}) }}
         >
           {invite.message}
         </p>
@@ -411,9 +411,26 @@ function ArchCard({ e, invite }: { e: InviteEvent; invite: Invite }) {
           <p className="inv-label mt-[1cqw] text-[3.4cqw] leading-snug font-bold" style={{ color: c.crimson, letterSpacing: "0.08em" }}>
             {fmtDate(e.start, { month: "long", year: "numeric" })} · {time(e.start)}
           </p>
-          <p className="inv-serif mt-[5cqw] text-[4.8cqw] leading-tight font-bold" style={{ color: c.ink }}>
-            {e.venue}
-          </p>
+          {invite.venueLines ? (
+            // one part of the venue per line: its name, then the address
+            <div className="mt-[5cqw]">
+              {e.venue.split(/\s*,\s*/).map((part, i) =>
+                i === 0 ? (
+                  <p key={i} className="inv-serif text-[4.4cqw] leading-tight font-bold whitespace-nowrap" style={{ color: c.ink }}>
+                    {part}
+                  </p>
+                ) : (
+                  <p key={i} className="inv-serif mt-[0.6cqw] text-[3.6cqw] leading-snug font-medium" style={{ color: c.soft }}>
+                    {part}
+                  </p>
+                ),
+              )}
+            </div>
+          ) : (
+            <p className="inv-serif mt-[5cqw] text-[4.8cqw] leading-tight font-bold" style={{ color: c.ink }}>
+              {e.venue}
+            </p>
+          )}
           {e.address && (
             <p className="inv-serif mt-[1cqw] line-clamp-3 text-[3.6cqw] leading-snug font-medium" style={{ color: c.soft, textWrap: "balance" }}>
               {e.address}
@@ -475,7 +492,7 @@ function Closing({ invite }: { invite: Invite }) {
         <p className="inv-serif mt-[4cqw] text-[5.2cqw] leading-snug font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
           {invite.closingLines
             ? invite.closing.split(/(?<=[.!?])\s+/).map((line, i) => (
-                <span key={i} className="block">
+                <span key={i} className="block text-[4.3cqw] whitespace-nowrap">
                   {line}
                 </span>
               ))
