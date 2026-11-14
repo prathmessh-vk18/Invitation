@@ -23,11 +23,13 @@ import type { InviteTheme, OpeningProps } from "./types";
  */
 
 const art = "/art/illus";
+// The text colours are variables so an invite set to bold text (data-bold-text) can darken them.
+const GOLD = "#b19254";
 const c = {
   paper: "#f3ece0",
-  ink: "#4f4020",
-  soft: "#6a5b38",
-  gold: "#b19254",
+  ink: "var(--ch-ink, #4f4020)",
+  soft: "var(--ch-soft, #6a5b38)",
+  gold: `var(--ch-gold, ${GOLD})`,
   goldHi: "#e9d39b",
   ribbon: "#e8dcc1",
 };
@@ -418,7 +420,7 @@ function Glance({ invite }: { invite: Invite }) {
           <motion.div
             key={e.name + i}
             className="relative overflow-hidden rounded-[3cqw] border px-[6cqw] pt-[6cqw] pb-[6cqw]"
-            style={{ borderColor: `${c.gold}66`, background: "rgba(251,247,239,.82)" }}
+            style={{ borderColor: `${GOLD}66`, background: "rgba(251,247,239,.82)" }}
             initial={{ opacity: 0, y: 36, scale: 0.97 }}
             whileInView={{ opacity: 1, y: 0, scale: 1 }}
             viewport={{ once: true, amount: 0.35 }}
@@ -517,8 +519,8 @@ function Frame() {
   const ledge = "linear-gradient(to bottom, transparent, #000 34%)";
   return (
     <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.6, delay: 1.2 }}>
-      <div className="absolute inset-[2.6cqw] border" style={{ borderColor: `${c.gold}aa` }} />
-      <div className="absolute inset-[3.6cqw] border" style={{ borderColor: `${c.gold}55` }} />
+      <div className="absolute inset-[2.6cqw] border" style={{ borderColor: `${GOLD}aa` }} />
+      <div className="absolute inset-[3.6cqw] border" style={{ borderColor: `${GOLD}55` }} />
 
       {/* Jasmine and the brass lantern, top left, swaying a touch, its flame breathing. */}
       <motion.div

@@ -240,6 +240,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
           })()
         : {}),
       ...(d.largeText === true ? { largeText: true } : {}),
+      ...(d.boldText === true ? { boldText: true } : {}),
       ...(d.stackNames === true ? { stackNames: true } : {}),
       ...(d.noSignoff === true ? { noSignoff: true } : {}),
       ...(typeof d.signoff === "string" && d.signoff.trim() ? { signoff: str(d.signoff, 80) } : {}),

@@ -75,6 +75,8 @@ export type Invite = {
   noMapSearch?: boolean;
   // Bigger, darker text throughout, for families whose guests are mostly older.
   largeText?: boolean;
+  // Heavier, darker text for readability (darker colours on Chameli; heavier weight on any design).
+  boldText?: boolean;
   // Stack the couple's names vertically on the hero cover (first name, &, second name). On Rajwada,
   // the couple's cards sit one below the other. On Gauri Shankar, the opening, families and closing
   // stack them while the cover keeps one line.

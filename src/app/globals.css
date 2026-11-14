@@ -213,3 +213,11 @@ body:has([data-sticky-cta="on"]) .wa-fab { bottom: 88px; }
 /* Invites set to large text (for older guests): the shared sections drop their faded "muted" look. */
 [data-large-text] .opacity-70,
 [data-large-text] .opacity-80 { opacity: 1; }
+
+/* Invites set to bold text: heavier type, and (on designs whose text colours are variables, e.g. Chameli) darker ink. */
+[data-bold-text] { --ch-ink: #2b200c; --ch-soft: #3a2e16; --ch-gold: #7f5f22; }
+[data-bold-text] .inv-label,
+[data-bold-text] .inv-serif,
+[data-bold-text] .inv-script { font-weight: 600; }
+[data-bold-text] .opacity-70,
+[data-bold-text] .opacity-80 { opacity: 1; }
