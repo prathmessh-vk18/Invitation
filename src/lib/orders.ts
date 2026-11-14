@@ -251,7 +251,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.occasion === "engagement" || d.occasion === "reception" ? { occasion: d.occasion as "engagement" | "reception" } : {}),
       ...(d.namesFirst === true ? { namesFirst: true } : {}),
       ...(d.boldEvents === true ? { boldEvents: true } : {}),
-      ...(typeof d.nameScale === "number" && d.nameScale >= 0.6 && d.nameScale < 1 ? { nameScale: Math.round(d.nameScale * 100) / 100 } : {}),
+      ...(typeof d.nameScale === "number" && d.nameScale >= 0.45 && d.nameScale < 1 ? { nameScale: Math.round(d.nameScale * 100) / 100 } : {}),
       ...(d.tapAnywhere === true ? { tapAnywhere: true } : {}),
       ...(d.noMapSearch === true ? { noMapSearch: true } : {}),
       ...(typeof d.seal === "string" && /^\/art\/seals\/[\w-]+\.(png|jpg|webp)$/.test(d.seal) ? { seal: d.seal } : {}),
