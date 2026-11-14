@@ -142,7 +142,7 @@ export function pdfHtml(invite: Invite, opts: { siteUrl: string; inviteUrl: stri
     ${(e.schedule ?? []).map((x) => `<p class="ven"><b>${time(x.at)}</b> · ${esc(x.text)}</p>`).join("")}
     <p class="ven">${esc(e.venue)}${e.address ? `<br><span>${esc(e.address)}</span>` : ""}</p>
     ${e.dress ? `<p class="dress">Dress: ${esc(e.dress)}</p>` : ""}${e.note ? `<p class="dress">${esc(e.note)}</p>` : ""}
-    <a class="btn" href="${esc(mapOf(e))}">Directions ${ARROW}</a></div>`;
+    ${e.mapUrl || !d.noMapSearch ? `<a class="btn" href="${esc(mapOf(e))}">Directions ${ARROW}</a>` : ""}</div>`;
   const coverInner = `<p class="inv">${esc(d.invocation)}</p>
     <p class="lab" style="margin-top:12px">${esc(d.heroKicker ?? `The ${occ} of`)}</p>
     <p class="script names">${esc(A.first)} <span class="amp">&amp;</span> ${esc(B.first)}</p>
