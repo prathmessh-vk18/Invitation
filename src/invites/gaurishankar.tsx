@@ -261,13 +261,13 @@ function Details({ invite, show }: { invite: Invite; show: (d: number) => object
         </motion.p>
       )}
       {invite.occasion === "reception" ? (
-        // one serif throughout; RECEPTION stands out in bold capitals, in the date's crimson
+        // "Reception" in the names' script, in the date's crimson
         <motion.div {...show(0.5)} className="relative mt-[4cqw] flex flex-col items-center">
           <p className="inv-serif text-[4.6cqw] leading-snug font-semibold" style={{ color: c.ink, textShadow: HALO }}>
             You are cordially invited to the
           </p>
-          <p className="inv-serif mt-[1.5cqw] text-[10cqw] leading-none font-bold tracking-[0.12em]" style={{ color: c.crimson, textShadow: HALO }}>
-            RECEPTION
+          <p className="inv-script mt-[1.5cqw] text-[12cqw] leading-[1.05]" style={{ color: c.crimson, textShadow: HALO }}>
+            Reception
           </p>
           <p className="inv-serif mt-[1.5cqw] -mb-[1cqw] text-[4.6cqw] leading-none font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
             of
@@ -278,8 +278,8 @@ function Details({ invite, show }: { invite: Invite; show: (d: number) => object
         </motion.p>
       )}
       {invite.occasion === "reception" ? (
-        // the names in RECEPTION's bold serif and crimson
-        <motion.h1 {...show(0.75)} className="inv-serif relative mt-[2cqw] text-[10cqw] leading-[1.1] font-bold whitespace-nowrap" style={{ color: c.crimson, textShadow: HALO }}>
+        // the names in their script, a size down so the cover stays calm
+        <motion.h1 {...show(0.75)} className="inv-script relative mt-[1cqw] text-[11.5cqw] leading-[1.05] whitespace-nowrap" style={{ color: c.rose, textShadow: HALO }}>
           {a.first}
           <span className="mx-[2cqw] text-[8cqw]">{invite.joiner ?? "&"}</span>
           {b.first}
