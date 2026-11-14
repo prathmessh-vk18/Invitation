@@ -147,12 +147,19 @@ export function pdfHtml(invite: Invite, opts: { siteUrl: string; inviteUrl: stri
     }
     ${e.dress ? `<p class="dress">Dress: ${esc(e.dress)}</p>` : ""}${e.note ? `<p class="dress">${esc(e.note)}</p>` : ""}
     ${e.mapUrl || !d.noMapSearch ? `<a class="btn" href="${esc(mapOf(e))}">Directions ${ARROW}</a>` : ""}</div>`;
+  // A name nudged by eye (nameNudge, in em) where the couple asked for it, as on the invite.
+  const nudge = (p: typeof A) => {
+    const n = d.nameNudge?.[p === d.bride ? "bride" : "groom"];
+    return n ? ` style="transform:translateX(${n}em)"` : "";
+  };
+  const nudged = (p: typeof A, text: string) => (nudge(p) ? `<span style="display:inline-block;transform:translateX(${d.nameNudge?.[p === d.bride ? "bride" : "groom"]}em)">${text}</span>` : text);
   // The opening line, broken after each half-verse when the invite asks for it.
   const invocation = d.invocationLines ? d.invocation.split(/(?<=[|।])(?!\s*[॥|।]?\s*$)\s*/).map(esc).join("<br>") : esc(d.invocation);
   // A Gauri Shankar reception's cover, worded as on the invite: "You are cordially invited to the Reception of".
   const receptionCover = d.occasion === "reception" && d.template === "gaurishankar";
   const coverInner = receptionCover
     ? `<p class="inv">${invocation}</p>
+    ${d.invocationMeaning ? `<p class="serif" style="font-size:19px;font-style:italic;margin-top:6px">${esc(d.invocationMeaning)}</p>` : ""}
     <p class="serif" style="font-size:22px;font-weight:600;margin-top:14px">You are cordially invited to the</p>
     <p class="script" style="font-size:44px;line-height:1.1;color:#1c1414;margin-top:4px">Reception</p>
     <p class="serif" style="font-size:20px;font-style:italic;margin-top:2px">of</p>
@@ -244,9 +251,9 @@ p{text-wrap:balance}
 </style></head><body>
 ${cover}
 ${m && !m.last ? memorial : ""}
-${page(`${d.invocationMeaning ? `<p class="lab">${esc(d.invocationMeaning)}</p>` : ""}<p class="lab" style="margin-top:10px">${esc(d.hosts)}</p><p class="msg">${esc(d.message)}</p>
-<div class="who"><p class="script n">${esc(A.full || A.first)}</p><p class="p">${esc(A.parents)}</p></div><p class="orn">${STAR(s.accent)}</p>
-<div class="who" style="margin-top:0"><p class="script n">${esc(B.full || B.first)}</p><p class="p">${esc(B.parents)}</p></div>`)}
+${page(`${d.invocationMeaning && !receptionCover ? `<p class="lab">${esc(d.invocationMeaning)}</p>` : ""}<p class="lab" style="margin-top:10px">${esc(d.hosts)}</p><p class="msg"${d.justifyMessage ? ` style="text-align:justify;text-align-last:center;hyphens:none"` : ""}>${esc(d.message)}</p>
+<div class="who"><p class="script n"${nudge(A)}>${esc(A.full || A.first)}</p><p class="p">${esc(A.parents)}</p></div>${d.stackNames ? `<p class="script orn" style="font-size:34px;line-height:1;color:${s.accent}">${esc(d.joiner ?? "&")}</p>` : `<p class="orn">${STAR(s.accent)}</p>`}
+<div class="who" style="margin-top:0"><p class="script n"${nudge(B)}>${esc(B.full || B.first)}</p><p class="p">${esc(B.parents)}</p></div>`)}
 ${page(`${(d.words?.scratchKicker ?? "A little surprise") ? `<p class="lab">${esc(d.words?.scratchKicker ?? "A little surprise")}</p>` : ""}<p class="script title">${esc(d.words?.scratchTitle ?? "Save the date")}</p><p class="day">${esc(f(d.date, { day: "numeric" }))}</p><p class="mon">${esc(f(d.date, { month: "long", year: "numeric" }).toUpperCase())}</p><p class="lab" style="margin-top:14px">${esc(f(d.date, { weekday: "long" }))} · ${time(d.date)}</p><p class="serif" style="font-size:24px;font-weight:600;margin-top:12px">${esc(d.city)}</p>`)}
 ${chunks.map((ch, i) => page(`${i === 0 ? `<p class="lab">Join us for</p><p class="script title head">The celebrations</p>` : ""}${ch.map(ev).join(sep)}`)).join("")}
 ${contacts}
@@ -262,9 +269,9 @@ ${page(`${
   d.closingNames
     ? esc(d.closingNames)
     : d.stackNames
-      ? `${esc(A.first)}<br><span class="amp">&amp;</span><br>${esc(B.first)}`
+      ? `${nudged(A, esc(A.first))}<br><span class="amp">&amp;</span><br>${nudged(B, esc(B.first))}`
       : `${esc(A.first)} &amp; ${esc(B.first)}`
-}</p>${d.hashtag ? `<p class="tag">${esc(d.hashtag)}</p>` : ""}${d.signoff ? `<p class="script sign">${esc(d.signoff)}</p>` : ""}${d.brandLine ? `<p class="lab" style="margin-top:18px">${esc(d.brandLine)}</p>` : ""}<p class="link">See the full invite with music and maps:<br><a href="${esc(opts.inviteUrl)}">${esc(opts.inviteUrl.replace(/^https?:\/\//, ""))}</a></p>`)}
+}</p>${d.hashtag ? `<p class="tag"${d.template === "gaurishankar" ? ` style="font-size:30px;font-weight:700"` : ""}>${esc(d.hashtag)}</p>` : ""}${d.signoff ? `<p class="script sign">${esc(d.signoff)}</p>` : ""}${d.brandLine ? `<p class="lab" style="margin-top:18px">${esc(d.brandLine)}</p>` : ""}<p class="link">See the full invite with music and maps:<br><a href="${esc(opts.inviteUrl)}">${esc(opts.inviteUrl.replace(/^https?:\/\//, ""))}</a></p>`)}
 <script>
 // A style wider than the design's own script shrinks to it, as on the invite (fit.ts), and any
 // word wider than its line shrinks to fit. Sets --f on each script line; render.ts calls it once
