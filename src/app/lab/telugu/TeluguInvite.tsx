@@ -108,6 +108,7 @@ export function TeluguInvite() {
       >
         <Cover opened={opened} />
         <Families />
+        <ScratchReveal />
         <Countdown />
         <Wedding />
         <Album />
@@ -687,6 +688,213 @@ function TempleTrim({ w, flip = false, color = C.gold, className = "" }: { w: nu
         );
       })}
     </svg>
+  );
+}
+
+/* ───────── Save the date: scratch to reveal ───────── */
+
+/** Paints the gold foil, with a sparkle and the hint, sized to the canvas. */
+function paintFoil(ctx: CanvasRenderingContext2D, w: number, h: number, dpr: number) {
+  const g = ctx.createLinearGradient(0, 0, w, h);
+  g.addColorStop(0, "#b8862e");
+  g.addColorStop(0.3, "#f3d98a");
+  g.addColorStop(0.5, "#c99a3c");
+  g.addColorStop(0.72, "#f7e3a3");
+  g.addColorStop(1, "#a9782a");
+  ctx.globalCompositeOperation = "source-over";
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+  const r = seeded(7);
+  for (let i = 0; i < 260; i++) {
+    ctx.fillStyle = `rgba(255,255,255,${0.15 + r() * 0.45})`;
+    ctx.fillRect(r() * w, r() * h, dpr * (0.6 + r()), dpr * (0.6 + r()));
+  }
+  ctx.strokeStyle = "rgba(110,20,35,.35)";
+  ctx.lineWidth = dpr;
+  ctx.setLineDash([4 * dpr, 4 * dpr]);
+  ctx.strokeRect(10 * dpr, 10 * dpr, w - 20 * dpr, h - 20 * dpr);
+  ctx.setLineDash([]);
+  ctx.fillStyle = "rgba(110,20,35,.85)";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `600 ${Math.round(14 * dpr)}px Georgia, serif`;
+  ctx.fillText("Scratch to reveal the date", w / 2, h / 2);
+}
+
+/** Petals, pearls and turmeric rice bursting out of the card once it's revealed. */
+function RevealBurst({ from }: { from: { x: number; y: number } }) {
+  const [vh] = useState(() => window.innerHeight);
+  const bits = useMemo(() => {
+    const r = seeded(31);
+    return Array.from({ length: 46 }, (_, i) => {
+      const a = r() * Math.PI * 2;
+      const power = 70 + r() * 170;
+      return {
+        kind: i % 3 === 0 ? "pearl" : i % 4 === 0 ? "rice" : "petal",
+        bx: Math.cos(a) * power,
+        by: Math.sin(a) * power * 0.7 - 120 - r() * 120,
+        fx: (r() - 0.5) * 140,
+        spin: (r() > 0.5 ? 1 : -1) * (200 + r() * 400),
+        delay: r() * 0.2,
+        dur: 3 + r() * 2,
+        s: 0.8 + r() * 0.7,
+      };
+    });
+  }, []);
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[80] overflow-hidden" aria-hidden>
+      {bits.map((b, i) => (
+        <motion.span
+          key={i}
+          className="absolute"
+          style={{
+            left: from.x,
+            top: from.y,
+            width: b.kind === "petal" ? 12 * b.s : b.kind === "pearl" ? 8 * b.s : 10 * b.s,
+            height: b.kind === "petal" ? 17 * b.s : b.kind === "pearl" ? 8 * b.s : 4 * b.s,
+            borderRadius: b.kind === "petal" ? "70% 0 70% 0" : 999,
+            background:
+              b.kind === "petal" ? (i % 2 ? "linear-gradient(135deg, #e9a7b2, #a8384f)" : "linear-gradient(135deg, #ffd27a, #f08a1c)") : b.kind === "pearl" ? "radial-gradient(circle at 32% 30%, #fff, #e9dcc0)" : "linear-gradient(180deg, #ffd45a, #e8a317)",
+          }}
+          initial={{ x: 0, y: 0, opacity: 0, rotate: 0 }}
+          animate={{ x: [0, b.bx, b.bx + b.fx], y: [0, b.by, vh - from.y + 60], opacity: [0, 1, 1], rotate: [0, b.spin * 0.3, b.spin] }}
+          transition={{ duration: b.dur, delay: b.delay, times: [0, 0.2, 1], ease: ["easeOut", "easeIn"] }}
+        />
+      ))}
+    </div>
+  );
+}
+
+const REVEAL_AT = 0.5; // share of the foil scratched before it clears itself
+
+function ScratchReveal() {
+  const box = useRef<HTMLDivElement>(null);
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const drawing = useRef(false);
+  const last = useRef<{ x: number; y: number } | null>(null);
+  const [revealed, setRevealed] = useState(false);
+  const [burst, setBurst] = useState<{ x: number; y: number } | null>(null);
+
+  function reveal() {
+    const r = box.current?.getBoundingClientRect();
+    setBurst(r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : { x: window.innerWidth / 2, y: window.innerHeight / 2 });
+    setRevealed(true);
+    window.setTimeout(() => setBurst(null), 5500);
+  }
+
+  useEffect(() => {
+    const el = box.current;
+    const cv = canvas.current;
+    if (!el || !cv) return;
+    const setup = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      cv.width = el.clientWidth * dpr;
+      cv.height = el.clientHeight * dpr;
+      const ctx = cv.getContext("2d");
+      if (ctx) paintFoil(ctx, cv.width, cv.height, dpr);
+    };
+    setup();
+    const ro = new ResizeObserver(() => !revealed && setup());
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [revealed]);
+
+  function scratchedShare() {
+    const cv = canvas.current;
+    const ctx = cv?.getContext("2d");
+    if (!cv || !ctx) return 0;
+    const { data } = ctx.getImageData(0, 0, cv.width, cv.height);
+    let clear = 0;
+    let n = 0;
+    for (let i = 3; i < data.length; i += 4 * 24) {
+      n++;
+      if (data[i] < 40) clear++;
+    }
+    return clear / n;
+  }
+
+  function scratch(e: React.PointerEvent<HTMLCanvasElement>) {
+    if (!drawing.current || revealed) return;
+    const cv = canvas.current!;
+    const ctx = cv.getContext("2d")!;
+    const rect = cv.getBoundingClientRect();
+    const k = cv.width / rect.width;
+    const p = { x: (e.clientX - rect.left) * k, y: (e.clientY - rect.top) * k };
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.strokeStyle = "#000";
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 34 * k;
+    ctx.beginPath();
+    const from = last.current ?? p;
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    last.current = p;
+  }
+
+  function end() {
+    drawing.current = false;
+    last.current = null;
+    if (!revealed && scratchedShare() > REVEAL_AT) reveal();
+  }
+
+  return (
+    <section className="relative flex w-full flex-col items-center pt-[6cqw] pb-[10cqw] text-center">
+      <Reveal>
+        <Small color={C.gold}>A little surprise</Small>
+        <p className="text-[12cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>
+          Save the date
+        </p>
+      </Reveal>
+      <Reveal delay={0.1} className="mt-[6cqw]">
+        <div ref={box} className="relative w-[74cqw] border shadow-[0_2cqw_5cqw_rgba(90,60,30,.12)]" style={{ borderColor: `${C.gold}77`, background: "rgba(255,251,242,.85)" }}>
+          <div className="flex flex-col items-center px-[6cqw] py-[5cqw]">
+            <TempleTrim w={60} />
+            <p className="mt-[5cqw] text-[2.8cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: C.gold }}>
+              Saturday
+            </p>
+            <p className="mt-[1cqw] text-[20cqw] leading-none font-medium" style={{ fontFamily: serif, color: C.maroon }}>
+              05
+            </p>
+            <p className="mt-[1cqw] text-[3.4cqw] tracking-[0.28em] uppercase" style={{ fontFamily: label, color: C.ink }}>
+              December · 2026
+            </p>
+            <p className="mt-[3cqw] mb-[5cqw] text-[4cqw] italic" style={{ fontFamily: serif, color: C.maroon }}>
+              Sumuhurtham 11:43 am · {S.city}
+            </p>
+            <TempleTrim w={60} flip />
+          </div>
+          <AnimatePresence>
+            {!revealed && (
+              <motion.canvas
+                key="foil"
+                ref={canvas}
+                exit={{ opacity: 0, scale: 1.04 }}
+                transition={{ duration: 0.6 }}
+                className="absolute inset-0 h-full w-full cursor-grab touch-none active:cursor-grabbing"
+                onPointerDown={(e) => {
+                  drawing.current = true;
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                  scratch(e);
+                }}
+                onPointerMove={scratch}
+                onPointerUp={end}
+                onPointerCancel={end}
+                aria-label="Scratch to reveal the wedding date"
+                role="img"
+              />
+            )}
+          </AnimatePresence>
+        </div>
+        {!revealed && (
+          <button type="button" onClick={reveal} className="mx-auto mt-[4cqw] block text-[3.2cqw] underline underline-offset-4" style={{ fontFamily: serif, color: C.ink }}>
+            Tap here to reveal instead
+          </button>
+        )}
+      </Reveal>
+      {burst && <RevealBurst from={burst} />}
+    </section>
   );
 }
 

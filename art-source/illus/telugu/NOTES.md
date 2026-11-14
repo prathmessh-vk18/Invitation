@@ -77,3 +77,4 @@ Meditation version saved at /lab/telugu/meditation (TeluguInviteMeditation.tsx, 
   swing open (useInView amount .6), petals, swinging temple bells, banana plants either side, threshold kolam.
   Garland/arch removed. All code-drawn SVG/CSS.
 - Subtle round (2026-11-14): client found it too grand → removed gopuram, banana plants, kolam, bells, lamps. Countdown = light ivory panel with a slim gold temple-border trim and maroon numbers that turn over; wedding card = maroon silk with slim trim, brass doors still open on view.
+- Scratch to reveal (2026-11-14): 'A little surprise · Save the date' ivory card under gold foil (same mechanics as src/invites/scratch.tsx), between families and countdown; reveal bursts petals, pearls and rice.
