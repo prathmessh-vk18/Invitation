@@ -12,7 +12,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNod
  * English first; Telugu once she approves.
  *
  * Opening: the gold Ganesha and "You're invited" over Shiva and Parvati walking hand in
- * hand towards the rising sun. Tap: Ganesha glows, the blessing "శ్రీరస్తు శుభమస్తు అవిఘ్నమస్తు" writes in, the sun swells
+ * hand towards the rising sun. Tap: Ganesha glows, the sun swells
  * with turning rays, the camera pushes in, light floods and talambralu falls as it dissolves onto the
  * hero. A thin gold-and-blue frame settles around the page and the names write in.
  */
@@ -22,8 +22,6 @@ const label = "var(--font-cinzel)";
 const serif = "var(--font-cormorant)";
 const script = "var(--font-great-vibes)";
 const te = "var(--font-telugu), serif";
-// The three Telugu wedding blessings, as the family asked.
-const BLESSINGS = ["శ్రీరస్తు", "శుభమస్తు", "అవిఘ్నమస్తు"];
 const art = (f: string) => `/art/illus/telugu-${f}.webp`;
 const ease = [0.22, 1, 0.36, 1] as const;
 const GLOW = "0 0 16px rgba(255,250,245,.95), 0 0 4px rgba(255,250,245,.9)";
@@ -322,8 +320,7 @@ function Opening({ opened, onOpen }: { opened: boolean; onOpen: () => void }) {
               <Ganesha className="w-[17cqw]" glow={opened} />
             </motion.div>
             <div className="relative mt-[3cqw] grid w-full place-items-center">
-              <Invitation opened={opened} />
-              {opened && <Blessing />}
+              <Invitation />
             </div>
           </div>
         </motion.div>
@@ -350,50 +347,19 @@ function Opening({ opened, onOpen }: { opened: boolean; onOpen: () => void }) {
   );
 }
 
-/** Before the tap: "You're invited" and the names, under Ganesha. */
-function Invitation({ opened }: { opened: boolean }) {
+/** "You're invited", under Ganesha. */
+function Invitation() {
   return (
     <motion.div
       className="col-start-1 row-start-1 flex flex-col items-center px-[6cqw]"
       initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: opened ? 0 : 1, y: 0 }}
-      transition={{ duration: opened ? 0.5 : 1.2, delay: opened ? 0 : 0.35 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1.2, delay: 0.35 }}
     >
       <p className="text-[3.6cqw] tracking-[0.4em] uppercase" style={{ fontFamily: label, color: C.maroon, textShadow: GLOW }}>
         You&rsquo;re invited
       </p>
     </motion.div>
-  );
-}
-
-/** Telugu, word by word (letters can't be split apart in Telugu: they join). */
-function Words({ words, delay, className, style }: { words: string[]; delay: number; className?: string; style?: CSSProperties }) {
-  return (
-    <span className={`inline-flex flex-wrap justify-center gap-x-[0.4em] ${className ?? ""}`} style={style} aria-label={words.join(" ")}>
-      {words.map((w, i) => (
-        <motion.span
-          key={i}
-          aria-hidden
-          className="inline-block"
-          initial={{ opacity: 0, y: "0.3em", filter: "blur(6px)" }}
-          animate={{ opacity: 1, y: "0em", filter: "blur(0px)" }}
-          transition={{ delay: delay + i * 0.35, duration: 0.8, ease }}
-        >
-          {w}
-        </motion.span>
-      ))}
-    </span>
-  );
-}
-
-/** At the tap: the Telugu wedding blessing writes itself in where the names were. */
-function Blessing() {
-  return (
-    <div className="col-start-1 row-start-1 flex flex-col items-center" style={{ color: C.maroon, textShadow: GLOW }}>
-      <Words words={[BLESSINGS[0]]} delay={T.blessing} className="text-[7cqw] leading-[1.5] font-semibold" style={{ fontFamily: te }} />
-      <Words words={[BLESSINGS[1]]} delay={T.blessing + 0.4} className="text-[11cqw] leading-[1.5] font-semibold" style={{ fontFamily: te }} />
-      <Words words={[BLESSINGS[2]]} delay={T.blessing + 0.8} className="text-[6cqw] leading-[1.5] font-semibold" style={{ fontFamily: te, color: C.gold }} />
-    </div>
   );
 }
 
@@ -610,16 +576,8 @@ function Families() {
   return (
     <section className="relative flex w-full flex-col items-center px-[11%] pt-[20cqw] pb-[16cqw] text-center">
       <Reveal>
-        {/* the three blessings spread across the top, as on their printed card */}
-        <div className="flex w-[84cqw] items-start justify-between">
-          {BLESSINGS.map((w) => (
-            <p key={w} className="text-[3.6cqw] font-semibold" style={{ fontFamily: te, color: C.gold }}>
-              {w}
-            </p>
-          ))}
-        </div>
         {/* the opening mantra, to Ganesha */}
-        <p className="mt-[6cqw] text-[4.2cqw] leading-[1.8] font-semibold" style={{ fontFamily: te, color: C.maroon }}>
+        <p className="text-[4.2cqw] leading-[1.8] font-semibold" style={{ fontFamily: te, color: C.maroon }}>
           వక్రతుండ మహాకాయ కోటిసూర్యసమప్రభ |
           <br />
           నిర్విఘ్నం కురుమే దేవ సర్వకార్యేషు సర్వదా ॥
@@ -651,7 +609,7 @@ function Families() {
           Shiva Chander Reddy
         </p>
         <p className="mt-[1cqw] text-[3.8cqw] italic" style={{ fontFamily: serif, color: C.ink }}>
-          elder son of Smt. Kavitha &amp; Sri Cheryala Raji Reddy
+          elder son of Smt. Kavitha &amp; Sri Chepyala Raji Reddy
         </p>
       </Reveal>
     </section>
@@ -1196,10 +1154,12 @@ function Closing() {
         className="top-0"
       />
       <Petals count={5} seed={21} />
-      <div className="relative flex flex-col items-center px-[12%] pt-[112cqw] text-center">
+      <div className="relative flex flex-col items-center px-[5%] pt-[112cqw] text-center">
         <Reveal>
-          <p className="text-[4.4cqw] leading-snug font-semibold italic" style={{ fontFamily: serif, color: C.ink }}>
-            Blessed by Shiva and Parvati, two hearts become one. Come, bless the beginning of forever.
+          <p className="text-[3.9cqw] leading-relaxed font-semibold whitespace-nowrap italic" style={{ fontFamily: serif, color: C.ink }}>
+            Blessed by Shiva and Parvati, two hearts become one.
+            <br />
+            Come, bless the beginning of forever.
           </p>
           <p className="mt-[5cqw] text-[6cqw] leading-[1.6] font-semibold" style={{ fontFamily: te, color: C.maroon }}>
             ఓం ఉమామహేశ్వరాభ్యాం నమః
