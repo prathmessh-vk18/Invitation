@@ -40,3 +40,7 @@ countdown, maroon cards, dance closing) — only the background colours change t
 gold Ganesha at the start. Art: telugu-v3-opening/v3-cover (repainted in the dawn palette, same compositions),
 telugu-v2-cover (Kailash, families), v2-moon, v2-dance. The walking-couple concept is saved at /lab/telugu/v2.
 (Exact background-only edits of the v1 paintings need Figma Weave linked: app.weavy.ai settings → link Figma.)
+
+## Decision (2026-11-14): the client LOVED the walking-couple concept (v2), not the meditation one
+Main preview /lab/telugu = walking-couple design (TeluguInvite.tsx, art telugu-v2-*).
+Meditation version saved at /lab/telugu/meditation (TeluguInviteMeditation.tsx, art telugu-v3-* + v2).
