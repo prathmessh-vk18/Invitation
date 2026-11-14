@@ -1,27 +1,27 @@
 "use client";
 
 import Image from "next/image";
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { AnimatePresence, motion, useInView } from "framer-motion";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 /**
- * The Telugu design (one client), from the two scenes she picked out of her Shiva–Parvati
- * reference: a Himalayan dawn of snowy peaks, a soft lavender-blue sky, peach-gold sunrise and
- * blush-pink lotuses. Text in deep maroon and gold. English first; Telugu once she approves.
+ * The Telugu design (one client: Shiva & Srilakshmi), the walking-couple concept she chose.
+ * Colours from her note: mostly beige, a little blue, a little maroon. Shiva–Parvati paintings only
+ * at the start (opening and the hero after it) and the end; the rest is paper, ornament and a drawn
+ * moon. She has one function, so it gets a single show-piece card. Names in Great Vibes (as Marathi).
+ * English first; Telugu once she approves.
  *
- * Opening: Shiva and Parvati walk hand in hand up a lotus path towards the rising sun, with the gold
- * Ganesha, "You're invited" and the names in the sky above. Tap, and Ganesha glows as the blessing
- * "Srirastu Shubhamastu" writes itself in; the sun swells and throws out rays, the camera pushes in
- * after the couple, light floods the screen and talambralu (pearls and turmeric rice, the Telugu
- * wedding shower) falls as the scene dissolves onto the cover. A thin gold frame settles around the
- * page and the names write in.
+ * Opening: the gold Ganesha, "You're invited" and the names over Shiva and Parvati walking hand in
+ * hand towards the rising sun. Tap: Ganesha glows, "Srirastu Shubhamastu" writes in, the sun swells
+ * with turning rays, the camera pushes in, light floods and talambralu falls as it dissolves onto the
+ * hero. A thin gold-and-blue frame settles around the page and the names write in.
  */
 
-const C = { maroon: "#6e1423", ink: "#3a2030", gold: "#8f6220", goldLight: "#f7dc95", rose: "#c2577a", paper: "#fbf5ef" };
+const C = { maroon: "#6e1423", ink: "#3b2418", gold: "#8f6220", goldLight: "#f7dc95", blue: "#8ea7c8", paper: "#f5e9d2" };
 const label = "var(--font-cinzel)";
 const serif = "var(--font-cormorant)";
-const script = "var(--font-pinyon)";
-const art = (f: string) => `/art/illus/telugu-v2-${f}.webp`;
+const script = "var(--font-great-vibes)";
+const art = (f: string) => `/art/illus/telugu-${f}.webp`;
 const ease = [0.22, 1, 0.36, 1] as const;
 const GLOW = "0 0 16px rgba(255,250,245,.95), 0 0 4px rgba(255,250,245,.9)";
 
@@ -29,7 +29,7 @@ const GLOW = "0 0 16px rgba(255,250,245,.95), 0 0 4px rgba(255,250,245,.9)";
 const T = { blessing: 0.25, sun: 0.4, push: 0.5, bloom: 1.8, shower: 1.7, fade: 2.4, frame: 3, names: 3.1, done: 6.2 };
 
 // Sample couple until the client's details come in.
-const S = { groom: "Karthik", bride: "Sravani", date: new Date("2027-02-14T07:42:00+05:30"), day: "Sunday · 14 February 2027", city: "Hyderabad" };
+const S = { groom: "Shiva", bride: "Srilakshmi", date: new Date("2027-02-14T07:42:00+05:30"), day: "Sunday · 14 February 2027", city: "Hyderabad" };
 
 /** A small seeded random, so every burst plays the same way. */
 function seeded(seed: number) {
@@ -65,12 +65,12 @@ export function TeluguInvite() {
       <div
         key={run}
         className="@container relative w-full max-w-[480px] overflow-hidden"
-        style={{ background: `linear-gradient(180deg, ${C.paper}, #f8eef0 30%, #f3eff8 55%, #fbf3ec 80%, #f1e9f6)` }}
+        style={{ background: `linear-gradient(180deg, #f3e4c8, ${C.paper} 25%, #f8eedb 55%, ${C.paper} 80%, #efe0c4)` }}
       >
         <Cover opened={opened} />
         <Families />
         <Countdown />
-        <Functions />
+        <Wedding />
         <Closing />
         <Frame opened={opened} />
         {!gone && <Opening opened={opened} onOpen={() => setOpened(true)} />}
@@ -190,7 +190,7 @@ function Petals({ count = 7, seed = 3 }: { count?: number; seed?: number }) {
         <motion.span
           key={i}
           className="absolute -top-[5cqw] rounded-[70%_0_70%_0]"
-          style={{ left: `${p.x}%`, width: `${p.s}cqw`, height: `${p.s * 1.5}cqw`, background: "linear-gradient(135deg, #ffd6e0, #ec8fa8)", opacity: 0.9 }}
+          style={{ left: `${p.x}%`, width: `${p.s}cqw`, height: `${p.s * 1.5}cqw`, background: "linear-gradient(135deg, #e9a7b2, #a8384f)", opacity: 0.8 }}
           animate={{ y: ["0cqw", "180cqw"], x: ["0cqw", `${p.sway}cqw`, `${-p.sway / 2}cqw`, `${p.sway / 2}cqw`], rotate: [p.rot, p.rot + 260] }}
           transition={{ duration: p.t, delay: p.d, repeat: Infinity, ease: "linear" }}
         />
@@ -222,7 +222,7 @@ function Frame({ opened }: { opened: boolean }) {
     >
       <div className="@container absolute inset-[2.5cqw]">
         <div className="absolute inset-0 border" style={{ borderColor: `${C.gold}bb` }} />
-        <div className="absolute inset-[1.2cqw] border" style={{ borderColor: `${C.gold}55` }} />
+        <div className="absolute inset-[1.2cqw] border" style={{ borderColor: `${C.blue}99` }} />
         {corner("top-[-0.5cqw] left-[-0.5cqw]", 0)}
         {corner("top-[-0.5cqw] right-[-0.5cqw]", 90)}
         {corner("right-[-0.5cqw] bottom-[-0.5cqw]", 180)}
@@ -243,7 +243,7 @@ function Opening({ opened, onOpen }: { opened: boolean; onOpen: () => void }) {
     <div className="fixed inset-y-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 overflow-hidden" style={{ pointerEvents: opened ? "none" : "auto" }}>
       <div className="@container absolute inset-0">
         {/* The scene dissolves onto the cover; the shower keeps falling over it. */}
-        <motion.div className="absolute inset-0" style={{ background: "#cec6de" }} animate={{ opacity: opened ? 0 : 1 }} transition={{ duration: 1, delay: opened ? T.fade : 0, ease: "easeInOut" }}>
+        <motion.div className="absolute inset-0" style={{ background: "#d6d2d3" }} animate={{ opacity: opened ? 0 : 1 }} transition={{ duration: 1, delay: opened ? T.fade : 0, ease: "easeInOut" }}>
           {/* The camera follows the couple up the path towards the sun. */}
           <motion.div
             className="absolute inset-0"
@@ -252,7 +252,7 @@ function Opening({ opened, onOpen }: { opened: boolean; onOpen: () => void }) {
             transition={opened ? { duration: 3, delay: T.push, ease: [0.5, 0, 0.3, 1] } : { duration: 9, repeat: Infinity, ease: "easeInOut" }}
           >
             <Painting
-              src="opening"
+              src="v4-opening"
               alt="Shiva and Parvati walk hand in hand up a lotus path towards the rising sun"
               fade="linear-gradient(180deg, transparent, #000 14%)"
               className="bottom-0"
@@ -456,7 +456,7 @@ function Cover({ opened }: { opened: boolean }) {
       {/* The camera eases back from close on the couple as the light clears. */}
       <motion.div className="absolute inset-0" style={{ transformOrigin: "40% 22%" }} initial={{ scale: 1.28 }} animate={opened ? { scale: 1 } : {}} transition={{ duration: 3.4, delay: T.fade - 0.4, ease }}>
         <Painting
-          src="cover"
+          src="v4-cover"
           alt="On snowy Kailash, Shiva tucks a jasmine flower into Parvati's hair"
           fade="linear-gradient(180deg, #000 58%, transparent 84%)"
           className="top-0"
@@ -494,53 +494,63 @@ function Cover({ opened }: { opened: boolean }) {
 
 /* ───────── Families ───────── */
 
+/** A small maroon lotus between two soft-blue rules: the page's ornament. */
+function Lotus({ className = "" }: { className?: string }) {
+  return (
+    <div className={`flex w-[56%] items-center gap-[2cqw] ${className}`} aria-hidden>
+      <span className="h-px flex-1" style={{ background: `linear-gradient(90deg, transparent, ${C.blue})` }} />
+      <svg viewBox="0 0 40 22" className="w-[9cqw]">
+        <path d="M20 2 C24 8 24 14 20 20 C16 14 16 8 20 2 Z" fill={C.maroon} />
+        <path d="M20 20 C13 18 9 13 8 7 C14 9 18 13 20 20 Z" fill={C.maroon} opacity=".8" />
+        <path d="M20 20 C27 18 31 13 32 7 C26 9 22 13 20 20 Z" fill={C.maroon} opacity=".8" />
+        <path d="M20 20 C11 21 5 18 2 13 C9 13 15 15 20 20 Z" fill={C.gold} opacity=".9" />
+        <path d="M20 20 C29 21 35 18 38 13 C31 13 25 15 20 20 Z" fill={C.gold} opacity=".9" />
+      </svg>
+      <span className="h-px flex-1" style={{ background: `linear-gradient(90deg, ${C.blue}, transparent)` }} />
+    </div>
+  );
+}
+
 function Families() {
   return (
-    <section className="relative w-full pb-[22cqw]">
-      <Painting
-        src="families"
-        alt="Shiva and Parvati seated together in meditation on a snowy ledge at dawn"
-        fade="linear-gradient(180deg, transparent, #000 10%, #000 56%, transparent 80%)"
-        className="top-0"
-      />
-      <div className="relative flex flex-col items-center px-[13%] pt-[112cqw] text-center">
-        <Reveal>
-          <Ganesha className="w-[11cqw]" />
-          <Small color={C.gold} className="mt-[3cqw]">
-            With the blessings of Lord Shiva &amp; Goddess Parvati
-          </Small>
-          <p className="mt-[4cqw] text-[4.5cqw] leading-snug font-semibold" style={{ fontFamily: serif, color: C.ink }}>
-            Smt. Padma &amp; Sri Srinivas Reddy and Smt. Lakshmi &amp; Sri Venkata Rao request the honour of your presence at the marriage of their children
-          </p>
-        </Reveal>
-        <Divider />
-        <Reveal delay={0.1}>
-          <Small color={C.gold}>The bride</Small>
-          <p className="text-[13cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>
-            {S.bride}
-          </p>
-          <p className="mt-[1cqw] text-[3.8cqw] italic" style={{ fontFamily: serif, color: C.ink }}>
-            daughter of Smt. Padma &amp; Sri Srinivas Reddy
-          </p>
-        </Reveal>
-        <p className="my-[3cqw] text-[7cqw]" style={{ fontFamily: script, color: C.gold }}>
-          &amp;
+    <section className="relative flex w-full flex-col items-center px-[13%] pt-[20cqw] pb-[16cqw] text-center">
+      <Reveal>
+        <Ganesha className="w-[13cqw]" />
+        <Small color={C.gold} className="mt-[4cqw]">
+          Srirastu · Shubhamastu
+        </Small>
+        <p className="mt-[4cqw] text-[4.5cqw] leading-snug font-semibold" style={{ fontFamily: serif, color: C.ink }}>
+          With the blessings of Lord Shiva &amp; Goddess Parvati, Smt. Padma &amp; Sri Srinivas Rao and Smt. Lakshmi &amp; Sri Venkata Reddy request the honour of your presence at the
+          marriage of their children
         </p>
-        <Reveal delay={0.2}>
-          <Small color={C.gold}>The groom</Small>
-          <p className="text-[13cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>
-            {S.groom}
-          </p>
-          <p className="mt-[1cqw] text-[3.8cqw] italic" style={{ fontFamily: serif, color: C.ink }}>
-            son of Smt. Lakshmi &amp; Sri Venkata Rao
-          </p>
-        </Reveal>
-      </div>
+      </Reveal>
+      <Lotus className="my-[7cqw]" />
+      <Reveal delay={0.1}>
+        <Small color={C.gold}>The bride</Small>
+        <p className="mt-[1cqw] text-[13cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>
+          {S.bride}
+        </p>
+        <p className="mt-[1cqw] text-[3.8cqw] italic" style={{ fontFamily: serif, color: C.ink }}>
+          daughter of Smt. Padma &amp; Sri Srinivas Rao
+        </p>
+      </Reveal>
+      <p className="my-[4cqw] text-[8cqw] leading-none" style={{ fontFamily: script, color: C.gold }}>
+        &amp;
+      </p>
+      <Reveal delay={0.2}>
+        <Small color={C.gold}>The groom</Small>
+        <p className="mt-[1cqw] text-[13cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>
+          {S.groom}
+        </p>
+        <p className="mt-[1cqw] text-[3.8cqw] italic" style={{ fontFamily: serif, color: C.ink }}>
+          son of Smt. Lakshmi &amp; Sri Venkata Reddy
+        </p>
+      </Reveal>
     </section>
   );
 }
 
-/* ───────── Countdown under the moon ───────── */
+/* ───────── Countdown: a drawn moon ───────── */
 
 function useCountdown(to: Date) {
   const [now, setNow] = useState<number | null>(null);
@@ -554,145 +564,241 @@ function useCountdown(to: Date) {
   return { days: Math.floor(s / 86400), hours: Math.floor(s / 3600) % 24, mins: Math.floor(s / 60) % 60, secs: s % 60, ready: now !== null };
 }
 
-// The diyas floating on the lake, measured on the 2:3 painting (x%, y%, size).
-const DIYAS = [
-  [28.8, 91.5, 1],
-  [85.9, 94.7, 1],
-  [17.8, 82.4, 0.8],
-  [86.7, 80.7, 0.8],
-  [94.2, 90.2, 0.7],
-  [12.5, 66.7, 0.6],
-  [5.4, 69, 0.55],
-  [94.5, 71.3, 0.6],
-  [79.3, 64.5, 0.5],
-  [73.5, 62.8, 0.45],
-] as const;
-
+/** No painting here: a pearl-gold moon with a soft blue glow is the dial. */
 function Countdown() {
   const { days, hours, mins, secs, ready } = useCountdown(S.date);
   const two = (n: number) => String(n).padStart(2, "0");
   return (
-    <section className="relative w-full pt-[8cqw]">
-      <Reveal className="relative z-10 text-center">
+    <section className="relative flex w-full flex-col items-center px-[10%] pt-[10cqw] pb-[18cqw] text-center">
+      <Reveal>
         <Small color={C.gold}>Counting the days</Small>
-        <p className="text-[11cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>
+        <p className="text-[10.5cqw] leading-tight whitespace-nowrap" style={{ fontFamily: script, color: C.maroon }}>
           Until the Muhurtham
         </p>
-        <Small color={C.ink}>{S.day.split(" · ")[1]} · 7:42 am</Small>
-        <p className="mt-[2cqw] text-[3.4cqw] tracking-[0.14em] tabular-nums" style={{ fontFamily: label, color: C.maroon }}>
-          {ready ? `${two(hours)} h · ${two(mins)} m · ${two(secs)} s` : "\u00a0"}
-        </p>
       </Reveal>
-      <div className="relative mt-[2cqw] aspect-[2/3] w-full">
-        <Painting
-          src="moon"
-          alt="Shiva and Parvati sit by moonlit Lake Mansarovar among floating diyas and lotuses"
-          fade="linear-gradient(180deg, transparent, #000 6%, #000 93%, transparent)"
-          className="top-0"
-        />
-        {/* the diyas' flames flicker on the water */}
-        {DIYAS.map(([x, y, s], i) => (
-          <motion.span
-            key={i}
-            className="pointer-events-none absolute rounded-full mix-blend-screen"
-            style={{ left: `${x}%`, top: `${y}%`, width: `${7 * s}cqw`, height: `${7 * s}cqw`, translate: "-50% -60%", background: "radial-gradient(closest-side, rgba(255,214,120,.9), rgba(255,170,60,.35) 55%, transparent)" }}
-            animate={{ opacity: [0.55, 1, 0.7, 0.95, 0.55], scale: [1, 1.12, 0.96, 1.08, 1] }}
-            transition={{ duration: 1.6 + (i % 4) * 0.35, repeat: Infinity, ease: "easeInOut", delay: i * 0.13 }}
-          />
-        ))}
-        {/* the moon is the dial: the days in its face */}
+      <motion.div
+        className="relative mt-[8cqw] grid size-[64cqw] place-items-center"
+        initial={{ opacity: 0, scale: 0.9 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, amount: 0.5 }}
+        transition={{ duration: 1.3, ease }}
+      >
+        {/* the soft blue night glow around it, breathing */}
         <motion.div
-          className="absolute flex flex-col items-center justify-center rounded-full text-center"
-          style={{ left: "54%", top: "13.8%", width: "21cqw", height: "21cqw", translate: "-50% -50%" }}
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, amount: 0.6 }}
-          transition={{ duration: 1.2, ease }}
+          className="absolute inset-[-14%] rounded-full"
+          style={{ background: "radial-gradient(closest-side, rgba(150,178,214,.55), rgba(170,195,225,.25) 60%, transparent)" }}
+          animate={{ scale: [1, 1.06, 1], opacity: [0.8, 1, 0.8] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* a ring of gold beads turning slowly */}
+        <motion.svg viewBox="0 0 100 100" className="absolute inset-[-4%] size-[108%]" animate={{ rotate: 360 }} transition={{ duration: 90, repeat: Infinity, ease: "linear" }} aria-hidden>
+          <circle cx="50" cy="50" r="48" fill="none" stroke={C.gold} strokeWidth="0.5" strokeDasharray="0.6 2.4" strokeLinecap="round" />
+          <circle cx="50" cy="50" r="45.5" fill="none" stroke={C.blue} strokeWidth="0.25" />
+        </motion.svg>
+        {/* the moon */}
+        <div
+          className="absolute inset-[6%] rounded-full shadow-[inset_-3cqw_-3cqw_6cqw_rgba(176,140,80,.35),0_0_6cqw_rgba(255,244,214,.9)]"
+          style={{ background: "radial-gradient(circle at 38% 34%, #fffdf6, #f8ecd0 50%, #ead6a8 85%, #dcc28e)" }}
         >
-          <p className="text-[9cqw] leading-none font-bold" style={{ fontFamily: serif, color: C.maroon }}>
+          {[
+            [30, 62, 9],
+            [64, 30, 7],
+            [70, 66, 5],
+            [42, 24, 4],
+          ].map(([x, y, s], i) => (
+            <span key={i} className="absolute rounded-full" style={{ left: `${x}%`, top: `${y}%`, width: `${s}%`, height: `${s}%`, background: "rgba(196,164,108,.18)" }} />
+          ))}
+        </div>
+        <div className="relative flex flex-col items-center">
+          <p className="text-[19cqw] leading-none font-semibold" style={{ fontFamily: serif, color: C.maroon }}>
             {ready ? days : "–"}
           </p>
-          <p className="text-[1.9cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: C.maroon }}>
-            days
+          <p className="mt-[1cqw] text-[2.6cqw] tracking-[0.34em] uppercase" style={{ fontFamily: label, color: C.maroon }}>
+            days to go
           </p>
-        </motion.div>
-      </div>
+          <p className="mt-[3cqw] text-[3.2cqw] tracking-[0.12em] tabular-nums" style={{ fontFamily: label, color: C.gold }}>
+            {ready ? `${two(hours)} h · ${two(mins)} m · ${two(secs)} s` : " "}
+          </p>
+        </div>
+      </motion.div>
+      <Small color={C.ink} className="mt-[10cqw]">
+        {S.day} · 7:42 am
+      </Small>
     </section>
   );
 }
 
-/* ───────── Functions ───────── */
+/* ───────── The wedding: one show-piece card ───────── */
 
-function Event({ name, en, when, venue, note, i }: { name: string; en: string; when: string; venue: string; note?: string; i: number }) {
+// The thoranam: mango leaves and marigolds strung across the top of the arch (viewBox = the card in cqw).
+const THORANAM = (() => {
+  const p0 = [13, 21],
+    p1 = [39, 33],
+    p2 = [65, 21];
+  return Array.from({ length: 11 }, (_, i) => {
+    const t = (i + 0.5) / 11;
+    const x = (1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t * t * p2[0];
+    const y = (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t * t * p2[1];
+    return { x, y, leaf: i % 2 === 0 };
+  });
+})();
+
+function Thoranam({ on }: { on: boolean }) {
   return (
-    <motion.div
-      className="relative w-full overflow-hidden rounded-[3cqw] p-[1.2cqw] shadow-[0_2cqw_6cqw_rgba(90,60,110,.18)]"
-      style={{ background: "linear-gradient(135deg, #d9b25c, #f8e2a6 40%, #c49340)", transformOrigin: "50% 0%" }}
-      initial={{ opacity: 0, rotateX: -70, y: 20 }}
-      whileInView={{ opacity: 1, rotateX: 0, y: 0 }}
-      viewport={{ once: true, amount: 0.45 }}
-      transition={{ duration: 1, delay: 0.1, ease }}
-    >
-      <div
-        className="relative overflow-hidden rounded-[2.2cqw] px-[6cqw] py-[7cqw] text-center"
-        style={{ background: "radial-gradient(120% 80% at 50% 0%, #fff8ee, #fbeff1 55%, #f0ebf8)" }}
-      >
-        <div className="pointer-events-none absolute inset-[1.6cqw] rounded-[1.6cqw] border" style={{ borderColor: `${C.gold}55` }} />
-        {/* a gold shimmer sweeps across once the card has opened */}
-        <motion.div
-          className="pointer-events-none absolute inset-y-0 w-[45%]"
-          style={{ background: "linear-gradient(100deg, transparent, rgba(255,230,170,.55), transparent)" }}
-          initial={{ x: "-120%" }}
-          whileInView={{ x: "320%" }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.8, delay: 0.9 + i * 0.1, ease: "easeInOut" }}
-        />
-        <p className="text-[11cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>
-          {name}
-        </p>
-        <p className="mt-[0.5cqw] text-[2.5cqw] tracking-[0.26em] uppercase" style={{ fontFamily: label, color: C.gold }}>
-          {en}
-        </p>
-        <p className="mt-[3.5cqw] text-[4.6cqw] font-semibold" style={{ fontFamily: serif, color: C.ink }}>
-          {when}
-        </p>
-        <p className="mt-[0.5cqw] text-[3.9cqw] leading-snug" style={{ fontFamily: serif, color: C.ink }}>
-          {venue}
-        </p>
-        {note && (
-          <p className="mt-[2cqw] text-[3.6cqw] italic" style={{ fontFamily: serif, color: C.rose }}>
-            {note}
-          </p>
-        )}
-        <span className="mt-[4cqw] inline-block rounded-full px-[4.5cqw] py-[1.6cqw] text-[2.8cqw] tracking-[0.14em] text-[#fff3dc]" style={{ background: C.maroon, fontFamily: label }}>
-          DIRECTIONS →
-        </span>
-      </div>
-    </motion.div>
+    <svg viewBox="0 0 78 150" className="pointer-events-none absolute inset-0 size-full overflow-visible" aria-hidden>
+      <motion.path
+        d="M13 21 Q39 33 65 21"
+        fill="none"
+        stroke="#e9c77e"
+        strokeWidth="0.5"
+        initial={{ pathLength: 0 }}
+        animate={on ? { pathLength: 1 } : {}}
+        transition={{ duration: 1, delay: 0.9 }}
+      />
+      {THORANAM.map((b, i) =>
+        b.leaf ? (
+          <motion.g
+            key={i}
+            style={{ transformBox: "fill-box", transformOrigin: "50% 0%" }}
+            initial={{ opacity: 0, scaleY: 0 }}
+            animate={on ? { opacity: 1, scaleY: 1, rotate: [0, 4, -3, 0] } : {}}
+            transition={{ delay: 1.1 + i * 0.07, duration: 0.6, rotate: { delay: 1.8 + i * 0.07, duration: 3, repeat: Infinity, ease: "easeInOut" } }}
+          >
+            <path d={`M${b.x} ${b.y} C${b.x + 1.8} ${b.y + 2.5} ${b.x + 1.4} ${b.y + 6} ${b.x} ${b.y + 8} C${b.x - 1.4} ${b.y + 6} ${b.x - 1.8} ${b.y + 2.5} ${b.x} ${b.y} Z`} fill="#3f7a3a" />
+            <path d={`M${b.x} ${b.y + 0.5} V${b.y + 7.4}`} stroke="#9cc58a" strokeWidth="0.25" />
+          </motion.g>
+        ) : (
+          <motion.g key={i} initial={{ opacity: 0, scale: 0 }} animate={on ? { opacity: 1, scale: 1 } : {}} transition={{ delay: 1.1 + i * 0.07, duration: 0.5 }} style={{ transformBox: "fill-box", transformOrigin: "50% 50%" }}>
+            <circle cx={b.x} cy={b.y + 1.6} r="1.7" fill="#f29a1a" />
+            <circle cx={b.x} cy={b.y + 1.6} r="0.9" fill="#ffc94a" />
+          </motion.g>
+        ),
+      )}
+    </svg>
   );
 }
 
-function Functions() {
+/** A few grains of talambralu drifting down inside the card, always. */
+function CardShower() {
+  const bits = useMemo(() => {
+    const r = seeded(5);
+    return Array.from({ length: 12 }, (_, i) => ({ x: 8 + r() * 84, d: r() * 6, t: 6 + r() * 4, pearl: i % 3 === 0 }));
+  }, []);
   return (
-    <section className="relative flex w-full flex-col items-center px-[11%] pt-[24cqw] pb-[20cqw] text-center" style={{ perspective: "900px" }}>
+    <div className="pointer-events-none absolute inset-0">
+      {bits.map((b, i) => (
+        <motion.span
+          key={i}
+          className="absolute -top-[2cqw] rounded-full"
+          style={{
+            left: `${b.x}%`,
+            width: b.pearl ? "1.2cqw" : "1.6cqw",
+            height: b.pearl ? "1.2cqw" : "0.7cqw",
+            background: b.pearl ? "radial-gradient(circle at 32% 30%, #fff, #e9dcc0)" : "linear-gradient(180deg, #ffd45a, #e8a317)",
+            opacity: 0.8,
+          }}
+          animate={{ y: ["0cqw", "152cqw"], rotate: [0, 300] }}
+          transition={{ duration: b.t, delay: b.d, repeat: Infinity, ease: "linear" }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function Wedding() {
+  const ref = useRef<HTMLDivElement>(null);
+  const on = useInView(ref, { once: true, amount: 0.3 });
+  const arch = { borderRadius: "39cqw 39cqw 3cqw 3cqw / 39cqw 39cqw 3cqw 3cqw" };
+  const inner = { borderRadius: "37.6cqw 37.6cqw 2cqw 2cqw / 37.6cqw 37.6cqw 2cqw 2cqw" };
+  return (
+    <section className="relative flex w-full flex-col items-center px-[11%] pt-[8cqw] pb-[22cqw] text-center">
       <Reveal>
-        <Small color={C.gold}>Join us for</Small>
+        <Small color={C.gold}>Join us for the</Small>
         <p className="text-[12cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>
-          The celebrations
+          Wedding
         </p>
       </Reveal>
-      <Divider />
-      <div className="flex w-full flex-col gap-[8cqw]">
-        <Event i={0} name="Pellikuthuru" en="The bride's blessing" when="Saturday, 13 Feb · 10:00 am" venue="Reddy residence, Jubilee Hills, Hyderabad" note="Dress: shades of yellow" />
-        <Event
-          i={1}
-          name="Kalyanam"
-          en="The wedding · Muhurtham"
-          when="Sunday, 14 Feb · 7:42 am"
-          venue="Sri Sai Convention, Gachibowli, Hyderabad"
-          note="Jeelakarra Bellam & Talambralu at the muhurtham"
-        />
-        <Event i={2} name="Reception" en="An evening together" when="Sunday, 14 Feb · 7:30 pm" venue="Sri Sai Convention, Gachibowli, Hyderabad" />
+      <div ref={ref} className="relative mt-[6cqw] h-[150cqw] w-[78cqw]">
+        {/* the gold zari edge, drawn round the arch first */}
+        <svg viewBox="0 0 78 150" className="pointer-events-none absolute inset-0 z-10 size-full overflow-visible" aria-hidden>
+          <motion.path
+            d="M0.6 149.4 V39 A38.4 38.4 0 0 1 77.4 39 V149.4 Z"
+            fill="none"
+            stroke="#f7dc95"
+            strokeWidth="0.5"
+            style={{ filter: "drop-shadow(0 0 1px #ffe7a8)" }}
+            initial={{ pathLength: 0, opacity: 1 }}
+            animate={on ? { pathLength: 1, opacity: [1, 1, 0] } : {}}
+            transition={{ duration: 1.4, ease: [0.65, 0, 0.35, 1], opacity: { duration: 2.4, times: [0, 0.7, 1] } }}
+          />
+        </svg>
+        <motion.div
+          className="absolute inset-0 p-[1.4cqw] shadow-[0_3cqw_8cqw_rgba(90,30,20,.28)]"
+          style={{ ...arch, background: "linear-gradient(135deg, #c99a3e, #f8e2a6 30%, #b8862e 55%, #f3d68d 80%, #a87a28)" }}
+          initial={{ opacity: 0, y: 24 }}
+          animate={on ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 1, delay: 0.5, ease }}
+        >
+          <div className="relative size-full overflow-hidden" style={{ ...inner, background: `radial-gradient(120% 70% at 50% 18%, #8e2033, ${C.maroon} 50%, #4a0b17)` }}>
+            {/* a fine gold inner line and a faint brocade of dots */}
+            <div className="pointer-events-none absolute inset-[2.2cqw] border" style={{ borderRadius: "35.4cqw 35.4cqw 1.2cqw 1.2cqw / 35.4cqw 35.4cqw 1.2cqw 1.2cqw", borderColor: "rgba(247,220,149,.5)" }} />
+            <div className="pointer-events-none absolute inset-0 opacity-[0.12]" style={{ backgroundImage: "radial-gradient(#f7dc95 0.35cqw, transparent 0.4cqw)", backgroundSize: "5cqw 5cqw" }} />
+            <CardShower />
+            <motion.div
+              className="pointer-events-none absolute inset-y-0 w-[45%] mix-blend-screen"
+              style={{ background: "linear-gradient(100deg, transparent, rgba(255,226,160,.3), transparent)" }}
+              initial={{ x: "-120%" }}
+              animate={on ? { x: "320%" } : {}}
+              transition={{ duration: 2, delay: 2.2, ease: "easeInOut" }}
+            />
+            <div className="relative flex size-full flex-col items-center px-[7cqw] pt-[40cqw] text-center">
+              <Reveal delay={0.9}>
+                <p className="text-[15cqw] leading-none" style={{ fontFamily: script, color: C.goldLight }}>
+                  Kalyanam
+                </p>
+                <p className="mt-[1.5cqw] text-[2.5cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: "#e9c77e" }}>
+                  The wedding ceremony
+                </p>
+              </Reveal>
+              <Reveal delay={1.2} className="mt-[5cqw]">
+                <p className="text-[2.6cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: "#e9c77e" }}>
+                  {S.day.split(" · ")[0]}
+                </p>
+                <p className="mt-[0.5cqw] text-[5.6cqw] font-semibold" style={{ fontFamily: serif, color: "#fff3dc" }}>
+                  {S.day.split(" · ")[1]}
+                </p>
+                <p className="mt-[3cqw] text-[2.4cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: "#e9c77e" }}>
+                  Muhurtham
+                </p>
+                <p className="text-[12cqw] leading-tight" style={{ fontFamily: script, color: C.goldLight }}>
+                  7:42 am
+                </p>
+              </Reveal>
+              <Reveal delay={1.5} className="mt-[2cqw]">
+                <p className="text-[4.4cqw] leading-snug font-semibold" style={{ fontFamily: serif, color: "#fff3dc" }}>
+                  Sri Sai Convention
+                </p>
+                <p className="text-[3.8cqw] leading-snug" style={{ fontFamily: serif, color: "#f0dcc0" }}>
+                  Gachibowli, {S.city}
+                </p>
+                <p className="mt-[2.5cqw] text-[3.5cqw] italic" style={{ fontFamily: serif, color: "#e9c77e" }}>
+                  Jeelakarra Bellam &amp; Talambralu
+                </p>
+                <div className="mt-[5cqw] flex items-center gap-[2.5cqw]">
+                  <span className="rounded-full border border-transparent px-[3.6cqw] py-[1.8cqw] text-[2.4cqw] tracking-[0.12em] whitespace-nowrap" style={{ background: C.goldLight, color: C.maroon, fontFamily: label }}>
+                    DIRECTIONS →
+                  </span>
+                  <span className="rounded-full border px-[3.6cqw] py-[1.8cqw] text-[2.4cqw] tracking-[0.12em] whitespace-nowrap" style={{ borderColor: "#e9c77e", color: C.goldLight, fontFamily: label }}>
+                    ADD TO CALENDAR
+                  </span>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </motion.div>
+        <div className="absolute inset-0 z-20">
+          <Thoranam on={on} />
+        </div>
       </div>
     </section>
   );
@@ -707,7 +813,7 @@ function Closing() {
   }, []);
   return (
     <section className="relative aspect-[2/3] min-h-svh w-full overflow-hidden">
-      <Painting src="dance" alt="Shiva and Parvati dance together on the clouds above the Himalayas" fade="linear-gradient(180deg, transparent, #000 10%)" className="bottom-0" />
+      <Painting src="v4-dance" alt="Shiva and Parvati dance together on the clouds above the Himalayas" fade="linear-gradient(180deg, transparent, #000 10%)" className="bottom-0" />
       {twinkles.map((t, i) => (
         <motion.span
           key={i}
@@ -721,13 +827,13 @@ function Closing() {
       <div className="absolute inset-x-[12%] top-[14cqw] flex flex-col items-center text-center">
         <Reveal>
           <p className="text-[4.4cqw] leading-snug font-semibold italic" style={{ fontFamily: serif, color: C.ink, textShadow: GLOW }}>
-            As Shiva and Parvati, two souls become one. Come, bless the beginning of forever.
+            Blessed by Shiva and Parvati, two hearts become one. Come, bless the beginning of forever.
           </p>
-          <p className="mt-[2cqw] text-[11cqw] leading-tight whitespace-nowrap" style={{ fontFamily: script, color: C.maroon, textShadow: GLOW }}>
+          <p className="mt-[2cqw] text-[10.5cqw] leading-tight whitespace-nowrap" style={{ fontFamily: script, color: C.maroon, textShadow: GLOW }}>
             {S.groom} &amp; {S.bride}
           </p>
           <Small className="mt-[1.5cqw]" color={C.maroon}>
-            With love · the Reddy &amp; Rao families
+            With love · the Rao &amp; Reddy families
           </Small>
         </Reveal>
       </div>

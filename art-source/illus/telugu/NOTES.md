@@ -44,3 +44,13 @@ telugu-v2-cover (Kailash, families), v2-moon, v2-dance. The walking-couple conce
 ## Decision (2026-11-14): the client LOVED the walking-couple concept (v2), not the meditation one
 Main preview /lab/telugu = walking-couple design (TeluguInvite.tsx, art telugu-v2-*).
 Meditation version saved at /lab/telugu/meditation (TeluguInviteMeditation.tsx, art telugu-v3-* + v2).
+
+## Client feedback round (2026-11-14) — couple: Shiva (groom) & Srilakshmi (bride), ONE function
+- Colours: mostly beige, a little blue, a little maroon → paintings regraded (scratchpad grade script:
+  violet sky → soft blue, softer pinks, beige wash stronger at the top) into public/art/illus/telugu-v4-*.webp.
+- Shiva–Parvati paintings only at the start (opening + hero/cover after it) and the end (dance closing).
+  Families = paper + Ganesha + lotus ornament; countdown = a drawn pearl moon with blue glow.
+- One function → one show-piece Kalyanam card: maroon arch, gold zari edge drawn in, mango-leaf/marigold
+  thoranam, talambralu drifting inside, Directions + Add to calendar.
+- Fonts as the Marathi design: Great Vibes (added to src/lib/fonts.ts), Cinzel, Cormorant.
+- Still sample: parents' names, venue (Sri Sai Convention, Gachibowli), date 14 Feb 2027, muhurtham 7:42 am.
