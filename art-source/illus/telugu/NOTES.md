@@ -66,7 +66,7 @@ Meditation version saved at /lab/telugu/meditation (TeluguInviteMeditation.tsx, 
 - Music: "Pournami - Flute Music" (public/music/pournami-flute.mp3, from the client's file) starts on the opening tap from 0:05 and loops back to 0:05; maroon music toggle bottom-right.
 - Real details (2026-11-14) from the family's printed card proof: Srilakshmi (bride, first, as on their card) with
   Shiva Chander Reddy; hosts Smt. Jayalakshmi & Sri Saranala Babu Rao (grandparents); bride's parents Smt. Sridevi
-  & Sri Saranala Srinath; groom's Smt. Kavitha & Sri Cheryala Raji Reddy; Sumuhurtham Sat 5 Dec 2026, 11:43 am,
+  & Sri Saranala Srinath; groom's Smt. Kavitha & Sri Chepyala Raji Reddy; Sumuhurtham Sat 5 Dec 2026, 11:43 am,
   followed by lunch; Sriman Convention, Aziz Nagar, Hyderabad; compliments Sri S. Sridhar Rao, Sri S. Srikrishna
   and near & dear. Their spellings: Srirasthu / Subhamasthu / Avighnamasthu.
 - Function card simplified to one title ("Wedding", not Kalyanam too): date, Sumuhurtham time, venue, lunch,
@@ -81,3 +81,4 @@ Meditation version saved at /lab/telugu/meditation (TeluguInviteMeditation.tsx, 
 - Photos (2026-11-14): the couple's 4 photos graded warm/creamy (scratchpad photo-grade.mjs: greens x0.55, sat x0.9, 9% beige wash, lifted blacks), cropped to 2:3, photographer credit kept, uploaded to R2 photos/moments/<uuid>.jpg (unoptimized <Image>). Album frames now 2:3; fixed the strip overflowing the screen.
 - Telugu round 1 (2026-11-14): intro = Ganesha + Vakratunda mantra (Telugu), pill 'Tap here', names removed from intro; blessing on tap = శ్రీరస్తు/శుభమస్తు/అవిఘ్నమస్తు word by word (Telugu can't be split per letter); hero line 'Join us as we celebrate the union of a lifetime' above the names; families top row in Telugu; closing = ఓం ఉమామహేశ్వరాభ్యాం నమః + #Srilu'sChand instead of names. Font: Noto Serif Telugu (--font-telugu in src/lib/fonts.ts).
 - 2026-11-14: intro = Ganesha + "You're invited" + Tap here (no names, no mantra); the Vakratunda mantra sits in the families section above the Ganesha logo, under the Telugu blessings row.
+- 2026-11-14: removed the Telugu blessings (families row and the tap animation) — only the opening mantra stays; closing line set as two sentences, one per line; groom's father is Sri Chepyala (not Cheryala) Raji Reddy.
