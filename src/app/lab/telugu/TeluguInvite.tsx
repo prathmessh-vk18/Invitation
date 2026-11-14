@@ -11,7 +11,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNod
  * Kailash); the rest is paper, ornament and a drawn moon. Photo album and Best Compliments added. She has one function, so it gets a single show-piece card. Names in Great Vibes (as Marathi).
  * English first; Telugu once she approves.
  *
- * Opening: the gold Ganesha and the Vakratunda mantra in Telugu over Shiva and Parvati walking hand in
+ * Opening: the gold Ganesha and "You're invited" over Shiva and Parvati walking hand in
  * hand towards the rising sun. Tap: Ganesha glows, the blessing "శ్రీరస్తు శుభమస్తు అవిఘ్నమస్తు" writes in, the sun swells
  * with turning rays, the camera pushes in, light floods and talambralu falls as it dissolves onto the
  * hero. A thin gold-and-blue frame settles around the page and the names write in.
@@ -359,11 +359,8 @@ function Invitation({ opened }: { opened: boolean }) {
       animate={{ opacity: opened ? 0 : 1, y: 0 }}
       transition={{ duration: opened ? 0.5 : 1.2, delay: opened ? 0 : 0.35 }}
     >
-      {/* the opening mantra, to Ganesha */}
-      <p className="text-[4.6cqw] leading-[1.75] font-semibold" style={{ fontFamily: te, color: C.maroon, textShadow: GLOW, textWrap: "balance" }}>
-        వక్రతుండ మహాకాయ కోటిసూర్యసమప్రభ |
-        <br />
-        నిర్విఘ్నం కురుమే దేవ సర్వకార్యేషు సర్వదా ॥
+      <p className="text-[3.6cqw] tracking-[0.4em] uppercase" style={{ fontFamily: label, color: C.maroon, textShadow: GLOW }}>
+        You&rsquo;re invited
       </p>
     </motion.div>
   );
@@ -621,6 +618,12 @@ function Families() {
             </p>
           ))}
         </div>
+        {/* the opening mantra, to Ganesha */}
+        <p className="mt-[6cqw] text-[4.2cqw] leading-[1.8] font-semibold" style={{ fontFamily: te, color: C.maroon }}>
+          వక్రతుండ మహాకాయ కోటిసూర్యసమప్రభ |
+          <br />
+          నిర్విఘ్నం కురుమే దేవ సర్వకార్యేషు సర్వదా ॥
+        </p>
         <Ganesha className="mt-[4cqw] w-[13cqw]" />
         <p className="mt-[5cqw] text-[4.8cqw] leading-snug font-semibold" style={{ fontFamily: serif, color: C.maroon, textWrap: "balance" }}>
           Smt. Jayalakshmi &amp; Sri&nbsp;Saranala Babu&nbsp;Rao
