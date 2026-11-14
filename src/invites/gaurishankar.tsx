@@ -213,7 +213,24 @@ function Meeting({ invite, opened, onOpen }: OpeningProps) {
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ duration: 1.4, delay: at(4.8), ease }}
         >
-          {a.first} <span style={{ fontSize: u(10) }}>{invite.joiner ?? "&"}</span> {b.first}
+          {invite.stackNames ? (
+            // one name per line, the joiner between
+            <>
+              <span className="block" style={{ fontSize: u(13) }}>
+                {a.first}
+              </span>
+              <span className="block leading-none" style={{ fontSize: u(9) }}>
+                {invite.joiner ?? "&"}
+              </span>
+              <span className="block" style={{ fontSize: u(13) }}>
+                {b.first}
+              </span>
+            </>
+          ) : (
+            <>
+              {a.first} <span style={{ fontSize: u(10) }}>{invite.joiner ?? "&"}</span> {b.first}
+            </>
+          )}
         </motion.p>
       </div>
     </motion.button>
@@ -244,19 +261,10 @@ function Details({ invite, show }: { invite: Invite; show: (d: number) => object
         </motion.p>
       )}
       {invite.occasion === "reception" ? (
-        // "You are cordially invited to the RECEPTION of", as on a printed reception card
-        <motion.div {...show(0.5)} className="relative mt-[3cqw] flex flex-col items-center">
-          <p className="inv-serif text-[4.4cqw] font-semibold" style={{ color: c.ink, textShadow: HALO }}>
-            You are cordially invited to the
-          </p>
-          <p className="mt-[1cqw] text-[8.4cqw] leading-none font-semibold tracking-[0.18em]" style={{ color: c.crimson, fontFamily: "var(--font-cinzel), serif", textShadow: HALO }}>
-            RECEPTION
-          </p>
-          <p className="mt-[2cqw] -mb-[2cqw] text-[8cqw] leading-none" style={{ color: c.rose, fontFamily: HAND, textShadow: HALO }}>
-            of
-          </p>
-        </motion.div>
-      ) : (
+        // kept quiet: one serif line, then the names
+        <motion.p {...show(0.5)} className="inv-serif relative mt-[4cqw] text-[4.6cqw] leading-snug font-semibold" style={{ color: c.ink, textShadow: HALO }}>
+          You are cordially invited to the reception of
+        </motion.p>      ) : (
         <motion.p {...show(0.5)} className="inv-label relative mt-[3cqw] text-[2.8cqw] leading-relaxed font-semibold" style={{ color: c.ink, textShadow: HALO }}>
           We cordially invite you to the wedding of
         </motion.p>
@@ -266,14 +274,22 @@ function Details({ invite, show }: { invite: Invite; show: (d: number) => object
         <span className="mx-[2cqw] text-[9cqw]">{invite.joiner ?? "&"}</span>
         {b.first}
       </motion.h1>
-      {!invite.hideHeroDate && (
-        <motion.p {...show(1)} className="inv-label relative mt-[3cqw] text-[3.4cqw] font-bold" style={{ color: c.crimson, letterSpacing: "0.1em", textShadow: HALO }}>
-          {weekday(invite.date)} · {fmtDate(invite.date, { day: "numeric" })} {monthName(invite.date)} {yearNum(invite.date)}
+      {invite.occasion === "reception" ? (
+        <motion.p {...show(1)} className="inv-serif relative mt-[3cqw] text-[4.6cqw] font-semibold" style={{ color: c.crimson, textShadow: HALO }}>
+          {weekday(invite.date)}, {fmtDate(invite.date, { day: "numeric" })} {monthName(invite.date)} {yearNum(invite.date)} · {invite.city}
         </motion.p>
+      ) : (
+        <>
+          {!invite.hideHeroDate && (
+            <motion.p {...show(1)} className="inv-label relative mt-[3cqw] text-[3.4cqw] font-bold" style={{ color: c.crimson, letterSpacing: "0.1em", textShadow: HALO }}>
+              {weekday(invite.date)} · {fmtDate(invite.date, { day: "numeric" })} {monthName(invite.date)} {yearNum(invite.date)}
+            </motion.p>
+          )}
+          <motion.p {...show(1.15)} className="inv-serif relative mt-[1.5cqw] text-[4.8cqw] font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
+            {invite.city}
+          </motion.p>
+        </>
       )}
-      <motion.p {...show(1.15)} className="inv-serif relative mt-[1.5cqw] text-[4.8cqw] font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
-        {invite.city}
-      </motion.p>
     </div>
   );
 }
@@ -381,7 +397,7 @@ function Blessing({ invite }: { invite: Invite }) {
         <Divider className="my-[6cqw]" />
         {person(a)}
         <p className="my-[3cqw] text-[9cqw] leading-none" style={{ color: c.gold, fontFamily: HAND, textShadow: HALO }}>
-          with
+          {invite.stackNames ? (invite.joiner ?? "&") : "with"}
         </p>
         {person(b)}
       </motion.div>
@@ -492,13 +508,21 @@ function Closing({ invite }: { invite: Invite }) {
           {invite.closingLines
             ? invite.closing.split(/(?<=[.!?])\s+/).map((line, i) => (
                 <span key={i} className="block text-[4.3cqw] whitespace-nowrap">
-                  {line}
+                  {line.replace(/\.$/, "")}
                 </span>
               ))
             : invite.closing}
         </p>
         <p className="inv-script mt-[3cqw] text-[14cqw] leading-[1.1]" style={{ color: c.rose, textShadow: HALO }}>
-          {a.first} {invite.joiner ?? "&"} {b.first}
+          {invite.stackNames ? (
+            <>
+              <span className="block">{a.first}</span>
+              <span className="block text-[9cqw] leading-none">{invite.joiner ?? "&"}</span>
+              <span className="block">{b.first}</span>
+            </>
+          ) : (
+            `${a.first} ${invite.joiner ?? "&"} ${b.first}`
+          )}
         </p>
         {invite.hashtag && (
           <p className="inv-label !normal-case mt-[3cqw] text-[4.6cqw] font-bold tracking-[0.06em]" style={{ color: c.crimson, textShadow: HALO }}>
@@ -532,7 +556,7 @@ export const gaurishankar: InviteTheme = {
   id: "gaurishankar",
   tapHint: "tapAnywhere",
   // The hint waits for the palm, the step and the names to finish arriving.
-  tapHintDelay: 6,
+  tapHintDelay: 7.5,
   vars: { ...base.vars, "--inv-accent": c.rose } as CSSProperties,
   accent: c.rose,
   // Shared sections fade secondary text to 70%; over this sky it needs to stay near full strength.

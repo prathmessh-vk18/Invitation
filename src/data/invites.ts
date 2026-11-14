@@ -76,7 +76,8 @@ export type Invite = {
   // Bigger, darker text throughout, for families whose guests are mostly older.
   largeText?: boolean;
   // Stack the couple's names vertically on the hero cover (first name, &, second name). On Rajwada,
-  // the couple's cards sit one below the other.
+  // the couple's cards sit one below the other. On Gauri Shankar, the opening, families and closing
+  // stack them while the cover keeps one line.
   stackNames?: boolean;
   // Hide the "With love · hosts" line at the end.
   noSignoff?: boolean;
