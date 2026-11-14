@@ -277,11 +277,20 @@ function Details({ invite, show }: { invite: Invite; show: (d: number) => object
           We cordially invite you to the wedding of
         </motion.p>
       )}
-      <motion.h1 {...show(0.75)} className="inv-script relative mt-[1.5cqw] text-[14cqw] leading-[1.05]" style={{ color: c.rose, textShadow: HALO }}>
-        {a.first}
-        <span className="mx-[2cqw] text-[9cqw]">{invite.joiner ?? "&"}</span>
-        {b.first}
-      </motion.h1>
+      {invite.occasion === "reception" ? (
+        // the names in RECEPTION's bold serif and crimson
+        <motion.h1 {...show(0.75)} className="inv-serif relative mt-[2cqw] text-[10cqw] leading-[1.1] font-bold whitespace-nowrap" style={{ color: c.crimson, textShadow: HALO }}>
+          {a.first}
+          <span className="mx-[2cqw] text-[8cqw]">{invite.joiner ?? "&"}</span>
+          {b.first}
+        </motion.h1>
+      ) : (
+        <motion.h1 {...show(0.75)} className="inv-script relative mt-[1.5cqw] text-[14cqw] leading-[1.05]" style={{ color: c.rose, textShadow: HALO }}>
+          {a.first}
+          <span className="mx-[2cqw] text-[9cqw]">{invite.joiner ?? "&"}</span>
+          {b.first}
+        </motion.h1>
+      )}
       {invite.occasion === "reception" ? (
         <motion.p {...show(1)} className="inv-serif relative mt-[3cqw] text-[4.6cqw] font-semibold" style={{ color: c.crimson, textShadow: HALO }}>
           {weekday(invite.date)}, {fmtDate(invite.date, { day: "numeric" })} {monthName(invite.date)} {yearNum(invite.date)} · {invite.city}
