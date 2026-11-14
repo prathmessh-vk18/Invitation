@@ -37,7 +37,44 @@ function seeded(seed: number) {
   return () => ((s = (s * 16807) % 2147483647) - 1) / 2147483646;
 }
 
+// Her song: "Pournami" on the flute, from its 5th second.
+const SONG = { src: "/music/pournami-flute.mp3", from: 5 };
+
+/** The song, started by the tap that opens the invite (browsers only allow sound after a tap). */
+function useSong() {
+  const audio = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState(false);
+  useEffect(() => () => audio.current?.pause(), []);
+  const get = () => {
+    if (!audio.current) {
+      const a = new Audio(`${SONG.src}#t=${SONG.from}`);
+      a.preload = "auto";
+      // when it ends, go round again from the same point
+      a.addEventListener("ended", () => {
+        a.currentTime = SONG.from;
+        void a.play();
+      });
+      a.addEventListener("play", () => setPlaying(true));
+      a.addEventListener("pause", () => setPlaying(false));
+      audio.current = a;
+    }
+    return audio.current;
+  };
+  const start = () => {
+    const a = get();
+    if (a.currentTime < SONG.from) a.currentTime = SONG.from;
+    void a.play().catch(() => {});
+  };
+  const toggle = () => {
+    const a = get();
+    if (a.paused) start();
+    else a.pause();
+  };
+  return { playing, start, toggle };
+}
+
 export function TeluguInvite() {
+  const song = useSong();
   const [opened, setOpened] = useState(false);
   const [gone, setGone] = useState(false);
   const [run, setRun] = useState(0);
@@ -75,7 +112,38 @@ export function TeluguInvite() {
         <Compliments />
         <Closing />
         <Frame opened={opened} />
-        {!gone && <Opening opened={opened} onOpen={() => setOpened(true)} />}
+        {!gone && (
+          <Opening
+            opened={opened}
+            onOpen={() => {
+              setOpened(true);
+              song.start();
+            }}
+          />
+        )}
+        {opened && (
+          <button
+            type="button"
+            onClick={song.toggle}
+            aria-label={song.playing ? "Pause music" : "Play music"}
+            className="fixed bottom-4 z-[60] grid size-11 place-items-center rounded-full shadow-lg ring-1 ring-[#f7dc95]/50 backdrop-blur"
+            style={{ right: "max(1rem, calc(50vw - 240px + 1rem))", background: "rgba(110,20,35,.88)", color: C.goldLight }}
+          >
+            {song.playing ? (
+              <span className="flex h-4 items-end gap-[3px]" aria-hidden>
+                {[0, 1, 2].map((i) => (
+                  <motion.span key={i} className="w-[3px] rounded-full bg-current" animate={{ height: ["30%", "100%", "45%", "80%", "30%"] }} transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.18 }} />
+                ))}
+              </span>
+            ) : (
+              <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden>
+                <path d="M9 18V6l11-2v12" stroke="currentColor" strokeWidth="1.6" fill="none" />
+                <circle cx="6.5" cy="18" r="2.6" />
+                <circle cx="17.5" cy="16" r="2.6" />
+              </svg>
+            )}
+          </button>
+        )}
         <button type="button" onClick={replay} className="fixed top-3 right-3 z-[70] rounded-full bg-black/55 px-3 py-1.5 text-[12px] text-white backdrop-blur">
           ↻ Replay
         </button>

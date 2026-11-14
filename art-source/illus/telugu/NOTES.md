@@ -63,3 +63,4 @@ Meditation version saved at /lab/telugu/meditation (TeluguInviteMeditation.tsx, 
   (sample names + little ones). Order: intro → hero → families → countdown → wedding card → album →
   compliments → closing.
 - Shared with the client at https://aavjoo.in/lab/telugu (lab pages merged to main; noindex, unlinked).
+- Music: "Pournami - Flute Music" (public/music/pournami-flute.mp3, from the client's file) starts on the opening tap from 0:05 and loops back to 0:05; maroon music toggle bottom-right.
