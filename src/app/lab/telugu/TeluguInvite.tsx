@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { AnimatePresence, motion, useInView } from "framer-motion";
-import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 /**
  * The Telugu design (one client: Srilakshmi & Shiva Chander, details from the family's printed card), the walking-couple concept she chose.
@@ -660,46 +660,29 @@ function Families() {
   );
 }
 
-/* ───────── South Indian pieces: Kanjeevaram zari border, kolam, lamp, bells, banana plant ───────── */
+/* ───────── A quiet South Indian touch: a slim temple-border trim ───────── */
 
 const ZARI = "linear-gradient(135deg, #c99a3e, #f8e2a6 30%, #b8862e 55%, #f3d68d 80%, #a87a28)";
-const SILK = `radial-gradient(120% 80% at 50% 30%, #8e2033, ${C.maroon} 55%, #4a0b17)`;
-// Tiny gold buttas woven over the silk.
-const BUTTAS = { backgroundImage: "radial-gradient(rgba(247,220,149,.22) 0.32cqw, transparent 0.38cqw)", backgroundSize: "5cqw 5cqw" };
+const SILK = `radial-gradient(120% 80% at 50% 30%, #8a1f30, ${C.maroon} 55%, #520d1a)`;
 
-/** A safe id for SVG gradients. */
-function useSvgId() {
-  return useId().replace(/[^a-zA-Z0-9]/g, "");
-}
-
-/** The temple border of a Kanjeevaram saree: a zari band with a row of gopuram triangles. `w` in cqw. */
-function TempleBorder({ w, flip = false, className = "" }: { w: number; flip?: boolean; className?: string }) {
-  const id = useSvgId();
-  const n = Math.round(w / 4.4);
+/**
+ * The Kanjeevaram temple border, kept slim: a fine double gold line with a row of small gopuram
+ * triangles drawn in outline. `w` in cqw.
+ */
+function TempleTrim({ w, flip = false, color = C.gold, className = "" }: { w: number; flip?: boolean; color?: string; className?: string }) {
+  const n = Math.round(w / 3.2);
   const step = w / n;
   return (
-    <svg viewBox={`0 0 ${w} 9`} className={className} style={{ width: `${w}cqw`, height: "9cqw", transform: flip ? "scaleY(-1)" : undefined }} aria-hidden>
-      <defs>
-        <linearGradient id={`${id}z`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#f8e2a6" />
-          <stop offset=".55" stopColor="#c99a3e" />
-          <stop offset="1" stopColor="#f3d68d" />
-        </linearGradient>
-      </defs>
-      <rect width={w} height="3.4" fill={`url(#${id}z)`} />
-      <line x1="0" x2={w} y1="0.6" y2="0.6" stroke={C.maroon} strokeWidth="0.22" />
-      <line x1="0" x2={w} y1="2.8" y2="2.8" stroke={C.maroon} strokeWidth="0.22" />
-      {Array.from({ length: n * 2 }, (_, i) => (
-        <circle key={i} cx={(i + 0.5) * (step / 2)} cy="1.7" r="0.34" fill={C.maroon} />
-      ))}
+    <svg viewBox={`0 0 ${w} 4.6`} className={className} style={{ width: `${w}cqw`, height: "4.6cqw", transform: flip ? "scaleY(-1)" : undefined }} aria-hidden>
+      <line x1="0" x2={w} y1="0.4" y2="0.4" stroke={color} strokeWidth="0.3" />
+      <line x1="0" x2={w} y1="1.2" y2="1.2" stroke={color} strokeWidth="0.15" />
       {Array.from({ length: n }, (_, i) => {
         const x = i * step;
         const m = x + step / 2;
         return (
           <g key={i}>
-            <path d={`M${x} 3.4 L${m} 8.8 L${x + step} 3.4 Z`} fill={`url(#${id}z)`} />
-            <path d={`M${x + step * 0.2} 3.4 L${m} 7.1 L${x + step * 0.8} 3.4 Z`} fill={C.maroon} />
-            <path d={`M${x + step * 0.36} 3.4 L${m} 5.6 L${x + step * 0.64} 3.4 Z`} fill={`url(#${id}z)`} />
+            <path d={`M${x + step * 0.12} 1.2 L${m} 4.2 L${x + step * 0.88} 1.2`} fill="none" stroke={color} strokeWidth="0.22" strokeLinejoin="round" />
+            <circle cx={m} cy="2" r="0.3" fill={color} />
           </g>
         );
       })}
@@ -707,169 +690,7 @@ function TempleBorder({ w, flip = false, className = "" }: { w: number; flip?: b
   );
 }
 
-/**
- * A dot kolam that draws itself: a grid of dots with interlocking loops round every other dot, the
- * way it is drawn at a doorstep. `cols` x `rows` dots, `gap` apart (in the SVG's own units).
- */
-function Kolam({ on, cols, rows, gap = 6, color, dot, className, style }: { on: boolean; cols: number; rows: number; gap?: number; color: string; dot: string; className?: string; style?: CSSProperties }) {
-  const w = (cols + 1) * gap;
-  const h = (rows + 1) * gap;
-  const r = gap * 0.95;
-  const loops: { d: string; i: number }[] = [];
-  let i = 0;
-  for (let y = 1; y <= rows; y++)
-    for (let x = 1; x <= cols; x++) {
-      if ((x + y) % 2) continue;
-      const cx = x * gap,
-        cy = y * gap;
-      // a four-pointed kolam loop: its sides bow in towards the dot
-      const k = r * 0.32;
-      loops.push({ d: `M${cx} ${cy - r} Q${cx + k} ${cy - k} ${cx + r} ${cy} Q${cx + k} ${cy + k} ${cx} ${cy + r} Q${cx - k} ${cy + k} ${cx - r} ${cy} Q${cx - k} ${cy - k} ${cx} ${cy - r} Z`, i: i++ });
-    }
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className={className} style={style} aria-hidden>
-      {Array.from({ length: rows }, (_, y) =>
-        Array.from({ length: cols }, (_, x) => <circle key={`${x}-${y}`} cx={(x + 1) * gap} cy={(y + 1) * gap} r={gap * 0.08} fill={dot} />),
-      )}
-      {loops.map((l) => (
-        <motion.path
-          key={l.i}
-          d={l.d}
-          fill="none"
-          stroke={color}
-          strokeWidth={gap * 0.07}
-          strokeLinecap="round"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={on ? { pathLength: 1, opacity: 1 } : {}}
-          transition={{ duration: 0.7, delay: 0.2 + l.i * (1.6 / Math.max(1, loops.length)), ease: "easeInOut" }}
-        />
-      ))}
-    </svg>
-  );
-}
-
-/** A brass kuthu vilakku: two wicks burning, a peacock-tipped finial, and a soft glow. */
-function Lamp({ className, delay = 0 }: { className?: string; delay?: number }) {
-  const id = useSvgId();
-  return (
-    <svg viewBox="0 0 20 62" className={className} style={{ overflow: "visible" }} aria-hidden>
-      <defs>
-        <linearGradient id={`${id}b`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#7a5418" />
-          <stop offset=".4" stopColor="#f6dc96" />
-          <stop offset=".7" stopColor="#c49340" />
-          <stop offset="1" stopColor="#6e4a14" />
-        </linearGradient>
-        <radialGradient id={`${id}f`} cx=".5" cy=".75" r=".6">
-          <stop offset="0" stopColor="#fffbe6" />
-          <stop offset=".45" stopColor="#ffc23a" />
-          <stop offset="1" stopColor="#f0731c" />
-        </radialGradient>
-        <radialGradient id={`${id}g`}>
-          <stop offset="0" stopColor="rgba(255,214,120,.75)" />
-          <stop offset="1" stopColor="rgba(255,190,90,0)" />
-        </radialGradient>
-      </defs>
-      <motion.circle cx="10" cy="15" r="13" fill={`url(#${id}g)`} animate={{ opacity: [0.55, 0.95, 0.65, 0.9, 0.55] }} transition={{ duration: 2.2, repeat: Infinity, delay }} />
-      {[4.2, 15.8].map((x, k) => (
-        <g key={x} transform={`translate(${x} 18.4)`}>
-          <motion.path
-            d="M0 0 C1.6 -1.8 1.2 -4.6 0 -7 C-1.2 -4.6 -1.6 -1.8 0 0 Z"
-            fill={`url(#${id}f)`}
-            style={{ transformBox: "fill-box", transformOrigin: "50% 100%" }}
-            animate={{ scaleY: [1, 1.18, 0.92, 1.1, 1], scaleX: [1, 0.9, 1.06, 0.94, 1], skewX: [0, 3, -2, 2, 0] }}
-            transition={{ duration: 1.3 + k * 0.25, repeat: Infinity, ease: "easeInOut", delay: delay + k * 0.2 }}
-          />
-          <ellipse cx="0" cy="-1.4" rx="0.45" ry="1" fill="#fffef5" />
-        </g>
-      ))}
-      {/* finial */}
-      <path d="M9.4 19 V12.5 H10.6 V19 Z" fill={`url(#${id}b)`} />
-      <circle cx="10" cy="11.4" r="1.7" fill={`url(#${id}b)`} />
-      <path d="M10 5.6 C11.6 7.4 11.6 9 10 10 C8.4 9 8.4 7.4 10 5.6 Z" fill={`url(#${id}b)`} />
-      {/* bowl */}
-      <path d="M2 19 Q10 27.5 18 19 Z" fill={`url(#${id}b)`} />
-      <ellipse cx="10" cy="19" rx="8" ry="1.3" fill="#f6dc96" />
-      {/* stem with its turned rings */}
-      <rect x="9.2" y="22" width="1.6" height="33" fill={`url(#${id}b)`} />
-      {[27, 35, 44].map((y) => (
-        <ellipse key={y} cx="10" cy={y} rx="2.6" ry="1.1" fill={`url(#${id}b)`} />
-      ))}
-      {/* base */}
-      <ellipse cx="10" cy="54.6" rx="4.4" ry="1.1" fill={`url(#${id}b)`} />
-      <path d="M3 61 L17 61 L14 54.8 L6 54.8 Z" fill={`url(#${id}b)`} />
-      <ellipse cx="10" cy="61" rx="7.4" ry="1.1" fill="#b8862e" />
-    </svg>
-  );
-}
-
-/** A temple bell on a brass chain, swinging gently. */
-function Bell({ className, delay = 0 }: { className?: string; delay?: number }) {
-  const id = useSvgId();
-  return (
-    <motion.svg
-      viewBox="0 0 10 32"
-      className={className}
-      style={{ transformOrigin: "50% 0%", overflow: "visible" }}
-      animate={{ rotate: [-7, 7, -7] }}
-      transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut", delay }}
-      aria-hidden
-    >
-      <defs>
-        <linearGradient id={`${id}b`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#7a5418" />
-          <stop offset=".45" stopColor="#f6dc96" />
-          <stop offset="1" stopColor="#8a5f1c" />
-        </linearGradient>
-      </defs>
-      {Array.from({ length: 7 }, (_, i) => (
-        <ellipse key={i} cx="5" cy={1 + i * 2} rx="0.7" ry="1.05" fill="none" stroke="#b8862e" strokeWidth="0.4" />
-      ))}
-      <circle cx="5" cy="15.4" r="1.1" fill={`url(#${id}b)`} />
-      <path d="M1.4 27 Q1.2 18 5 16.4 Q8.8 18 8.6 27 Z" fill={`url(#${id}b)`} />
-      <rect x="0.8" y="26.6" width="8.4" height="1.4" rx="0.7" fill="#f3d68d" />
-      <circle cx="5" cy="29.6" r="1.1" fill="#8a5f1c" />
-    </motion.svg>
-  );
-}
-
-/** A banana plant, as tied at the entrance of a Telugu wedding, swaying a little. */
-function Banana({ className, flip = false, delay = 0 }: { className?: string; flip?: boolean; delay?: number }) {
-  const id = useSvgId();
-  const leaves = [
-    { a: -58, s: 1 },
-    { a: -28, s: 1.08 },
-    { a: 2, s: 1.12 },
-    { a: 30, s: 1.04 },
-    { a: 60, s: 0.95 },
-  ];
-  return (
-    <svg viewBox="0 0 40 90" className={className} style={{ transform: flip ? "scaleX(-1)" : undefined, overflow: "visible" }} aria-hidden>
-      <defs>
-        <linearGradient id={`${id}l`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#8cc06a" />
-          <stop offset="1" stopColor="#3f7a3a" />
-        </linearGradient>
-        <linearGradient id={`${id}t`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#5d7a2e" />
-          <stop offset=".5" stopColor="#a3b86a" />
-          <stop offset="1" stopColor="#566f2a" />
-        </linearGradient>
-      </defs>
-      <motion.g style={{ transformBox: "view-box", transformOrigin: "20px 90px" }} animate={{ rotate: [-1.5, 1.5, -1.5] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay }}>
-        <path d="M17 90 C16.4 70 17.2 50 18.6 34 L21.4 34 C22.8 50 23.6 70 23 90 Z" fill={`url(#${id}t)`} />
-        {leaves.map((l, i) => (
-          <g key={i} transform={`translate(20 34) rotate(${l.a}) scale(${l.s})`}>
-            <path d="M0 0 C-4 -8 -5 -20 -1 -32 C3 -22 5 -10 0 0 Z" fill={`url(#${id}l)`} />
-            <path d="M0 -1 C-1.2 -10 -1.4 -20 -1 -31" fill="none" stroke="#cfe3a8" strokeWidth="0.35" />
-          </g>
-        ))}
-      </motion.g>
-    </svg>
-  );
-}
-
-/* ───────── Countdown: a Kanjeevaram silk panel ───────── */
+/* ───────── Countdown: a quiet ivory panel ───────── */
 
 function useCountdown(to: Date) {
   const [now, setNow] = useState<number | null>(null);
@@ -887,30 +708,27 @@ function useCountdown(to: Date) {
   return { days: Math.floor(s / 86400), hours: Math.floor(s / 3600) % 24, mins: Math.floor(s / 60) % 60, secs: s % 60, ready: now !== null };
 }
 
-/** One number in a gold-edged tile, flipping over like an old flip clock when it changes. */
+/** One number, turning over softly when it changes. */
 function Tile({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex flex-col items-center">
-      <div className="relative h-[17cqw] w-[14.5cqw] rounded-[1.6cqw] p-[0.5cqw] shadow-[0_1cqw_2cqw_rgba(0,0,0,.35)]" style={{ background: ZARI }}>
-        <div className="relative grid size-full place-items-center overflow-hidden rounded-[1.2cqw]" style={{ background: "linear-gradient(180deg, #5c101e, #3a0811)", perspective: "300px" }}>
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.span
-              key={value}
-              className="text-[8.6cqw] leading-none font-semibold tabular-nums"
-              style={{ fontFamily: serif, color: C.goldLight }}
-              initial={{ rotateX: 90, opacity: 0 }}
-              animate={{ rotateX: 0, opacity: 1 }}
-              exit={{ rotateX: -90, opacity: 0 }}
-              transition={{ duration: 0.45, ease }}
-            >
-              {value}
-            </motion.span>
-          </AnimatePresence>
-          <span className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-black/45" />
-          <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-white/[0.04]" />
-        </div>
+    <div className="flex w-[15cqw] flex-col items-center">
+      <div className="relative grid h-[11cqw] w-full place-items-center overflow-hidden" style={{ perspective: "300px" }}>
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.span
+            key={value}
+            className="text-[9cqw] leading-none font-medium tabular-nums"
+            style={{ fontFamily: serif, color: C.maroon }}
+            initial={{ rotateX: 80, opacity: 0 }}
+            animate={{ rotateX: 0, opacity: 1 }}
+            exit={{ rotateX: -80, opacity: 0 }}
+            transition={{ duration: 0.45, ease }}
+          >
+            {value}
+          </motion.span>
+        </AnimatePresence>
       </div>
-      <p className="mt-[1.8cqw] text-[2cqw] tracking-[0.24em] uppercase" style={{ fontFamily: label, color: "#e9c77e" }}>
+      <span className="mt-[1cqw] h-px w-[8cqw]" style={{ background: `${C.gold}88` }} />
+      <p className="mt-[1.5cqw] text-[2cqw] tracking-[0.24em] uppercase" style={{ fontFamily: label, color: C.gold }}>
         {label}
       </p>
     </div>
@@ -919,8 +737,6 @@ function Tile({ value, label }: { value: string; label: string }) {
 
 function Countdown() {
   const { days, hours, mins, secs, ready } = useCountdown(S.date);
-  const ref = useRef<HTMLDivElement>(null);
-  const on = useInView(ref, { once: true, amount: 0.35 });
   const two = (n: number) => (ready ? String(n).padStart(2, "0") : "--");
   return (
     <section className="relative flex w-full flex-col items-center pt-[10cqw] pb-[16cqw] text-center">
@@ -930,113 +746,28 @@ function Countdown() {
           Until the Sumuhurtham
         </p>
       </Reveal>
-      <motion.div
-        ref={ref}
-        className="relative mt-[6cqw] w-[88cqw] p-[1cqw] shadow-[0_3cqw_8cqw_rgba(90,30,20,.3)]"
-        style={{ background: ZARI }}
-        initial={{ opacity: 0, y: 24 }}
-        animate={on ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 1, ease }}
-      >
-        <div className="relative h-[64cqw] w-full overflow-hidden" style={{ background: SILK }}>
-          <div className="pointer-events-none absolute inset-0" style={BUTTAS} />
-          <TempleBorder w={86} className="absolute top-0 left-0" />
-          <TempleBorder w={86} flip className="absolute bottom-0 left-0" />
-          {/* the kolam drawn in rice flour on the silk, behind the numbers */}
-          <Kolam on={on} cols={13} rows={6} color="rgba(255,248,232,.2)" dot="rgba(255,248,232,.35)" className="absolute top-1/2 left-1/2 w-[80cqw] -translate-x-1/2 -translate-y-1/2" />
-          <Lamp className="absolute bottom-[8.4cqw] left-[2.4cqw] h-[30cqw] w-[10cqw]" />
-          <Lamp className="absolute right-[2.4cqw] bottom-[8.4cqw] h-[30cqw] w-[10cqw]" delay={0.6} />
-          <div className="absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-center gap-[2cqw]">
+      <Reveal delay={0.15} className="mt-[6cqw]">
+        <div className="relative w-[84cqw] border px-[3cqw] py-[3cqw]" style={{ borderColor: `${C.gold}66`, background: "rgba(255,251,242,.55)" }}>
+          <TempleTrim w={78} className="mx-auto block" />
+          <div className="flex items-start justify-center gap-[3cqw] py-[5cqw]">
             <Tile value={ready ? String(days) : "--"} label="Days" />
             <Tile value={two(hours)} label="Hours" />
             <Tile value={two(mins)} label="Mins" />
             <Tile value={two(secs)} label="Secs" />
           </div>
-          {/* the zari catching the light now and then */}
-          <motion.div
-            className="pointer-events-none absolute inset-y-0 w-[40%] mix-blend-screen"
-            style={{ background: "linear-gradient(100deg, transparent, rgba(255,226,160,.28), transparent)" }}
-            initial={{ x: "-120%" }}
-            animate={on ? { x: ["-120%", "320%"] } : {}}
-            transition={{ duration: 2.2, delay: 1.6, repeat: Infinity, repeatDelay: 4, ease: "easeInOut" }}
-          />
+          <TempleTrim w={78} flip className="mx-auto block" />
         </div>
-      </motion.div>
-      <Small color={C.ink} className="mt-[7cqw]">
+      </Reveal>
+      <Small color={C.ink} className="mt-[6cqw]">
         {S.day} · 11:43 am
       </Small>
     </section>
   );
 }
 
-/* ───────── The wedding: a temple entrance whose doors open ───────── */
+/* ───────── The wedding: a silk card behind temple doors ───────── */
 
-/** A gopuram drawn in gold, its tiers lighting up from the bottom when `on`. */
-function Gopuram({ on }: { on: boolean }) {
-  const id = useSvgId();
-  const tiers = Array.from({ length: 5 }, (_, i) => {
-    const bw = 62 - i * 11;
-    const tw = bw - 8;
-    const yb = 42.6 - i * 6.6;
-    const yt = yb - 6.2;
-    return { i, bw, tw, yb, yt };
-  });
-  const top = tiers[4];
-  return (
-    <svg viewBox="0 0 72 44" className="block w-full" style={{ height: "44cqw", overflow: "visible" }} aria-hidden>
-      <defs>
-        <linearGradient id={`${id}g`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#f8e2a6" />
-          <stop offset=".5" stopColor="#c99a3e" />
-          <stop offset="1" stopColor="#f3d68d" />
-        </linearGradient>
-        <radialGradient id={`${id}h`}>
-          <stop offset="0" stopColor="rgba(255,236,190,.9)" />
-          <stop offset="1" stopColor="rgba(255,236,190,0)" />
-        </radialGradient>
-      </defs>
-      <motion.ellipse cx="36" cy="24" rx="40" ry="26" fill={`url(#${id}h)`} initial={{ opacity: 0 }} animate={on ? { opacity: [0, 1, 0.55] } : {}} transition={{ duration: 2.4, delay: 0.9 }} />
-      {tiers.map((t) => (
-        <g key={t.i}>
-          <motion.path
-            d={`M${36 - t.bw / 2} ${t.yb} L${36 + t.bw / 2} ${t.yb} L${36 + t.tw / 2} ${t.yt} L${36 - t.tw / 2} ${t.yt} Z`}
-            fill={`url(#${id}g)`}
-            stroke={C.maroon}
-            strokeWidth="0.25"
-            initial={{ fillOpacity: 0.12 }}
-            animate={on ? { fillOpacity: 1 } : {}}
-            transition={{ duration: 0.6, delay: 0.2 + t.i * 0.22 }}
-          />
-          {/* the niches carved along each tier */}
-          {Array.from({ length: Math.max(1, Math.floor(t.tw / 5)) }, (_, k) => {
-            const count = Math.max(1, Math.floor(t.tw / 5));
-            const x = 36 - t.tw / 2 + ((k + 0.5) * t.tw) / count;
-            return <path key={k} d={`M${x - 1} ${t.yb - 0.8} V${t.yb - 3.4} Q${x} ${t.yb - 4.8} ${x + 1} ${t.yb - 3.4} V${t.yb - 0.8} Z`} fill={C.maroon} opacity=".55" />;
-          })}
-        </g>
-      ))}
-      {/* the barrel-vault crown and its three kalashams */}
-      <motion.path
-        d={`M${36 - top.tw / 2 - 0.6} ${top.yt} Q36 ${top.yt - 8} ${36 + top.tw / 2 + 0.6} ${top.yt} Z`}
-        fill={`url(#${id}g)`}
-        stroke={C.maroon}
-        strokeWidth="0.25"
-        initial={{ fillOpacity: 0.12 }}
-        animate={on ? { fillOpacity: 1 } : {}}
-        transition={{ duration: 0.6, delay: 0.2 + 5 * 0.22 }}
-      />
-      {[33, 36, 39].map((x, k) => (
-        <motion.g key={x} initial={{ opacity: 0, y: 1 }} animate={on ? { opacity: 1, y: 0 } : {}} transition={{ delay: 1.5 + k * 0.1, duration: 0.5 }}>
-          <circle cx={x} cy={top.yt - 5.4 + (k === 1 ? -0.8 : 0)} r="0.9" fill="#f6dc96" stroke={C.maroon} strokeWidth="0.15" />
-          <path d={`M${x} ${top.yt - 7.6 + (k === 1 ? -0.8 : 0)} L${x + 0.4} ${top.yt - 6.2 + (k === 1 ? -0.8 : 0)} H${x - 0.4} Z`} fill="#f6dc96" />
-        </motion.g>
-      ))}
-      <rect x="0" y="42.6" width="72" height="1.4" fill={`url(#${id}g)`} />
-    </svg>
-  );
-}
-
-/** One leaf of the carved brass temple door. */
+/** One leaf of the brass temple door. */
 function Door({ side, on }: { side: "left" | "right"; on: boolean }) {
   const left = side === "left";
   return (
@@ -1045,139 +776,89 @@ function Door({ side, on }: { side: "left" | "right"; on: boolean }) {
       style={{
         [side]: 0,
         transformOrigin: left ? "0% 50%" : "100% 50%",
-        background: "linear-gradient(90deg, #7a5418, #c9a04a 25%, #f3d68d 50%, #c49340 78%, #6e4a14)",
-        boxShadow: "inset 0 0 0 0.5cqw rgba(90,55,15,.55)",
+        background: "linear-gradient(90deg, #8a6420, #c9a04a 25%, #ecd08c 50%, #c49340 78%, #7a5418)",
+        boxShadow: "inset 0 0 0 0.4cqw rgba(90,55,15,.45)",
         backfaceVisibility: "hidden",
       }}
       initial={{ rotateY: 0, opacity: 1 }}
       animate={on ? { rotateY: left ? -104 : 104, opacity: [1, 1, 0] } : {}}
-      transition={{ rotateY: { delay: 1.6, duration: 1.9, ease: [0.6, 0, 0.3, 1] }, opacity: { delay: 1.6, duration: 1.9, times: [0, 0.8, 1] } }}
+      transition={{ rotateY: { delay: 0.5, duration: 1.8, ease: [0.6, 0, 0.3, 1] }, opacity: { delay: 0.5, duration: 1.8, times: [0, 0.8, 1] } }}
     >
       {[
-        ["7%", "52%"],
-        ["53%", "6%"],
+        ["8%", "53%"],
+        ["53%", "8%"],
       ].map(([top, bottom]) => (
         <div
           key={top}
-          className="absolute inset-x-[14%] rounded-[1cqw]"
+          className="absolute inset-x-[16%] rounded-[0.8cqw]"
           style={{
             top,
             bottom,
-            boxShadow: "inset 0 0 0 0.4cqw rgba(110,70,20,.6), inset 0 0 0 1.1cqw rgba(255,240,200,.25)",
-            backgroundImage: "radial-gradient(circle, #fff3cf 0 0.45cqw, #a87a28 0.55cqw, transparent 0.7cqw)",
-            backgroundSize: "4.6cqw 4.6cqw",
+            boxShadow: "inset 0 0 0 0.3cqw rgba(110,70,20,.45)",
+            backgroundImage: "radial-gradient(circle, rgba(255,243,207,.9) 0 0.35cqw, transparent 0.5cqw)",
+            backgroundSize: "5.6cqw 5.6cqw",
             backgroundPosition: "center",
           }}
         />
       ))}
-      {/* the door ring */}
-      <div className="absolute top-[47%] size-[5cqw] rounded-full border-[0.7cqw]" style={{ [left ? "right" : "left"]: "3cqw", borderColor: "#8a5f1c" }} />
+      <div className="absolute top-[47%] size-[4cqw] rounded-full border-[0.5cqw]" style={{ [left ? "right" : "left"]: "3cqw", borderColor: "#8a5f1c" }} />
     </motion.div>
-  );
-}
-
-/** Petals bursting out of the doorway as the doors open. */
-function DoorPetals({ on }: { on: boolean }) {
-  const petals = useMemo(() => {
-    const r = seeded(13);
-    return Array.from({ length: 18 }, () => {
-      const a = -Math.PI / 2 + (r() - 0.5) * Math.PI * 1.5;
-      const d = 22 + r() * 30;
-      return { x: Math.cos(a) * d, y: Math.sin(a) * d, rot: (r() - 0.5) * 540, s: 1.8 + r() * 1.4, delay: 2 + r() * 0.5 };
-    });
-  }, []);
-  if (!on) return null;
-  return (
-    <div className="pointer-events-none absolute top-[45%] left-1/2 z-30">
-      {petals.map((p, i) => (
-        <motion.span
-          key={i}
-          className="absolute rounded-[70%_0_70%_0]"
-          style={{ width: `${p.s}cqw`, height: `${p.s * 1.5}cqw`, background: i % 3 ? "linear-gradient(135deg, #e9a7b2, #a8384f)" : "linear-gradient(135deg, #ffd27a, #f08a1c)" }}
-          initial={{ x: 0, y: 0, opacity: 0, rotate: 0 }}
-          animate={{ x: `${p.x}cqw`, y: [`0cqw`, `${p.y}cqw`, `${p.y + 40}cqw`], opacity: [0, 1, 1, 0], rotate: p.rot }}
-          transition={{ delay: p.delay, duration: 2.6, ease: "easeOut" }}
-        />
-      ))}
-    </div>
   );
 }
 
 function Wedding() {
   const ref = useRef<HTMLDivElement>(null);
-  // the doors open once most of the entrance is on screen
+  // the doors open once most of the card is on screen
   const on = useInView(ref, { once: true, amount: 0.6 });
-  const show = (d: number) => ({ initial: { opacity: 0, y: 12, filter: "blur(4px)" }, animate: on ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}, transition: { duration: 0.9, delay: d, ease } });
+  const show = (d: number) => ({ initial: { opacity: 0, y: 10 }, animate: on ? { opacity: 1, y: 0 } : {}, transition: { duration: 0.9, delay: d, ease } });
   return (
     <section className="relative flex w-full flex-col items-center pt-[8cqw] pb-[18cqw] text-center">
-      <div ref={ref} className="relative flex w-full flex-col items-center">
-        {/* banana plants either side of the entrance */}
-        <Banana className="absolute bottom-[14cqw] -left-[8cqw] z-0 h-[84cqw] w-[34cqw]" />
-        <Banana className="absolute -right-[8cqw] bottom-[14cqw] z-0 h-[84cqw] w-[34cqw]" flip delay={1.2} />
-        <div className="relative z-10 w-[72cqw]" style={{ perspective: "1200px" }}>
-          <Gopuram on={on} />
-          <div className="relative h-[118cqw] w-full p-[1.2cqw] shadow-[0_3cqw_8cqw_rgba(90,30,20,.3)]" style={{ background: ZARI }}>
-            <div className="relative size-full overflow-hidden" style={{ background: SILK }}>
-              <div className="pointer-events-none absolute inset-0" style={BUTTAS} />
-              <TempleBorder w={69.6} className="absolute top-0 left-0" />
-              <TempleBorder w={69.6} flip className="absolute bottom-0 left-0" />
-              <motion.div
-                className="pointer-events-none absolute inset-y-0 w-[45%] mix-blend-screen"
-                style={{ background: "linear-gradient(100deg, transparent, rgba(255,226,160,.3), transparent)" }}
-                initial={{ x: "-120%" }}
-                animate={on ? { x: ["-120%", "320%"] } : {}}
-                transition={{ duration: 2.2, delay: 3.4, repeat: Infinity, repeatDelay: 5, ease: "easeInOut" }}
-              />
-              <div className="relative flex size-full flex-col items-center justify-center px-[6cqw] text-center">
-                <motion.p {...show(2.6)} className="text-[16cqw] leading-none" style={{ fontFamily: script, color: C.goldLight }}>
-                  Wedding
-                </motion.p>
-                <motion.p {...show(2.9)} className="mt-[5cqw] text-[5.4cqw] font-semibold" style={{ fontFamily: serif, color: "#fff3dc" }}>
-                  Saturday, 5 December 2026
-                </motion.p>
-                <motion.div {...show(3.1)} className="mt-[4cqw] flex flex-col items-center">
-                  <p className="text-[2.5cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: "#e9c77e" }}>
-                    Sumuhurtham
-                  </p>
-                  <p className="text-[12cqw] leading-tight" style={{ fontFamily: script, color: C.goldLight }}>
-                    11:43 am
-                  </p>
-                </motion.div>
-                <motion.div {...show(3.3)} className="mt-[3cqw] flex flex-col items-center">
-                  <p className="text-[4.6cqw] leading-snug font-semibold" style={{ fontFamily: serif, color: "#fff3dc" }}>
-                    Sriman Convention
-                  </p>
-                  <p className="text-[3.9cqw] leading-snug" style={{ fontFamily: serif, color: "#f0dcc0" }}>
-                    Aziz Nagar, {S.city}
-                  </p>
-                  <p className="mt-[2.5cqw] text-[3.6cqw] italic" style={{ fontFamily: serif, color: "#e9c77e" }}>
-                    Followed by lunch
-                  </p>
-                  <a
-                    href={MAP}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-[5cqw] inline-block rounded-full px-[5cqw] py-[2cqw] text-[2.6cqw] tracking-[0.14em] whitespace-nowrap"
-                    style={{ background: C.goldLight, color: C.maroon, fontFamily: label }}
-                  >
-                    DIRECTIONS →
-                  </a>
-                </motion.div>
-              </div>
-            </div>
-            {/* the temple doors, closed until the card comes into view */}
-            <div className="absolute inset-[1.2cqw]" style={{ perspective: "1400px" }}>
-              <Door side="left" on={on} />
-              <Door side="right" on={on} />
-            </div>
+      <div ref={ref} className="relative h-[112cqw] w-[74cqw] p-[0.8cqw] shadow-[0_2cqw_6cqw_rgba(90,30,20,.22)]" style={{ background: ZARI, perspective: "1400px" }}>
+        <div className="relative flex size-full flex-col items-center justify-between overflow-hidden px-[3cqw] py-[3cqw]" style={{ background: SILK }}>
+          <TempleTrim w={66} color="#e9c77e" />
+          <div className="flex flex-col items-center px-[3cqw]">
+            <motion.p {...show(1.5)} className="text-[15cqw] leading-none" style={{ fontFamily: script, color: C.goldLight }}>
+              Wedding
+            </motion.p>
+            <motion.p {...show(1.8)} className="mt-[5cqw] text-[5.2cqw] font-semibold" style={{ fontFamily: serif, color: "#fff3dc" }}>
+              Saturday, 5 December 2026
+            </motion.p>
+            <motion.div {...show(2)} className="mt-[4cqw] flex flex-col items-center">
+              <p className="text-[2.4cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: "#e9c77e" }}>
+                Sumuhurtham
+              </p>
+              <p className="text-[11cqw] leading-tight" style={{ fontFamily: script, color: C.goldLight }}>
+                11:43 am
+              </p>
+            </motion.div>
+            <motion.div {...show(2.2)} className="mt-[3cqw] flex flex-col items-center">
+              <p className="text-[4.5cqw] leading-snug font-semibold" style={{ fontFamily: serif, color: "#fff3dc" }}>
+                Sriman Convention
+              </p>
+              <p className="text-[3.9cqw] leading-snug" style={{ fontFamily: serif, color: "#f0dcc0" }}>
+                Aziz Nagar, {S.city}
+              </p>
+              <p className="mt-[2.5cqw] text-[3.6cqw] italic" style={{ fontFamily: serif, color: "#e9c77e" }}>
+                Followed by lunch
+              </p>
+              <a
+                href={MAP}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-[5cqw] inline-block rounded-full border px-[5cqw] py-[1.8cqw] text-[2.5cqw] tracking-[0.14em] whitespace-nowrap"
+                style={{ borderColor: "#e9c77e", color: C.goldLight, fontFamily: label }}
+              >
+                DIRECTIONS →
+              </a>
+            </motion.div>
           </div>
-          {/* temple bells hanging from the gopuram's base */}
-          <Bell className="absolute top-[43cqw] left-[3cqw] z-20 h-[18cqw] w-[6cqw]" />
-          <Bell className="absolute top-[43cqw] right-[3cqw] z-20 h-[18cqw] w-[6cqw]" delay={0.7} />
-          <DoorPetals on={on} />
+          <TempleTrim w={66} flip color="#e9c77e" />
         </div>
-        {/* a kolam drawn at the threshold */}
-        <Kolam on={on} cols={11} rows={2} gap={6.5} color={`${C.maroon}aa`} dot={C.gold} className="relative z-10 mt-[3cqw] w-[72cqw]" />
+        {/* the temple doors, closed until the card comes into view */}
+        <div className="absolute inset-[0.8cqw]" style={{ perspective: "1400px" }}>
+          <Door side="left" on={on} />
+          <Door side="right" on={on} />
+        </div>
       </div>
     </section>
   );
