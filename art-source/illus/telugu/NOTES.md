@@ -82,3 +82,10 @@ Meditation version saved at /lab/telugu/meditation (TeluguInviteMeditation.tsx, 
 - Telugu round 1 (2026-11-14): intro = Ganesha + Vakratunda mantra (Telugu), pill 'Tap here', names removed from intro; blessing on tap = శ్రీరస్తు/శుభమస్తు/అవిఘ్నమస్తు word by word (Telugu can't be split per letter); hero line 'Join us as we celebrate the union of a lifetime' above the names; families top row in Telugu; closing = ఓం ఉమామహేశ్వరాభ్యాం నమః + #Srilu'sChand instead of names. Font: Noto Serif Telugu (--font-telugu in src/lib/fonts.ts).
 - 2026-11-14: intro = Ganesha + "You're invited" + Tap here (no names, no mantra); the Vakratunda mantra sits in the families section above the Ganesha logo, under the Telugu blessings row.
 - 2026-11-14: removed the Telugu blessings (families row and the tap animation) — only the opening mantra stays; closing line set as two sentences, one per line; groom's father is Sri Chepyala (not Cheryala) Raji Reddy.
+
+## 2026-11-15: now orderable — private design "Shiva Kalyanam" (on main)
+- Design: src/invites/shivakalyanam.tsx (ported from /lab/telugu). Template id `shivakalyanam` in src/data/templates.ts
+  (₹1000, payDirect, noPdf, prefill, extraFields compliments+signoff, noInvocationMeaning).
+- Order form https://aavjoo.in/start/shivakalyanam starts from her approved content (privateInvites demo
+  `srilakshmi-weds-shiva-chander-design`), including her 4 photos and Pournami from 0:05.
+- When she submits: mark paid + publish by hand, set noBranding by hand.
