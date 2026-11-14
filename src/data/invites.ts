@@ -130,6 +130,12 @@ export type Invite = {
   hideCountdownCity?: boolean;
   // A line shown at the end in place of the couple's names, after a divider, e.g. "RSVP: Vandana & Sartaj Mathur" (painted designs).
   closingNote?: string;
+  // The opening's two-line blessing in a couple's own words, e.g. "United by destiny,\nblessed by Mahadev" (Gauri Shankar).
+  openingLine?: string;
+  // The invitation paragraph set justified, its last line centred (Gauri Shankar).
+  justifyMessage?: boolean;
+  // The closing line shown one sentence per line (Gauri Shankar). Kept as a setting so the couple's own edits keep it.
+  closingLines?: boolean;
   // Functions grouped into one card per day, instead of a card each.
   eventsByDay?: boolean;
   // With eventsByDay: a name for each day, in order ("Sagai", "Shaadi"…), shown beside its date in the RSVP.

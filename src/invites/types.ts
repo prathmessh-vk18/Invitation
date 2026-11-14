@@ -34,6 +34,8 @@ export type InviteTheme = {
   Title: FC<{ kicker?: string; children: ReactNode }>;
   // The words on the shared "tap to open" pill and the "scroll" pill after opening (keys into i18n).
   tapHint?: "tapSeal" | "tapDoors" | "tapRing" | "tapMoon" | "tapKolam" | "tapDupatta" | "tapCircle" | "tapAnywhere";
+  // Seconds before the tap hint shows, for openings with an animation worth watching first.
+  tapHintDelay?: number;
   scrollHint?: "scrollToSeeMore" | "scrollToWalkIn";
   // How long the opening stays on screen after the tap (ms), for longer intros like Chameli's. Default 1900.
   openingMs?: number;

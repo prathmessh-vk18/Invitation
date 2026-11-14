@@ -145,7 +145,7 @@ function Meeting({ invite, opened, onOpen }: OpeningProps) {
   const [a, b] = couple(invite);
   const hi = langOf(invite) === "hi";
   const at = (delay: number) => (still ? 0 : delay);
-  const line = hi ? LINE.hi : LINE.en;
+  const line = invite.openingLine ? invite.openingLine.split("\n") : hi ? LINE.hi : LINE.en;
   return (
     <motion.button
       type="button"
@@ -237,9 +237,25 @@ function Details({ invite, show }: { invite: Invite; show: (d: number) => object
           {invite.invocationMeaning}
         </motion.p>
       )}
-      <motion.p {...show(0.5)} className="inv-label relative mt-[3cqw] text-[2.8cqw] leading-relaxed font-semibold" style={{ color: c.ink, textShadow: HALO }}>
-        We cordially invite you to the wedding of
-      </motion.p>
+      {invite.occasion === "reception" ? (
+        // "You are cordially invited to the RECEPTION of", as on a printed reception card
+        <motion.div {...show(0.5)} className="relative mt-[3cqw] flex flex-col items-center">
+          <p className="inv-serif text-[4.4cqw] font-semibold" style={{ color: c.ink, textShadow: HALO }}>
+            You are cordially invited to the
+          </p>
+          <p className="mt-[1cqw] text-[8.4cqw] leading-none font-semibold tracking-[0.18em]" style={{ color: c.crimson, fontFamily: "var(--font-cinzel), serif", textShadow: HALO }}>
+            RECEPTION
+          </p>
+          <Divider className="mt-[2cqw] w-[60cqw]" />
+          <p className="-mb-[2cqw] text-[8cqw] leading-none" style={{ color: c.rose, fontFamily: HAND, textShadow: HALO }}>
+            of
+          </p>
+        </motion.div>
+      ) : (
+        <motion.p {...show(0.5)} className="inv-label relative mt-[3cqw] text-[2.8cqw] leading-relaxed font-semibold" style={{ color: c.ink, textShadow: HALO }}>
+          We cordially invite you to the wedding of
+        </motion.p>
+      )}
       <motion.h1 {...show(0.75)} className="inv-script relative mt-[1.5cqw] text-[14cqw] leading-[1.05]" style={{ color: c.rose, textShadow: HALO }}>
         {a.first}
         <span className="mx-[2cqw] text-[9cqw]">{invite.joiner ?? "&"}</span>
@@ -351,7 +367,10 @@ function Blessing({ invite }: { invite: Invite }) {
         <p className="inv-label mt-[4cqw] text-[3cqw] leading-relaxed font-semibold" style={{ color: c.gold, textShadow: HALO }}>
           {invite.hosts || "Together with their families"}
         </p>
-        <p className="inv-serif mt-[2.5cqw] text-[5cqw] leading-snug font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
+        <p
+          className="inv-serif mt-[2.5cqw] text-[5cqw] leading-snug font-semibold italic"
+          style={{ color: c.ink, textShadow: HALO, ...(invite.justifyMessage ? { textAlign: "justify", textAlignLast: "center", hyphens: "auto" } : {}) }}
+        >
           {invite.message}
         </p>
         <Divider className="my-[6cqw]" />
@@ -396,7 +415,7 @@ function ArchCard({ e, invite }: { e: InviteEvent; invite: Invite }) {
             {e.venue}
           </p>
           {e.address && (
-            <p className="inv-serif mt-[1cqw] line-clamp-3 text-[3.6cqw] leading-snug font-medium" style={{ color: c.soft }}>
+            <p className="inv-serif mt-[1cqw] line-clamp-3 text-[3.6cqw] leading-snug font-medium" style={{ color: c.soft, textWrap: "balance" }}>
               {e.address}
             </p>
           )}
@@ -454,13 +473,19 @@ function Closing({ invite }: { invite: Invite }) {
         </div>
         <Divider className="mt-[4cqw]" />
         <p className="inv-serif mt-[4cqw] text-[5.2cqw] leading-snug font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
-          {invite.closing}
+          {invite.closingLines
+            ? invite.closing.split(/(?<=[.!?])\s+/).map((line, i) => (
+                <span key={i} className="block">
+                  {line}
+                </span>
+              ))
+            : invite.closing}
         </p>
         <p className="inv-script mt-[3cqw] text-[14cqw] leading-[1.1]" style={{ color: c.rose, textShadow: HALO }}>
           {a.first} {invite.joiner ?? "&"} {b.first}
         </p>
         {invite.hashtag && (
-          <p className="inv-label !normal-case mt-[3cqw] text-[3cqw] font-semibold" style={{ color: c.gold, textShadow: HALO }}>
+          <p className="inv-label !normal-case mt-[3cqw] text-[4.6cqw] font-bold tracking-[0.06em]" style={{ color: c.crimson, textShadow: HALO }}>
             {invite.hashtag}
           </p>
         )}
@@ -490,6 +515,8 @@ export const gaurishankar: InviteTheme = {
   ...base,
   id: "gaurishankar",
   tapHint: "tapAnywhere",
+  // The hint waits for the palm, the step and the names to finish arriving.
+  tapHintDelay: 6,
   vars: { ...base.vars, "--inv-accent": c.rose } as CSSProperties,
   accent: c.rose,
   // Shared sections fade secondary text to 70%; over this sky it needs to stay near full strength.
