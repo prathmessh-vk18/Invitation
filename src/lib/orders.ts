@@ -268,6 +268,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.closingLines === true ? { closingLines: true } : {}),
       ...(d.venueLines === true ? { venueLines: true } : {}),
       ...(d.invocationLines === true ? { invocationLines: true } : {}),
+      ...(typeof d.closingNames === "string" && d.closingNames.trim() ? { closingNames: str(d.closingNames, 60) } : {}),
       ...(d.eventsByDay === true ? { eventsByDay: true } : {}),
       ...(Array.isArray(d.dayNames) && d.dayNames.length ? { dayNames: d.dayNames.slice(0, 10).map((x) => str(x, 30)) } : {}),
       ...(d.lang === "hi" ? { lang: "hi" as const } : {}),

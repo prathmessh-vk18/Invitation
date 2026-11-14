@@ -444,7 +444,7 @@ function Closing({ invite }: { invite: Invite }) {
           {invite.closing}
         </p>
         <p className="inv-script mt-[4cqw] text-[11cqw] leading-none" style={{ color: c.name }}>
-          {a.first} {lang === "hi" ? t.and : "&"} {b.first}
+          {invite.closingNames ?? `${a.first} ${lang === "hi" ? t.and : "&"} ${b.first}`}
         </p>
         {invite.hashtag && (
           <p className="inv-label !normal-case mt-[3cqw] text-[2.8cqw]" style={{ color: c.gold }}>

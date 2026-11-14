@@ -140,6 +140,8 @@ export type Invite = {
   venueLines?: boolean;
   // The invocation broken after each half-verse (after "।" or "|"), one line each (Gauri Shankar).
   invocationLines?: boolean;
+  // Words shown at the very end in place of the couple's names, e.g. "Agarwal Family" (Mandir).
+  closingNames?: string;
   // Functions grouped into one card per day, instead of a card each.
   eventsByDay?: boolean;
   // With eventsByDay: a name for each day, in order ("Sagai", "Shaadi"…), shown beside its date in the RSVP.
