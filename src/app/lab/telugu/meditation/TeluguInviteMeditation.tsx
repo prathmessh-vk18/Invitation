@@ -680,9 +680,13 @@ function Families() {
 function useCountdown(to: Date) {
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
-    setNow(Date.now());
-    const t = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(t);
+    const tick = () => setNow(Date.now());
+    const first = window.setTimeout(tick, 0);
+    const t = window.setInterval(tick, 1000);
+    return () => {
+      window.clearTimeout(first);
+      window.clearInterval(t);
+    };
   }, []);
   const left = Math.max(0, to.getTime() - (now ?? to.getTime()));
   const s = Math.floor(left / 1000);

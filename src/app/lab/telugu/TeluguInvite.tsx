@@ -6,9 +6,9 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNod
 
 /**
  * The Telugu design (one client: Shiva & Srilakshmi), the walking-couple concept she chose.
- * Colours from her note: mostly beige, a little blue, a little maroon. Shiva–Parvati paintings only
- * at the start (opening and the hero after it) and the end; the rest is paper, ornament and a drawn
- * moon. She has one function, so it gets a single show-piece card. Names in Great Vibes (as Marathi).
+ * Colours from her note: mostly beige, a little blue, a little maroon. Shiva–Parvati only at the start
+ * (the walking-couple opening, then Gauri Shankar's palm-and-step on the hero) and the end (seated on
+ * Kailash); the rest is paper, ornament and a drawn moon. Photo album and Best Compliments added. She has one function, so it gets a single show-piece card. Names in Great Vibes (as Marathi).
  * English first; Telugu once she approves.
  *
  * Opening: the gold Ganesha, "You're invited" and the names over Shiva and Parvati walking hand in
@@ -71,6 +71,8 @@ export function TeluguInvite() {
         <Families />
         <Countdown />
         <Wedding />
+        <Album />
+        <Compliments />
         <Closing />
         <Frame opened={opened} />
         {!gone && <Opening opened={opened} onOpen={() => setOpened(true)} />}
@@ -443,42 +445,73 @@ function Talambralu() {
   );
 }
 
-/* ───────── Cover ───────── */
+/* ───────── Hero: Shiva's palm and Parvati's step, as in Gauri Shankar ───────── */
+
+// One step of the hero's layout: a hundredth of the width, unless the screen is short for its width,
+// so the hand, foot and names shrink together (as Gauri Shankar's opening does).
+const u = (n: number) => `calc(min(1cqw, 0.5svh) * ${n})`;
+// When the hero's beats play (seconds after the tap): as the opening dissolves onto it.
+const H = { hand: 2.3, foot: 2.8, glow: 4.5, kicker: 4.4, names: 4.9, details: 6.4 };
 
 function Cover({ opened }: { opened: boolean }) {
   const show = (d: number) => ({
     initial: { opacity: 0, y: 12, filter: "blur(6px)" },
     animate: opened ? { opacity: 1, y: 0, filter: "blur(0px)" } : {},
-    transition: { duration: 1, delay: T.names + d, ease },
+    transition: { duration: 1, delay: d, ease },
   });
   return (
     <section className="relative h-svh min-h-[200cqw] w-full overflow-hidden">
-      {/* The camera eases back from close on the couple as the light clears. */}
-      <motion.div className="absolute inset-0" style={{ transformOrigin: "40% 22%" }} initial={{ scale: 1.28 }} animate={opened ? { scale: 1 } : {}} transition={{ duration: 3.4, delay: T.fade - 0.4, ease }}>
-        <Painting
-          src="v4-cover"
-          alt="On snowy Kailash, Shiva tucks a jasmine flower into Parvati's hair"
-          fade="linear-gradient(180deg, #000 58%, transparent 84%)"
-          className="top-0"
-          priority
-        />
-      </motion.div>
+      {/* a soft blue morning sky fading into the beige paper */}
+      <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, #cfd9e6, #e3e4e2 30%, #f3e8d4 60%, transparent)" }} />
       <Petals />
-      <div className="absolute inset-x-[10%] top-[112cqw] flex flex-col items-center text-center">
-        <motion.p {...show(0)} className="text-[2.7cqw] tracking-[0.34em] uppercase" style={{ fontFamily: label, color: C.gold }}>
+
+      {/* Shiv's open palm, a jasmine string in it, reaches in from beyond the left edge… */}
+      <motion.div
+        className="absolute"
+        style={{ left: u(-12), top: u(68), width: u(112), aspectRatio: "1100 / 618" }}
+        initial={{ x: "-100%", opacity: 0 }}
+        animate={opened ? { x: "0%", opacity: 1 } : {}}
+        transition={{ duration: 2, delay: H.hand, ease: "easeOut" }}
+      >
+        <Image src="/art/illus/shiv-hand.webp" alt="" fill priority sizes="480px" className="object-contain" />
+      </motion.div>
+
+      {/* …as Parvati steps down from the upper right until her foot rests just above it. */}
+      <motion.div
+        className="absolute"
+        style={{ top: u(-8), right: `min(calc(100cqw - ${u(130)}), 0px)`, width: u(90), aspectRatio: "788 / 890" }}
+        initial={{ x: "35%", y: "-35%", opacity: 0 }}
+        animate={opened ? { x: "0%", y: "0%", opacity: 1 } : {}}
+        transition={{ duration: 2.6, delay: H.foot, ease: [0.25, 0.8, 0.3, 1] }}
+      >
+        <Image src="/art/illus/shiv-parvati-step.webp" alt="" fill priority sizes="480px" className="object-contain" />
+      </motion.div>
+
+      {/* a glow where they meet */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={{ left: u(62), top: u(78), width: u(54), height: u(54), background: "radial-gradient(closest-side, rgba(255,246,225,.95), rgba(255,236,200,0))" }}
+        initial={{ opacity: 0, scale: 0.4 }}
+        animate={opened ? { opacity: [0, 0.95, 0.45], scale: [0.4, 1.2, 1] } : {}}
+        transition={{ duration: 2.2, delay: H.glow, ease }}
+      />
+
+      <div className="absolute inset-x-[8%] flex flex-col items-center text-center" style={{ top: u(134) }}>
+        <motion.p {...show(H.kicker)} className="text-[2.7cqw] tracking-[0.34em] uppercase" style={{ fontFamily: label, color: C.gold }}>
           Srirastu · Shubhamastu
         </motion.p>
-        <motion.p {...show(0.2)} className="mt-[2.5cqw] text-[3cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: C.maroon }}>
+        <motion.p {...show(H.kicker + 0.2)} className="mt-[2cqw] text-[3cqw] tracking-[0.3em] uppercase" style={{ fontFamily: label, color: C.maroon }}>
           The wedding of
         </motion.p>
         {opened && (
-          <p className="mt-[1cqw] flex flex-col items-center text-[14cqw] leading-[1.08]" style={{ fontFamily: script, color: C.maroon }}>
-            <Written text={S.groom} delay={T.names + 0.4} />
-            <Written text="&" delay={T.names + 1.1} style={{ color: C.gold, fontSize: "9cqw", lineHeight: 1 }} />
-            <Written text={S.bride} delay={T.names + 1.4} />
+          <p className="mt-[1cqw] flex flex-col items-center leading-[1.1]" style={{ fontFamily: script, color: C.maroon, fontSize: u(12.5) }}>
+            <Written text={S.groom} delay={H.names} />
+            <Written text="&" delay={H.names + 0.6} style={{ color: C.gold, fontSize: u(9), lineHeight: 1 }} />
+            <Written text={S.bride} delay={H.names + 0.9} />
           </p>
         )}
-        <motion.div {...show(2)} className="mt-[3cqw] flex flex-col items-center">
+        <motion.div {...show(H.details)} className="mt-[2cqw] flex flex-col items-center">
           <Divider />
           <p className="-mt-[1cqw] text-[2.7cqw] tracking-[0.24em] uppercase" style={{ fontFamily: label, color: C.ink }}>
             {S.day}
@@ -555,9 +588,13 @@ function Families() {
 function useCountdown(to: Date) {
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
-    setNow(Date.now());
-    const t = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(t);
+    const tick = () => setNow(Date.now());
+    const first = window.setTimeout(tick, 0);
+    const t = window.setInterval(tick, 1000);
+    return () => {
+      window.clearTimeout(first);
+      window.clearInterval(t);
+    };
   }, []);
   const left = Math.max(0, to.getTime() - (now ?? to.getTime()));
   const s = Math.floor(left / 1000);
@@ -804,35 +841,144 @@ function Wedding() {
   );
 }
 
-/* ───────── Closing ───────── */
+/* ───────── Photo album ───────── */
+
+// Sample photos (the site's demo moments) until the couple's own arrive.
+const PHOTOS = ["/art/moments/m1.jpg", "/art/moments/m2.jpg", "/art/moments/m3.jpg", "/art/moments/m4.jpg"];
+
+/** Arch-topped, gold-edged photos in a swipeable row; tap one to see it large. */
+function Album() {
+  const [open, setOpen] = useState<number | null>(null);
+  const [active, setActive] = useState(0);
+  const track = useRef<HTMLDivElement>(null);
+  const onScroll = () => {
+    const el = track.current;
+    const card = el?.firstElementChild as HTMLElement | null;
+    if (el && card) setActive(Math.round(el.scrollLeft / (card.offsetWidth + 16)));
+  };
+  return (
+    <section className="relative w-full pt-[6cqw] pb-[16cqw] text-center">
+      <Reveal>
+        <Small color={C.gold}>Our moments</Small>
+        <p className="text-[12cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>
+          Photo album
+        </p>
+      </Reveal>
+      <Reveal delay={0.15}>
+        <div ref={track} onScroll={onScroll} className="no-scrollbar mt-[6cqw] flex snap-x snap-mandatory gap-4 overflow-x-auto px-[18cqw] pt-[3cqw] pb-[6cqw]">
+          {PHOTOS.map((src, i) => (
+            <motion.button
+              key={src}
+              type="button"
+              onClick={() => setOpen(i)}
+              className="relative aspect-[3/4] w-[64cqw] shrink-0 snap-center p-[1.2cqw] shadow-[0_2cqw_5cqw_rgba(80,40,20,.22)]"
+              style={{ borderRadius: "32cqw 32cqw 2cqw 2cqw", background: "linear-gradient(135deg, #c99a3e, #f8e2a6 35%, #b8862e 65%, #f3d68d)" }}
+              animate={{ scale: active === i ? 1 : 0.92, rotate: active === i ? 0 : i % 2 ? 1.5 : -1.5 }}
+              transition={{ duration: 0.5, ease }}
+              aria-label={`Open photo ${i + 1}`}
+            >
+              <div className="relative size-full overflow-hidden" style={{ borderRadius: "31cqw 31cqw 1.4cqw 1.4cqw" }}>
+                <Image src={src} alt="" fill sizes="320px" className="object-cover" />
+                <div className="pointer-events-none absolute inset-0" style={{ boxShadow: "inset 0 0 0 0.6cqw rgba(255,240,210,.45)", borderRadius: "inherit" }} />
+              </div>
+            </motion.button>
+          ))}
+        </div>
+        <div className="flex justify-center gap-[2cqw]">
+          {PHOTOS.map((p, i) => (
+            <span key={p} className="h-[1.6cqw] rounded-full transition-all" style={{ width: active === i ? "5cqw" : "1.6cqw", background: active === i ? C.maroon : `${C.gold}66` }} />
+          ))}
+        </div>
+      </Reveal>
+      <AnimatePresence>
+        {open !== null && (
+          <motion.button
+            type="button"
+            className="fixed inset-0 z-[80] grid place-items-center bg-[rgba(30,15,10,.88)] p-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setOpen(null)}
+            aria-label="Close photo"
+          >
+            <motion.div className="relative h-[80svh] w-full max-w-[440px]" initial={{ scale: 0.92 }} animate={{ scale: 1 }}>
+              <Image src={PHOTOS[open]} alt="" fill sizes="440px" className="object-contain" />
+            </motion.div>
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </section>
+  );
+}
+
+/* ───────── With best compliments ───────── */
+
+// Sample names until the family sends theirs.
+const COMPLIMENTS = ["Sri Ramesh Rao & Family", "Sri Suresh Reddy & Family", "Sri Narayana Murthy & Family", "Smt. & Sri Prasad Varma"];
+const LITTLE_ONES = ["Aadya", "Vihaan", "Saanvi", "Arjun"];
+
+function Compliments() {
+  return (
+    <section className="relative flex w-full flex-col items-center px-[12%] pt-[6cqw] pb-[14cqw] text-center">
+      <Reveal className="relative w-full">
+        <div className="relative w-full rounded-[3cqw] px-[7cqw] py-[9cqw]" style={{ background: "linear-gradient(180deg, rgba(255,252,245,.75), rgba(250,240,222,.6))", boxShadow: `inset 0 0 0 1px ${C.gold}55, 0 2cqw 6cqw rgba(90,60,30,.1)` }}>
+          <div className="pointer-events-none absolute inset-[1.6cqw] rounded-[2cqw] border" style={{ borderColor: `${C.blue}88` }} />
+          <Small color={C.gold}>With</Small>
+          <p className="text-[11cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>
+            Best Compliments
+          </p>
+          <Lotus className="mx-auto my-[5cqw]" />
+          <div className="flex flex-col gap-[2cqw]">
+            {COMPLIMENTS.map((n, i) => (
+              <motion.p
+                key={n}
+                className="text-[4.4cqw] font-semibold"
+                style={{ fontFamily: serif, color: C.ink }}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 + i * 0.12, duration: 0.7, ease }}
+              >
+                {n}
+              </motion.p>
+            ))}
+          </div>
+          <p className="mt-[6cqw] text-[2.5cqw] tracking-[0.26em] uppercase" style={{ fontFamily: label, color: C.gold }}>
+            And our little ones
+          </p>
+          <p className="mt-[1.5cqw] text-[6.5cqw] leading-snug" style={{ fontFamily: script, color: C.maroon }}>
+            {LITTLE_ONES.join(", ")}
+          </p>
+          <p className="mt-[5cqw] text-[3.8cqw] italic" style={{ fontFamily: serif, color: C.ink }}>
+            with all our relatives &amp; friends
+          </p>
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+/* ───────── Closing: seated together on Kailash ───────── */
 
 function Closing() {
-  const twinkles = useMemo(() => {
-    const r = seeded(41);
-    return Array.from({ length: 14 }, () => ({ x: 6 + r() * 88, y: 40 + r() * 55, d: r() * 3, s: 0.6 + r() }));
-  }, []);
   return (
-    <section className="relative aspect-[2/3] min-h-svh w-full overflow-hidden">
-      <Painting src="v4-dance" alt="Shiva and Parvati dance together on the clouds above the Himalayas" fade="linear-gradient(180deg, transparent, #000 10%)" className="bottom-0" />
-      {twinkles.map((t, i) => (
-        <motion.span
-          key={i}
-          className="pointer-events-none absolute rounded-full bg-white shadow-[0_0_8px_3px_rgba(255,230,190,.85)]"
-          style={{ left: `${t.x}%`, top: `${t.y}%`, width: `${t.s}cqw`, height: `${t.s}cqw` }}
-          animate={{ opacity: [0, 1, 0], scale: [0.4, 1.2, 0.4] }}
-          transition={{ duration: 2.4, delay: t.d, repeat: Infinity, ease: "easeInOut" }}
-        />
-      ))}
-      <Petals count={6} seed={21} />
-      <div className="absolute inset-x-[12%] top-[14cqw] flex flex-col items-center text-center">
+    <section className="relative w-full overflow-hidden pb-[22cqw]">
+      <Painting
+        src="v4-cover"
+        alt="On snowy Kailash, Shiva tucks a jasmine flower into Parvati's hair"
+        fade="linear-gradient(180deg, transparent, #000 8%, #000 58%, transparent 84%)"
+        className="top-0"
+      />
+      <Petals count={5} seed={21} />
+      <div className="relative flex flex-col items-center px-[12%] pt-[112cqw] text-center">
         <Reveal>
-          <p className="text-[4.4cqw] leading-snug font-semibold italic" style={{ fontFamily: serif, color: C.ink, textShadow: GLOW }}>
+          <p className="text-[4.4cqw] leading-snug font-semibold italic" style={{ fontFamily: serif, color: C.ink }}>
             Blessed by Shiva and Parvati, two hearts become one. Come, bless the beginning of forever.
           </p>
-          <p className="mt-[2cqw] text-[10.5cqw] leading-tight whitespace-nowrap" style={{ fontFamily: script, color: C.maroon, textShadow: GLOW }}>
+          <p className="mt-[3cqw] text-[11cqw] leading-tight whitespace-nowrap" style={{ fontFamily: script, color: C.maroon }}>
             {S.groom} &amp; {S.bride}
           </p>
-          <Small className="mt-[1.5cqw]" color={C.maroon}>
+          <Small className="mt-[2cqw]" color={C.maroon}>
             With love · the Rao &amp; Reddy families
           </Small>
         </Reveal>

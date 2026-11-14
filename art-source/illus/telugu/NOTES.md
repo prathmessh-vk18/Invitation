@@ -54,3 +54,12 @@ Meditation version saved at /lab/telugu/meditation (TeluguInviteMeditation.tsx, 
   thoranam, talambralu drifting inside, Directions + Add to calendar.
 - Fonts as the Marathi design: Great Vibes (added to src/lib/fonts.ts), Cinzel, Cormorant.
 - Still sample: parents' names, venue (Sri Sai Convention, Gachibowli), date 14 Feb 2027, muhurtham 7:42 am.
+
+## Client round 2 (2026-11-14)
+- Hero after the intro = Gauri Shankar's palm-and-step (shiv-hand.webp + shiv-parvati-step.webp, same layout
+  units as gaurishankar.tsx Meeting) on a blue-to-beige sky, then names.
+- Seated-on-Kailash painting (telugu-v4-cover) moved to the closing, replacing the dance.
+- Added Photo album (arch gold frames, swipe + lightbox; sample /art/moments photos) and With Best Compliments
+  (sample names + little ones). Order: intro → hero → families → countdown → wedding card → album →
+  compliments → closing.
+- Shared with the client at https://aavjoo.in/lab/telugu (lab pages merged to main; noindex, unlinked).
