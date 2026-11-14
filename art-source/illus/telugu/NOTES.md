@@ -71,3 +71,8 @@ Meditation version saved at /lab/telugu/meditation (TeluguInviteMeditation.tsx, 
   and near & dear. Their spellings: Srirasthu / Subhamasthu / Avighnamasthu.
 - Function card simplified to one title ("Wedding", not Kalyanam too): date, Sumuhurtham time, venue, lunch,
   Directions (Google Maps search for the venue; swap in their QR's link if they send it). Photos still demo.
+- Grand round (2026-11-14): countdown = rectangular Kanjeevaram silk panel (TempleBorder zari band with gopuram
+  triangles, buttas, self-drawing dot kolam, two brass kuthu vilakku with flickering flames, flip-clock tiles,
+  zari shimmer). Wedding card = temple entrance: gold gopuram whose tiers light bottom-up, carved brass doors that
+  swing open (useInView amount .6), petals, swinging temple bells, banana plants either side, threshold kolam.
+  Garland/arch removed. All code-drawn SVG/CSS.
