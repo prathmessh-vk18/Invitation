@@ -76,3 +76,4 @@ Meditation version saved at /lab/telugu/meditation (TeluguInviteMeditation.tsx, 
   zari shimmer). Wedding card = temple entrance: gold gopuram whose tiers light bottom-up, carved brass doors that
   swing open (useInView amount .6), petals, swinging temple bells, banana plants either side, threshold kolam.
   Garland/arch removed. All code-drawn SVG/CSS.
+- Subtle round (2026-11-14): client found it too grand → removed gopuram, banana plants, kolam, bells, lamps. Countdown = light ivory panel with a slim gold temple-border trim and maroon numbers that turn over; wedding card = maroon silk with slim trim, brass doors still open on view.
