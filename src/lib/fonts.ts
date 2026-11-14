@@ -18,6 +18,7 @@ import {
   Manrope,
   Pinyon_Script,
   Tiro_Devanagari_Hindi,
+  Great_Vibes,
 } from "next/font/google";
 
 // Site shell. Only these two are preloaded on every page; each invitation face loads when a page
@@ -70,6 +71,9 @@ export const dancing = Dancing_Script({ preload: false, subsets: ["latin"], vari
 export const alexBrush = Alex_Brush({ preload: false, subsets: ["latin"], variable: "--font-alex-brush", weight: "400" });
 export const italiana = Italiana({ preload: false, subsets: ["latin"], variable: "--font-italiana", weight: "400" });
 
-export const fontVars = [alexBrush, italiana, dancing, amiri, marcellus, gurmukhi, rozha, tamil, yeseva, fraunces, geist, inter, manrope, cinzel, cormorant, parisienne, pinyon, bodoni, devanagari]
+// The Marathi and Telugu designs' script for the couple's names.
+export const greatVibes = Great_Vibes({ preload: false, subsets: ["latin"], variable: "--font-great-vibes", weight: "400" });
+
+export const fontVars = [greatVibes, alexBrush, italiana, dancing, amiri, marcellus, gurmukhi, rozha, tamil, yeseva, fraunces, geist, inter, manrope, cinzel, cormorant, parisienne, pinyon, bodoni, devanagari]
   .map((f) => f.variable)
   .join(" ");
