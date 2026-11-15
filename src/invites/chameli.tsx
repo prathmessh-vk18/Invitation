@@ -133,7 +133,7 @@ const SPARKS = (() => {
 })();
 
 /** The gold wax seal with the couple's initials, drawn so every couple gets their own. */
-function WaxSeal({ text }: { text: string }) {
+function WaxSeal({ text, image }: { text: string; image?: string }) {
   return (
     <div className="relative grid size-full place-items-center">
       <svg viewBox="0 0 100 100" className="absolute inset-0 size-full drop-shadow-[0_10px_16px_rgba(80,55,10,.45)]" aria-hidden>
@@ -153,9 +153,16 @@ function WaxSeal({ text }: { text: string }) {
         <circle cx="50" cy="50" r="31" fill="none" stroke="#fdeebf" strokeOpacity=".55" strokeWidth="1.4" />
         <circle cx="50" cy="50" r="27" fill="none" stroke="#7c5410" strokeOpacity=".35" strokeWidth=".8" />
       </svg>
-      <span className="relative text-[10cqw] leading-none text-[#6b4a10] [text-shadow:0_1px_0_rgba(255,240,200,.6)]" style={{ fontFamily: "var(--font-pinyon), cursive" }}>
-        {text}
-      </span>
+      {image ? (
+        // the couple's own emblem on the wax (e.g. a white Ganesha), in place of their initials
+        <span className="relative block aspect-[270/346] w-[11cqw] drop-shadow-[0_1px_2px_rgba(80,50,10,.65)]">
+          <Image src={image} alt={text} fill sizes="80px" className="object-contain" />
+        </span>
+      ) : (
+        <span className="relative text-[10cqw] leading-none text-[#6b4a10] [text-shadow:0_1px_0_rgba(255,240,200,.6)]" style={{ fontFamily: "var(--font-pinyon), cursive" }}>
+          {text}
+        </span>
+      )}
     </div>
   );
 }
@@ -229,7 +236,7 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
             style={{ left: "50%", top: `${FLAP.tip}%` }}
           >
             <motion.span className="block size-full" animate={go ? { scale: [1, 1.1, 1.04] } : { scale: [1, 1.035, 1] }} transition={go ? { duration: 0.45 } : { duration: 2.6, repeat: Infinity, ease: "easeInOut" }}>
-              <WaxSeal text={initials(invite)} />
+              <WaxSeal text={initials(invite)} image={invite.seal} />
             </motion.span>
           </button>
         </motion.div>
