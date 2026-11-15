@@ -320,7 +320,8 @@ function Opening({ opened, onOpen }: { opened: boolean; onOpen: () => void }) {
               <Ganesha className="w-[17cqw]" glow={opened} />
             </motion.div>
             <div className="relative mt-[3cqw] grid w-full place-items-center">
-              <Invitation />
+              <Invitation opened={opened} />
+              {opened && <MantraWrite lines={["వక్రతుండ మహాకాయ కోటిసూర్యసమప్రభ |", "నిర్విఘ్నం కురుమే దేవ సర్వకార్యేషు సర్వదా ॥"]} />}
             </div>
           </div>
         </motion.div>
@@ -348,18 +349,43 @@ function Opening({ opened, onOpen }: { opened: boolean; onOpen: () => void }) {
 }
 
 /** "You're invited", under Ganesha. */
-function Invitation() {
+function Invitation({ opened }: { opened: boolean }) {
   return (
     <motion.div
       className="col-start-1 row-start-1 flex flex-col items-center px-[6cqw]"
       initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 1.2, delay: 0.35 }}
+      animate={{ opacity: opened ? 0 : 1, y: 0 }}
+      transition={{ duration: opened ? 0.5 : 1.2, delay: opened ? 0 : 0.35 }}
     >
       <p className="text-[3.6cqw] tracking-[0.4em] uppercase" style={{ fontFamily: label, color: C.maroon, textShadow: GLOW }}>
         You&rsquo;re invited
       </p>
     </motion.div>
+  );
+}
+
+/** At the tap: the opening mantra writes itself in, word by word (Telugu letters join, so never split by letter). */
+function MantraWrite({ lines }: { lines: string[] }) {
+  let n = 0;
+  return (
+    <div className="col-start-1 row-start-1 flex flex-col items-center px-[5cqw] text-center" style={{ color: C.maroon, textShadow: GLOW }} aria-label={lines.join(" ")}>
+      {lines.map((line, i) => (
+        <p key={i} className="flex flex-wrap justify-center gap-x-[0.35em] text-[5cqw] leading-[1.7] font-semibold" style={{ fontFamily: te }}>
+          {line.split(/\s+/).map((w, j) => (
+            <motion.span
+              key={j}
+              aria-hidden
+              className="inline-block"
+              initial={{ opacity: 0, y: "0.3em", filter: "blur(6px)" }}
+              animate={{ opacity: 1, y: "0em", filter: "blur(0px)" }}
+              transition={{ delay: T.blessing + n++ * 0.13, duration: 0.7, ease }}
+            >
+              {w}
+            </motion.span>
+          ))}
+        </p>
+      ))}
+    </div>
   );
 }
 
