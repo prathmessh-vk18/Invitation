@@ -145,6 +145,8 @@ export type Invite = {
   invocationLines?: boolean;
   // Words shown at the very end in place of the couple's names, e.g. "Agarwal Family" (Mandir).
   closingNames?: string;
+  // A second couple marrying on the same day and venue (e.g. a brother's wedding), shown beside the first (Noor).
+  secondCouple?: { groom: Person; bride: Person };
   // An optical nudge (in em, minus is left) for a stacked name a couple feels sits off-centre (Gauri Shankar).
   nameNudge?: { bride?: number; groom?: number };
   // "With best compliments from" names, one per line (Shiva Kalyanam's own form field).

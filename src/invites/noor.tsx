@@ -161,10 +161,7 @@ function JaaliPanel({ side }: { side: "left" | "right" }) {
         <rect width="100%" height="100%" fill={`url(#${id}p)`} opacity={0.75} />
       </svg>
       <div className="absolute inset-[3cqw] rounded-t-[30cqw] border-2 border-[#e3b964]/70" />
-      <div
-        className={`absolute top-0 bottom-0 w-[2cqw] ${side === "left" ? "right-0" : "left-0"}`}
-        style={{ background: "linear-gradient(90deg,#8a6420,#f3d48a,#8a6420)" }}
-      />
+      <div className={`absolute top-0 bottom-0 w-[2cqw] ${side === "left" ? "right-0" : "left-0"}`} style={{ background: "linear-gradient(90deg,#8a6420,#f3d48a,#8a6420)" }} />
     </div>
   );
 }
@@ -188,11 +185,20 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
       </motion.div>
 
       <motion.div className="absolute inset-x-0 top-[13%] text-center" animate={{ opacity: opened ? 0 : 1, y: opened ? -20 : 0 }}>
-        <p className="inv-label text-[2.6cqw] text-[#e3b964]">The Nikah of</p>
+        <p className="inv-label text-[2.6cqw] text-[#f4efe2] [text-shadow:0_1px_8px_#000]">The Nikah of</p>
         <p className="mt-[2cqw] text-[9cqw] leading-none text-[#f4efe2] [text-shadow:0_2px_12px_#000]" style={{ fontFamily: "var(--font-amiri)" }}>
           {a.first} <span className="text-[#e3b964]">&amp;</span> {b.first}
         </p>
       </motion.div>
+
+      {invite.secondCouple && (
+        // a brother's (or sister's) wedding on the same day, at the foot of the doors
+        <motion.div className="absolute inset-x-0 bottom-[19%] text-center" animate={{ opacity: opened ? 0 : 1, y: opened ? 20 : 0 }}>
+          <p className="text-[9cqw] leading-none text-[#f4efe2] [text-shadow:0_2px_12px_#000]" style={{ fontFamily: "var(--font-amiri)" }}>
+            {pair(invite)[0].first} <span className="text-[#e3b964]">&amp;</span> {pair(invite)[1].first}
+          </p>
+        </motion.div>
+      )}
 
       <motion.button
         onClick={onOpen}
@@ -211,16 +217,71 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
 
 /* ───────── Hero ───────── */
 
+/** The second couple in the same name order as the first (groom first when the invite leads with the groom). */
+const pair = (invite: Invite) => (invite.lead === "bride" ? [invite.secondCouple!.bride, invite.secondCouple!.groom] : [invite.secondCouple!.groom, invite.secondCouple!.bride]);
+
+/** The ogee arch with the names in it; the second couple's card leaves out the invocation. */
+function ArchCard({ invite, names, show, second = false }: { invite: Invite; names: [string, string]; show: (d: number) => object; second?: boolean }) {
+  const id = cleanId(useId());
+  const [first, other] = names;
+  const W = 300,
+    H = second ? 380 : 440,
+    S = 170;
+  return (
+    <motion.div {...show(0.1)} className="relative w-[82cqw]">
+      <svg viewBox={`-6 -6 ${W + 12} ${H + 12}`} className="absolute inset-0 h-full w-full" preserveAspectRatio="none" aria-hidden>
+        <defs>
+          <Lattice id={`${id}h`} size={34} width={0.8} opacity={0.35} />
+          <clipPath id={`${id}c`}>
+            <path d={ogeePath(W, H, S)} />
+          </clipPath>
+        </defs>
+        <path d={ogeePath(W, H, S)} fill="#072822" />
+        <rect width={W} height={H} fill={`url(#${id}h)`} clipPath={`url(#${id}c)`} />
+        <path d={ogeePath(W, H, S)} fill="none" stroke={GOLD} strokeWidth={2} />
+        <path d={ogeePath(W - 20, H - 14, S - 10)} transform="translate(10 12)" fill="none" stroke={GOLD} strokeOpacity={0.5} strokeWidth={1} strokeDasharray="2 4" />
+      </svg>
+      <div className={`relative flex ${second ? "min-h-[106cqw]" : "min-h-[124cqw]"} flex-col items-center px-[9cqw] pt-[30cqw] pb-[10cqw] text-center`}>
+        {!second && (
+          <>
+            <motion.p {...show(0.4)} dir="rtl" className="text-[6.4cqw] leading-tight text-[#e3b964]" style={{ fontFamily: "var(--font-amiri)" }}>
+              {invite.invocation}
+            </motion.p>
+            <motion.p {...show(0.55)} className="inv-label mt-[2cqw] text-[2.2cqw] text-[#f4efe2]/60">
+              {invite.invocationMeaning}
+            </motion.p>
+          </>
+        )}
+        <motion.h1 {...show(0.85)} className={`${second ? "" : "mt-[6cqw]"} flex flex-col items-center`}>
+          <span className="inv-script text-[13cqw] leading-[1] text-[#f4efe2]">{first}</span>
+          <span className="my-[1cqw] flex items-center gap-[2cqw] text-[#e3b964]">
+            <span className="h-px w-[10cqw] bg-[#e3b964]/60" />
+            <svg viewBox="-10 -10 20 20" className="w-[5cqw]" aria-hidden>
+              <path d={starPath(9)} fill={GOLD} />
+            </svg>
+            <span className="h-px w-[10cqw] bg-[#e3b964]/60" />
+          </span>
+          <span className="inv-script text-[13cqw] leading-[1] text-[#f4efe2]">{other}</span>
+        </motion.h1>
+        <motion.div {...show(1.2)} className="mt-[6cqw]">
+          <p className="inv-label text-[2.6cqw] text-[#e3b964]">
+            {weekday(invite.date)} · {dayNum(invite.date)} {monthName(invite.date)} {yearNum(invite.date)}
+          </p>
+          <p className="inv-serif mt-[1.5cqw] text-[4cqw] text-[#f4efe2]/75 italic">{invite.city}</p>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+}
+
 function Hero({ invite }: { invite: Invite }) {
   const opened = useOpened();
   const [a, b] = couple(invite);
-  const id = cleanId(useId());
   const show = (delay: number) => ({
     initial: { opacity: 0, y: 22 },
     animate: opened ? { opacity: 1, y: 0 } : {},
     transition: { duration: 1.2, delay, ease },
   });
-  const W = 300, H = 440, S = 170;
   return (
     <section className="relative flex min-h-[var(--screen-h,100svh)] flex-col items-center justify-center overflow-hidden px-[6cqw] pt-[22cqw] pb-[14cqw]">
       <Stars />
@@ -229,45 +290,12 @@ function Hero({ invite }: { invite: Invite }) {
       <Lantern className="absolute top-0 right-[22cqw] w-[9cqw] opacity-80" chain={40} delay={-2} />
       <Lantern className="absolute top-0 right-[4cqw] w-[11cqw]" chain={150} delay={-1} />
 
-      <motion.div {...show(0.1)} className="relative w-[82cqw]">
-        <svg viewBox={`-6 -6 ${W + 12} ${H + 12}`} className="absolute inset-0 h-full w-full" preserveAspectRatio="none" aria-hidden>
-          <defs>
-            <Lattice id={`${id}h`} size={34} width={0.8} opacity={0.35} />
-            <clipPath id={`${id}c`}>
-              <path d={ogeePath(W, H, S)} />
-            </clipPath>
-          </defs>
-          <path d={ogeePath(W, H, S)} fill="#072822" />
-          <rect width={W} height={H} fill={`url(#${id}h)`} clipPath={`url(#${id}c)`} />
-          <path d={ogeePath(W, H, S)} fill="none" stroke={GOLD} strokeWidth={2} />
-          <path d={ogeePath(W - 20, H - 14, S - 10)} transform="translate(10 12)" fill="none" stroke={GOLD} strokeOpacity={0.5} strokeWidth={1} strokeDasharray="2 4" />
-        </svg>
-        <div className="relative flex min-h-[124cqw] flex-col items-center px-[9cqw] pt-[30cqw] pb-[10cqw] text-center">
-          <motion.p {...show(0.4)} dir="rtl" className="text-[6.4cqw] leading-tight text-[#e3b964]" style={{ fontFamily: "var(--font-amiri)" }}>
-            {invite.invocation}
-          </motion.p>
-          <motion.p {...show(0.55)} className="inv-label mt-[2cqw] text-[2.2cqw] text-[#f4efe2]/60">
-            {invite.invocationMeaning}
-          </motion.p>
-          <motion.h1 {...show(0.85)} className="mt-[6cqw] flex flex-col items-center">
-            <span className="inv-script text-[13cqw] leading-[1] text-[#f4efe2]">{a.first}</span>
-            <span className="my-[1cqw] flex items-center gap-[2cqw] text-[#e3b964]">
-              <span className="h-px w-[10cqw] bg-[#e3b964]/60" />
-              <svg viewBox="-10 -10 20 20" className="w-[5cqw]" aria-hidden>
-                <path d={starPath(9)} fill={GOLD} />
-              </svg>
-              <span className="h-px w-[10cqw] bg-[#e3b964]/60" />
-            </span>
-            <span className="inv-script text-[13cqw] leading-[1] text-[#f4efe2]">{b.first}</span>
-          </motion.h1>
-          <motion.div {...show(1.2)} className="mt-[6cqw]">
-            <p className="inv-label text-[2.6cqw] text-[#e3b964]">
-              {weekday(invite.date)} · {dayNum(invite.date)} {monthName(invite.date)} {yearNum(invite.date)}
-            </p>
-            <p className="inv-serif mt-[1.5cqw] text-[4cqw] text-[#f4efe2]/75 italic">{invite.city}</p>
-          </motion.div>
+      <ArchCard invite={invite} names={[a.first, b.first]} show={show} />
+      {invite.secondCouple && (
+        <div className="mt-[10cqw]">
+          <ArchCard invite={invite} names={[pair(invite)[0].first, pair(invite)[1].first]} show={(d: number) => show(d + 0.4)} second />
         </div>
-      </motion.div>
+      )}
     </section>
   );
 }
@@ -282,18 +310,20 @@ function Blessing({ invite }: { invite: Invite }) {
         <p className="inv-label text-[2.5cqw] text-[#e3b964]">{invite.hosts}</p>
         <p className="inv-serif mx-auto mt-[4cqw] max-w-[76cqw] text-[5.2cqw] leading-snug text-[#f4efe2]/90 italic">{invite.message}</p>
       </Reveal>
-      <div className="mt-[10cqw] grid grid-cols-2 gap-[4cqw]">
-        {[a, b].map((p, i) => (
-          <Reveal key={p === invite.bride ? "bride" : "groom"} delay={i * 0.15}>
-            <div className="relative h-full overflow-hidden rounded-t-[30cqw] rounded-b-[3cqw] border border-[#e3b964]/50 bg-[#072822]/70 px-[3cqw] pt-[12cqw] pb-[5cqw]">
-              <Rosette className="absolute -top-[14cqw] left-1/2 w-[34cqw] -translate-x-1/2 opacity-30" />
-              <p className="inv-label relative text-[2cqw] text-[#e3b964]">{p === invite.bride ? "The bride" : "The groom"}</p>
-              <p className="inv-script relative mt-[2cqw] text-[8.5cqw] leading-none text-[#f4efe2]">{p.first}</p>
-              <p className="inv-serif relative mt-[3cqw] text-[3.4cqw] leading-snug text-[#f4efe2] italic">{p.parents}</p>
-            </div>
-          </Reveal>
-        ))}
-      </div>
+      {[[a, b], ...(invite.secondCouple ? [pair(invite)] : [])].map(([x, y], row) => (
+        <div key={row} className="mt-[10cqw] grid grid-cols-2 gap-[4cqw]">
+          {[x, y].map((p, i) => (
+            <Reveal key={`${row}-${i}`} delay={i * 0.15}>
+              <div className="relative h-full overflow-hidden rounded-t-[30cqw] rounded-b-[3cqw] border border-[#e3b964]/50 bg-[#072822]/70 px-[3cqw] pt-[12cqw] pb-[5cqw]">
+                <Rosette className="absolute -top-[14cqw] left-1/2 w-[34cqw] -translate-x-1/2 opacity-30" />
+                <p className="inv-label relative text-[2cqw] text-[#e3b964]">{p === invite.bride || p === invite.secondCouple?.bride ? "The bride" : "The groom"}</p>
+                <p className="inv-script relative mt-[2cqw] text-[8.5cqw] leading-none text-[#f4efe2]">{p.first}</p>
+                <p className="inv-serif relative mt-[3cqw] text-[3.4cqw] leading-snug text-[#f4efe2] italic">{p.parents}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      ))}
     </section>
   );
 }
@@ -406,12 +436,10 @@ export const noor: InviteTheme = {
   ui: {
     section: "relative px-[7cqw] py-[14cqw]",
     card: "rounded-[5cqw] border border-[#e3b964]/40 bg-[#072822]/80 backdrop-blur-sm",
-    input:
-      "w-full rounded-[3cqw] border border-[#e3b964]/35 bg-[#05211c]/60 px-[4cqw] py-[3cqw] text-[3.8cqw] text-[#f4efe2] placeholder:text-[#f4efe2]/35 outline-none focus:border-[#e3b964]",
+    input: "w-full rounded-[3cqw] border border-[#e3b964]/35 bg-[#05211c]/60 px-[4cqw] py-[3cqw] text-[3.8cqw] text-[#f4efe2] placeholder:text-[#f4efe2]/35 outline-none focus:border-[#e3b964]",
     chip: "rounded-full border border-[#e3b964]/40 text-[#f4efe2]/80 transition",
     chipOn: "rounded-full border border-[#e3b964] bg-[#e3b964] font-semibold text-[#0c3b33] transition",
-    button:
-      "inline-flex items-center gap-[1.5cqw] rounded-full bg-[#e3b964] px-[5cqw] py-[2.6cqw] text-[3.4cqw] font-semibold text-[#0c3b33] active:scale-95 transition",
+    button: "inline-flex items-center gap-[1.5cqw] rounded-full bg-[#e3b964] px-[5cqw] py-[2.6cqw] text-[3.4cqw] font-semibold text-[#0c3b33] active:scale-95 transition",
     ghost: "inline-flex items-center gap-[1.5cqw] rounded-full border border-[#e3b964]/60 px-[5cqw] py-[2.6cqw] text-[3.4cqw] text-[#e3b964] active:scale-95 transition",
     muted: "text-[#f4efe2]/70",
     tile: "rounded-[3cqw] border border-[#e3b964]/40 bg-[#072822]/70 text-[#e3b964]",
@@ -425,4 +453,3 @@ export const noor: InviteTheme = {
   Divider,
   Title,
 };
-

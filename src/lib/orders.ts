@@ -271,6 +271,14 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.invocationLines === true ? { invocationLines: true } : {}),
       ...(typeof d.closingNames === "string" && d.closingNames.trim() ? { closingNames: str(d.closingNames, 60) } : {}),
       ...(d.hostsLines === true ? { hostsLines: true } : {}),
+      ...(d.secondCouple && typeof d.secondCouple === "object"
+        ? (() => {
+            const sc = d.secondCouple as Record<string, Record<string, unknown>>;
+            const person = (p?: Record<string, unknown>) => ({ first: str(p?.first, 40), full: str(p?.full, 80), parents: str(p?.parents, 160) });
+            const groom = person(sc.groom), bride = person(sc.bride);
+            return groom.first && bride.first ? { secondCouple: { groom, bride } } : {};
+          })()
+        : {}),
       ...(d.nameNudge && typeof d.nameNudge === "object"
         ? {
             nameNudge: Object.fromEntries(
