@@ -187,7 +187,7 @@ function Frame() {
 // 50% across and 39.5% down.
 const SUN = { x: 50, fromBottom: 150 * (1 - 0.395) };
 
-function Opening({ invite, opened, onOpen }: OpeningProps) {
+function Opening({ opened, onOpen }: OpeningProps) {
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ pointerEvents: opened ? "none" : "auto" }}>
       <div className="@container absolute inset-0">
@@ -215,8 +215,8 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
               <Ganesha className="w-[17cqw]" glow={opened} />
             </motion.div>
             <div className="relative mt-[3cqw] grid w-full place-items-center">
-              <Invitation opened={opened && !!invite.invocation} />
-              {opened && invite.invocation && <MantraWrite lines={verseLines(invite.invocation)} />}
+              <Invitation opened={opened} />
+              {opened && <TapBlessing />}
             </div>
           </div>
         </motion.div>
@@ -244,27 +244,25 @@ function Invitation({ opened }: { opened: boolean }) {
   );
 }
 
-/** At the tap: the opening mantra writes itself in, word by word (Telugu letters join, so never split by letter). */
-function MantraWrite({ lines }: { lines: string[] }) {
-  let n = 0;
+/** At the tap: the Telugu wedding blessing, శ్రీరస్తు · శుభమస్తు · అవిఘ్నమస్తు, writing itself in one by one. */
+const BLESSINGS = ["శ్రీరస్తు", "శుభమస్తు", "అవిఘ్నమస్తు"];
+function TapBlessing() {
+  const line = (text: string, delay: number, className: string, color: string = C.maroon) => (
+    <motion.p
+      className={`leading-[1.5] font-semibold ${className}`}
+      style={{ fontFamily: te, color }}
+      initial={{ opacity: 0, y: "0.3em", filter: "blur(6px)" }}
+      animate={{ opacity: 1, y: "0em", filter: "blur(0px)" }}
+      transition={{ delay, duration: 0.8, ease }}
+    >
+      {text}
+    </motion.p>
+  );
   return (
-    <div className="col-start-1 row-start-1 flex flex-col items-center px-[5cqw] text-center" style={{ color: C.maroon, textShadow: GLOW }} aria-label={lines.join(" ")}>
-      {lines.map((line, i) => (
-        <p key={i} className="flex flex-wrap justify-center gap-x-[0.35em] text-[5cqw] leading-[1.7] font-semibold" style={{ fontFamily: te }}>
-          {line.split(/\s+/).map((w, j) => (
-            <motion.span
-              key={j}
-              aria-hidden
-              className="inline-block"
-              initial={{ opacity: 0, y: "0.3em", filter: "blur(6px)" }}
-              animate={{ opacity: 1, y: "0em", filter: "blur(0px)" }}
-              transition={{ delay: T.blessing + n++ * 0.13, duration: 0.7, ease }}
-            >
-              {w}
-            </motion.span>
-          ))}
-        </p>
-      ))}
+    <div className="col-start-1 row-start-1 flex flex-col items-center" style={{ textShadow: GLOW }}>
+      {line(BLESSINGS[0], T.blessing, "text-[7cqw]")}
+      {line(BLESSINGS[1], T.blessing + 0.4, "text-[11cqw]")}
+      {line(BLESSINGS[2], T.blessing + 0.8, "text-[6cqw]", C.gold)}
     </div>
   );
 }
