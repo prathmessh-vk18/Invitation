@@ -334,6 +334,12 @@ function Hero({ invite }: { invite: Invite }) {
   const show = (d: number) => ({ initial: { opacity: 0, y: 14 }, animate: opened ? { opacity: 1, y: 0 } : {}, transition: { delay: AFTER_OPEN + d, duration: 1.1, ease } });
   return (
     <section className="relative flex min-h-[var(--screen-h,100svh)] flex-col items-center justify-center px-[12cqw] pt-[24cqw] pb-[44cqw] text-center">
+      {invite.invocationArt && (
+        // a small gold Ganesha (or other emblem) above the opening line, transparent PNG in /art/seals
+        <motion.div {...show(0)} className="relative mb-[3cqw] aspect-[270/346] w-[13cqw]">
+          <Image src={invite.invocationArt} alt="" fill sizes="120px" className="object-contain" />
+        </motion.div>
+      )}
       {invite.invocation && (
         <motion.p {...show(0)} className="inv-deva text-[4cqw]" style={{ color: c.gold }}>
           {invite.invocation}
