@@ -1042,7 +1042,7 @@ function Wedding() {
           <TempleTrim w={66} flip color="#e9c77e" />
         </div>
         {/* the temple doors, closed until the card comes into view */}
-        <div className="absolute inset-[0.8cqw]" style={{ perspective: "1400px" }}>
+        <div className="pointer-events-none absolute inset-[0.8cqw]" style={{ perspective: "1400px" }} aria-hidden>
           <Door side="left" on={on} />
           <Door side="right" on={on} />
         </div>
