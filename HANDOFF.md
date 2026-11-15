@@ -47,6 +47,11 @@ Use these before writing new code.
 - `eventOm` (`"maroon"` | `"gold"` | `true`): sacred Om emblem centered in the arch apex above event titles
 - the reception cover, shown when `occasion` is `"reception"`
 
+**Chameli**
+
+- `invocationArt`: an image above the mantra on the cover (e.g. `/art/seals/srinita-ganesha.png`).
+- `seal`: an image on the wax seal in place of the initials (e.g. `/art/seals/ganesha-white.png`).
+
 **Noor**
 
 - `secondCouple` (`{ groom, bride }`): a second couple marrying on the same day.
