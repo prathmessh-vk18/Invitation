@@ -187,7 +187,7 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
       <motion.div className="absolute inset-x-0 top-[13%] text-center" animate={{ opacity: opened ? 0 : 1, y: opened ? -20 : 0 }}>
         <p className="inv-label text-[2.6cqw] text-[#f4efe2] [text-shadow:0_1px_8px_#000]">The Nikah of</p>
         <p className="mt-[2cqw] text-[9cqw] leading-none text-[#f4efe2] [text-shadow:0_2px_12px_#000]" style={{ fontFamily: "var(--font-amiri)" }}>
-          {a.first} <span className="text-[#e3b964]">&amp;</span> {b.first}
+          {a.first} <span className="text-[#e3b964]">{invite.joiner ?? "&"}</span> {b.first}
         </p>
       </motion.div>
 
@@ -195,7 +195,7 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
         // a brother's (or sister's) wedding on the same day, at the foot of the doors
         <motion.div className="absolute inset-x-0 bottom-[19%] text-center" animate={{ opacity: opened ? 0 : 1, y: opened ? 20 : 0 }}>
           <p className="text-[9cqw] leading-none text-[#f4efe2] [text-shadow:0_2px_12px_#000]" style={{ fontFamily: "var(--font-amiri)" }}>
-            {pair(invite)[0].first} <span className="text-[#e3b964]">&amp;</span> {pair(invite)[1].first}
+            {pair(invite)[0].first} <span className="text-[#e3b964]">{invite.joiner ?? "&"}</span> {pair(invite)[1].first}
           </p>
         </motion.div>
       )}
@@ -373,8 +373,13 @@ function Closing({ invite }: { invite: Invite }) {
         <Crescent className="mx-auto w-[20cqw]" />
         <p className="inv-serif mx-auto mt-[4cqw] max-w-[70cqw] text-[5.4cqw] leading-snug text-[#f4efe2]/90 italic">{invite.closing}</p>
         <p className="inv-script mt-[6cqw] text-[11cqw] leading-none text-[#e3b964]">
-          {a.first} &amp; {b.first}
+          {a.first} {invite.joiner ?? "&"} {b.first}
         </p>
+        {invite.secondCouple && (
+          <p className="inv-script mt-[3cqw] text-[11cqw] leading-none text-[#e3b964]">
+            {pair(invite)[0].first} {invite.joiner ?? "&"} {pair(invite)[1].first}
+          </p>
+        )}
         {invite.hashtag && <p className="inv-label !normal-case mt-[5cqw] text-[2.6cqw] text-[#f4efe2]/70">{invite.hashtag}</p>}
       </Reveal>
       {!invite.noBranding && (

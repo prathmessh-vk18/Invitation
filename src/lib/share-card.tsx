@@ -72,10 +72,10 @@ const layer = { position: "absolute", top: 0, left: 0, width: 1200, height: 630,
 export async function shareCard(invite: Invite): Promise<Response> {
   const t = getTemplate(invite.template)!;
   const [a, b] = couple(invite);
-  const names = `${a.first} & ${b.first}`;
-  // A second couple marrying the same day goes on a line of its own.
+  // A second couple marrying the same day goes on a line of its own, both in the couple's joiner.
   const sc = invite.secondCouple;
-  const second = sc ? (invite.lead === "bride" ? `${sc.bride.first} & ${sc.groom.first}` : `${sc.groom.first} & ${sc.bride.first}`) : "";
+  const names = `${a.first} ${sc ? (invite.joiner ?? "&") : "&"} ${b.first}`;
+  const second = sc ? (invite.lead === "bride" ? `${sc.bride.first} ${invite.joiner ?? "&"} ${sc.groom.first}` : `${sc.groom.first} ${invite.joiner ?? "&"} ${sc.bride.first}`) : "";
   const size = second ? Math.min(nameSize(names), nameSize(second), 76) : nameSize(names);
   const scene = scenes[invite.template];
   // Over a painting the text is deep maroon on a light wash; on a plain card it takes the design's
