@@ -29,8 +29,12 @@ export async function generateMetadata({ params }: PageProps<"/i/[slug]">): Prom
   const [a, b] = couple(found.invite);
   const occasion = found.invite.occasion;
   const kind = occasion === "engagement" ? "Engagement" : occasion === "reception" ? "Wedding Reception" : "Wedding";
-  const title = `${a.first} & ${b.first} · ${kind} Invitation`;
-  const description = `You're invited to celebrate ${a.first} & ${b.first}, ${longDate(found.invite.date)}, ${found.invite.city}.`;
+  // A second couple marrying the same day (secondCouple) is named too, in the invite's own order.
+  const sc = found.invite.secondCouple;
+  const second = sc ? (found.invite.lead === "bride" ? `${sc.bride.first} & ${sc.groom.first}` : `${sc.groom.first} & ${sc.bride.first}`) : "";
+  const names = `${a.first} & ${b.first}${second ? ` and ${second}` : ""}`;
+  const title = `${second ? `${a.first} & ${b.first} · ${second}` : `${a.first} & ${b.first}`} · ${kind} Invitation`;
+  const description = `You're invited to celebrate ${names}, ${longDate(found.invite.date)}, ${found.invite.city}.`;
   return {
     title: { absolute: title },
     description,

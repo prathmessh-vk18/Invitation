@@ -73,6 +73,10 @@ export async function shareCard(invite: Invite): Promise<Response> {
   const t = getTemplate(invite.template)!;
   const [a, b] = couple(invite);
   const names = `${a.first} & ${b.first}`;
+  // A second couple marrying the same day goes on a line of its own.
+  const sc = invite.secondCouple;
+  const second = sc ? (invite.lead === "bride" ? `${sc.bride.first} & ${sc.groom.first}` : `${sc.groom.first} & ${sc.bride.first}`) : "";
+  const size = second ? Math.min(nameSize(names), nameSize(second), 76) : nameSize(names);
   const scene = scenes[invite.template];
   // Over a painting the text is deep maroon on a light wash; on a plain card it takes the design's
   // own pair of colours (gold on maroon for Rajwada, and so on).
@@ -99,7 +103,8 @@ export async function shareCard(invite: Invite): Promise<Response> {
         )}
         <div style={{ position: "absolute", top: scene ? 60 : 200, left: 0, width: 1200, display: "flex", flexDirection: "column", alignItems: "center", color: ink }}>
           <div style={{ fontSize: 22, letterSpacing: 8 }}>{invite.occasion === "engagement" ? "ENGAGEMENT INVITATION" : invite.occasion === "reception" ? "WEDDING RECEPTION INVITATION" : "WEDDING INVITATION"}</div>
-          <div style={{ fontFamily: "Fraunces", fontSize: nameSize(names), lineHeight: 1.05, marginTop: 14, letterSpacing: -2 }}>{names}</div>
+          <div style={{ fontFamily: "Fraunces", fontSize: size, lineHeight: 1.05, marginTop: 14, letterSpacing: -2 }}>{names}</div>
+          {second && <div style={{ fontFamily: "Fraunces", fontSize: size, lineHeight: 1.05, marginTop: 6, letterSpacing: -2 }}>{second}</div>}
           <div style={{ fontSize: 30, marginTop: 16, letterSpacing: 1 }}>{`${longDate(invite.date)} · ${invite.city}`}</div>
         </div>
       </div>
