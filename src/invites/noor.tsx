@@ -337,15 +337,16 @@ function Events({ invite }: { invite: Invite }) {
         <Title kicker="Join us">The celebrations</Title>
       </Reveal>
       <div className="mt-[10cqw] space-y-[7cqw]">
-        {invite.events.map((e) => (
-          <Reveal key={e.name}>
+        {invite.events.map((e, i) => (
+          <Reveal key={e.name + (e.start || i)}>
             <article className="relative overflow-hidden rounded-t-[42cqw] rounded-b-[4cqw] border border-[#e3b964]/60 bg-gradient-to-b from-[#0f4a40] to-[#072822] px-[7cqw] pt-[16cqw] pb-[8cqw] text-center">
               <Rosette className="absolute -top-[20cqw] left-1/2 w-[64cqw] -translate-x-1/2 opacity-20" />
               <span className="relative mx-auto grid size-[15cqw] place-items-center rounded-full border border-[#e3b964]/70 bg-[#0c3b33] text-[#e3b964]">
                 <EventGlyph kind={e.kind} className="size-[8.5cqw]" />
               </span>
               <h3 className="inv-script relative mt-[4cqw] text-[10cqw] leading-none text-[#f4efe2]">{e.name}</h3>
-              <p className="inv-label relative mt-[4cqw] text-[2.5cqw] text-[#e3b964]">
+              {e.subtitle && <p className="inv-serif relative mt-[2cqw] text-[4.4cqw] text-[#e3b964] italic">{e.subtitle}</p>}
+              <p className={`inv-label relative ${e.subtitle ? "mt-[3cqw]" : "mt-[4cqw]"} text-[2.5cqw] text-[#e3b964]`}>
                 {weekday(e.start)} · {dayNum(e.start)} {monthName(e.start).slice(0, 3)} · {time(e.start)}
               </p>
               <p className="inv-serif relative mt-[3cqw] text-[5cqw] leading-tight text-[#f4efe2]">{e.venue}</p>

@@ -144,6 +144,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
     return {
       kind,
       name: str(o.name, 40),
+      subtitle: str(o.subtitle, 80) || undefined,
       devanagari: str(o.devanagari, 40) || undefined,
       start: str(o.start, 40),
       end: str(o.end, 40) || undefined,
@@ -331,13 +332,18 @@ export function keepInviteSettings(prev: InviteDetails | null | undefined, next:
     for (const [k, v] of Object.entries(was)) if (!FORM_PERSON_FIELDS.has(k) && now[k] === undefined && v !== undefined) now[k] = v;
     out[who] = now;
   }
-  // The form edits a function's own fields; a schedule set by us stays with the function of the
-  // same name.
+  // The form edits a function's own fields; a schedule or subtitle set by us stays with the function.
   const schedules = new Map(prev.events.filter((e) => e.schedule).map((e) => [e.name.trim().toLowerCase(), e.schedule]));
-  if (schedules.size)
+  const subtitles = new Map(prev.events.filter((e) => e.subtitle).map((e) => [e.name.trim().toLowerCase() + e.start, e.subtitle]));
+  if (schedules.size || subtitles.size)
     out.events = next.events.map((e) => {
       const schedule = schedules.get(e.name.trim().toLowerCase());
-      return schedule && !e.schedule ? { ...e, schedule } : e;
+      const subtitle = subtitles.get(e.name.trim().toLowerCase() + e.start);
+      return {
+        ...e,
+        ...(schedule && !e.schedule ? { schedule } : {}),
+        ...(subtitle && !e.subtitle ? { subtitle } : {}),
+      };
     });
   return out as InviteDetails;
 }

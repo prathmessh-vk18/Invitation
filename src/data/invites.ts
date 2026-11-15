@@ -7,6 +7,7 @@ export type EventKind = "engagement" | "haldi" | "mehndi" | "sangeet" | "baraat"
 export type InviteEvent = {
   kind: EventKind;
   name: string;
+  subtitle?: string;
   devanagari?: string;
   // ISO strings with the +05:30 offset so times render the same everywhere.
   start: string;
