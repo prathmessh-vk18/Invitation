@@ -44,6 +44,7 @@ Use these before writing new code.
 - `invocationLines`
 - `stackNames`
 - `nameNudge` (`{ bride?: em, groom?: em }`)
+- `eventOm` (`"maroon"` | `"gold"` | `true`): sacred Om emblem centered in the arch apex above event titles
 - the reception cover, shown when `occasion` is `"reception"`
 
 **Noor**

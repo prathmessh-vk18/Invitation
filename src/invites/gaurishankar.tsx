@@ -427,10 +427,18 @@ function Blessing({ invite }: { invite: Invite }) {
 
 /** A function on the painted temple-arch card: garland along the arch, crescent moon, lotus below. */
 function ArchCard({ e, invite }: { e: InviteEvent; invite: Invite }) {
+  const omSrc = invite.eventOm === "gold" ? `${art}/shiv-om-gold.webp` : `${art}/shiv-om-maroon.webp`;
   return (
     <div>
       <div className="relative mx-auto w-[78cqw] drop-shadow-[0_12px_20px_rgba(140,40,70,.14)]" style={{ aspectRatio: "774 / 1442" }}>
         <Art src={`${art}/shiv-card.webp`} contain />
+        {invite.eventOm && (
+          <div className="pointer-events-none absolute inset-x-0 top-[14.5%] flex justify-center">
+            <div className="relative aspect-[653/573] w-[12%]">
+              <Image src={omSrc} alt="Om" fill sizes="15vw" className="object-contain" />
+            </div>
+          </div>
+        )}
         <div className="absolute inset-x-[15%] top-[25%] bottom-[15%] flex flex-col items-center justify-center text-center">
           <h3 className="inv-script text-[13cqw] leading-[1.05]" style={{ color: c.rose }}>
             {e.name}

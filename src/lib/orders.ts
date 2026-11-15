@@ -305,6 +305,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.eventsByDay === true ? { eventsByDay: true } : {}),
       ...(Array.isArray(d.dayNames) && d.dayNames.length ? { dayNames: d.dayNames.slice(0, 10).map((x) => str(x, 30)) } : {}),
       ...(d.lang === "hi" ? { lang: "hi" as const } : {}),
+      ...(d.eventOm === "gold" || d.eventOm === "maroon" || d.eventOm === true ? { eventOm: d.eventOm } : {}),
     },
   };
 }

@@ -176,6 +176,8 @@ export type Invite = {
   contacts?: { name: string; phones: string[]; whatsapp?: boolean }[];
   // "hi" prints the invite's own words (headings, buttons, dates) in Hindi. Set by an admin for now.
   lang?: "hi";
+  // Sacred emblem at the top of every function arch card (e.g. "maroon" or "gold" or true; Gauri Shankar).
+  eventOm?: boolean | "maroon" | "gold";
 };
 
 export const invites: Invite[] = [
