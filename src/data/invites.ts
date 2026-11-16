@@ -124,6 +124,9 @@ export type Invite = {
   doors?: "maroon";
   // A small image above the invocation on the cover (e.g. a gold Ganesha or the couple's monogram), transparent PNG in /art/seals. Rajwada and Phulkari.
   invocationArt?: string;
+  // A finished video invitation the couple brings (made elsewhere), played full screen in place of the design.
+  // The design (`template`) then only sets the share card's colours. Files live on R2 under videos/.
+  video?: { src: string; poster: string };
   // Leave the date line off the cover (the dates still show on every function card). Rajwada and Gauri Shankar.
   hideHeroDate?: boolean;
   // Leave the hosts' line ("The … family") off the cover; it still opens the blessing (Phulkari).

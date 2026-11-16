@@ -7,6 +7,7 @@ import { site } from "@/config/site";
 import { getInvite, invites, isListedDemo, type Invite } from "@/data/invites";
 import { couple } from "@/invites/people";
 import { InviteRenderer } from "@/invites/InviteRenderer";
+import { VideoInvite } from "@/invites/video";
 import { getPublishedInvite } from "@/lib/invites-db";
 import { longDate } from "@/lib/format";
 
@@ -77,6 +78,9 @@ async function InviteForSlug({ params }: { params: PageProps<"/i/[slug]">["param
     await connection();
     if (hasEnded(found.liveUntil)) return <Ended invite={found.invite} />;
   }
+  const { video } = found.invite;
+  // A couple's own finished video plays in place of the design.
+  if (video) return <VideoInvite invite={{ ...found.invite, video }} />;
   return <InviteRenderer invite={found.invite} />;
 }
 
