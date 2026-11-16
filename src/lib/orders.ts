@@ -245,6 +245,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       // false keeps an invite made before a design went bold by default (Chameli) as its couple approved it.
       ...(typeof d.boldText === "boolean" ? { boldText: d.boldText } : {}),
       ...(isScriptFont(d.scriptFont) ? { scriptFont: d.scriptFont } : {}),
+      ...(typeof d.readable === "boolean" ? { readable: d.readable } : {}),
       ...(d.stackNames === true ? { stackNames: true } : {}),
       ...(d.noSignoff === true ? { noSignoff: true } : {}),
       ...(typeof d.signoff === "string" ? { signoff: str(d.signoff, 80) } : {}),

@@ -221,3 +221,8 @@ body:has([data-sticky-cta="on"]) .wa-fab { bottom: 88px; }
 [data-bold-text] .inv-script { font-weight: 600; }
 [data-bold-text] .opacity-70,
 [data-bold-text] .opacity-80 { opacity: 1; }
+
+/* Readable: faded text made solid, same weight. On Chameli the soft brown lines take the main ink. */
+[data-readable] { --ch-soft: #4f4020; }
+[data-readable] .opacity-70,
+[data-readable] .opacity-80 { opacity: 1; }

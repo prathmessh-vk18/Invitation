@@ -78,6 +78,8 @@ export type Invite = {
   largeText?: boolean;
   // Heavier, darker text for readability (darker colours on Chameli; heavier weight on any design).
   boldText?: boolean;
+  // Faded text made solid, without heavier type. false keeps an invite made before its design turned it on.
+  readable?: boolean;
   // Pin the design's script lettering to one face (customise.ts scriptFonts), unless a font style is picked.
   scriptFont?: string;
   // Stack the couple's names vertically on the hero cover (first name, &, second name). On Rajwada,
