@@ -91,6 +91,13 @@ export const fontStyles: FontStyle[] = [
 export const getFontStyle = (id: unknown) => fontStyles.find((f) => f.id === id);
 
 /**
+ * A single script face an invite can be pinned to (`scriptFont`), e.g. "pinyon" keeps a Gauri Shankar
+ * invite made before the design moved to Great Vibes in the lettering its couple approved.
+ */
+export const scriptFonts: Record<string, string> = { pinyon: "Pinyon Script", "great-vibes": "Great Vibes", parisienne: "Parisienne" };
+export const isScriptFont = (v: unknown): v is string => typeof v === "string" && v in scriptFonts;
+
+/**
  * CSS variables that switch an invite to the couple's font style, if they picked one. `own` is the
  * design's own script font, which its name sizes were chosen for (fit.ts shrinks wider faces to it).
  */

@@ -1,4 +1,4 @@
-import { getFontStyle } from "@/config/customise";
+import { getFontStyle, isScriptFont, scriptFonts } from "@/config/customise";
 import type { Invite, InviteEvent } from "@/data/invites";
 
 /**
@@ -65,7 +65,9 @@ export const skins: Record<string, Skin> = {
 
 /** The design's skin, with the couple's own font style if they picked one in the form. */
 export function skinFor(invite: Invite): Skin {
-  const base = skins[invite.template] ?? khatSkin;
+  const pinned = skins[invite.template] ?? khatSkin;
+  // An invite pinned to one script face (scriptFont) prints in it, as on the invite.
+  const base = isScriptFont(invite.scriptFont) ? { ...pinned, script: scriptFonts[invite.scriptFont] } : pinned;
   const style = getFontStyle(invite.font);
   if (!style) return base;
   const family = (cssVar: string) => FONT_FAMILIES[/--font-[a-z-]+/.exec(cssVar)?.[0] ?? ""];

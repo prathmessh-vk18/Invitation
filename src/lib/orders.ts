@@ -1,6 +1,6 @@
 import type { EventKind, Invite, InviteEvent } from "@/data/invites";
 import { getTemplate, type TemplateId } from "@/data/templates";
-import { getFontStyle, isSectionId } from "@/config/customise";
+import { getFontStyle, isScriptFont, isSectionId } from "@/config/customise";
 import { isTrackId } from "@/config/music";
 import { splitMapLink } from "@/lib/format";
 
@@ -244,6 +244,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.largeText === true ? { largeText: true } : {}),
       // false keeps an invite made before a design went bold by default (Chameli) as its couple approved it.
       ...(typeof d.boldText === "boolean" ? { boldText: d.boldText } : {}),
+      ...(isScriptFont(d.scriptFont) ? { scriptFont: d.scriptFont } : {}),
       ...(d.stackNames === true ? { stackNames: true } : {}),
       ...(d.noSignoff === true ? { noSignoff: true } : {}),
       ...(typeof d.signoff === "string" ? { signoff: str(d.signoff, 80) } : {}),
