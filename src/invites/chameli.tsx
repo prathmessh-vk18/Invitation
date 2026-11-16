@@ -11,6 +11,7 @@ import { INVITE_ART_SIZES, PREVIEW_ART_SIZES, useOpened, usePreview } from "./op
 import { couple, EventActions, Reveal } from "./shared";
 import type { InviteTheme, OpeningProps } from "./types";
 import { InkCentered } from "./ink";
+import { useT } from "./i18n";
 
 /**
  * Chameli: ivory stationery with jasmine, a brass lantern and the Himalayan hills.
@@ -42,7 +43,10 @@ const ist = (iso: string, o: Intl.DateTimeFormatOptions) => fmtDate(iso, o);
 const suffix = (d: number) => (d % 10 === 1 && d !== 11 ? "st" : d % 10 === 2 && d !== 12 ? "nd" : d % 10 === 3 && d !== 13 ? "rd" : "th");
 /** "Friday, 11th December 2026" */
 function DayLine({ iso }: { iso: string }) {
+  const { lang, d: dt } = useT();
   const d = Number(ist(iso, { day: "numeric" }));
+  // Hindi has no "11th": "शुक्रवार, 11 दिसंबर 2026".
+  if (lang === "hi") return <>{dt.long(iso)}</>;
   return (
     <>
       {ist(iso, { weekday: "long" })}, {d}
@@ -87,13 +91,16 @@ function Divider({ className, delay = 0 }: { className?: string; delay?: number 
 
 /** Section titles in spaced capitals that settle in from wide tracking. */
 function Title({ kicker, children }: { kicker?: string; children: ReactNode }) {
+  // Spaced letters break up Devanagari, so Hindi titles only fade in.
+  const { lang } = useT();
+  const hi = lang === "hi";
   return (
     <div className="text-center">
       {kicker && <p className="inv-label text-[3.4cqw] tracking-[0.28em]">{kicker}</p>}
       <motion.h2
         className="inv-label mt-[1cqw] text-[5.6cqw]"
-        initial={{ opacity: 0, letterSpacing: "0.6em" }}
-        whileInView={{ opacity: 1, letterSpacing: "0.3em" }}
+        initial={hi ? { opacity: 0 } : { opacity: 0, letterSpacing: "0.6em" }}
+        whileInView={hi ? { opacity: 1 } : { opacity: 1, letterSpacing: "0.3em" }}
         viewport={{ once: true, amount: 0.6 }}
         transition={{ duration: 1.4, ease }}
       >
@@ -177,6 +184,7 @@ function WaxSeal({ text, image }: { text: string; image?: string }) {
 function Opening({ invite, opened, onOpen }: OpeningProps) {
   const reduce = useReducedMotion();
   const [a, b] = couple(invite);
+  const { t, lang } = useT();
   const go = opened && !reduce;
   const envelope = `url(${art}/chameli-envelope.jpg) center/cover`;
   return (
@@ -233,7 +241,7 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
           <button
             type="button"
             onClick={onOpen}
-            aria-label="Open the invitation"
+            aria-label={t.openInvitation}
             className="absolute size-[30cqw] -translate-x-1/2 -translate-y-1/2"
             style={{ left: "50%", top: `${FLAP.tip}%` }}
           >
@@ -247,10 +255,10 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
       {/* Title above the flap, while it waits. */}
       <motion.div className="pointer-events-none absolute inset-x-0 top-[9%] text-center" animate={{ opacity: opened ? 0 : 1, y: opened ? -16 : 0 }} transition={{ duration: 0.4 }}>
         <p className="inv-label text-[2.9cqw] tracking-[0.34em]" style={{ color: c.soft }}>
-          A special invitation awaits
+          {t.specialInvite}
         </p>
         <p className="inv-script mt-[3cqw] text-[10cqw] leading-none" style={{ color: c.ink }}>
-          {a.first} <span style={{ color: c.gold }}>&amp;</span> {b.first}
+          {a.first} <span style={{ color: c.gold }}>{lang === "hi" ? t.and : "&"}</span> {b.first}
         </p>
       </motion.div>
 
@@ -319,6 +327,19 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
 /** A name in spaced capitals, each letter arriving out of a soft blur. */
 function Letters({ text, delay, className }: { text: string; delay: number; className: string }) {
   const opened = useOpened();
+  const { lang } = useT();
+  // Devanagari letters join (क्ष, मी), so a Hindi name arrives as one word, not letter by letter.
+  if (lang === "hi")
+    return (
+      <motion.span
+        className={`inline-block ${className}`}
+        initial={{ opacity: 0, y: "0.3em", filter: "blur(6px)" }}
+        animate={opened ? { opacity: 1, y: "0em", filter: "blur(0px)" } : {}}
+        transition={{ delay, duration: 1, ease }}
+      >
+        {text}
+      </motion.span>
+    );
   return (
     <span className={`inline-block ${className}`} aria-label={text}>
       {[...text].map((ch, i) => (
@@ -339,6 +360,7 @@ function Letters({ text, delay, className }: { text: string; delay: number; clas
 
 function Hero({ invite }: { invite: Invite }) {
   const opened = useOpened();
+  const { t } = useT();
   const [a, b] = couple(invite);
   const show = (d: number) => ({ initial: { opacity: 0, y: 14 }, animate: opened ? { opacity: 1, y: 0 } : {}, transition: { delay: AFTER_OPEN + d, duration: 1.1, ease } });
   return (
@@ -354,14 +376,18 @@ function Hero({ invite }: { invite: Invite }) {
           {invite.invocation}
         </motion.p>
       )}
-      <motion.p {...show(0.15)} className={`${caps} mt-[4cqw] text-[3.6cqw]`}>
-        The
-      </motion.p>
+      {t.heroThe ? (
+        <motion.p {...show(0.15)} className={`${caps} mt-[4cqw] text-[3.6cqw]`}>
+          {t.heroThe}
+        </motion.p>
+      ) : (
+        <div className="mt-[4cqw]" />
+      )}
       <motion.p {...show(0.3)} className="inv-script text-[15cqw] leading-none">
-        {invite.occasion === "engagement" ? "Engagement" : invite.occasion === "reception" ? "Reception" : "Wedding"}
+        {invite.occasion === "engagement" ? t.heroEngagement : invite.occasion === "reception" ? t.heroReception : t.heroWedding}
       </motion.p>
       <motion.p {...show(0.45)} className={`${caps} text-[3.6cqw]`}>
-        Celebrations
+        {t.heroCelebrations}
       </motion.p>
       <Divider className="my-[5cqw]" delay={AFTER_OPEN + 0.5} />
       <p className="mt-[3cqw] leading-tight">
@@ -374,7 +400,7 @@ function Hero({ invite }: { invite: Invite }) {
         animate={opened ? { opacity: 1, clipPath: "inset(0 0% 0 0)" } : {}}
         transition={{ delay: AFTER_OPEN + 1.5, duration: 0.9, ease }}
       >
-        and
+        {t.and}
       </motion.p>
       <p className="leading-tight">
         <Letters text={b.first.toUpperCase()} delay={AFTER_OPEN + 1.7} className={`${caps} text-[7.4cqw] tracking-[0.24em]`} />
@@ -390,6 +416,7 @@ function Hero({ invite }: { invite: Invite }) {
 }
 
 function Blessing({ invite }: { invite: Invite }) {
+  const { t } = useT();
   const [a, b] = couple(invite);
   const person = (p: typeof a, i: number) => (
     <Reveal delay={i * 0.12} className="mt-[7cqw]">
@@ -413,7 +440,7 @@ function Blessing({ invite }: { invite: Invite }) {
       {person(a, 0)}
       <Reveal delay={0.1}>
         <p className="inv-script mt-[3cqw] text-[8cqw] leading-none" style={{ color: c.gold }}>
-          and
+          {t.and}
         </p>
       </Reveal>
       {person(b, 1)}
@@ -424,11 +451,13 @@ function Blessing({ invite }: { invite: Invite }) {
 /* ───────── The celebrations ───────── */
 
 function Glance({ invite }: { invite: Invite }) {
+  const { t, lang, d } = useT();
+  const hi = lang === "hi";
   const events = [...invite.events].sort((x, y) => x.start.localeCompare(y.start));
   return (
     <section className="relative px-[11cqw] pt-[10cqw] text-center">
       <Reveal>
-        <Title kicker="The Celebrations">At a Glance</Title>
+        <Title kicker={t.celebrationsKicker}>{t.glanceTitle}</Title>
       </Reveal>
       <div className="grid gap-[8cqw]">
         {events.map((e, i) => (
@@ -444,15 +473,15 @@ function Glance({ invite }: { invite: Invite }) {
             <motion.p
               className="inv-label mx-auto w-fit px-[5cqw] py-[1.8cqw] text-[3.1cqw] tracking-[0.14em] uppercase"
               style={{ background: c.ribbon }}
-              initial={{ opacity: 0, letterSpacing: "0.32em" }}
-              whileInView={{ opacity: 1, letterSpacing: "0.14em" }}
+              initial={hi ? { opacity: 0 } : { opacity: 0, letterSpacing: "0.32em" }}
+              whileInView={hi ? { opacity: 1 } : { opacity: 1, letterSpacing: "0.14em" }}
               viewport={{ once: true }}
               transition={{ duration: 1, delay: 0.2, ease }}
             >
               <DayLine iso={e.start} />
             </motion.p>
             <p className="inv-script mt-[3cqw] text-[9cqw] leading-tight">{e.name}</p>
-            <p className="inv-label mt-[1.5cqw] text-[3.4cqw] tracking-[0.14em] uppercase">{clock(e.start)} onwards</p>
+            <p className="inv-label mt-[1.5cqw] text-[3.4cqw] tracking-[0.14em] uppercase">{hi ? t.onwards(d.time(e.start)) : `${clock(e.start)} onwards`}</p>
             <p className={`${italic} mt-[2cqw] text-[4cqw] leading-relaxed`} style={{ color: c.soft }}>
               {e.venue}
               {e.address && (
@@ -464,7 +493,7 @@ function Glance({ invite }: { invite: Invite }) {
             </p>
             {(e.dress || e.note) && (
               <p className="inv-serif mt-[2cqw] text-[3.8cqw] font-medium" style={{ color: c.gold }}>
-                {[e.dress && `Dress: ${e.dress}`, e.note].filter(Boolean).join(" · ")}
+                {[e.dress && t.dress(e.dress), e.note].filter(Boolean).join(" · ")}
               </p>
             )}
             <div className="mt-[4cqw]">
@@ -488,6 +517,7 @@ function Events({ invite }: { invite: Invite }) {
 /* ───────── Sign-off ───────── */
 
 function Closing({ invite }: { invite: Invite }) {
+  const { t, lang } = useT();
   const [a, b] = couple(invite);
   return (
     // Room at the end so the last lines scroll clear of the balustrade in the frame.
@@ -496,12 +526,12 @@ function Closing({ invite }: { invite: Invite }) {
       <Reveal>
         {invite.closing && <p className={`${italic} text-[4.6cqw] leading-relaxed whitespace-pre-line`}>{invite.closing}</p>}
         <p className="inv-script mt-[6cqw] text-[11cqw] leading-none">
-          {a.first} <span style={{ color: c.gold }}>&amp;</span> {b.first}
+          {a.first} <span style={{ color: c.gold }}>{lang === "hi" ? t.and : "&"}</span> {b.first}
         </p>
         {invite.hashtag && <p className="inv-serif mt-[4cqw] text-[4.2cqw] font-semibold tracking-[0.04em]" style={{ color: c.gold }}>{invite.hashtag}</p>}
         {!invite.noBranding && (
           <Link href="/" className="inv-label mt-[8cqw] inline-block text-[2.4cqw] tracking-[0.26em] opacity-70">
-            Crafted with love by {site.name}
+            {t.craftedBy(site.name)}
           </Link>
         )}
       </Reveal>

@@ -79,6 +79,17 @@ const en = {
   ],
   rsvpNo: (a: string, b: string, name: string) => [`Namaste! RSVP for ${a} & ${b}'s wedding`, `Name: ${name}`, `Sadly we can't make it, but sending all our love 🙏`],
   rsvpNote: (n: string) => `Note: ${n}`,
+  // Chameli's own words.
+  specialInvite: "A special invitation awaits",
+  openInvitation: "Open the invitation",
+  heroThe: "The",
+  heroWedding: "Wedding",
+  heroEngagement: "Engagement",
+  heroReception: "Reception",
+  heroCelebrations: "Celebrations",
+  celebrationsKicker: "The Celebrations",
+  glanceTitle: "At a Glance",
+  craftedBy: (s: string) => `Crafted with love by ${s}`,
 };
 
 const hi: typeof en = {
@@ -151,6 +162,16 @@ const hi: typeof en = {
   ],
   rsvpNo: (a, b, name) => [`नमस्ते! ${a} और ${b} के शुभ विवाह हेतु उत्तर`, `नाम: ${name}`, `क्षमा करें, हम नहीं आ पाएंगे, पर हमारी शुभकामनाएँ आपके साथ हैं 🙏`],
   rsvpNote: (n) => `संदेश: ${n}`,
+  specialInvite: "आपके लिए एक विशेष निमंत्रण",
+  openInvitation: "निमंत्रण खोलें",
+  heroThe: "",
+  heroWedding: "शुभ विवाह",
+  heroEngagement: "शुभ सगाई",
+  heroReception: "स्वागत समारोह",
+  heroCelebrations: "समारोह",
+  celebrationsKicker: "शुभ अवसर",
+  glanceTitle: "मांगलिक कार्यक्रम",
+  craftedBy: (s) => `${s} द्वारा प्रेम से रचित`,
 };
 
 export const LangContext = createContext<Lang>("en");
