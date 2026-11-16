@@ -232,6 +232,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
           })()
         : {}),
       ...(typeof d.rsvpTitle === "string" && d.rsvpTitle.trim() ? { rsvpTitle: str(d.rsvpTitle, 60) } : {}),
+      ...(typeof d.rsvpLead === "string" && d.rsvpLead.trim() ? { rsvpLead: str(d.rsvpLead, 120) } : {}),
       ...(typeof d.countdownTitle === "string" && d.countdownTitle.trim() ? { countdownTitle: str(d.countdownTitle, 60) } : {}),
       ...(d.rsvpHeading && typeof d.rsvpHeading === "object"
         ? (() => {
