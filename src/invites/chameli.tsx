@@ -10,6 +10,7 @@ import { fmtDate } from "@/lib/format";
 import { INVITE_ART_SIZES, PREVIEW_ART_SIZES, useOpened, usePreview } from "./opened";
 import { couple, EventActions, Reveal } from "./shared";
 import type { InviteTheme, OpeningProps } from "./types";
+import { InkCentered } from "./ink";
 
 /**
  * Chameli: ivory stationery with jasmine, a brass lantern and the Himalayan hills.
@@ -159,9 +160,10 @@ function WaxSeal({ text, image }: { text: string; image?: string }) {
           <Image src={image} alt={text} fill sizes="80px" className="object-contain" />
         </span>
       ) : (
-        <span className="relative text-[10cqw] leading-none text-[#6b4a10] [text-shadow:0_1px_0_rgba(255,240,200,.6)]" style={{ fontFamily: "var(--font-pinyon), cursive" }}>
+        // Centred by the letters' ink, both ways: Pinyon's capitals swing out and its S hangs low.
+        <InkCentered vertical className="relative text-[10cqw] leading-none text-[#6b4a10] [text-shadow:0_1px_0_rgba(255,240,200,.6)]" style={{ fontFamily: "var(--font-pinyon), cursive" }}>
           {text}
-        </span>
+        </InkCentered>
       )}
     </div>
   );
