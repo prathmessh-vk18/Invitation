@@ -24,7 +24,7 @@ Use these before writing new code.
 **Any design**
 
 - `words`: rewords fixed phrases, keyed by i18n key, e.g. `{ momentsKicker: "Their moments", scratchTitle: "Date and Place" }`. `""` hides a kicker.
-- `boldText`: heavier text, and darker ink. Every Chameli invite has it by default now (theme `boldText: true`).
+- `boldText`: heavier text, and darker ink. Chameli orders from 16 Nov 2026 (22:53) get it by default (theme `boldText: true`); the 58 older ones carry `boldText: false` so they look as approved.
 - `countdownTitle`
 - `noMapSearch`: shows Directions only where the couple gave a map link.
 - `occasion: "reception"`

@@ -242,7 +242,8 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
           })()
         : {}),
       ...(d.largeText === true ? { largeText: true } : {}),
-      ...(d.boldText === true ? { boldText: true } : {}),
+      // false keeps an invite made before a design went bold by default (Chameli) as its couple approved it.
+      ...(typeof d.boldText === "boolean" ? { boldText: d.boldText } : {}),
       ...(d.stackNames === true ? { stackNames: true } : {}),
       ...(d.noSignoff === true ? { noSignoff: true } : {}),
       ...(typeof d.signoff === "string" ? { signoff: str(d.signoff, 80) } : {}),
