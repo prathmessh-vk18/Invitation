@@ -614,6 +614,8 @@ function Frame() {
 export const chameli: InviteTheme = {
   id: "chameli",
   tapHint: "tapSeal",
+  // Every Chameli invite gets the heavier, darker text couples kept asking for (data-bold-text).
+  boldText: true,
   // The seal, the bloom and the petals take a little longer than other openings.
   openingMs: 3150,
   root: "",

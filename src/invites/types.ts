@@ -41,6 +41,8 @@ export type InviteTheme = {
   openingMs?: number;
   // Large, bold text by default for every invite of this design.
   largeText?: boolean;
+  // Heavier, darker text by default for every invite of this design (Chameli).
+  boldText?: boolean;
   // A design's own countdown heading (e.g. "Anand Karaj in"), unless the couple set one.
   countdownTitle?: string;
   // A design's own versions of the shared scratch card, countdown and photo album.

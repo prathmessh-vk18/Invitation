@@ -36,7 +36,8 @@ const c = {
 };
 // A soft light halo so thin script and small text stay crisp over clouds.
 const HALO = "0 0 14px rgba(255,250,252,.95), 0 0 3px rgba(255,250,252,.9)";
-const SCRIPT = "var(--font-pinyon), cursive";
+// Great Vibes, as on Shiva Kalyanam: Pinyon Script was too fine to read on phones.
+const SCRIPT = "var(--font-great-vibes), cursive";
 const HAND = "var(--font-parisienne), cursive";
 const SKY = "#f3dce4";
 const ease = [0.22, 1, 0.36, 1] as const;

@@ -39,7 +39,7 @@ const chameliSkin: Skin = { cover: I("chameli-cover.jpg"), paper: I("chameli-pap
 
 export const skins: Record<string, Skin> = {
   sarovar: { cover: I("sarovar-hero.jpg"), paper: P("sarovar"), safe: [14, 14, 9], ink: "#3a1d20", accent: "#8a1c2b", soft: "#6b4a4c", script: "Dancing Script", label: "Cinzel" },
-  gaurishankar: { cover: I("shiv-kailash.jpg"), paper: I("shiv-card.webp"), safe: [22, 8, 12], ink: "#36101c", accent: "#9a1d45", soft: "#55303b", script: "Pinyon Script", label: "Cinzel", coverTop: 6 },
+  gaurishankar: { cover: I("shiv-kailash.jpg"), paper: I("shiv-card.webp"), safe: [22, 8, 12], ink: "#36101c", accent: "#9a1d45", soft: "#55303b", script: "Great Vibes", label: "Cinzel", coverTop: 6 },
   haveli: { cover: I("haveli-gate.jpg"), paper: I("haveli-card.jpg"), safe: [22, 14, 18], ink: "#5a1f2b", accent: "#9c4a3c", soft: "#6e564a", script: "Pinyon Script", label: "Cinzel" },
   mandir: mandirSkin,
   khat: khatSkin,
@@ -93,6 +93,7 @@ const showPhone = (p: string) =>
 
 const FONT_FAMILIES: Record<string, string> = {
   "--font-pinyon": "Pinyon Script",
+  "--font-great-vibes": "Great Vibes",
   "--font-parisienne": "Parisienne",
   "--font-dancing": "Dancing Script",
   "--font-yeseva": "Yeseva One",

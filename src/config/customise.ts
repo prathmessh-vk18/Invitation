@@ -39,6 +39,14 @@ export const fontStyles: FontStyle[] = [
     label: "var(--font-marcellus), serif",
   },
   {
+    id: "graceful",
+    name: "Graceful",
+    note: "Flowing calligraphy, easy to read",
+    script: "var(--font-great-vibes), cursive",
+    serif: "var(--font-cormorant), serif",
+    label: "var(--font-cinzel), serif",
+  },
+  {
     id: "brush",
     name: "Brush script",
     note: "Hand-lettered and lively",
