@@ -43,7 +43,8 @@ export function VideoInvite({
         src={invite.video.src}
         poster={invite.video.poster}
         playsInline
-        preload="metadata"
+        // Starts downloading while the guest is still on the poster, so the tap plays without waiting.
+        preload="auto"
         onPlay={() => setState("playing")}
         onPause={() => setState((s) => (s === "ended" ? s : "paused"))}
         onEnded={() => setState("ended")}
