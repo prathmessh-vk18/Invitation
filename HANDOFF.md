@@ -24,12 +24,14 @@ Use these before writing new code.
 **Any design**
 
 - `words`: rewords fixed phrases, keyed by i18n key, e.g. `{ momentsKicker: "Their moments", scratchTitle: "Date and Place" }`. `""` hides a kicker.
-- `boldText`: heavier text, and darker ink on Chameli.
+- `boldText`: heavier text, and darker ink. Every Chameli invite has it by default now (theme `boldText: true`).
 - `countdownTitle`
 - `noMapSearch`: shows Directions only where the couple gave a map link.
 - `occasion: "reception"`
 - `lang: "hi"`: the whole invite in Hindi. Mandir, Chameli and the PDF all follow it; translate the couple's own text by hand (names, parents, functions, venues, city, message, closing). Live for anuj-weds-riya (shekhar-weds-meenakshi was tried and reverted to English at the client's request).
 - `video` (`{ src, poster }`): a couple's own finished video plays full screen in place of the design; `template` then only colours the share card. Compress to 1080×1920 H.264 (~15 MB) and upload to R2 `videos/<slug>.mp4` + `.jpg` poster. (Tried for ananya-weds-debi, since deleted: buffered because media.aavjoo.in isn't cached by Cloudflare yet.)
+
+**Fonts:** Gauri Shankar's script is Great Vibes (as Shiva Kalyanam), not Pinyon. Great Vibes is also in the font styles as "Graceful".
 
 **Mandir**
 
