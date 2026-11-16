@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRef, type CSSProperties, type ReactNode } from "react";
 import { site } from "@/config/site";
 import type { Invite, InviteEvent } from "@/data/invites";
-import { fmtDate, monthName, time, weekday, yearNum } from "@/lib/format";
+import { fmtDate, monthName, splitAfter, time, weekday, yearNum } from "@/lib/format";
 import { langOf } from "./i18n";
 import { makeIllustrated } from "./illustrated";
 import { InkCentered } from "./ink";
@@ -249,7 +249,7 @@ function Details({ invite, show }: { invite: Invite; show: (d: number) => object
       <div className="absolute -inset-x-[10%] -inset-y-[18%] rounded-[50%] bg-[radial-gradient(closest-side,rgba(255,250,248,.9),rgba(255,250,248,0))]" />
       <motion.p {...show(0.2)} className="relative text-[3.6cqw] leading-snug font-semibold" style={{ color: c.crimson, fontFamily: "var(--font-deva)", textShadow: HALO }}>
         {invite.invocationLines
-          ? invite.invocation.split(/(?<=[।|])(?!\s*$)\s*/).map((line, i) => (
+          ? splitAfter(invite.invocation, /([।|])(?!\s*$)\s*/g).map((line, i) => (
               <span key={i} className="block whitespace-nowrap">
                 {line}
               </span>
@@ -532,7 +532,7 @@ function Closing({ invite }: { invite: Invite }) {
         <Divider className="mt-[4cqw]" />
         <p className="inv-serif mt-[4cqw] text-[5.2cqw] leading-snug font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
           {invite.closingLines
-            ? invite.closing.split(/(?<=[.!?])\s+/).map((line, i) => (
+            ? splitAfter(invite.closing, /([.!?])\s+/g).map((line, i) => (
                 <span key={i} className="block text-[4.3cqw] whitespace-nowrap">
                   {line.replace(/\.$/, "")}
                 </span>

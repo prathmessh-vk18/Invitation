@@ -6,7 +6,7 @@ import { AnimatePresence, motion, useInView } from "framer-motion";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { site } from "@/config/site";
 import type { Invite, InviteEvent } from "@/data/invites";
-import { fmtDate } from "@/lib/format";
+import { fmtDate, splitAfter } from "@/lib/format";
 import { useOpened } from "./opened";
 import { couple } from "./shared";
 import type { InviteTheme, OpeningProps } from "./types";
@@ -479,7 +479,7 @@ function Lotus({ className = "" }: { className?: string }) {
 }
 
 /** The opening line split after each half-verse ("|", "।"), one line each. */
-const verseLines = (text: string) => text.split(/(?<=[|।])(?!\s*[॥|।]?\s*$)\s*/).filter(Boolean);
+const verseLines = (text: string) => splitAfter(text, /([|।])(?!\s*[॥|।]?\s*$)\s*/g).filter(Boolean);
 
 function Blessing({ invite }: { invite: Invite }) {
   const [a, b] = couple(invite);
@@ -1066,7 +1066,7 @@ function Compliments({ names }: { names: string[] }) {
 /* ───────── Closing: seated together on Kailash ───────── */
 
 function Closing({ invite }: { invite: Invite }) {
-  const lines = invite.closing.split(/(?<=[.!?])\s+/).filter(Boolean);
+  const lines = splitAfter(invite.closing, /([.!?])\s+/g).filter(Boolean);
   return (
     <>
     {!!invite.compliments?.length && <Compliments names={invite.compliments} />}
