@@ -272,6 +272,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.invocationLines === true ? { invocationLines: true } : {}),
       ...(typeof d.closingNames === "string" && d.closingNames.trim() ? { closingNames: str(d.closingNames, 60) } : {}),
       ...(d.hostsLines === true ? { hostsLines: true } : {}),
+      ...(d.hostsLarge === true ? { hostsLarge: true } : {}),
       ...(d.secondCouple && typeof d.secondCouple === "object"
         ? (() => {
             const sc = d.secondCouple as Record<string, Record<string, unknown>>;

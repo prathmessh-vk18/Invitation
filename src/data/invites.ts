@@ -157,6 +157,8 @@ export type Invite = {
   words?: Record<string, string>;
   // The hosts' line split at " & " onto separate lines, "&" on its own (Mandir).
   hostsLines?: boolean;
+  // The family line above the wording a size up, for a family who want it to read clearly (Rajwada).
+  hostsLarge?: boolean;
   // Functions grouped into one card per day, instead of a card each.
   eventsByDay?: boolean;
   // With eventsByDay: a name for each day, in order ("Sagai", "Shaadi"…), shown beside its date in the RSVP.

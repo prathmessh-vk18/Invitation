@@ -170,8 +170,8 @@ function Blessing({ invite }: { invite: Invite }) {
   return (
     <section className="relative px-[7cqw] py-[14cqw] text-center">
       <Reveal>
-        <p className="inv-label text-[2.6cqw] text-[#f6d987]">{invite.hosts}</p>
-        <p className="inv-serif mx-auto mt-[4cqw] max-w-[78cqw] text-[5cqw] leading-snug text-[#fbf1dc]/90 italic">{invite.message}</p>
+        <p className={`inv-label text-[#f6d987] ${invite.hostsLarge ? "text-[4cqw]" : "text-[2.6cqw]"}`}>{invite.hosts}</p>
+        <p className="inv-serif mx-auto mt-[4cqw] max-w-[78cqw] text-[5cqw] leading-snug whitespace-pre-line text-[#fbf1dc]/90 italic">{invite.message}</p>
       </Reveal>
       <div className={invite.stackNames ? "mx-auto mt-[10cqw] grid max-w-[72cqw] gap-[4cqw]" : "mt-[10cqw] grid grid-cols-[1fr_auto_1fr] items-center gap-[2cqw]"}>
         {[a, b].map((p, i) => (
