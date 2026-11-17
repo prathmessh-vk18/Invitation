@@ -8,7 +8,7 @@ import { isMapUrl, splitMapLink } from "@/lib/format";
 
 export type Person = { first: string; full: string; parents: string };
 // `devanagari` and `end` aren't in the form, but are kept when editing an order that has them.
-export type EventRow = { kind: EventKind; name: string; date: string; time: string; venue: string; address: string; mapUrl: string; dress: string; note: string; devanagari?: string; end?: string };
+export type EventRow = { kind: EventKind; name: string; date: string; time: string; venue: string; address: string; mapUrl: string; dress: string; note: string; devanagari?: string; end?: string; timeText?: string };
 export type FormState = {
   lead: "bride" | "groom";
   bride: Person;
@@ -293,6 +293,7 @@ export function toDetails(s: FormState, template?: string) {
       note: e.note,
       ...(e.devanagari ? { devanagari: e.devanagari } : {}),
       ...(e.end ? { end: e.end } : {}),
+      ...(e.timeText ? { timeText: e.timeText } : {}),
     })),
     rsvp: { phone: waNumber(rsvp) ? `+${waNumber(rsvp)}` : "", by: s.rsvpBy ? iso(s.rsvpBy, "00:00") : "", contact: s.hosts },
     closing: s.closing,
@@ -359,6 +360,8 @@ export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState[
         note: e.note ?? "",
         ...(e.devanagari ? { devanagari: e.devanagari } : {}),
         ...(e.end ? { end: e.end } : {}),
+        // set by hand: the couple's own wording for the time, kept through their edits
+        ...(e.timeText ? { timeText: e.timeText } : {}),
       };
     }),
     rsvpSame: !rsvp || rsvp === own,
@@ -414,6 +417,7 @@ export function toPreview(s: FormState, demo: Invite): Invite {
       address: e.address,
       dress: e.dress || undefined,
       note: e.note || undefined,
+      ...(e.timeText ? { timeText: e.timeText } : {}),
     })),
   };
 }
