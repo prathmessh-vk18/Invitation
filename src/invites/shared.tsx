@@ -282,7 +282,7 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
     }
     // With a single function there is nothing to pick, so it counts as picked.
     const going = choices.length === 1 ? choices : choices.filter((c) => events.includes(c));
-    const lines = attending === "yes" ? t.rsvpYes(a.first, b.first, name, guests, going.join(", ")) : t.rsvpNo(a.first, b.first, name);
+    const lines = attending === "yes" ? t.rsvpYes(a.first, b.first, name, guests, going.join(", "), invite.occasion) : t.rsvpNo(a.first, b.first, name, invite.occasion);
     if (askStay && attending === "yes") lines.push(stay === "yes" ? t.rsvpStay(stayDays) : t.rsvpNoStay);
     if (note.trim()) lines.push(t.rsvpNote(note.trim()));
     window.open(`https://wa.me/${invite.rsvp.phone}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank");

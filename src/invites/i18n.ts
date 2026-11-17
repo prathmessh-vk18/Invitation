@@ -9,6 +9,12 @@ import { fmtDate } from "@/lib/format";
  */
 export type Lang = "en" | "hi";
 
+/** The celebration an RSVP message is for, from the invite's occasion. */
+const occasionWord = {
+  en: (o?: string) => (o === "engagement" ? "engagement" : o === "reception" ? "wedding reception" : "wedding"),
+  hi: (o?: string) => (o === "engagement" ? "शुभ सगाई" : o === "reception" ? "स्वागत समारोह" : "शुभ विवाह"),
+};
+
 const en = {
   tapToOpen: "Tap to open",
   scroll: "Scroll",
@@ -71,13 +77,14 @@ const en = {
   note: "A note for the couple",
   optional: "Optional",
   sendRsvp: "Send RSVP on WhatsApp",
-  rsvpYes: (a: string, b: string, name: string, guests: number, events: string) => [
-    `Namaste! RSVP for ${a} & ${b}'s wedding 🌸`,
+  // `occasion` names the celebration in the message (an engagement invite says "engagement").
+  rsvpYes: (a: string, b: string, name: string, guests: number, events: string, occasion?: string) => [
+    `Namaste! RSVP for ${a} & ${b}'s ${occasionWord.en(occasion)} 🌸`,
     `Name: ${name}`,
     `Guests: ${guests}`,
     `Attending: ${events || "—"}`,
   ],
-  rsvpNo: (a: string, b: string, name: string) => [`Namaste! RSVP for ${a} & ${b}'s wedding`, `Name: ${name}`, `Sadly we can't make it, but sending all our love 🙏`],
+  rsvpNo: (a: string, b: string, name: string, occasion?: string) => [`Namaste! RSVP for ${a} & ${b}'s ${occasionWord.en(occasion)}`, `Name: ${name}`, `Sadly we can't make it, but sending all our love 🙏`],
   rsvpNote: (n: string) => `Note: ${n}`,
   // Chameli's own words.
   specialInvite: "A special invitation awaits",
@@ -154,13 +161,13 @@ const hi: typeof en = {
   note: "नवयुगल के लिए संदेश",
   optional: "वैकल्पिक",
   sendRsvp: "WhatsApp पर उत्तर भेजें",
-  rsvpYes: (a, b, name, guests, events) => [
-    `नमस्ते! ${a} और ${b} के शुभ विवाह हेतु उत्तर 🌸`,
+  rsvpYes: (a, b, name, guests, events, occasion) => [
+    `नमस्ते! ${a} और ${b} के ${occasionWord.hi(occasion)} हेतु उत्तर 🌸`,
     `नाम: ${name}`,
     `अतिथि: ${guests}`,
     `कार्यक्रम: ${events || "—"}`,
   ],
-  rsvpNo: (a, b, name) => [`नमस्ते! ${a} और ${b} के शुभ विवाह हेतु उत्तर`, `नाम: ${name}`, `क्षमा करें, हम नहीं आ पाएंगे, पर हमारी शुभकामनाएँ आपके साथ हैं 🙏`],
+  rsvpNo: (a, b, name, occasion) => [`नमस्ते! ${a} और ${b} के ${occasionWord.hi(occasion)} हेतु उत्तर`, `नाम: ${name}`, `क्षमा करें, हम नहीं आ पाएंगे, पर हमारी शुभकामनाएँ आपके साथ हैं 🙏`],
   rsvpNote: (n) => `संदेश: ${n}`,
   specialInvite: "आपके लिए एक विशेष निमंत्रण",
   openInvitation: "निमंत्रण खोलें",
