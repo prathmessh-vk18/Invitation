@@ -57,7 +57,7 @@ export function PaymentActions({ id, status, amount, code, customerPhone, nudge 
   const ask =
     status === "live"
       ? `Hi! Your ${site.name} invite for order ${code} is live 🎉\n\nThe total is ${amount}. I'm sending the payment QR code here. Once you've paid, please share the screenshot.`
-      : `Hi! Thank you for your order ${code} with ${site.name} ❀\n\nThe total is ${amount}. I'm sending the payment QR code here. Once you've paid, please share the screenshot and we'll publish your invite.`;
+      : `Hi! Thank you for your order ${code} with ${site.name} 🌸\n\nThe total is ${amount}. I'm sending the payment QR code here. Once you've paid, please share the screenshot and we'll publish your invite.`;
   if (status === "cancelled") return <p className="text-body text-muted">Cancelled.</p>;
   return (
     <div className="space-y-3">

@@ -38,7 +38,7 @@ export function nudgeMessage(order: Pick<Order, "code" | "amount" | "details">, 
   const soon = days >= 0 && days <= SOON_DAYS ? `\nThe wedding is just ${days} days away, so the sooner guests get it, the better.` : "";
   const price = s ? `${formatINR(order.amount)} (launch price, you save ${formatINR(s.off)} on the ${formatINR(s.mrp)} MRP)` : formatINR(order.amount);
   if (nudges === 0) {
-    return `Hi! Your ${t?.name ?? ""} invite for ${a} & ${b} is ready to go live ❀\n\nPay ${price} here and you'll have your link within ${LINK_IN}:\n${payUrl}${soon}\n\nUPI, cards or netbanking. Order ${order.code} · ${site.name}`;
+    return `Hi! Your ${t?.name ?? ""} invite for ${a} & ${b} is ready to go live 🌸\n\nPay ${price} here and you'll have your link within ${LINK_IN}:\n${payUrl}${soon}\n\nUPI, cards or netbanking. Order ${order.code} · ${site.name}`;
   }
   return `Hi! Just checking in on ${a} & ${b}'s invite (order ${order.code}) 🙂\n\nIt's all set and waiting. Pay ${formatINR(order.amount)} here and it goes live within ${LINK_IN}:\n${payUrl}${soon}\n\nThe launch price is held on your order. Any questions, just reply here.`;
 }
