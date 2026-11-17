@@ -12,6 +12,8 @@ export type InviteEvent = {
   // ISO strings with the +05:30 offset so times render the same everywhere.
   start: string;
   end?: string;
+  // The couple's own wording for the time, shown in place of the start time (e.g. "शाम 8:30 से रात 2:00 बजे तक").
+  timeText?: string;
   venue: string;
   address: string;
   dress?: string;

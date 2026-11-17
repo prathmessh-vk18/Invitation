@@ -151,7 +151,7 @@ export function pdfHtml(invite: Invite, opts: { siteUrl: string; inviteUrl: stri
   for (let i = 0; i < events.length; i += per) chunks.push(events.slice(i, i + per));
   // A card holding several functions lists each time with what happens then, under the day.
   const ev = (e: InviteEvent) => `<div class="ev">
-    <p class="lab">${esc(f(e.start, { weekday: "long" }))} · ${esc(f(e.start, { day: "numeric", month: hi ? "long" : "short" }))}${e.schedule?.length ? "" : ` · ${time(e.start)}`}</p>
+    <p class="lab">${esc(f(e.start, { weekday: "long" }))} · ${esc(f(e.start, { day: "numeric", month: hi ? "long" : "short" }))}${e.schedule?.length ? "" : ` · ${esc(e.timeText ?? time(e.start))}`}</p>
     <p class="evn script">${esc(e.name)}</p>
     ${(e.schedule ?? []).map((x) => `<p class="ven"><b>${time(x.at)}</b> · ${esc(x.text)}</p>`).join("")}
     ${

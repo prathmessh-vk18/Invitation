@@ -152,6 +152,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       address: rest.slice(0, 200),
       dress: str(o.dress, 80) || undefined,
       note: str(o.note, 240) || undefined,
+      timeText: str(o.timeText, 60) || undefined,
       ...(mapUrl ? { mapUrl } : {}),
       ...(Array.isArray(o.schedule) && o.schedule.length
         ? {
@@ -250,7 +251,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.stackNames === true ? { stackNames: true } : {}),
       ...(d.noSignoff === true ? { noSignoff: true } : {}),
       ...(typeof d.signoff === "string" ? { signoff: str(d.signoff, 80) } : {}),
-      ...(typeof d.heroKicker === "string" && d.heroKicker.trim() ? { heroKicker: str(d.heroKicker, 60) } : {}),
+      ...(typeof d.heroKicker === "string" && d.heroKicker.trim() ? { heroKicker: str(d.heroKicker, 120) } : {}),
       ...(d.parentsWide === true ? { parentsWide: true } : {}),
       ...(d.noBranding === true ? { noBranding: true } : {}),
       ...(str(d.brandLine, 80) ? { brandLine: str(d.brandLine, 80) } : {}),
