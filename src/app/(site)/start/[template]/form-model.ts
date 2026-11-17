@@ -38,6 +38,11 @@ export type FormState = {
   // names, one per line, and a sign-off line at the end.
   compliments: string;
   signoff: string;
+  // "lists": a titled list printed at the end (e.g. "Our Associates"), one line per entry. Any further
+  // lists set by us ride along untouched.
+  listTitle: string;
+  listLines: string;
+  listsRest?: { title: string; lines: string[] }[];
 };
 
 export const LIMITS = { name: 40, fullName: 80, parents: 160, city: 80, message: 400, closing: 240, venue: 120, address: 200 };
@@ -75,6 +80,8 @@ export function initialState(demo: Invite): FormState {
     font: "",
     compliments: (demo.compliments ?? []).join("\n"),
     signoff: demo.signoff ?? "",
+    listTitle: demo.extras?.[0]?.title ?? "",
+    listLines: (demo.extras?.[0]?.lines ?? []).join("\n"),
   };
 }
 
@@ -107,6 +114,8 @@ function prefilled(demo: Invite): FormState {
     font: demo.font ?? "",
     compliments: (demo.compliments ?? []).join("\n"),
     signoff: demo.signoff ?? "",
+    listTitle: demo.extras?.[0]?.title ?? "",
+    listLines: (demo.extras?.[0]?.lines ?? []).join("\n"),
   };
 }
 
@@ -295,12 +304,14 @@ export function toDetails(s: FormState, template?: string) {
   };
 }
 
-/** The extra fields' values, only for designs that ask for them (always sent there, so clearing one sticks). */
+/** The extra fields' values, each only for designs that ask for it (always sent there, so clearing one sticks). */
 function extras(s: FormState, template?: string) {
-  if (!template || !getTemplate(template)?.extraFields?.length) return {};
+  const asks = (template && getTemplate(template)?.extraFields) || [];
+  const lines = s.listLines.split("\n").map((x) => x.trim()).filter(Boolean);
   return {
-    compliments: s.compliments.split("\n").map((x) => x.trim()).filter(Boolean),
-    signoff: s.signoff.trim(),
+    ...(asks.includes("compliments") ? { compliments: s.compliments.split("\n").map((x) => x.trim()).filter(Boolean) } : {}),
+    ...(asks.includes("signoff") ? { signoff: s.signoff.trim() } : {}),
+    ...(asks.includes("lists") ? { extras: [...(lines.length ? [{ title: s.listTitle.trim(), lines }] : []), ...(s.listsRest ?? [])] } : {}),
   };
 }
 
@@ -360,6 +371,9 @@ export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState[
     ...(d.lang === "hi" ? { lang: "hi" as const } : {}),
     compliments: (d.compliments ?? []).join("\n"),
     signoff: d.signoff ?? "",
+    listTitle: d.extras?.[0]?.title ?? "",
+    listLines: (d.extras?.[0]?.lines ?? []).join("\n"),
+    ...(d.extras && d.extras.length > 1 ? { listsRest: d.extras.slice(1) } : {}),
   };
 }
 

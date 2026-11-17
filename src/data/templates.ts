@@ -34,7 +34,7 @@ export type TemplateMeta = {
   // for one couple whose content is already agreed.
   prefill?: boolean;
   // Extra fields only this design shows in the order form.
-  extraFields?: ("compliments" | "signoff")[];
+  extraFields?: ("compliments" | "signoff" | "lists")[];
   // No printable PDF for this design.
   noPdf?: boolean;
   // The design doesn't show the opening line's meaning, so the form doesn't ask for it.
@@ -172,6 +172,8 @@ export const templates: TemplateMeta[] = [
       "The rest of the invite scrolls inside a painted temple-arch frame, with both families named above your names, every function on its own arch-shaped card, and your photos as polaroids guests can swipe through.",
       "Scratch-to-reveal date, countdown, RSVP and music are all included.",
     ],
+    // A titled list at the end (associates, family, firms) the couple can edit themselves.
+    extraFields: ["lists"],
     price: 299,
     mrp: 999,
     demoSlug: "advait-weds-naina",
@@ -602,6 +604,8 @@ export const templates: TemplateMeta[] = [
       "Both families are named above your names, your ring ceremony and every other function get their own arch-shaped card, and your photos appear as polaroids guests can swipe through.",
       "Scratch-to-reveal date, a countdown to the ring ceremony, RSVP and music are all included.",
     ],
+    // A titled list at the end (associates, family, firms) the couple can edit themselves.
+    extraFields: ["lists"],
     price: 249,
     mrp: 799,
     demoSlug: "rohan-and-ishita",

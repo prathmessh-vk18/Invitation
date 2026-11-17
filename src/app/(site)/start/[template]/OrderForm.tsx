@@ -854,6 +854,12 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
         <Input k="closing" label="Closing line" value={s.closing} onChange={(v) => set("closing", v)} onBlur={() => touch("closing")} error={shown("closing")} maxLength={LIMITS.closing} counter />
         <Input k="hashtag" label="Hashtag" hint="optional" value={s.hashtag} onChange={(v) => set("hashtag", v)} onBlur={() => touch("hashtag")} placeholder="#AaravKiMeera" maxLength={40} />
       </div>
+      {t.extraFields?.includes("lists") && (
+        <>
+          <Input k="listTitle" label="A list at the end: its heading" hint="optional" value={s.listTitle} onChange={(v) => set("listTitle", v)} onBlur={() => {}} placeholder="Our Associates" maxLength={80} />
+          <TextArea k="listLines" label="The list" hint="optional · one line each: names, firms, phone numbers" value={s.listLines} onChange={(v) => set("listLines", v)} onBlur={() => {}} placeholder={"Anil Gupta, Bimal Gupta\nK.V Enterprises, ATG Architects\n98xxxxxx10, 98xxxxxx20"} maxLength={6000} rows={5} />
+        </>
+      )}
       {t.extraFields?.includes("signoff") && (
         <Input k="signoff" label="Sign-off" hint="optional · the last line" value={s.signoff} onChange={(v) => set("signoff", v)} onBlur={() => {}} placeholder="With love · the Saranala family" maxLength={80} />
       )}
