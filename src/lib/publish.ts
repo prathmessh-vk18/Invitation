@@ -93,7 +93,8 @@ export function warmShareCard(slug: string) {
 
 /** "aarav-weds-meera", then with the wedding year, the city, a number, and finally the order code. */
 function slugCandidates(order: Pick<Order, "code" | "details">) {
-  const base = suggestSlug(order.details);
+  // A Hindi invite's names can't make a link, so it may carry its own (slugBase).
+  const base = order.details.slugBase && isValidSlug(order.details.slugBase) ? order.details.slugBase : suggestSlug(order.details);
   const city = slugPart(order.details.city).replace(/-+/g, "-");
   const year = order.details.date.slice(0, 4);
   const named = base.includes("-weds-") ? [base, `${base}-${year}`, city && `${base}-${city}`, `${base}-2`, `${base}-3`] : [];
