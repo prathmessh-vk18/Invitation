@@ -35,7 +35,7 @@ export function PartnerActions({ code, name, phone, upi, token, active, due, sit
   const [copied, setCopied] = useState("");
   const shareLink = `${siteUrl}/r/${code}`;
   const pageLink = `${siteUrl}/p/${token}`;
-  const welcome = `Hi ${name}! Welcome to the ${site.name} partner programme 🌸\n\nShare this link with couples: ${shareLink}\nYour code is ${code}. You earn on every paid order that comes through it.\n\nSee your sales and earnings any time here (keep this one private): ${pageLink}`;
+  const welcome = `Hi ${name}! Welcome to the ${site.name} partner programme ❀\n\nShare this link with couples: ${shareLink}\nYour code is ${code}. You earn on every paid order that comes through it.\n\nSee your sales and earnings any time here (keep this one private): ${pageLink}`;
   const upiPay = upi ? `upi://pay?pa=${upi}&pn=${encodeURIComponent(name)}&am=${due.toFixed(2)}&cu=INR&tn=${encodeURIComponent(`${site.name} commission ${code}`)}` : null;
 
   const copy = (what: string, text: string) => {
