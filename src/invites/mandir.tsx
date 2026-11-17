@@ -241,6 +241,9 @@ function Blessing({ invite }: { invite: Invite }) {
   // In a phone preview there's no walk to rise out of: show it still, at full size.
   const still = usePreview();
   const { t, lang } = useT();
+  // New invites open with the blessing ("With the blessings of Lord Ganesha"), as the PDF does; those
+  // made before 17 Nov 2026 carry blessingTop: false and keep it under the names, as approved.
+  const blessingTop = invite.blessingTop ?? true;
   const parents = (p: typeof a, className: string) =>
     p.parents && (
       <p className={`text-[3.3cqw] leading-snug font-semibold ${className}`} style={{ color: c.name }}>
@@ -270,6 +273,11 @@ function Blessing({ invite }: { invite: Invite }) {
     <section ref={ref} className={`relative z-10 px-[13cqw] pt-[24cqw] pb-[12cqw] text-center ${still ? "" : "-mt-[55svh]"}`}>
       <motion.div style={still ? undefined : { scale, opacity, filter: blur, transformOrigin: "50% 30%" }}>
         <Divider />
+        {invite.invocationMeaning && blessingTop && (
+          <p className="inv-serif mt-[4cqw] text-[3.6cqw] italic" style={{ color: c.soft }}>
+            {invite.invocationMeaning}
+          </p>
+        )}
         {invite.hostsLines && invite.hosts ? (
           // one family per line, "&" between them
           <div className="inv-label mt-[4cqw] text-[3cqw] leading-relaxed font-semibold" style={{ color: c.goldDeep }}>
@@ -294,7 +302,7 @@ function Blessing({ invite }: { invite: Invite }) {
           {t.and}
         </p>
         {person(b)}
-        {invite.invocationMeaning && (
+        {invite.invocationMeaning && !blessingTop && (
           <p className="inv-serif mt-[7cqw] text-[3.6cqw] italic" style={{ color: c.soft }}>
             {invite.invocationMeaning}
           </p>

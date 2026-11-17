@@ -26,6 +26,8 @@ Use these before writing new code.
 - `words`: rewords fixed phrases, keyed by i18n key, e.g. `{ momentsKicker: "Their moments", scratchTitle: "Date and Place" }`. `""` hides a kicker.
 - `boldText`: heavier text and darker ink (set by hand: AAV-1889, AAV-1783).
 - `readable`: faded text made solid, same weight. New Chameli orders get it by default (theme `readable: true`); every Chameli order placed before 16 Nov 2026 carries `readable: false` (and `boldText: false`) so it looks as approved.
+- `blessingTop`: Mandir/Vachan's blessing line ("With the blessings of Lord Ganesha") above the hosts, as the PDF has it. New orders get it by default; every Mandir/Vachan order and invite made before 17 Nov 2026 carries `blessingTop: false` (under the names, as approved), except dev-weds-kamakshi (true).
+- `rsvpPlain`: no ornament under the RSVP title (Mandir). Aastha & Krishna (AAV-1888).
 - `countdownTitle`
 - `noMapSearch`: shows Directions only where the couple gave a map link.
 - `occasion: "reception"`

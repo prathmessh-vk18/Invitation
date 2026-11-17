@@ -279,6 +279,8 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.hostsLines === true ? { hostsLines: true } : {}),
       ...(d.hostsLarge === true ? { hostsLarge: true } : {}),
       ...(d.rsvpPlain === true ? { rsvpPlain: true } : {}),
+      // false keeps a Mandir invite made before the blessing moved to the top as its couple approved it.
+      ...(typeof d.blessingTop === "boolean" ? { blessingTop: d.blessingTop } : {}),
       ...(d.secondCouple && typeof d.secondCouple === "object"
         ? (() => {
             const sc = d.secondCouple as Record<string, Record<string, unknown>>;

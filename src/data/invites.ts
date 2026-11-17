@@ -114,6 +114,8 @@ export type Invite = {
   rsvpLead?: string;
   // No ornament under the RSVP title, so the title and its lead read as one line of thought.
   rsvpPlain?: boolean;
+  // Mandir: the blessing line above the hosts (new orders) or under the names (false: invites made before 17 Nov 2026).
+  blessingTop?: boolean;
   // A couple's own countdown title (e.g. "Our big day countdown" instead of "Until we say “I do”").
   countdownTitle?: string;
   // A couple's own RSVP heading in place of the design's.
