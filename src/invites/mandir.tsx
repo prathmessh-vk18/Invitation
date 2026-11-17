@@ -84,7 +84,7 @@ function Divider({ className }: { className?: string }) {
   return <Sunburst className={`mx-auto block w-[30cqw] ${className ?? ""}`} />;
 }
 
-function Title({ kicker, children }: { kicker?: string; children: ReactNode }) {
+function Title({ kicker, children, plain }: { kicker?: string; children: ReactNode; plain?: boolean }) {
   return (
     <div className="text-center">
       {kicker && (
@@ -95,7 +95,7 @@ function Title({ kicker, children }: { kicker?: string; children: ReactNode }) {
       <h2 className="inv-script mt-[1.5cqw] text-[8.5cqw] leading-[1.05]" style={{ color: c.ink }}>
         {children}
       </h2>
-      <Divider className="mt-[2.5cqw]" />
+      {!plain && <Divider className="mt-[2.5cqw]" />}
     </div>
   );
 }

@@ -112,6 +112,8 @@ export type Invite = {
   rsvpTitle?: string;
   // A smaller line under the RSVP title, in the design's own style (e.g. "with your blessings").
   rsvpLead?: string;
+  // No ornament under the RSVP title, so the title and its lead read as one line of thought.
+  rsvpPlain?: boolean;
   // A couple's own countdown title (e.g. "Our big day countdown" instead of "Until we say “I do”").
   countdownTitle?: string;
   // A couple's own RSVP heading in place of the design's.

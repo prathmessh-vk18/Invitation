@@ -31,7 +31,8 @@ export type InviteTheme = {
   // Optional ornamental frame drawn above the content; the invite scrolls underneath it.
   Frame?: FC;
   Divider: FC<{ className?: string }>;
-  Title: FC<{ kicker?: string; children: ReactNode }>;
+  // `plain` leaves out the ornament under the title, where a design draws one (Mandir).
+  Title: FC<{ kicker?: string; children: ReactNode; plain?: boolean }>;
   // The words on the shared "tap to open" pill and the "scroll" pill after opening (keys into i18n).
   tapHint?: "tapSeal" | "tapDoors" | "tapRing" | "tapMoon" | "tapKolam" | "tapDupatta" | "tapCircle" | "tapAnywhere" | "tapHere";
   // Seconds before the tap hint shows, for openings with an animation worth watching first.

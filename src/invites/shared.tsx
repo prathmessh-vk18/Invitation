@@ -305,8 +305,10 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
           </div>
         ) : (
           <>
-            <theme.Title kicker={t.rsvpKicker}>{invite.rsvpTitle ?? t.rsvpTitle}</theme.Title>
-            {invite.rsvpLead && <p className="inv-serif mx-auto max-w-[75cqw] text-center text-[4.4cqw] leading-snug italic">{invite.rsvpLead}</p>}
+            <theme.Title kicker={t.rsvpKicker} plain={invite.rsvpPlain}>
+              {invite.rsvpTitle ?? t.rsvpTitle}
+            </theme.Title>
+            {invite.rsvpLead && <p className={`inv-serif mx-auto max-w-[75cqw] text-center text-[4.4cqw] leading-snug italic ${invite.rsvpPlain ? "mt-[1.5cqw]" : ""}`}>{invite.rsvpLead}</p>}
             <p className={`mt-3 text-center text-[3.6cqw] ${theme.ui.muted}`}>{t.replyBy(d.dayMonthYear(invite.rsvp.by))}</p>
           </>
         )}
