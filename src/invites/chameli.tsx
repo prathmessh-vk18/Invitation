@@ -400,17 +400,21 @@ function Hero({ invite }: { invite: Invite }) {
         animate={opened ? { opacity: 1, clipPath: "inset(0 0% 0 0)" } : {}}
         transition={{ delay: AFTER_OPEN + 1.5, duration: 0.9, ease }}
       >
-        {t.and}
+        {invite.joiner ?? t.and}
       </motion.p>
       <p className="leading-tight">
         <Letters text={b.first.toUpperCase()} delay={AFTER_OPEN + 1.7} className={`${caps} text-[7.4cqw] tracking-[0.24em]`} />
       </p>
-      <motion.p {...show(2.4)} className="inv-label mt-[6cqw] text-[3.3cqw] tracking-[0.16em] uppercase">
-        <DayLine iso={invite.date} />
-      </motion.p>
-      <motion.p {...show(2.55)} className={`${italic} mt-[1.5cqw] text-[4cqw]`} style={{ color: c.soft }}>
-        {invite.city}
-      </motion.p>
+      {!invite.hideHeroDate && (
+        <motion.p {...show(2.4)} className="inv-label mt-[6cqw] text-[3.3cqw] tracking-[0.16em] uppercase">
+          <DayLine iso={invite.date} />
+        </motion.p>
+      )}
+      {!invite.hideHeroCity && (
+        <motion.p {...show(2.55)} className={`${italic} mt-[1.5cqw] text-[4cqw]`} style={{ color: c.soft }}>
+          {invite.city}
+        </motion.p>
+      )}
     </section>
   );
 }
@@ -418,14 +422,30 @@ function Hero({ invite }: { invite: Invite }) {
 function Blessing({ invite }: { invite: Invite }) {
   const { t } = useT();
   const [a, b] = couple(invite);
+  // Grandparents: above the name, or under the parents with eldersBelow; in small capitals, or
+  // like the parents' line with eldersPlain.
+  const elders = (p: typeof a, below: boolean) =>
+    p.elders &&
+    !!p.eldersBelow === below &&
+    (p.eldersPlain ? (
+      <p className={`${italic} ${below ? "mt-[1.5cqw]" : "mb-[2cqw]"} text-[3.9cqw] leading-relaxed whitespace-pre-line`} style={{ color: c.soft }}>
+        {p.elders}
+      </p>
+    ) : (
+      <p className={`${caps} ${below ? "mt-[2cqw]" : "mb-[2cqw]"} text-[2.9cqw] leading-relaxed whitespace-pre-line`} style={{ color: c.soft }}>
+        {p.elders}
+      </p>
+    ));
   const person = (p: typeof a, i: number) => (
     <Reveal delay={i * 0.12} className="mt-[7cqw]">
+      {elders(p, false)}
       <p className={`${caps} text-[6cqw]`}>{p.full || p.first}</p>
       {p.parents && (
         <p className={`${italic} mt-[1.5cqw] text-[3.9cqw] leading-relaxed whitespace-pre-line`} style={{ color: c.soft }}>
           {p.parents}
         </p>
       )}
+      {elders(p, true)}
     </Reveal>
   );
   return (
@@ -440,7 +460,7 @@ function Blessing({ invite }: { invite: Invite }) {
       {person(a, 0)}
       <Reveal delay={0.1}>
         <p className="inv-script mt-[3cqw] text-[8cqw] leading-none" style={{ color: c.gold }}>
-          {t.and}
+          {invite.joiner ?? t.and}
         </p>
       </Reveal>
       {person(b, 1)}
@@ -481,7 +501,7 @@ function Glance({ invite }: { invite: Invite }) {
               <DayLine iso={e.start} />
             </motion.p>
             <p className="inv-script mt-[3cqw] text-[9cqw] leading-tight">{e.name}</p>
-            <p className="inv-label mt-[1.5cqw] text-[3.4cqw] tracking-[0.14em] uppercase">{hi ? t.onwards(d.time(e.start)) : `${clock(e.start)} onwards`}</p>
+            <p className="inv-label mt-[1.5cqw] text-[3.4cqw] tracking-[0.14em] uppercase">{e.timeText ?? (hi ? t.onwards(d.time(e.start)) : `${clock(e.start)} onwards`)}</p>
             <p className={`${italic} mt-[2cqw] text-[4cqw] leading-relaxed`} style={{ color: c.soft }}>
               {e.venue}
               {e.address && (
@@ -526,9 +546,23 @@ function Closing({ invite }: { invite: Invite }) {
       <Reveal>
         {invite.closing && <p className={`${italic} text-[4.6cqw] leading-relaxed whitespace-pre-line`}>{invite.closing}</p>}
         <p className="inv-script mt-[6cqw] text-[11cqw] leading-none">
-          {a.first} <span style={{ color: c.gold }}>{lang === "hi" ? t.and : "&"}</span> {b.first}
+          {a.first} <span style={{ color: c.gold }}>{invite.joiner ?? (lang === "hi" ? t.and : "&")}</span> {b.first}
         </p>
         {invite.hashtag && <p className="inv-serif mt-[4cqw] text-[4.2cqw] font-semibold tracking-[0.04em]" style={{ color: c.gold }}>{invite.hashtag}</p>}
+        {invite.extras?.map((g, i) => (
+          <div key={g.title + i} className="mt-[9cqw]">
+            <p className={`${caps} text-[3.6cqw]`} style={{ color: c.gold }}>
+              {g.title}
+            </p>
+            <div className="mt-[2.5cqw] space-y-[1cqw]">
+              {g.lines.map((l, j) => (
+                <p key={j} className={`${italic} text-[4.2cqw] leading-snug`}>
+                  {l}
+                </p>
+              ))}
+            </div>
+          </div>
+        ))}
         {!invite.noBranding && (
           <Link href="/" className="inv-label mt-[8cqw] inline-block text-[2.4cqw] tracking-[0.26em] opacity-70">
             {t.craftedBy(site.name)}

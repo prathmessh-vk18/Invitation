@@ -6,7 +6,7 @@ import type { SectionId } from "@/config/customise";
 import type { Invite, Person } from "@/data/invites";
 
 /** Designs the editor is open for. */
-export const EDITOR_DESIGNS = ["mandir", "gaurishankar"] as const;
+export const EDITOR_DESIGNS = ["mandir", "gaurishankar", "chameli", "khat"] as const;
 export const hasEditor = (template: string) => (EDITOR_DESIGNS as readonly string[]).includes(template);
 
 type Design = (typeof EDITOR_DESIGNS)[number];
@@ -57,6 +57,8 @@ export type Field =
   | (Base & { kind: "photos" })
   // The font style (`font`).
   | (Base & { kind: "font" })
+  // Text size, A− / A+ (`textScale`).
+  | (Base & { kind: "textSize" })
   // People guests can call (`contacts`).
   | (Base & { kind: "contacts" })
   // The bride's and the groom's family lines, each with these fields.
@@ -72,10 +74,12 @@ const names = (ctx: Ctx) => {
 };
 
 /** Kicker (small line) and title of a part whose words come from the design's fixed wording. */
-const heading = (kicker: string, title: string, kickerFallback?: (c: Ctx) => string, titleFallback?: (c: Ctx) => string): Field[] => [
-  { kind: "text", key: `words.${kicker}`, label: "Small line above the heading", max: 60, emptyHides: true, fallback: kickerFallback ?? w(kicker), help: "Clear it to hide the line." },
-  { kind: "text", key: `words.${title}`, label: "Heading", max: 60, fallback: titleFallback ?? w(title) },
+const heading = (kicker: string, title: string, kickerFallback?: (c: Ctx) => string, titleFallback?: (c: Ctx) => string, only?: Design[]): Field[] => [
+  { kind: "text", key: `words.${kicker}`, label: "Small line above the heading", max: 60, emptyHides: true, fallback: kickerFallback ?? w(kicker), help: "Clear it to hide the line.", only },
+  { kind: "text", key: `words.${title}`, label: "Heading", max: 60, fallback: titleFallback ?? w(title), only },
 ];
+/** Text sizes the A− / A+ buttons step through. */
+export const TEXT_SCALES = [0.85, 0.92, 1, 1.08, 1.16, 1.25];
 
 export const editorSections: EditorSection[] = [
   {
@@ -107,20 +111,34 @@ export const editorSections: EditorSection[] = [
         label: "Line above the names",
         max: 80,
         emptyHides: true,
-        fallback: (c) => (c.design === "gaurishankar" ? (c.lang === "hi" ? "आप सपरिवार सादर आमंत्रित हैं" : "We cordially invite you to the wedding of") : ""),
+        fallback: (c) =>
+          c.design === "gaurishankar"
+            ? c.lang === "hi"
+              ? "आप सपरिवार सादर आमंत्रित हैं"
+              : "We cordially invite you to the wedding of"
+            : c.design === "khat"
+              ? c.invite.occasion === "engagement"
+                ? "The engagement of"
+                : "The wedding of"
+              : "",
         placeholder: "e.g. The wedding of",
         suggestions: ["The wedding of", "Together with their families", "Save the date for"],
+        only: ["mandir", "gaurishankar", "khat"],
       },
+      { kind: "text", key: "words.heroThe", label: "Small line above “Wedding”", max: 30, emptyHides: true, fallback: w("heroThe"), help: "Clear it to hide the line.", only: ["chameli"] },
+      { kind: "text", key: "words.heroWedding", label: "Big word on the cover", max: 30, fallback: w("heroWedding"), only: ["chameli"] },
+      { kind: "text", key: "words.heroCelebrations", label: "Line under it", max: 40, emptyHides: true, fallback: w("heroCelebrations"), help: "Clear it to hide the line.", only: ["chameli"] },
       {
         kind: "text",
         key: "joiner",
         label: "Word between the names",
         max: 12,
-        fallback: (c) => (c.design === "gaurishankar" ? (c.lang === "hi" ? "एवं" : "&") : c.invite.occasion === "engagement" ? "&" : c.word("weds")),
+        fallback: (c) =>
+          c.design === "gaurishankar" ? (c.lang === "hi" ? "एवं" : "&") : c.design === "khat" ? "&" : c.design === "chameli" ? c.word("and") : c.invite.occasion === "engagement" ? "&" : c.word("weds"),
         suggestions: ["weds", "&", "with"],
       },
       { kind: "slider", key: "nameScale", label: "Size of the names", min: 0.45, max: 1, step: 0.05, fallback: 1, only: ["mandir"], help: "Make long names smaller so they fit." },
-      { kind: "toggle", key: "stackNames", label: "Names one below the other", only: ["gaurishankar"] },
+      { kind: "toggle", key: "stackNames", label: "Names one below the other", only: ["gaurishankar", "khat"] },
       { kind: "toggle", key: "hideHeroDate", label: "Show the date", invert: true },
       { kind: "toggle", key: "hideHeroCity", label: "Show the city", invert: true },
     ],
@@ -129,7 +147,7 @@ export const editorSections: EditorSection[] = [
     id: "blessing",
     title: "Families & message",
     fields: [
-      { kind: "text", key: "invocationMeaning", label: "Blessing line", max: 120, core: true, placeholder: "With the blessings of Lord Ganesha", only: ["mandir"] },
+      { kind: "text", key: "invocationMeaning", label: "Blessing line", max: 120, core: true, placeholder: "With the blessings of Lord Ganesha", only: ["mandir", "chameli"] },
       {
         kind: "choice",
         key: "blessingTop",
@@ -206,10 +224,12 @@ export const editorSections: EditorSection[] = [
       ...heading(
         "eventsKicker",
         "eventsTitle",
-        (c) => (c.design === "gaurishankar" ? en(c, "Join us for", "eventsKicker") : c.word("eventsKicker")),
-        (c) => (c.design === "gaurishankar" ? en(c, "The celebrations", "eventsTitle") : c.word("eventsTitle")),
+        (c) => (c.design === "mandir" ? c.word("eventsKicker") : en(c, "Join us for", "eventsKicker")),
+        (c) => (c.design === "mandir" ? c.word("eventsTitle") : en(c, "The celebrations", "eventsTitle")),
+        ["mandir", "gaurishankar", "khat"],
       ),
-      { kind: "toggle", key: "boldEvents", label: "Bolder function details", help: "Easier to read for older guests.", only: ["mandir"] },
+      ...heading("celebrationsKicker", "glanceTitle", undefined, undefined, ["chameli"]),
+      { kind: "toggle", key: "boldEvents", label: "Bolder function details", help: "Easier to read for older guests.", only: ["mandir", "khat"] },
       { kind: "toggle", key: "eventsByDay", label: "One card per day", help: "Functions on the same day share a card.", only: ["mandir"] },
       { kind: "toggle", key: "venueLines", label: "Venue on separate lines", help: "Splits the venue at each comma.", only: ["gaurishankar"] },
       {
@@ -277,6 +297,7 @@ export const editorSections: EditorSection[] = [
 
 /** The look of the whole invite, from the editor's "Style" button. */
 export const lookFields: Field[] = [
+  { kind: "textSize", key: "textScale", label: "Text size", help: "Makes the invite's words bigger or smaller. Names keep their size." },
   { kind: "font", key: "font", label: "Font style" },
   {
     kind: "choice",
@@ -289,6 +310,7 @@ export const lookFields: Field[] = [
     ],
     current: (c) => (c.invite.lang === "hi" ? "hi" : "en"),
     fallback: "en",
+    only: ["mandir", "gaurishankar", "chameli"],
   },
   {
     kind: "choice",

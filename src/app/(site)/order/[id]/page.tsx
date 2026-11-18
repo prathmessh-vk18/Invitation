@@ -44,15 +44,21 @@ function Step({ n, done, children }: { n: number; done?: boolean; children: Reac
 /** Asking for changes, and where the last request stands. */
 async function Changes({ order, sent, live, same }: { order: Order; sent: boolean; live: boolean; same: boolean }) {
   if (order.status === "cancelled") return null;
-  const editHref = `/order/${order.id}/edit`;
+  // Designs with the invite editor are changed there, on the invite itself.
+  const editor = hasEditor(order.template);
+  const editHref = editor ? `/customise/${order.id}` : `/order/${order.id}/edit`;
   // Before payment nothing is published yet, so edits save straight away.
   if (order.status === "awaiting_payment" || order.status === "payment_submitted")
     return (
       <Panel className="p-6 sm:p-8">
         <p className="text-title">Need to change something?</p>
-        <p className="mt-1 text-body text-muted">Your invite isn&rsquo;t published yet, so you can edit your details yourself. Changes save straight away.</p>
+        <p className="mt-1 text-body text-muted">
+          {editor
+            ? "Tap anything on your invite to change it: wording, functions, photos, song, font. Free until you pay."
+            : "Your invite isn’t published yet, so you can edit your details yourself. Changes save straight away."}
+        </p>
         <ButtonLink href={editHref} variant="secondary" className="mt-5">
-          Edit your details
+          {editor ? "Customise your invite" : "Edit your details"}
         </ButtonLink>
       </Panel>
     );
@@ -71,7 +77,9 @@ async function Changes({ order, sent, live, same }: { order: Order; sent: boolea
         </p>
       ) : (
         <p className="mt-1 text-body text-muted">
-          Change any detail, function, wording, photo or song in the same form you filled in. Your invite updates straight away, on the same link.
+          {editor
+            ? "Tap anything on your invite to change it: wording, functions, photos, song, font. Each save is one edit, and your invite updates straight away, on the same link."
+            : "Change any detail, function, wording, photo or song in the same form you filled in. Your invite updates straight away, on the same link."}
         </p>
       )}
       {live && !waiting && (
@@ -97,7 +105,7 @@ async function Changes({ order, sent, live, same }: { order: Order; sent: boolea
       ) : (
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <ButtonLink href={editHref} variant={waiting ? "secondary" : "primary"}>
-            {waiting ? "Edit your changes" : "Change your invite"}
+            {waiting ? "Edit your changes" : editor ? "Customise your invite" : "Change your invite"}
           </ButtonLink>
           {c && (
             <span className="text-caption text-subtle">
@@ -269,17 +277,6 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
           </Panel>
         )}
 
-        {hasEditor(order.template) && order.status !== "cancelled" && (
-          <Panel className="p-6 sm:p-8">
-            <p className="text-title">Make it yours</p>
-            <p className="mt-1 text-body text-muted">
-              Hide parts you don&rsquo;t need, change any heading, add grandparents or a list of names, and more. You see each change on your invite as you make it.
-            </p>
-            <ButtonLink href={`/customise/${order.id}`} className="mt-5">
-              Customise your invite
-            </ButtonLink>
-          </Panel>
-        )}
         <Changes order={order} sent={sent} live={query.live === "1"} same={query.same === "1"} />
         {(order.status === "paid" || order.status === "live") && !t.noPdf && (
           <Panel className="p-6 sm:p-8">

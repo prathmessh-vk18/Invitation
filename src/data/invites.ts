@@ -78,6 +78,8 @@ export type Invite = {
   noMapSearch?: boolean;
   // Bigger, darker text throughout, for families whose guests are mostly older.
   largeText?: boolean;
+  // The couple's own text size (A− / A+ in the editor): body text scaled by this, e.g. 1.08. Names keep their size.
+  textScale?: number;
   // Heavier, darker text for readability (darker colours on Chameli; heavier weight on any design).
   boldText?: boolean;
   // Faded text made solid, without heavier type. false keeps an invite made before its design turned it on.

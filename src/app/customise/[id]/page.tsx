@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import { hasEditor } from "@/config/editor";
 import { getInvite } from "@/data/invites";
 import { getTemplate, type TemplateId } from "@/data/templates";
+import { formatINR } from "@/config/site";
+import { changeSummary } from "@/lib/change-requests";
 import { inviteFromOrder } from "@/lib/order-invite";
 import type { InviteDetails, Order } from "@/lib/orders";
 import { db } from "@/lib/supabase";
@@ -34,8 +36,23 @@ async function Editor({ params }: { params: PageProps<"/customise/[id]">["params
   const full = inviteFromOrder(order, order.invite_slug ?? "preview");
   // The song and photos are the order's own (song_path, photo_paths); the editor shows them from there.
   const extra = { slug: full.slug, template: full.template, ...(full.occasion && !order.details.occasion ? { occasion: full.occasion } : {}) };
+  // Before payment, saving is free and the next step is paying; after it, each Save is one edit.
+  const unpaid = order.status === "awaiting_payment" || order.status === "payment_submitted";
+  const c = unpaid ? null : await changeSummary(order.id, order.extra_edits ?? 0);
+  const account = unpaid
+    ? { kind: "unpaid" as const, pay: order.status === "awaiting_payment" ? `Pay ${formatINR(order.amount)}` : null }
+    : { kind: "paid" as const, editsLeft: c?.left ?? null, allowed: c?.allowed ?? null };
   return (
-    <InviteEditor orderId={order.id} design={order.template} extra={extra} details={order.details} songPath={order.song_path} photoPaths={order.photo_paths ?? []} backHref={`/order/${order.id}`} />
+    <InviteEditor
+      orderId={order.id}
+      design={order.template}
+      extra={extra}
+      details={order.details}
+      songPath={order.song_path}
+      photoPaths={order.photo_paths ?? []}
+      backHref={`/order/${order.id}`}
+      account={account}
+    />
   );
 }
 

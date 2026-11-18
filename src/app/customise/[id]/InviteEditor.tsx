@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { unstable_isUnrecognizedActionError } from "next/navigation";
+import { unstable_isUnrecognizedActionError, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { fontStyles } from "@/config/customise";
-import { getAt, lookFields, sectionsFor, setAt, type Ctx, type Field } from "@/config/editor";
+import { getAt, lookFields, sectionsFor, setAt, TEXT_SCALES, type Ctx, type Field } from "@/config/editor";
 import { instrumentals, songs, type Track } from "@/config/music";
 import type { EventKind, Invite, InviteEvent, Person } from "@/data/invites";
 import { saveEdits } from "@/lib/editor-actions";
@@ -26,6 +26,8 @@ type Props = {
   songPath: string | null;
   photoPaths: string[];
   backHref: string;
+  /** Before payment: saving is free and paying comes next. After: each Save uses one edit. None for a demo. */
+  account?: { kind: "unpaid"; pay: string | null } | { kind: "paid"; editsLeft: number | null; allowed: number | null };
 };
 
 /** Everything the couple can change: their details, and the song and photos kept beside them. */
@@ -42,7 +44,10 @@ const STALE = "Aavjoo was just updated. Please refresh this page and try again."
  * part (or any words on it) and its settings open in a panel from the bottom, with the tapped line's
  * box picked out. Changes show on the invite as they type; Save puts them live.
  */
-export function InviteEditor({ orderId, design, extra, details: startDetails, songPath: startSong, photoPaths: startPhotos, backHref }: Props) {
+export function InviteEditor({ orderId, design, extra, details: startDetails, songPath: startSong, photoPaths: startPhotos, backHref, account }: Props) {
+  const router = useRouter();
+  const [editsLeft, setEditsLeft] = useState(account?.kind === "paid" ? account.editsLeft : null);
+  const [confirming, setConfirming] = useState(false);
   const start: Doc = useMemo(() => ({ details: startDetails, songPath: startSong, photoPaths: startPhotos }), [startDetails, startSong, startPhotos]);
   const [doc, setDoc] = useState<Doc>(start);
   const [saved, setSaved] = useState<Doc>(start);
@@ -173,31 +178,68 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
     setDoc(prev);
   };
 
-  const save = async () => {
+  const unpaid = account?.kind === "unpaid";
+  const payHref = orderId ? `/order/${orderId}?pay=1` : backHref;
+
+  /** Saves; true when the changes were kept (or there was nothing to keep). */
+  const save = async (): Promise<boolean> => {
+    setConfirming(false);
     if (!orderId) {
       setStatus({ tone: "info", text: "This is a demo, so nothing is saved. On your own invite, Save puts your changes live." });
-      return;
+      return false;
     }
     setSaving(true);
+    let ok = false;
     try {
       const res = await saveEdits(orderId, doc);
       if ("errors" in res) setStatus({ tone: "error", text: res.errors.join(" ") });
-      else if ("dryRun" in res) setStatus({ tone: "info", text: "Test copy: your changes were checked and are fine, but not saved (saving is off on this computer)." });
-      else if ("unchanged" in res) {
+      else if ("needsEdits" in res) setStatus({ tone: "error", text: "You've used all your edits. Get 3 more for ₹99 on your order page, then save again." });
+      else if ("dryRun" in res) {
+        ok = true;
+        setStatus({ tone: "info", text: "Test copy: your changes were checked and are fine, but not saved (on this computer only test orders save)." });
+      } else if ("unchanged" in res) {
+        ok = true;
         setSaved(doc);
-        setStatus({ tone: "info", text: "Nothing had changed." });
+        setStatus({ tone: "info", text: "Nothing had changed, so no edit was used." });
       } else if ("pending" in res) {
+        ok = true;
         setSaved(doc);
         setStatus({ tone: "info", text: "Saved. Because this changes both names or moves the date a lot, we'll check it quickly before it goes live." });
       } else {
+        ok = true;
         setSaved(doc);
-        setStatus({ tone: "ok", text: res.live ? "Saved ✓ Your invite is updated on the same link." : "Saved ✓ Your invite will look like this when it goes live." });
+        if (res.editsLeft !== null) setEditsLeft(res.editsLeft);
+        setStatus({
+          tone: "ok",
+          text: res.live
+            ? `Saved ✓ Your invite is updated on the same link.${res.editsLeft !== null ? ` ${res.editsLeft} edit${res.editsLeft === 1 ? "" : "s"} left.` : ""}`
+            : "Saved ✓ Your invite will look like this when it goes live.",
+        });
       }
     } catch (e) {
       setStatus({ tone: "error", text: stale(e) ? STALE : "We couldn't save. Check your internet and try again." });
     }
     setSaving(false);
+    return ok;
   };
+
+  /** The main button: before payment it saves and goes on to pay; after, it asks before using an edit. */
+  const primary = async () => {
+    if (unpaid && account.pay) {
+      if (!dirty || (await save())) router.push(payHref);
+      return;
+    }
+    if (account?.kind === "paid") {
+      if (editsLeft === 0) {
+        setStatus({ tone: "error", text: "You've used all your edits. Get 3 more for ₹99 on your order page, then save again." });
+        return;
+      }
+      setConfirming(true);
+      return;
+    }
+    await save();
+  };
+  const primaryLabel = saving ? "Saving…" : busy > 0 ? "Uploading…" : unpaid && account.pay ? (dirty ? "Save & pay" : account.pay) : dirty || !orderId ? "Save" : "Saved ✓";
 
   const current = sheet?.kind === "section" ? sections.find((s) => s.id === sheet.id) : null;
   const hidden = (id: string) => (details.hide ?? []).includes(id as never);
@@ -217,6 +259,11 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
           </Link>
           <div className="flex items-center gap-2">
             {!orderId && <span className="rounded-full bg-[#fff3c4] px-3 py-2 text-[13px] font-medium text-[#7a5b00] shadow-lg">Demo</span>}
+            {editsLeft !== null && (
+              <span className="rounded-full bg-white/95 px-3 py-2 text-[13px] font-medium text-ink shadow-lg">
+                {editsLeft} edit{editsLeft === 1 ? "" : "s"} left
+              </span>
+            )}
             <button
               type="button"
               onClick={undo}
@@ -237,6 +284,22 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
           </div>
         )}
 
+        {confirming && (
+          <div className="absolute inset-x-3 bottom-[84px] z-40 rounded-2xl bg-white p-4 shadow-2xl">
+            <p className="text-[16px] font-semibold text-ink">Save and put these changes live?</p>
+            <p className="mt-1 text-[14px] leading-snug text-muted">
+              This uses 1 edit{editsLeft !== null ? ` (${Math.max(0, editsLeft - 1)} left after)` : ""}. Make all your changes first, then save once.
+            </p>
+            <div className="mt-3 flex gap-2">
+              <button type="button" onClick={() => setConfirming(false)} className="h-11 flex-1 rounded-full bg-panel text-[15px] font-medium text-ink">
+                Keep editing
+              </button>
+              <button type="button" onClick={save} className="h-11 flex-1 rounded-full bg-ink text-[15px] font-semibold text-white">
+                Save
+              </button>
+            </div>
+          </div>
+        )}
         {status && (
           <div
             role="status"
@@ -261,13 +324,16 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
           <BarButton active={sheet?.kind === "section" && sheet.id === "gallery"} onClick={() => openSection("gallery")} icon={<path d="M3.5 5.5h13v10h-13zM3.5 13l4-4 3 3 2-2 4 4M13 8.5h.01" />}>
             Photos
           </BarButton>
+          <BarButton active={sheet?.kind === "section" && sheet.id === "events"} onClick={() => openSection("events")} icon={<path d="M4 5.5h12v11H4zM4 8.5h12M7.5 3.5v3M12.5 3.5v3M7 11.5h2M11 11.5h2M7 14h2" />}>
+            Functions
+          </BarButton>
           <button
             type="button"
-            onClick={save}
-            disabled={saving || busy > 0 || (!dirty && !!orderId)}
-            className="ml-auto h-12 shrink-0 rounded-full bg-white px-5 text-[16px] font-semibold text-ink transition disabled:opacity-40"
+            onClick={primary}
+            disabled={saving || busy > 0 || (!dirty && !!orderId && !(unpaid && account.pay))}
+            className="ml-auto h-12 min-w-0 shrink rounded-full bg-white px-3.5 text-[15px] leading-tight font-semibold text-ink transition disabled:opacity-40"
           >
-            {saving ? "Saving…" : busy > 0 ? "Uploading…" : dirty || !orderId ? "Save" : "Saved ✓"}
+            {primaryLabel}
           </button>
         </div>
 
@@ -324,7 +390,7 @@ const norm = (s?: string) => (s ?? "").replace(/\s+/g, " ").trim().toLowerCase()
 
 function BarButton({ onClick, active, icon, children }: { onClick: () => void; active?: boolean; icon: ReactNode; children: ReactNode }) {
   return (
-    <button type="button" onClick={onClick} className={`flex h-14 w-[60px] flex-col items-center justify-center gap-1 rounded-xl text-[12px] font-medium ${active ? "bg-white/15" : "active:bg-white/10"}`}>
+    <button type="button" onClick={onClick} className={`flex h-14 w-[54px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl text-[12px] font-medium ${active ? "bg-white/15" : "active:bg-white/10"}`}>
       <svg viewBox="0 0 20 20" className="size-5" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         {icon}
       </svg>
@@ -484,6 +550,28 @@ function FieldView(props: FieldProps) {
       return <PhotosField {...props} />;
     case "font":
       return <FontField {...props} />;
+    case "textSize": {
+      const n = (value as number | undefined) ?? 1;
+      const i = Math.max(0, TEXT_SCALES.indexOf(n));
+      const step = (by: number) => {
+        const next = TEXT_SCALES[Math.min(TEXT_SCALES.length - 1, Math.max(0, i + by))];
+        set(key, next === 1 ? undefined : next);
+      };
+      return (
+        <div>
+          <Label help={f.help}>{f.label}</Label>
+          <div className="flex items-center gap-3">
+            <button type="button" aria-label="Smaller text" disabled={i === 0} onClick={() => step(-1)} className="h-12 w-16 rounded-xl border border-[#d9d9d9] text-[16px] font-semibold text-ink disabled:opacity-35">
+              A−
+            </button>
+            <span className="flex-1 text-center text-[16px] font-semibold text-ink">{Math.round(n * 100)}%</span>
+            <button type="button" aria-label="Bigger text" disabled={i === TEXT_SCALES.length - 1} onClick={() => step(1)} className="h-12 w-16 rounded-xl border border-[#d9d9d9] text-[20px] font-semibold text-ink disabled:opacity-35">
+              A+
+            </button>
+          </div>
+        </div>
+      );
+    }
     case "contacts":
       return <ContactsField {...props} />;
     case "people": {

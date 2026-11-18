@@ -63,7 +63,7 @@ export function InviteRenderer({ invite: given, editing }: { invite: Invite; edi
     <LangContext.Provider value={langOf(invite)}>
     <WordsContext.Provider value={wordsOf(invite)}>
     <OpenedContext.Provider value={opened}>
-      <div ref={rootRef} lang={langOf(invite)} data-large-text={invite.largeText ?? theme.largeText ? "" : undefined} data-bold-text={invite.boldText ?? theme.boldText ? "" : undefined} data-readable={invite.readable ?? theme.readable ? "" : undefined} style={{ ...theme.vars, ...(isScriptFont(invite.scriptFont) ? { "--inv-script": `var(--font-${invite.scriptFont}), cursive` } : {}), ...fontVars(invite.font, (theme.vars as Record<string, unknown>)["--inv-script"]), ...langVars(langOf(invite)) }} className={`${theme.root} min-h-svh`}>
+      <div ref={rootRef} lang={langOf(invite)} data-large-text={invite.largeText ?? theme.largeText ? "" : undefined} data-bold-text={invite.boldText ?? theme.boldText ? "" : undefined} data-readable={invite.readable ?? theme.readable ? "" : undefined} data-text-scale={invite.textScale && invite.textScale !== 1 ? "" : undefined} style={{ ...theme.vars, ...(invite.textScale && invite.textScale !== 1 ? { "--text-scale": String(invite.textScale) } : {}), ...(isScriptFont(invite.scriptFont) ? { "--inv-script": `var(--font-${invite.scriptFont}), cursive` } : {}), ...fontVars(invite.font, (theme.vars as Record<string, unknown>)["--inv-script"]), ...langVars(langOf(invite)) }} className={`${theme.root} min-h-svh`}>
         <main className="@container relative mx-auto w-full max-w-[480px] overflow-x-clip shadow-[0_0_80px_rgba(0,0,0,.25)]">
           <theme.Backdrop />
           <div className="relative">

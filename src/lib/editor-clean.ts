@@ -1,5 +1,5 @@
 import { sectionsFor as optionalSections } from "@/config/customise";
-import { editorSections, fieldsFor, getAt, lookFields, setAt, type Field } from "@/config/editor";
+import { editorSections, fieldsFor, getAt, lookFields, setAt, TEXT_SCALES, type Field } from "@/config/editor";
 import type { InviteDetails } from "@/lib/orders";
 import { cleanPhone } from "@/lib/orders";
 
@@ -89,6 +89,11 @@ function applyField(out: InviteDetails, input: InviteDetails, f: Field, prefix: 
         .filter((g) => g.title || g.lines.length);
       if (same(groups, out.extras ?? [])) return out;
       return setAt(out, "extras", groups.length ? groups : undefined);
+    }
+    case "textSize": {
+      const n = typeof v === "number" ? v : 1;
+      const step = TEXT_SCALES.includes(n) ? n : 1;
+      return setAt(out, key, step === 1 ? undefined : step);
     }
     // Checked by validateDetails with the rest of the couple's details.
     case "datetime":
