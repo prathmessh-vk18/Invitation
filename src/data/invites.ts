@@ -84,6 +84,8 @@ export type Invite = {
   readable?: boolean;
   // The link to publish at when the names can't make one (e.g. Hindi names): "nikhil-weds-nandini".
   slugBase?: string;
+  // Space above / below "weds" between the cover names, in cqw (Mandir; the design tucks both at -1).
+  joinerGap?: { above?: number; below?: number };
   // Pin the design's script lettering to one face (customise.ts scriptFonts), unless a font style is picked.
   scriptFont?: string;
   // Stack the couple's names vertically on the hero cover (first name, &, second name). On Rajwada,
