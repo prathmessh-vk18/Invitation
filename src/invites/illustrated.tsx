@@ -408,8 +408,14 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
         <div className="mt-[8cqw] space-y-[6cqw]">
           {[a, b].map((p, i) => (
             <Reveal key={p === invite.bride ? "bride" : "groom"} delay={0.1 + i * 0.12}>
-              {p.elders && !p.eldersBelow && (
+              {p.elders && !p.eldersBelow && !p.eldersPlain && (
                 <p className={`inv-label mb-[3cqw] leading-relaxed ${L ? "text-[3.4cqw] font-semibold" : "text-[2.8cqw]"}`} style={{ color: c.accent }}>
+                  {p.elders}
+                </p>
+              )}
+              {/* eldersPlain: set like the parents' line, above the name as well as below. */}
+              {p.elders && !p.eldersBelow && p.eldersPlain && (
+                <p className={`inv-serif mb-[2cqw] whitespace-pre-line italic ${L ? "text-[4.4cqw] font-semibold" : "text-[3.6cqw] font-medium"}`} style={{ color: L ? c.ink : c.soft }}>
                   {p.elders}
                 </p>
               )}

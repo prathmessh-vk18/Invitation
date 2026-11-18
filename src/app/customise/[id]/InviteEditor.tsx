@@ -590,8 +590,14 @@ function FieldView(props: FieldProps) {
   const near = person ? person.elders || person.parents || person.full || person.first : undefined;
 
   switch (f.kind) {
-    case "text":
-      return <TextField {...props} value={value as string | undefined} path={key} />;
+    case "text": {
+      // Grandparents added here are set like the parents' line, in the same font and style.
+      const setText =
+        f.key === "elders" && prefix && !person?.elders
+          ? (path: string, v: unknown) => change((d) => setAt(setAt(d, path, v), `${prefix}eldersPlain`, typeof v === "string" && v.trim() ? true : undefined))
+          : set;
+      return <TextField {...props} set={setText} value={value as string | undefined} path={key} />;
+    }
     case "toggle": {
       const on = f.invert ? value !== true : value === true;
       return (

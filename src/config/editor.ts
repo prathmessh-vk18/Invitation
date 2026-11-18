@@ -194,7 +194,10 @@ export const editorSections: EditorSection[] = [
             // Gauri Shankar sets a line below the parents like theirs unless told otherwise.
             current: (c, p) => p?.eldersPlain ?? (c.design === "gaurishankar" && !!p?.eldersBelow),
             fallback: false,
-            when: (_, p) => !!p?.elders,
+            // Not offered: grandparents added in the editor are set like the parents' line
+            // (eldersPlain: true); older invites keep the style they were approved with. Kept
+            // here so a save carries it.
+            when: () => false,
           },
         ],
       },
