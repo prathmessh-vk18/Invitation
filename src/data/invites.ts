@@ -141,7 +141,7 @@ export type Invite = {
   // A finished video invitation the couple brings (made elsewhere), played full screen in place of the design.
   // The design (`template`) then only sets the share card's colours. Files live on R2 under videos/.
   video?: { src: string; poster: string };
-  // Leave the date line off the cover (the dates still show on every function card). Rajwada and Gauri Shankar.
+  // Leave the date line off the cover (the dates still show on every function card). Rajwada, Gauri Shankar and Chameli.
   hideHeroDate?: boolean;
   // Leave the hosts' line ("The … family") off the cover; it still opens the blessing (Phulkari).
   hideHeroHosts?: boolean;

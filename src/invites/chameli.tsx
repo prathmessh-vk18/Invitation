@@ -405,9 +405,11 @@ function Hero({ invite }: { invite: Invite }) {
       <p className="leading-tight">
         <Letters text={b.first.toUpperCase()} delay={AFTER_OPEN + 1.7} className={`${caps} text-[7.4cqw] tracking-[0.24em]`} />
       </p>
-      <motion.p {...show(2.4)} className="inv-label mt-[6cqw] text-[3.3cqw] tracking-[0.16em] uppercase">
-        <DayLine iso={invite.date} />
-      </motion.p>
+      {!invite.hideHeroDate && (
+        <motion.p {...show(2.4)} className="inv-label mt-[6cqw] text-[3.3cqw] tracking-[0.16em] uppercase">
+          <DayLine iso={invite.date} />
+        </motion.p>
+      )}
       <motion.p {...show(2.55)} className={`${italic} mt-[1.5cqw] text-[4cqw]`} style={{ color: c.soft }}>
         {invite.city}
       </motion.p>
