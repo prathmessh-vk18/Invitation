@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { formatINR, site } from "@/config/site";
+import { hasEditor } from "@/config/editor";
 import { getTemplate } from "@/data/templates";
 import { WaIcon } from "@/invites/shared";
 import { longDate } from "@/lib/format";
@@ -268,6 +269,17 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
           </Panel>
         )}
 
+        {hasEditor(order.template) && order.status !== "cancelled" && (
+          <Panel className="p-6 sm:p-8">
+            <p className="text-title">Make it yours</p>
+            <p className="mt-1 text-body text-muted">
+              Hide parts you don&rsquo;t need, change any heading, add grandparents or a list of names, and more. You see each change on your invite as you make it.
+            </p>
+            <ButtonLink href={`/customise/${order.id}`} className="mt-5">
+              Customise your invite
+            </ButtonLink>
+          </Panel>
+        )}
         <Changes order={order} sent={sent} live={query.live === "1"} same={query.same === "1"} />
         {(order.status === "paid" || order.status === "live") && !t.noPdf && (
           <Panel className="p-6 sm:p-8">

@@ -175,12 +175,16 @@ function Names({ invite, show }: { invite: Invite; show: (d: number) => object }
         </span>
         {title(b)}
       </motion.h1>
-      <motion.p {...show(1)} className="inv-label mt-[3cqw] text-[2.6cqw]" style={{ color: c.ink }}>
-        {d.weekday(invite.date)} · {d.day(invite.date)} {d.month(invite.date)} {d.year(invite.date)}
-      </motion.p>
-      <motion.p {...show(1.15)} className="inv-serif mt-[1.5cqw] text-[4cqw] italic" style={{ color: c.ink }}>
-        {invite.city}
-      </motion.p>
+      {!invite.hideHeroDate && (
+        <motion.p {...show(1)} className="inv-label mt-[3cqw] text-[2.6cqw]" style={{ color: c.ink }}>
+          {d.weekday(invite.date)} · {d.day(invite.date)} {d.month(invite.date)} {d.year(invite.date)}
+        </motion.p>
+      )}
+      {!invite.hideHeroCity && (
+        <motion.p {...show(1.15)} className="inv-serif mt-[1.5cqw] text-[4cqw] italic" style={{ color: c.ink }}>
+          {invite.city}
+        </motion.p>
+      )}
     </div>
   );
 }
@@ -250,9 +254,30 @@ function Blessing({ invite }: { invite: Invite }) {
         {p.parents}
       </p>
     );
+  // Grandparents (or any elder who invites): above the parents' line, or under it with eldersBelow;
+  // in small gold capitals, or set like the parents' line with eldersPlain.
+  const elders = (p: typeof a, below: boolean) =>
+    p.elders &&
+    !!p.eldersBelow === below &&
+    (p.eldersPlain ? (
+      <p className="mx-auto max-w-[62cqw] text-[3.3cqw] leading-snug font-semibold whitespace-pre-line" style={{ color: c.name, margin: below ? "1.5cqw auto 0" : "0 auto 1.5cqw" }}>
+        {p.elders}
+      </p>
+    ) : (
+      <p className="inv-label mx-auto max-w-[66cqw] text-[2.7cqw] leading-relaxed font-semibold whitespace-pre-line" style={{ color: c.goldDeep, margin: below ? "1.5cqw auto 0" : "0 auto 1.5cqw" }}>
+        {p.elders}
+      </p>
+    ));
+  const family = (p: typeof a, className: string) => (
+    <>
+      {elders(p, false)}
+      {parents(p, className)}
+      {elders(p, true)}
+    </>
+  );
   const person = (p: typeof a) => (
     <div>
-      {!invite.namesFirst && parents(p, "mx-auto max-w-[62cqw]")}
+      {!invite.namesFirst && family(p, "mx-auto max-w-[62cqw]")}
       <p
         className={`inv-script text-[13.5cqw] leading-[0.95] ${invite.namesFirst ? "whitespace-nowrap" : "mt-[2cqw]"} ${p.title && p.titleInline ? "-mx-[6cqw]" : ""}`}
         style={{ color: c.name, ...(invite.nameScale ? { fontSize: `${(13.5 * invite.nameScale).toFixed(2)}cqw` } : {}) }}
@@ -265,7 +290,7 @@ function Blessing({ invite }: { invite: Invite }) {
           {p.title}
         </p>
       )}
-      {invite.namesFirst && parents(p, "mt-[3cqw] -mx-[6cqw] whitespace-pre-line")}
+      {invite.namesFirst && (p.parents || p.elders) && <div className="mt-[3cqw]">{family(p, "-mx-[6cqw] whitespace-pre-line")}</div>}
     </div>
   );
   return (
@@ -347,7 +372,7 @@ function DayCard({ invite, events }: { invite: Invite; events: InviteEvent[] }) 
           {events.map((e, i) => (
             <li key={e.name + i} className="col-span-2 grid grid-cols-subgrid">
               <span className="inv-serif text-[5cqw] leading-tight font-semibold" style={{ color: c.name }}>
-                {d.time(e.start)}
+                {e.timeText ?? d.time(e.start)}
               </span>
               <span className="inv-serif text-[5cqw] leading-tight font-bold" style={{ color: c.ink }}>
                 {e.name}
@@ -426,7 +451,7 @@ function Events({ invite }: { invite: Invite }) {
                   {d.weekday(e.start)} · {d.shortMonthDate(e.start)}
                 </p>
                 <p className={`inv-serif mt-[1cqw] ${invite.boldEvents ? "text-[4.8cqw] font-semibold" : "text-[4cqw] italic"}`} style={{ color: invite.boldEvents ? c.ink : c.soft }}>
-                  {t.onwards(d.time(e.start))}
+                  {e.timeText ?? t.onwards(d.time(e.start))}
                 </p>
                 <p className={`inv-serif mt-[3cqw] text-[4.4cqw] leading-tight${invite.boldEvents ? " font-semibold" : ""}`} style={{ color: c.ink }}>
                   {e.venue}

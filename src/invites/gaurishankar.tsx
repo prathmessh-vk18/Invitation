@@ -3,11 +3,11 @@
 import Image from "next/image";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
-import { useRef, type CSSProperties, type ReactNode } from "react";
+import { useContext, useRef, type CSSProperties, type ReactNode } from "react";
 import { site } from "@/config/site";
 import type { Invite, InviteEvent } from "@/data/invites";
 import { fmtDate, monthName, splitAfter, time, weekday, yearNum } from "@/lib/format";
-import { langOf, useT } from "./i18n";
+import { langOf, useT, WordsContext } from "./i18n";
 import { makeIllustrated } from "./illustrated";
 import { InkCentered } from "./ink";
 import { INVITE_ART_SIZES, PREVIEW_ART_SIZES, useOpened, usePreview } from "./opened";
@@ -306,9 +306,11 @@ function Details({ invite, show }: { invite: Invite; show: (d: number) => object
               {hi ? `${d.weekday(invite.date)} · ${d.day(invite.date)} ${d.month(invite.date)} ${d.year(invite.date)}` : `${weekday(invite.date)} · ${fmtDate(invite.date, { day: "numeric" })} ${monthName(invite.date)} ${yearNum(invite.date)}`}
             </motion.p>
           )}
-          <motion.p {...show(1.15)} className="inv-serif relative mt-[1.5cqw] text-[4.8cqw] font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
-            {invite.city}
-          </motion.p>
+          {!invite.hideHeroCity && (
+            <motion.p {...show(1.15)} className="inv-serif relative mt-[1.5cqw] text-[4.8cqw] font-semibold italic" style={{ color: c.ink, textShadow: HALO }}>
+              {invite.city}
+            </motion.p>
+          )}
         </>
       )}
     </div>
@@ -380,26 +382,30 @@ function Blessing({ invite }: { invite: Invite }) {
   const scale = useTransform(scrollYProgress, [0, 1], [0.5, 1]);
   const opacity = useTransform(scrollYProgress, [0, 0.45], [0, 1]);
   const preview = usePreview();
+  // Above the parents the elders' line is in small capitals, below them it reads like the parents'
+  // line; eldersPlain (true or false) picks one whichever side it's on.
+  const elders = (p: typeof a) =>
+    p.eldersPlain ?? !!p.eldersBelow ? (
+      <p className="inv-serif mx-auto mt-[1cqw] max-w-[70cqw] text-[4cqw] leading-snug font-semibold whitespace-pre-line italic" style={{ color: c.soft, textShadow: HALO }}>
+        {p.elders}
+      </p>
+    ) : (
+      <p className="inv-label mx-auto mt-[1cqw] max-w-[70cqw] text-[2.9cqw] leading-relaxed font-semibold whitespace-pre-line" style={{ color: c.gold, textShadow: HALO }}>
+        {p.elders}
+      </p>
+    );
   const person = (p: typeof a) => (
     <div>
       <p className="inv-script mt-[1.5cqw] text-[14cqw] leading-[1.05]" style={{ color: c.rose, textShadow: HALO }}>
         <InkCentered nudge={invite.nameNudge?.[p === invite.bride ? "bride" : "groom"] ?? 0}>{p.full || p.first}</InkCentered>
       </p>
-      {p.elders && !p.eldersBelow && (
-        <p className="inv-label mx-auto mt-[1cqw] max-w-[70cqw] text-[2.9cqw] leading-relaxed font-semibold" style={{ color: c.gold, textShadow: HALO }}>
-          {p.elders}
-        </p>
-      )}
+      {p.elders && !p.eldersBelow && elders(p)}
       {p.parents && (
         <p className="inv-serif mx-auto mt-[1cqw] max-w-[70cqw] text-[4.2cqw] leading-snug font-semibold italic" style={{ color: c.soft, textShadow: HALO }}>
           {p.parents}
         </p>
       )}
-      {p.elders && p.eldersBelow && (
-        <p className="inv-serif mx-auto mt-[1cqw] max-w-[70cqw] text-[4cqw] leading-snug font-semibold italic" style={{ color: c.soft, textShadow: HALO }}>
-          {p.elders}
-        </p>
-      )}
+      {p.elders && p.eldersBelow && elders(p)}
     </div>
   );
   return (
@@ -502,10 +508,11 @@ function ArchCard({ e, invite }: { e: InviteEvent; invite: Invite }) {
 
 function Events({ invite }: { invite: Invite }) {
   const { lang, t } = useT();
+  const words = useContext(WordsContext);
   return (
     <section className="relative px-[11cqw] py-[12cqw]">
       <Reveal>
-        {lang === "hi" ? <Title kicker={t.eventsKicker}>{t.eventsTitle}</Title> : <Title kicker="Join us for">The celebrations</Title>}
+        {lang === "hi" ? <Title kicker={t.eventsKicker}>{t.eventsTitle}</Title> : <Title kicker={words.eventsKicker ?? "Join us for"}>{words.eventsTitle || "The celebrations"}</Title>}
       </Reveal>
       <ol className="mt-[8cqw] space-y-[9cqw]">
         {invite.events.map((e, i) => (
@@ -566,6 +573,20 @@ function Closing({ invite }: { invite: Invite }) {
             {invite.hashtag}
           </p>
         )}
+        {invite.extras?.map((g, i) => (
+          <div key={g.title + i} className="mt-[8cqw]">
+            <p className="inv-serif text-[5cqw] leading-snug font-bold" style={{ color: c.rose, textShadow: HALO }}>
+              {g.title}
+            </p>
+            <div className="mt-[2cqw] space-y-[1cqw]">
+              {g.lines.map((l, j) => (
+                <p key={j} className="inv-serif text-[4.4cqw] leading-snug font-semibold" style={{ color: c.ink, textShadow: HALO }}>
+                  {l}
+                </p>
+              ))}
+            </div>
+          </div>
+        ))}
         {!invite.noBranding && (
           <Link href="/" className="inv-label mt-[6cqw] inline-block text-[2.4cqw] font-semibold" style={{ color: c.soft, textShadow: HALO }}>
             {t.craftedBy(site.name)}

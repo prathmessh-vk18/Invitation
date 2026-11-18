@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { fontVars, isScriptFont, shows } from "@/config/customise";
 import type { Invite } from "@/data/invites";
 import { withMapLinks } from "@/lib/format";
+import { EDIT_SECTION } from "./editing";
 import { useFitScript } from "./fit";
 import { useInviteMusic } from "./music";
 import { LangContext, WordsContext, langOf, langVars, wordsOf } from "./i18n";
@@ -14,11 +15,12 @@ import { maroonDoors as MaroonDoors } from "./mandir";
 import { ScratchDate } from "./scratch";
 import { Contacts, Countdown, Gallery, MusicToggle, Rsvp, Story } from "./shared";
 
-export function InviteRenderer({ invite: given }: { invite: Invite }) {
+/** `editing`: the couple's editor, which skips the opening and puts an edit button on each section. */
+export function InviteRenderer({ invite: given, editing }: { invite: Invite; editing?: boolean }) {
   const invite = useMemo(() => withMapLinks(given), [given]);
   const theme = themes[invite.template];
-  const [opened, setOpened] = useState(false);
-  const [gone, setGone] = useState(false);
+  const [opened, setOpened] = useState(!!editing);
+  const [gone, setGone] = useState(!!editing);
   const music = useInviteMusic(invite.music);
   const rootRef = useRef<HTMLDivElement>(null);
   useFitScript(rootRef, [invite, opened]);
@@ -36,17 +38,26 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
   };
 
   // Everything after the cover, in order.
+  // In the editor each part sits in a slot with its edit button; guests get the parts alone.
+  const slot = (id: string, node: ReactNode) =>
+    editing ? (
+      <EditSlot key={id} id={id}>
+        {node}
+      </EditSlot>
+    ) : (
+      node
+    );
   const sections = [
-    <theme.Blessing key="blessing" invite={invite} />,
+    slot("blessing", <theme.Blessing key="blessing" invite={invite} />),
     <theme.Divider key="divider" />,
-    shows(invite, "scratch") && (theme.ScratchSection ? <theme.ScratchSection key="scratch" invite={invite} /> : <ScratchDate key="scratch" invite={invite} theme={theme} />),
-    shows(invite, "countdown") && (theme.CountdownSection ? <theme.CountdownSection key="countdown" invite={invite} /> : <Countdown key="countdown" invite={invite} theme={theme} />),
-    <theme.Events key="events" invite={invite} />,
+    shows(invite, "scratch") && slot("scratch", theme.ScratchSection ? <theme.ScratchSection key="scratch" invite={invite} /> : <ScratchDate key="scratch" invite={invite} theme={theme} />),
+    shows(invite, "countdown") && slot("countdown", theme.CountdownSection ? <theme.CountdownSection key="countdown" invite={invite} /> : <Countdown key="countdown" invite={invite} theme={theme} />),
+    slot("events", <theme.Events key="events" invite={invite} />),
     <Story key="story" invite={invite} theme={theme} />,
-    shows(invite, "gallery") && (theme.GallerySection ? <theme.GallerySection key="gallery" invite={invite} /> : <Gallery key="gallery" invite={invite} theme={theme} />),
-    <Contacts key="contacts" invite={invite} theme={theme} />,
-    shows(invite, "rsvp") && <Rsvp key="rsvp" invite={invite} theme={theme} />,
-    <theme.Closing key="closing" invite={invite} />,
+    shows(invite, "gallery") && slot("gallery", theme.GallerySection ? <theme.GallerySection key="gallery" invite={invite} /> : <Gallery key="gallery" invite={invite} theme={theme} />),
+    invite.contacts?.length ? slot("contacts", <Contacts key="contacts" invite={invite} theme={theme} />) : null,
+    shows(invite, "rsvp") && slot("rsvp", <Rsvp key="rsvp" invite={invite} theme={theme} />),
+    slot("closing", <theme.Closing key="closing" invite={invite} />),
   ].filter(Boolean);
 
   return (
@@ -57,8 +68,10 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
         <main className="@container relative mx-auto w-full max-w-[480px] overflow-x-clip shadow-[0_0_80px_rgba(0,0,0,.25)]">
           <theme.Backdrop />
           <div className="relative">
-            <theme.Hero invite={invite} />
+            {slot("cover", <theme.Hero invite={invite} />)}
             {sections}
+            {/* In the editor, room after the end so the last lines can scroll up above its panel. */}
+            {editing && <div aria-hidden style={{ height: "55vh" }} />}
           </div>
         </main>
 
@@ -96,5 +109,25 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
     </OpenedContext.Provider>
     </WordsContext.Provider>
     </LangContext.Provider>
+  );
+}
+
+/** A part of the invite in the editor, with a button that asks the editor to open its settings. */
+function EditSlot({ id, children }: { id: string; children: ReactNode }) {
+  return (
+    <div data-edit={id} className="relative">
+      {children}
+      <button
+        type="button"
+        onClick={() => window.parent?.postMessage({ type: EDIT_SECTION, id }, window.location.origin)}
+        className="absolute top-[68px] right-3 z-[45] flex items-center gap-1.5 rounded-full bg-[#1c1917]/85 py-2 pr-3.5 pl-3 font-sans text-[14px] leading-none font-medium text-white shadow-lg ring-1 ring-white/30 backdrop-blur active:scale-95"
+        style={{ fontFamily: "system-ui, sans-serif" }}
+      >
+        <svg viewBox="0 0 20 20" className="size-4" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
+          <path d="M13.5 3.5l3 3L7 16H4v-3l9.5-9.5Z" />
+        </svg>
+        Edit
+      </button>
+    </div>
   );
 }
