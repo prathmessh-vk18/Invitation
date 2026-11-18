@@ -46,8 +46,17 @@ export type Field =
   | (Base & { kind: "show"; section: SectionId })
   // Headings with lines under them at the end (`extras`).
   | (Base & { kind: "lists" })
-  // Each function's time in the couple's own words (`events[].timeText`).
-  | (Base & { kind: "times" })
+  // The wedding's date and time (`date`), or a day (e.g. `rsvp.by`).
+  | (Base & { kind: "datetime" })
+  | (Base & { kind: "date" })
+  // A mobile number (e.g. `rsvp.phone`).
+  | (Base & { kind: "phone" })
+  // The functions: add, remove, reorder, and every detail of each (`events`).
+  | (Base & { kind: "functions" })
+  // The couple's photos (the order's photo_paths, not the details).
+  | (Base & { kind: "photos" })
+  // The font style (`font`).
+  | (Base & { kind: "font" })
   // People guests can call (`contacts`).
   | (Base & { kind: "contacts" })
   // The bride's and the groom's family lines, each with these fields.
@@ -74,6 +83,21 @@ export const editorSections: EditorSection[] = [
     title: "Cover",
     note: "The first screen guests see.",
     fields: [
+      { kind: "text", key: "groom.first", label: "Groom's name", max: 40, core: true, help: "As it should appear on the cover." },
+      { kind: "text", key: "bride.first", label: "Bride's name", max: 40, core: true },
+      {
+        kind: "choice",
+        key: "lead",
+        label: "Whose name comes first",
+        options: [
+          { value: "groom", label: "Groom's" },
+          { value: "bride", label: "Bride's" },
+        ],
+        fallback: "groom",
+        current: (c) => c.invite.lead ?? "groom",
+      },
+      { kind: "datetime", key: "date", label: "Wedding date & time", help: "The countdown runs to this." },
+      { kind: "text", key: "city", label: "City", max: 80, core: true, placeholder: "e.g. Jaipur, Rajasthan" },
       { kind: "text", key: "invocation", label: "Blessing at the top", max: 120, core: true, placeholder: "|| श्री गणेशाय नमः ||" },
       { kind: "toggle", key: "invocationLines", label: "Blessing on separate lines", help: "A new line after each “।”.", only: ["gaurishankar"] },
       { kind: "text", key: "invocationMeaning", label: "Line under the blessing", max: 120, core: true, placeholder: "With the blessings of Lord Ganesha", only: ["gaurishankar"] },
@@ -127,6 +151,7 @@ export const editorSections: EditorSection[] = [
         key: "people",
         label: "Parents & grandparents",
         fields: [
+          { kind: "text", key: "full", label: "Full name", max: 80, core: true, help: "The name printed with the families." },
           { kind: "text", key: "parents", label: "Parents' line", max: 160, multiline: true, core: true, placeholder: "Daughter of Mrs. & Mr. …" },
           { kind: "text", key: "elders", label: "Grandparents' line", max: 200, multiline: true, placeholder: "Grandson / Granddaughter of Smt. & Shri …", help: "Optional. Press Enter for a new line." },
           {
@@ -176,15 +201,14 @@ export const editorSections: EditorSection[] = [
   {
     id: "events",
     title: "Functions",
-    note: "Names, dates and venues are changed from your order page.",
     fields: [
+      { kind: "functions", key: "events", label: "Your functions", help: "Add each function guests are invited to, in order." },
       ...heading(
         "eventsKicker",
         "eventsTitle",
         (c) => (c.design === "gaurishankar" ? en(c, "Join us for", "eventsKicker") : c.word("eventsKicker")),
         (c) => (c.design === "gaurishankar" ? en(c, "The celebrations", "eventsTitle") : c.word("eventsTitle")),
       ),
-      { kind: "times", key: "events", label: "Time, in your own words", help: "Leave empty to show the start time. E.g. “7 pm till late”." },
       { kind: "toggle", key: "boldEvents", label: "Bolder function details", help: "Easier to read for older guests.", only: ["mandir"] },
       { kind: "toggle", key: "eventsByDay", label: "One card per day", help: "Functions on the same day share a card.", only: ["mandir"] },
       { kind: "toggle", key: "venueLines", label: "Venue on separate lines", help: "Splits the venue at each comma.", only: ["gaurishankar"] },
@@ -208,8 +232,7 @@ export const editorSections: EditorSection[] = [
     id: "gallery",
     title: "Photos",
     optional: "gallery",
-    note: "Add or change photos from your order page.",
-    fields: [{ kind: "show", key: "hide", section: "gallery", label: "Show this part" }, ...heading("momentsKicker", "momentsTitle")],
+    fields: [{ kind: "show", key: "hide", section: "gallery", label: "Show this part" }, { kind: "photos", key: "photos", label: "Your photos", help: "Up to 8. Guests swipe through them as polaroids." }, ...heading("momentsKicker", "momentsTitle")],
   },
   {
     id: "contacts",
@@ -223,6 +246,8 @@ export const editorSections: EditorSection[] = [
     optional: "rsvp",
     fields: [
       { kind: "show", key: "hide", section: "rsvp", label: "Show this part" },
+      { kind: "phone", key: "rsvp.phone", label: "WhatsApp number for replies", help: "Guests' replies come to this number." },
+      { kind: "date", key: "rsvp.by", label: "Reply by" },
       { kind: "text", key: "words.rsvpKicker", label: "Small line above the heading", max: 60, emptyHides: true, fallback: w("rsvpKicker"), help: "Clear it to hide the line." },
       { kind: "text", key: "rsvpTitle", label: "Heading", max: 60, fallback: w("rsvpTitle") },
       { kind: "text", key: "rsvpLead", label: "Line under the heading", max: 160, placeholder: "e.g. with your blessings" },
@@ -250,8 +275,21 @@ export const editorSections: EditorSection[] = [
   },
 ];
 
-/** The look of the whole invite, from the editor's "Text & font" button. */
+/** The look of the whole invite, from the editor's "Style" button. */
 export const lookFields: Field[] = [
+  { kind: "font", key: "font", label: "Font style" },
+  {
+    kind: "choice",
+    key: "lang",
+    label: "Language of the invite's own words",
+    help: "Headings, dates and buttons. What you type stays as you type it.",
+    options: [
+      { value: "en", label: "English" },
+      { value: "hi", label: "हिन्दी" },
+    ],
+    current: (c) => (c.invite.lang === "hi" ? "hi" : "en"),
+    fallback: "en",
+  },
   {
     kind: "choice",
     key: "textStyle",

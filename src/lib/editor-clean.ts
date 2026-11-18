@@ -39,7 +39,7 @@ function applyField(out: InviteDetails, input: InviteDetails, f: Field, prefix: 
   const v = getAt(input, key);
   // Whatever the couple left as it was stays exactly as saved, even beyond the editor's limits
   // (e.g. a smaller name size we set by hand).
-  if (f.kind !== "people" && f.kind !== "show" && same(v, getAt(out, key)) && !(f.kind === "choice" && f.key === "textStyle")) return out;
+  if (f.kind !== "people" && f.kind !== "show" && same(v, getAt(out, key)) && !(f.kind === "choice" && (f.key === "textStyle" || f.key === "lang"))) return out;
   switch (f.kind) {
     case "text": {
       if (f.core) return v === undefined ? out : setAt(out, key, text(v, f.max, f.multiline));
@@ -50,6 +50,10 @@ function applyField(out: InviteDetails, input: InviteDetails, f: Field, prefix: 
     case "toggle":
       return setAt(out, key, v === true ? true : undefined);
     case "choice": {
+      if (f.key === "lang") {
+        // Applied last, so a couple can go back to English (the order form never sends it).
+        return input.lang === "hi" ? { ...out, lang: "hi" } : setAt(out, "lang", undefined);
+      }
       if (f.key === "textStyle") {
         const style = input.boldText ? "bold" : input.readable ? "clear" : "normal";
         if (style === (out.boldText ? "bold" : out.readable ? "clear" : "normal")) return out;
@@ -86,19 +90,14 @@ function applyField(out: InviteDetails, input: InviteDetails, f: Field, prefix: 
       if (same(groups, out.extras ?? [])) return out;
       return setAt(out, "extras", groups.length ? groups : undefined);
     }
-    case "times": {
-      // Only the wording of each time; which functions there are is the order form's.
-      const given = Array.isArray(input.events) ? input.events : [];
-      const events = out.events.map((e, i) => {
-        const g = given[i];
-        if (!g || g.name !== e.name || g.start !== e.start) return e;
-        const t = text(g.timeText, 60);
-        const rest = { ...e };
-        delete rest.timeText;
-        return t ? { ...rest, timeText: t } : rest;
-      });
-      return { ...out, events };
-    }
+    // Checked by validateDetails with the rest of the couple's details.
+    case "datetime":
+    case "date":
+    case "phone":
+    case "functions":
+    case "photos":
+    case "font":
+      return out;
     case "contacts": {
       const list = (Array.isArray(input.contacts) ? input.contacts : [])
         .slice(0, 6)

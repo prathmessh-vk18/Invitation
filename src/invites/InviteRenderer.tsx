@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { fontVars, isScriptFont, shows } from "@/config/customise";
 import type { Invite } from "@/data/invites";
 import { withMapLinks } from "@/lib/format";
-import { EDIT_SECTION } from "./editing";
 import { useFitScript } from "./fit";
 import { useInviteMusic } from "./music";
 import { LangContext, WordsContext, langOf, langVars, wordsOf } from "./i18n";
@@ -112,22 +111,17 @@ export function InviteRenderer({ invite: given, editing }: { invite: Invite; edi
   );
 }
 
-/** A part of the invite in the editor, with a button that asks the editor to open its settings. */
+/** Names of the parts, shown on the one the couple has tapped. */
+const PART_NAMES: Record<string, string> = {
+  cover: "Cover", blessing: "Families & message", scratch: "Save the date", countdown: "Countdown", events: "Functions",
+  gallery: "Photos", contacts: "Contacts", rsvp: "RSVP", closing: "Ending",
+};
+
+/** A part of the invite in the editor: tapping anywhere on it opens its settings (see FullPreview). */
 function EditSlot({ id, children }: { id: string; children: ReactNode }) {
   return (
-    <div data-edit={id} className="relative">
+    <div data-edit={id} data-label={PART_NAMES[id] ?? id}>
       {children}
-      <button
-        type="button"
-        onClick={() => window.parent?.postMessage({ type: EDIT_SECTION, id }, window.location.origin)}
-        className="absolute top-[68px] right-3 z-[45] flex items-center gap-1.5 rounded-full bg-[#1c1917]/85 py-2 pr-3.5 pl-3 font-sans text-[14px] leading-none font-medium text-white shadow-lg ring-1 ring-white/30 backdrop-blur active:scale-95"
-        style={{ fontFamily: "system-ui, sans-serif" }}
-      >
-        <svg viewBox="0 0 20 20" className="size-4" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
-          <path d="M13.5 3.5l3 3L7 16H4v-3l9.5-9.5Z" />
-        </svg>
-        Edit
-      </button>
     </div>
   );
 }

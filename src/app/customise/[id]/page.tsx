@@ -23,8 +23,8 @@ async function Editor({ params }: { params: PageProps<"/customise/[id]">["params
     const t = getTemplate(demo as TemplateId);
     const invite = t && hasEditor(demo) ? getInvite(t.demoSlug) : null;
     if (!invite) notFound();
-    const { slug, template, music, gallery, ...details } = invite;
-    return <InviteEditor orderId={null} design={demo} extra={{ slug, template, music, gallery }} details={details as InviteDetails} backHref={`/start/${demo}`} />;
+    const { slug, template, gallery, ...details } = invite;
+    return <InviteEditor orderId={null} design={demo} extra={{ slug, template, gallery }} details={details as InviteDetails} songPath={null} photoPaths={[]} backHref={`/start/${demo}`} />;
   }
 
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
@@ -32,8 +32,11 @@ async function Editor({ params }: { params: PageProps<"/customise/[id]">["params
   const order = data as Order | null;
   if (!order || order.status === "cancelled" || !hasEditor(order.template)) notFound();
   const full = inviteFromOrder(order, order.invite_slug ?? "preview");
-  const extra = { slug: full.slug, template: full.template, music: full.music, gallery: full.gallery, ...(full.occasion && !order.details.occasion ? { occasion: full.occasion } : {}) };
-  return <InviteEditor orderId={order.id} design={order.template} extra={extra} details={order.details} backHref={`/order/${order.id}`} />;
+  // The song and photos are the order's own (song_path, photo_paths); the editor shows them from there.
+  const extra = { slug: full.slug, template: full.template, ...(full.occasion && !order.details.occasion ? { occasion: full.occasion } : {}) };
+  return (
+    <InviteEditor orderId={order.id} design={order.template} extra={extra} details={order.details} songPath={order.song_path} photoPaths={order.photo_paths ?? []} backHref={`/order/${order.id}`} />
+  );
 }
 
 export default function CustomisePage({ params }: PageProps<"/customise/[id]">) {

@@ -5,3 +5,5 @@ export const PREVIEW_INVITE = "aavjoo:preview-invite";
 export const PREVIEW_SCROLL = "aavjoo:preview-scroll";
 // The invite asks the editor to open a part's settings (its Edit button).
 export const EDIT_SECTION = "aavjoo:edit-section";
+// The editor marks which part is being edited (null: none).
+export const PREVIEW_SELECT = "aavjoo:preview-select";
