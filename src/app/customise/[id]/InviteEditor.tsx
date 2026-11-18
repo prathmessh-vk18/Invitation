@@ -881,17 +881,34 @@ function FunctionsField({ details, change, reveal, f }: FieldProps) {
           const isOpen = open === i;
           return (
             <div key={i} data-match={`${e.name} ${e.venue}`} className="rounded-2xl bg-white/[0.07]">
-              <button type="button" onClick={() => (setOpen(isOpen ? null : i), reveal(e.name))} className="flex w-full items-center gap-3 p-4 text-left">
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 text-[14px] font-semibold text-white">{i + 1}</span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[16px] font-semibold text-white">{e.name || "New function"}</span>
-                  <span className="block truncate text-[13px] text-white/50">
-                    {prettyDay(e.start)}
-                    {e.venue ? ` · ${e.venue}` : ""}
+              <div className="flex items-center">
+                <button type="button" onClick={() => (setOpen(isOpen ? null : i), reveal(e.name))} className="flex min-w-0 flex-1 items-center gap-3 py-4 pl-4 text-left">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 text-[14px] font-semibold text-white">{i + 1}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[16px] font-semibold text-white">{e.name || "New function"}</span>
+                    <span className="block truncate text-[13px] text-white/50">
+                      {prettyDay(e.start)}
+                      {e.venue ? ` · ${e.venue}` : ""}
+                    </span>
                   </span>
-                </span>
-                <span className="text-[20px] text-white/50">{isOpen ? "−" : "+"}</span>
-              </button>
+                  <span aria-hidden className="grid size-10 shrink-0 place-items-center text-[22px] text-white/60">
+                    {isOpen ? "−" : "+"}
+                  </span>
+                </button>
+                {/* Remove, beside open/close; Undo brings it back. A function always stays. */}
+                {events.length > 1 && (
+                  <button
+                    type="button"
+                    aria-label={`Remove ${e.name || "this function"}`}
+                    onClick={() => (put(i, null), setOpen(null))}
+                    className="mr-2 grid size-10 shrink-0 place-items-center rounded-full text-[#ff6b6b] active:bg-white/10"
+                  >
+                    <svg viewBox="0 0 20 20" className="size-[19px]" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M4 6h12M8 6V4.5h4V6M6 6l.8 10h6.4L14 6M8.5 9v4.5M11.5 9v4.5" />
+                    </svg>
+                  </button>
+                )}
+              </div>
               {isOpen && (
                 <div className="space-y-4 px-4 pb-4">
                   <div>
@@ -1380,15 +1397,15 @@ function Finish({
         </div>
       )}
       <div>
-        <Label help="We send your invite link and edit link here.">Your details</Label>
+        <Label help="All three are needed: we send your invite link and edit link to your WhatsApp and email.">Your details</Label>
         <div className="space-y-2.5">
-          <input value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} placeholder="Your name" autoComplete="name" maxLength={80} className={`${box} h-12`} />
+          <input value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} placeholder="Your name *" autoComplete="name" maxLength={80} className={`${box} h-12`} />
           <input
             type="tel"
             inputMode="tel"
             value={contact.phone}
             onChange={(e) => setContact({ ...contact, phone: e.target.value })}
-            placeholder="WhatsApp number"
+            placeholder="WhatsApp number *"
             autoComplete="tel"
             className={`${box} h-12`}
           />
@@ -1397,7 +1414,7 @@ function Finish({
             inputMode="email"
             value={contact.email}
             onChange={(e) => setContact({ ...contact, email: e.target.value })}
-            placeholder="Email"
+            placeholder="Email *"
             autoComplete="email"
             className={`${box} h-12`}
           />
