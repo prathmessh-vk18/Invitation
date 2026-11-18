@@ -20,6 +20,29 @@ export const instant = false;
 async function Editor({ params }: { params: PageProps<"/customise/[id]">["params"] }) {
   const { id } = await params;
 
+  // A new invite: the design's sample, changed on the invite itself before the order is made.
+  const fresh = /^new-([a-z]+)$/.exec(id)?.[1];
+  if (fresh) {
+    const t = getTemplate(fresh as TemplateId);
+    const invite = t && hasEditor(fresh) ? getInvite(t.demoSlug) : null;
+    if (!t || !invite) notFound();
+    // The sample's photos stay out: the couple adds their own.
+    const { slug, template, ...details } = invite;
+    delete details.gallery;
+    return (
+      <InviteEditor
+        orderId={null}
+        design={fresh}
+        extra={{ slug, template }}
+        details={details as InviteDetails}
+        songPath={null}
+        photoPaths={[]}
+        backHref={`/templates/${t.id}`}
+        draft={{ price: formatINR(t.price) }}
+      />
+    );
+  }
+
   const demo = /^demo-([a-z]+)$/.exec(id)?.[1];
   if (demo) {
     const t = getTemplate(demo as TemplateId);

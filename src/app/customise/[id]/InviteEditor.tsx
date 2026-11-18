@@ -9,7 +9,9 @@ import { instrumentals, songs, type Track } from "@/config/music";
 import type { EventKind, Invite, InviteEvent, Person } from "@/data/invites";
 import { saveEdits } from "@/lib/editor-actions";
 import { mediaUrl } from "@/lib/media";
-import { createPhotoUpload, createSongUpload } from "@/lib/order-actions";
+import { checkPartnerCode, createOrder, createPhotoUpload, createSongUpload } from "@/lib/order-actions";
+import { cleanPartnerCode, readRefCookie } from "@/config/partners";
+import { waNumber } from "@/app/(site)/start/[template]/form-model";
 import { eventKinds, kindName, type InviteDetails } from "@/lib/orders";
 import { shrink, uploadTo } from "@/lib/upload-client";
 import { EDIT_SECTION, PREVIEW_INVITE, PREVIEW_READY, PREVIEW_SCROLL, PREVIEW_SELECT } from "@/invites/editing";
@@ -28,11 +30,15 @@ type Props = {
   backHref: string;
   /** Before payment: saving is free and paying comes next. After: each Save uses one edit. None for a demo. */
   account?: { kind: "unpaid"; pay: string | null } | { kind: "paid"; editsLeft: number | null; allowed: number | null };
+  /** A new invite with no order yet: kept on the phone until the couple adds their details and pays. */
+  draft?: { price: string };
 };
 
 /** Everything the couple can change: their details, and the song and photos kept beside them. */
 type Doc = { details: InviteDetails; songPath: string | null; photoPaths: string[] };
-type Sheet = { kind: "section"; id: string; text?: string } | { kind: "parts" } | { kind: "style" } | { kind: "song" } | null;
+type Sheet = { kind: "section"; id: string; text?: string } | { kind: "parts" } | { kind: "style" } | { kind: "song" } | { kind: "finish" } | null;
+type Contact = { name: string; phone: string; email: string };
+const draftKey = (design: string) => `aavjoo-draft-v1-${design}`;
 type Status = { tone: "ok" | "info" | "error"; text: string } | null;
 
 const MAX_PHOTOS = 8;
@@ -44,12 +50,23 @@ const STALE = "Aavjoo was just updated. Please refresh this page and try again."
  * part (or any words on it) and its settings open in a panel from the bottom, with the tapped line's
  * box picked out. Changes show on the invite as they type; Save puts them live.
  */
-export function InviteEditor({ orderId, design, extra, details: startDetails, songPath: startSong, photoPaths: startPhotos, backHref, account }: Props) {
+export function InviteEditor({ orderId, design, extra, details: startDetails, songPath: startSong, photoPaths: startPhotos, backHref, account, draft }: Props) {
   const router = useRouter();
+  // A new invite picks up where the couple left off on this phone.
+  const [restored] = useState<{ doc: Doc; contact: Contact } | null>(() => {
+    if (!draft || typeof window === "undefined") return null;
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(draftKey(design)) ?? "null");
+      return saved?.doc?.details ? saved : null;
+    } catch {
+      return null;
+    }
+  });
+  const [contact, setContact] = useState<Contact>(restored?.contact ?? { name: "", phone: "", email: "" });
   const [editsLeft, setEditsLeft] = useState(account?.kind === "paid" ? account.editsLeft : null);
   const [confirming, setConfirming] = useState(false);
   const start: Doc = useMemo(() => ({ details: startDetails, songPath: startSong, photoPaths: startPhotos }), [startDetails, startSong, startPhotos]);
-  const [doc, setDoc] = useState<Doc>(start);
+  const [doc, setDoc] = useState<Doc>(restored?.doc ?? start);
   const [saved, setSaved] = useState<Doc>(start);
   const [history, setHistory] = useState<Doc[]>([]);
   const lastPush = useRef(0);
@@ -69,9 +86,9 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
         ...extra,
         ...details,
         music: doc.songPath ? mediaUrl("songs", doc.songPath) : details.music,
-        gallery: doc.photoPaths.length ? doc.photoPaths.map((p) => mediaUrl("photos", p)) : orderId ? undefined : extra.gallery,
+        gallery: doc.photoPaths.length ? doc.photoPaths.map((p) => mediaUrl("photos", p)) : orderId || draft ? undefined : extra.gallery,
       }) as Invite,
-    [extra, details, doc.songPath, doc.photoPaths, orderId],
+    [extra, details, doc.songPath, doc.photoPaths, orderId, draft],
   );
   const lang = langOf(invite);
   const ctx: Ctx = useMemo(() => ({ invite, lang, design, word: (k: string) => defaultWord(lang, k) }), [invite, lang, design]);
@@ -137,13 +154,24 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
     return () => window.clearTimeout(t);
   }, [tappedText, sheet]);
 
-  // Leaving with unsaved changes asks first.
+  // A new invite is kept on this phone as it's made.
   useEffect(() => {
-    if (!dirty) return;
+    if (!draft) return;
+    const t = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(draftKey(design), JSON.stringify({ doc, contact, at: Date.now() }));
+      } catch {}
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [draft, design, doc, contact]);
+
+  // Leaving with unsaved changes asks first (a new invite is kept on the phone instead).
+  useEffect(() => {
+    if (!dirty || draft) return;
     const warn = (e: BeforeUnloadEvent) => e.preventDefault();
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  }, [dirty, draft]);
 
   /** Changes the document; typing in one box within a moment counts as one step for Undo. */
   const update = useCallback((next: (d: Doc) => Doc) => {
@@ -225,6 +253,12 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
 
   /** The main button: before payment it saves and goes on to pay; after, it asks before using an edit. */
   const primary = async () => {
+    if (draft) {
+      post({ type: PREVIEW_SELECT, id: null });
+      setTapped(true);
+      setSheet({ kind: "finish" });
+      return;
+    }
     if (unpaid && account.pay) {
       if (!dirty || (await save())) router.push(payHref);
       return;
@@ -239,12 +273,12 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
     }
     await save();
   };
-  const primaryLabel = saving ? "Saving…" : busy > 0 ? "Uploading…" : unpaid && account.pay ? (dirty ? "Save & pay" : account.pay) : dirty || !orderId ? "Save" : "Saved ✓";
+  const primaryLabel = draft ? (busy > 0 ? "Uploading…" : "Next →") : saving ? "Saving…" : busy > 0 ? "Uploading…" : unpaid && account.pay ? (dirty ? "Save & pay" : account.pay) : dirty || !orderId ? "Save" : "Saved ✓";
 
   const current = sheet?.kind === "section" ? sections.find((s) => s.id === sheet.id) : null;
   const hidden = (id: string) => (details.hide ?? []).includes(id as never);
   const fieldProps = { ctx, details, set, change, reveal, doc, update, setBusy, setStatus };
-  const title = current?.title ?? (sheet?.kind === "style" ? "Style" : sheet?.kind === "song" ? "Song" : "Parts of your invite");
+  const title = current?.title ?? (sheet?.kind === "style" ? "Style" : sheet?.kind === "song" ? "Song" : sheet?.kind === "finish" ? "Almost done" : "Parts of your invite");
 
   return (
     <div className="fixed inset-0 flex justify-center bg-[#2a2622]">
@@ -258,7 +292,7 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
             ← {orderId ? "Order" : "Back"}
           </Link>
           <div className="flex items-center gap-2">
-            {!orderId && <span className="rounded-full bg-[#fff3c4] px-3 py-2 text-[13px] font-medium text-[#7a5b00] shadow-lg">Demo</span>}
+            {!orderId && !draft && <span className="rounded-full bg-[#fff3c4] px-3 py-2 text-[13px] font-medium text-[#7a5b00] shadow-lg">Demo</span>}
             {editsLeft !== null && (
               <span className="rounded-full bg-white/95 px-3 py-2 text-[13px] font-medium text-ink shadow-lg">
                 {editsLeft} edit{editsLeft === 1 ? "" : "s"} left
@@ -330,7 +364,7 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
           <button
             type="button"
             onClick={primary}
-            disabled={saving || busy > 0 || (!dirty && !!orderId && !(unpaid && account.pay))}
+            disabled={saving || busy > 0 || (!draft && !dirty && !!orderId && !(unpaid && account.pay))}
             className="ml-auto h-12 min-w-0 shrink rounded-full bg-white px-3.5 text-[15px] leading-tight font-semibold text-ink transition disabled:opacity-40"
           >
             {primaryLabel}
@@ -356,7 +390,24 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
               ))}
             </div>
           )}
-          {sheet?.kind === "song" && <SongPicker doc={doc} update={update} setBusy={setBusy} demo={!orderId} />}
+          {sheet?.kind === "song" && <SongPicker doc={doc} update={update} setBusy={setBusy} demo={!orderId && !draft} />}
+          {sheet?.kind === "finish" && draft && (
+            <Finish
+              design={design}
+              price={draft.price}
+              doc={doc}
+              sample={start.details}
+              contact={contact}
+              setContact={setContact}
+              open={(id) => openSection(id)}
+              onDone={(id) => {
+                try {
+                  window.localStorage.removeItem(draftKey(design));
+                } catch {}
+                router.push(`/order/${id}?pay=1`);
+              }}
+            />
+          )}
           {sheet?.kind === "parts" && (
             <ul className="divide-y divide-line">
               {sections.map((s) => (
@@ -378,6 +429,21 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
                   </button>
                 </li>
               ))}
+              {draft && (
+                <li className="pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!window.confirm("Start again from the sample? Your changes on this phone will be cleared.")) return;
+                      update(() => start);
+                      closeSheet();
+                    }}
+                    className="h-11 text-[14px] font-medium text-[#8a1c1c]"
+                  >
+                    Start again from the sample
+                  </button>
+                </li>
+              )}
             </ul>
           )}
         </BottomSheet>
@@ -1143,6 +1209,145 @@ function ContactsField({ details, change, reveal }: FieldProps) {
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+/* ───────── Finish: a new invite becomes an order ───────── */
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+/** What's still the design's sample, so a couple doesn't pay for an invite with someone else's details. */
+function stillSample(d: InviteDetails, sample: InviteDetails) {
+  const out: { label: string; part: string; must?: boolean }[] = [];
+  if (d.bride.first.trim() === sample.bride.first || d.groom.first.trim() === sample.groom.first) out.push({ label: "The names", part: "cover", must: true });
+  if (d.date === sample.date) out.push({ label: "The wedding date", part: "cover", must: true });
+  if (d.city === sample.city) out.push({ label: "The city", part: "cover" });
+  if (d.hosts && d.hosts === sample.hosts) out.push({ label: "The families' line", part: "blessing" });
+  if ((d.bride.parents && d.bride.parents === sample.bride.parents) || (d.groom.parents && d.groom.parents === sample.groom.parents)) out.push({ label: "The parents' names", part: "blessing" });
+  const sampleEvents = new Set(sample.events.map((e) => `${e.venue}|${e.start}`));
+  if (d.events.some((e) => sampleEvents.has(`${e.venue}|${e.start}`))) out.push({ label: "Functions' dates and venues", part: "events" });
+  if (d.hashtag && d.hashtag === sample.hashtag) out.push({ label: "The hashtag", part: "closing" });
+  return out;
+}
+
+function Finish({
+  design,
+  price,
+  doc,
+  sample,
+  contact,
+  setContact,
+  open,
+  onDone,
+}: {
+  design: string;
+  price: string;
+  doc: Doc;
+  sample: InviteDetails;
+  contact: Contact;
+  setContact: (c: Contact) => void;
+  open: (part: string) => void;
+  onDone: (orderId: string) => void;
+}) {
+  const [errors, setErrors] = useState<string[]>([]);
+  const [tried, setTried] = useState(false);
+  const [sending, setSending] = useState(false);
+  const left = stillSample(doc.details, sample);
+  const must = left.filter((x) => x.must);
+  const phone = waNumber(contact.phone);
+  const problems = [
+    ...(!contact.name.trim() ? ["Add your name."] : []),
+    ...(!phone ? ["Add your WhatsApp number (10 digits)."] : []),
+    ...(!EMAIL.test(contact.email.trim()) ? ["Add your email, e.g. name@gmail.com."] : []),
+  ];
+
+  const create = async () => {
+    setTried(true);
+    if (must.length || problems.length) return;
+    setSending(true);
+    setErrors([]);
+    try {
+      const code = cleanPartnerCode(readRefCookie());
+      const partner = code ? await checkPartnerCode(code).catch(() => null) : null;
+      // The sample's RSVP number is no one's: replies come to the couple unless they set another.
+      const details = doc.details.rsvp?.phone === sample.rsvp?.phone ? { ...doc.details, rsvp: { ...doc.details.rsvp, phone: `+${phone}` } } : doc.details;
+      const res = await createOrder({
+        template: design as never,
+        details,
+        songPath: doc.songPath,
+        photoPaths: doc.photoPaths,
+        customer: { name: contact.name.trim(), phone: `+${phone}`, email: contact.email.trim() },
+        ...(partner ? { partnerCode: partner.code } : {}),
+      });
+      if ("errors" in res) setErrors(res.errors);
+      else onDone(res.id);
+    } catch (e) {
+      setErrors([stale(e) ? STALE : "We couldn't save. Check your internet and try again."]);
+    }
+    setSending(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      {left.length > 0 && (
+        <div className="rounded-2xl bg-[#fff8e6] p-4">
+          <p className="text-[15px] font-semibold text-ink">Still showing the sample</p>
+          <p className="mt-0.5 text-[13px] leading-snug text-muted">Change these to your own before you continue.</p>
+          <ul className="mt-3 space-y-2">
+            {left.map((x) => (
+              <li key={x.label} className="flex items-center gap-3">
+                <span className={`flex-1 text-[15px] ${x.must && tried ? "font-semibold text-[#8a1c1c]" : "text-ink"}`}>
+                  {x.label}
+                  {x.must ? " *" : ""}
+                </span>
+                <button type="button" onClick={() => open(x.part)} className="h-9 rounded-full bg-white px-4 text-[14px] font-medium text-ink shadow-sm">
+                  Change
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div>
+        <Label help="We send your invite link and edit link here.">Your details</Label>
+        <div className="space-y-2.5">
+          <input value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} placeholder="Your name" autoComplete="name" maxLength={80} className={`${box} h-12`} />
+          <input
+            type="tel"
+            inputMode="tel"
+            value={contact.phone}
+            onChange={(e) => setContact({ ...contact, phone: e.target.value })}
+            placeholder="WhatsApp number"
+            autoComplete="tel"
+            className={`${box} h-12`}
+          />
+          <input
+            type="email"
+            inputMode="email"
+            value={contact.email}
+            onChange={(e) => setContact({ ...contact, email: e.target.value })}
+            placeholder="Email"
+            autoComplete="email"
+            className={`${box} h-12`}
+          />
+        </div>
+        <p className="mt-2 text-[13px] text-subtle">Guests&rsquo; RSVPs come to this WhatsApp number unless you set another in the RSVP part.</p>
+      </div>
+      {tried && (must.length > 0 || problems.length > 0 || errors.length > 0) && (
+        <div role="alert" className="space-y-1 rounded-2xl bg-[#fdecec] p-4 text-[14px] text-[#8a1c1c]">
+          {must.map((x) => (
+            <p key={x.label}>{x.label}: still the sample. Tap Change to add yours.</p>
+          ))}
+          {[...problems, ...errors].map((x) => (
+            <p key={x}>{x}</p>
+          ))}
+        </div>
+      )}
+      <button type="button" onClick={create} disabled={sending} className="h-13 w-full rounded-full bg-ink text-[17px] font-semibold text-white disabled:opacity-60">
+        {sending ? "Creating your invite…" : `Create my invite · Pay ${price}`}
+      </button>
+      <p className="text-center text-[13px] text-subtle">Your invite goes live the moment you pay. You can keep changing it after.</p>
     </div>
   );
 }

@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getTemplate, templates } from "@/data/templates";
 import { Container, Eyebrow, Heading, Lead } from "@/ui";
 import { hasEditor } from "@/config/editor";
 import { OrderForm } from "./OrderForm";
-import { QuickStart } from "./QuickStart";
 
 // One page per design, prerendered.
 export const instant = false;
@@ -23,22 +22,8 @@ export async function generateMetadata({ params }: PageProps<"/start/[template]"
 export default async function StartPage({ params }: PageProps<"/start/[template]">) {
   const t = getTemplate((await params).template);
   if (!t) notFound();
-  // Designs with the invite editor: three short steps, then the couple makes it theirs on the invite itself.
-  if (hasEditor(t.id))
-    return (
-      <section className="pt-8 pb-10">
-        <Container>
-          <Eyebrow>
-            <Link href={`/templates/${t.id}`} className="hover:text-ink">
-              ← Back to {t.name}
-            </Link>
-          </Eyebrow>
-          <div className="mt-6">
-            <QuickStart t={t} />
-          </div>
-        </Container>
-      </section>
-    );
+  // Designs with the invite editor start on the invite itself: the sample, ready to change.
+  if (hasEditor(t.id)) redirect(`/customise/new-${t.id}`);
   return (
     <section className="pt-10 pb-24">
       <Container wide>
