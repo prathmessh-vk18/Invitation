@@ -74,21 +74,21 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
   const [status, setStatus] = useState<Status>(null);
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(0);
-  // The "tap any part" hint shows until the couple taps something or closes it (remembered on the phone).
-  const [tapped, setTapped] = useState(() => {
+  // The "tap any part" tip shows until the couple closes it with ✕ (remembered on the phone).
+  const [hintClosed, setHintClosed] = useState(() => {
     try {
       return typeof window !== "undefined" && window.localStorage.getItem("aavjoo-editor-hint") === "seen";
     } catch {
       return false;
     }
   });
-  const dismissHint = () => setTapped(true);
+  const dismissHint = () => setHintClosed(true);
   useEffect(() => {
-    if (!tapped) return;
+    if (!hintClosed) return;
     try {
       window.localStorage.setItem("aavjoo-editor-hint", "seen");
     } catch {}
-  }, [tapped]);
+  }, [hintClosed]);
   const frame = useRef<HTMLIFrameElement>(null);
   const sheetBody = useRef<HTMLDivElement>(null);
   const ready = useRef(false);
@@ -120,7 +120,6 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
 
   const openSection = useCallback(
     (id: string, text?: string, scroll = true) => {
-      setTapped(true);
       setSheet({ kind: "section", id, text });
       post({ type: PREVIEW_SELECT, id });
       if (scroll) post({ type: PREVIEW_SCROLL, id, offset: id === "cover" ? 0 : -8 });
@@ -133,7 +132,6 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
   }, [post]);
   const openPanel = (kind: "parts" | "style" | "song") => {
     post({ type: PREVIEW_SELECT, id: null });
-    setTapped(true);
     setSheet({ kind });
   };
 
@@ -269,7 +267,6 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
   const primary = async () => {
     if (draft) {
       post({ type: PREVIEW_SELECT, id: null });
-      setTapped(true);
       setSheet({ kind: "finish" });
       return;
     }
@@ -326,7 +323,7 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
           </div>
         </div>
 
-        {!tapped && !sheet && (
+        {!hintClosed && !sheet && (
           <div className="absolute inset-x-4 bottom-[88px] z-10 flex items-center gap-2 rounded-2xl bg-[#7c3aed] py-2 pr-2 pl-4 text-[15px] leading-snug font-medium text-white shadow-xl">
             <span className="flex-1">Tap any part of your invite to change it</span>
             <button type="button" onClick={dismissHint} aria-label="Close tip" className="grid size-10 shrink-0 place-items-center rounded-full text-[18px] active:bg-white/15">
