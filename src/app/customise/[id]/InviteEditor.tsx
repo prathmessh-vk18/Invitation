@@ -36,11 +36,8 @@ type Props = {
 
 /** Everything the couple can change: their details, and the song and photos kept beside them. */
 type Doc = { details: InviteDetails; songPath: string | null; photoPaths: string[] };
-type TextField = Extract<Field, { kind: "text" }>;
 type Sheet =
   | { kind: "section"; id: string; text?: string }
-  // Instagram's text tool: the tapped words, big, over the dimmed invite.
-  | { kind: "text"; id: string; path: string; f: TextField }
   | { kind: "parts" }
   | { kind: "style" }
   | { kind: "song" }
@@ -144,16 +141,6 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
     setSheet({ kind });
   };
 
-  // The message handler reads these as they are now.
-  const sectionsRef = useRef(sections);
-  const docRef = useRef(doc);
-  const ctxRef = useRef(ctx);
-  useEffect(() => {
-    sectionsRef.current = sections;
-    docRef.current = doc;
-    ctxRef.current = ctx;
-  }, [sections, doc, ctx]);
-
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       if (e.source !== frame.current?.contentWindow) return;
@@ -161,18 +148,9 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
         ready.current = true;
         post({ type: PREVIEW_INVITE, invite: inviteRef.current });
       }
-      // A tap on the invite: words that are one text box open big, to type over; anything else
-      // opens its part's panel where it is, without scrolling.
-      if (e.data?.type === EDIT_SECTION) {
-        const id = String(e.data.id);
-        const text = typeof e.data.text === "string" ? e.data.text : undefined;
-        const part = sectionsRef.current.find((x) => x.id === id);
-        const hit = part && text ? findTextField(part.fields, docRef.current.details, ctxRef.current, text) : null;
-        if (hit) {
-          post({ type: PREVIEW_SELECT, id });
-          setSheet({ kind: "text", id, path: hit.path, f: hit.f });
-        } else openSection(id, text, false);
-      }
+      // A tap on the invite opens that part's panel where it is (no scrolling), with the box for
+      // the tapped words picked out.
+      if (e.data?.type === EDIT_SECTION) openSection(String(e.data.id), typeof e.data.text === "string" ? e.data.text : undefined, false);
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
@@ -228,7 +206,7 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
   const set = useCallback((path: string, value: unknown) => change((d) => setAt(d, path, value)), [change]);
 
   // The preview follows what's being edited: the line with this text, in the open part.
-  const openId = sheet?.kind === "section" || sheet?.kind === "text" ? sheet.id : null;
+  const openId = sheet?.kind === "section" ? sheet.id : null;
   const revealTimer = useRef(0);
   const reveal = useCallback(
     (text: string | undefined) => {
@@ -320,8 +298,6 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
   const fieldProps = { ctx, details, set, change, reveal, doc, update, setBusy, setStatus };
   const title = current?.title ?? (sheet?.kind === "style" ? "Style" : sheet?.kind === "song" ? "Song" : sheet?.kind === "finish" ? "Almost done" : "Parts of your invite");
 
-  const textTool = sheet?.kind === "text" ? sheet : null;
-  const panelOpen = !!sheet && !textTool;
 
   return (
     <div className="fixed inset-0 flex justify-center bg-black">
@@ -348,32 +324,56 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
           )}
         </div>
 
-        {/* Top right: the tools, one above the other, like a story's. */}
-        <div className="absolute top-3 right-2 z-20 flex flex-col items-center gap-2.5">
-          <Tool label="Style" active={sheet?.kind === "style"} onClick={() => openPanel("style")}>
-            <span className="text-[17px] font-bold tracking-tight">Aa</span>
-          </Tool>
-          <Tool label="Song" active={sheet?.kind === "song"} onClick={() => openPanel("song")}>
-            <Icon d="M8 15.5V5l8-1.5V14M8 15.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM16 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" />
-          </Tool>
-          <Tool label="Photos" active={sheet?.kind === "section" && sheet.id === "gallery"} onClick={() => openSection("gallery")}>
-            <Icon d="M3.5 5.5h13v10h-13zM3.5 13l4-4 3 3 2-2 4 4M13 8.5h.01" />
-          </Tool>
-          <Tool label="Functions" active={sheet?.kind === "section" && sheet.id === "events"} onClick={() => openSection("events")}>
-            <Icon d="M4 5.5h12v11H4zM4 8.5h12M7.5 3.5v3M12.5 3.5v3M7 11.5h2M11 11.5h2M7 14h2" />
-          </Tool>
-          <Tool label="Parts" active={sheet?.kind === "parts"} onClick={() => openPanel("parts")}>
-            <Icon d="M3.5 4.5h13v4h-13zM3.5 11.5h6v4h-6zM12.5 11.5h4v4h-4z" />
-          </Tool>
-          <Tool label="Undo" onClick={undo} disabled={!history.length}>
-            <Icon d="M7 5 3.5 8.5 7 12M4 8.5h7a5 5 0 0 1 0 10H8" />
-          </Tool>
+        {/* Top right: undo. */}
+        <button
+          type="button"
+          onClick={undo}
+          disabled={!history.length}
+          aria-label="Undo"
+          className="absolute top-3 right-3 z-20 grid size-11 place-items-center rounded-full bg-black/35 text-white backdrop-blur-md disabled:opacity-40"
+        >
+          <Icon d="M7 5 3.5 8.5 7 12M4 8.5h7a5 5 0 0 1 0 10H8" />
+        </button>
+
+        {/* Bottom: the tools in a row, and the next step at the end. Only the buttons catch
+            touches, so a swipe anywhere else scrolls the invite. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-end justify-between gap-1 px-2 pb-[max(12px,env(safe-area-inset-bottom))]">
+          <div className="flex items-end gap-0.5">
+            <Tool label="Style" active={sheet?.kind === "style"} onClick={() => openPanel("style")}>
+              <span className="text-[17px] font-bold tracking-tight">Aa</span>
+            </Tool>
+            <Tool label="Song" active={sheet?.kind === "song"} onClick={() => openPanel("song")}>
+              <Icon d="M8 15.5V5l8-1.5V14M8 15.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM16 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" />
+            </Tool>
+            <Tool label="Photos" active={sheet?.kind === "section" && sheet.id === "gallery"} onClick={() => openSection("gallery")}>
+              <Icon d="M3.5 5.5h13v10h-13zM3.5 13l4-4 3 3 2-2 4 4M13 8.5h.01" />
+            </Tool>
+            <Tool label="Functions" active={sheet?.kind === "section" && sheet.id === "events"} onClick={() => openSection("events")}>
+              <Icon d="M4 5.5h12v11H4zM4 8.5h12M7.5 3.5v3M12.5 3.5v3M7 11.5h2M11 11.5h2M7 14h2" />
+            </Tool>
+            <Tool label="Parts" active={sheet?.kind === "parts"} onClick={() => openPanel("parts")}>
+              <Icon d="M3.5 4.5h13v4h-13zM3.5 11.5h6v4h-6zM12.5 11.5h4v4h-4z" />
+            </Tool>
+          </div>
+          <button
+            type="button"
+            onClick={primary}
+            disabled={saving || busy > 0 || (!draft && !dirty && !!orderId && !(unpaid && account.pay))}
+            className="pointer-events-auto flex min-w-14 flex-col items-center gap-1 text-white disabled:opacity-50"
+          >
+            <span className="grid size-12 place-items-center rounded-full bg-white text-black shadow-lg transition active:scale-95">
+              <svg viewBox="0 0 20 20" className="size-5" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M4 10h11M11 5.5 15.5 10 11 14.5" />
+              </svg>
+            </span>
+            <span className="max-w-[90px] text-center text-[11px] leading-tight font-semibold [text-shadow:0_1px_3px_rgba(0,0,0,.7)]">{primaryLabel.replace(/\s*→$/, "")}</span>
+          </button>
         </div>
 
         {!hintClosed && !sheet && (
-          <div className="absolute inset-x-0 bottom-[96px] z-20 flex justify-center px-4">
-            <div className="flex items-center gap-1 rounded-full bg-black/55 py-1.5 pr-1.5 pl-4 text-[14px] font-medium text-white backdrop-blur-md">
-              <span>Tap anything on your invite to change it</span>
+          <div className="pointer-events-none absolute inset-x-0 bottom-[100px] z-20 flex justify-center px-4">
+            <div className="pointer-events-auto flex items-center gap-1 rounded-full bg-black/55 py-1.5 pr-1.5 pl-4 text-[14px] leading-snug font-medium text-white backdrop-blur-md">
+              <span>Tap any part to edit it · scroll to see more</span>
               <button type="button" onClick={dismissHint} aria-label="Close tip" className="grid size-8 shrink-0 place-items-center rounded-full text-[15px] active:bg-white/15">
                 ✕
               </button>
@@ -382,7 +382,7 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
         )}
 
         {confirming && (
-          <div className="absolute inset-x-3 bottom-[92px] z-40 rounded-3xl bg-[#1c1c1e] p-5 text-white shadow-2xl">
+          <div className="absolute inset-x-3 bottom-[96px] z-40 rounded-3xl bg-[#1c1c1e] p-5 text-white shadow-2xl">
             <p className="text-[17px] font-semibold">Save and put these changes live?</p>
             <p className="mt-1 text-[14px] leading-snug text-white/65">
               This uses 1 edit{editsLeft !== null ? ` (${Math.max(0, editsLeft - 1)} left after)` : ""}. Make all your changes first, then save once.
@@ -398,49 +398,18 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
           </div>
         )}
         {status && (
-          <div className="absolute inset-x-0 top-[68px] z-40 flex justify-center px-4">
+          <div className="pointer-events-none absolute inset-x-0 top-[68px] z-40 flex justify-center px-4">
             <div
               role="status"
               onClick={() => setStatus(null)}
-              className={`max-w-full rounded-2xl px-4 py-2.5 text-center text-[14px] leading-snug font-medium text-white shadow-xl backdrop-blur-md ${status.tone === "ok" ? "bg-[#1f7a3a]/90" : status.tone === "error" ? "bg-[#b3261e]/90" : "bg-black/70"}`}
+              className={`pointer-events-auto max-w-full rounded-2xl px-4 py-2.5 text-center text-[14px] leading-snug font-medium text-white shadow-xl backdrop-blur-md ${status.tone === "ok" ? "bg-[#1f7a3a]/90" : status.tone === "error" ? "bg-[#b3261e]/90" : "bg-black/70"}`}
             >
               {status.text}
             </div>
           </div>
         )}
 
-        {/* Bottom right: the next step. */}
-        <div className="absolute right-3 bottom-[max(16px,env(safe-area-inset-bottom))] z-20">
-          <button
-            type="button"
-            onClick={primary}
-            disabled={saving || busy > 0 || (!draft && !dirty && !!orderId && !(unpaid && account.pay))}
-            className="flex h-12 items-center gap-2 rounded-full bg-white pr-2 pl-5 text-[16px] font-semibold text-black shadow-lg transition active:scale-[.97] disabled:opacity-50"
-          >
-            {primaryLabel.replace(/\s*→$/, "")}
-            <span className="grid size-8 place-items-center rounded-full bg-black text-white">
-              <svg viewBox="0 0 20 20" className="size-4" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M4 10h11M11 5.5 15.5 10 11 14.5" />
-              </svg>
-            </span>
-          </button>
-        </div>
-
-        {textTool && (
-          <TextTool
-            key={textTool.path}
-            f={textTool.f}
-            path={textTool.path}
-            ctx={ctx}
-            value={getAt(details, textTool.path) as string | undefined}
-            set={set}
-            reveal={reveal}
-            onMore={() => openSection(textTool.id, undefined, false)}
-            onDone={closeSheet}
-          />
-        )}
-
-        <BottomSheet open={panelOpen} title={title} onClose={closeSheet} bodyRef={sheetBody}>
+        <BottomSheet open={!!sheet} title={title} onClose={closeSheet} bodyRef={sheetBody}>
           {current && (
             <div className="space-y-7">
               {current.note && <p className="text-[14px] leading-snug text-white/60">{current.note}</p>}
@@ -523,25 +492,6 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
 
 const norm = (s?: string) => (s ?? "").replace(/\s+/g, " ").trim().toLowerCase();
 
-/** The text box (if any) that holds the words tapped on the invite, among a part's fields. */
-function findTextField(fields: Field[], d: InviteDetails, ctx: Ctx, tapped: string): { f: TextField; path: string } | null {
-  const want = norm(tapped);
-  if (want.length < 2) return null;
-  const boxes: { f: TextField; path: string; shown: string }[] = [];
-  const add = (f: TextField, path: string) => boxes.push({ f, path, shown: norm((getAt(d, path) as string | undefined) ?? (f.core ? "" : (f.fallback?.(ctx) ?? ""))) });
-  for (const f of fields) {
-    if (f.kind === "text") add(f, f.key);
-    if (f.kind === "people")
-      for (const who of ["bride", "groom"] as const) for (const sub of f.fields) if (sub.kind === "text" && (!sub.when || sub.when(ctx, d[who]))) add(sub, `${who}.${sub.key}`);
-  }
-  return (
-    boxes.find((b) => b.shown === want) ??
-    boxes.find((b) => b.shown.length > 1 && b.shown.includes(want)) ??
-    boxes.find((b) => b.shown.length > 2 && want.includes(b.shown)) ??
-    null
-  );
-}
-
 function Pill({ children }: { children: ReactNode }) {
   return <span className="rounded-full bg-black/45 px-3 py-1.5 text-[13px] font-semibold text-white backdrop-blur-md">{children}</span>;
 }
@@ -554,68 +504,13 @@ function Icon({ d }: { d: string }) {
   );
 }
 
-/** One of the story-style tools down the right: a round button with its name under it. */
+/** One of the story-style tools along the bottom: a round button with its name under it. */
 function Tool({ label, onClick, active, disabled, children }: { label: string; onClick: () => void; active?: boolean; disabled?: boolean; children: ReactNode }) {
   return (
-    <button type="button" onClick={onClick} disabled={disabled} aria-label={label} className="flex w-14 flex-col items-center gap-1 text-white disabled:opacity-40">
+    <button type="button" onClick={onClick} disabled={disabled} aria-label={label} className="pointer-events-auto flex w-[58px] flex-col items-center gap-1 text-white disabled:opacity-40">
       <span className={`grid size-11 place-items-center rounded-full backdrop-blur-md transition active:scale-95 ${active ? "bg-white text-black" : "bg-black/35"}`}>{children}</span>
-      <span className="text-[11px] leading-none font-semibold [text-shadow:0_1px_3px_rgba(0,0,0,.7)]">{label}</span>
+      <span className="text-[11px] leading-none font-semibold whitespace-nowrap [text-shadow:0_1px_3px_rgba(0,0,0,.7)]">{label}</span>
     </button>
-  );
-}
-
-/**
- * Instagram's text tool: the tapped words in a big box over the dimmed invite, typed over in place.
- * Changes show on the invite behind as they're typed; "More options" opens the part's full panel.
- */
-function TextTool({ f, path, ctx, value, set, reveal, onMore, onDone }: { f: TextField; path: string; ctx: Ctx; value: string | undefined; set: (path: string, v: unknown) => void; reveal: (t: string | undefined) => void; onMore: () => void; onDone: () => void }) {
-  const fallback = f.fallback?.(ctx) ?? "";
-  const [v, setV] = useState(value ?? (f.core ? "" : fallback));
-  const commit = (x: string) => {
-    setV(x);
-    reveal(x.split("\n").pop() || x);
-    if (f.core) set(path, x);
-    else if (x === fallback) set(path, undefined);
-    else if (x.trim() === "") set(path, f.emptyHides ? "" : undefined);
-    else set(path, x);
-  };
-  return (
-    <div className="absolute inset-0 z-40 flex flex-col bg-black/60 backdrop-blur-[3px]" role="dialog" aria-label={f.label}>
-      <div className="flex items-center justify-between px-4 pt-4">
-        <button type="button" onClick={onMore} className="h-10 rounded-full bg-white/15 px-4 text-[14px] font-semibold text-white">
-          More options
-        </button>
-        <button type="button" onClick={onDone} className="h-10 px-2 text-[17px] font-bold text-white">
-          Done
-        </button>
-      </div>
-      <div className="flex flex-1 flex-col items-center px-6 pt-[14vh]">
-        <p className="text-[12px] font-semibold tracking-[0.12em] text-white/60 uppercase">{f.label}</p>
-        <textarea
-          autoFocus
-          value={v}
-          maxLength={f.max}
-          rows={Math.min(5, Math.max(1, v.split("\n").length + Math.floor(v.length / 22)))}
-          placeholder={f.placeholder ?? fallback}
-          onChange={(e) => commit(f.multiline ? e.target.value : e.target.value.replace(/\n/g, " "))}
-          onFocus={(e) => e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)}
-          className="mt-3 w-full resize-none bg-transparent text-center text-[28px] leading-tight font-semibold text-white outline-none [text-shadow:0_2px_12px_rgba(0,0,0,.5)] placeholder:text-white/35"
-        />
-        {f.help && <p className="mt-3 text-center text-[13px] text-white/60">{f.help}</p>}
-        <div className="mt-5 flex max-w-full flex-wrap justify-center gap-2">
-          {f.suggestions?.map((x) => (
-            <button key={x} type="button" onClick={() => commit(x)} className={`h-9 rounded-full px-4 text-[14px] font-semibold ${v === x ? "bg-white text-black" : "bg-white/15 text-white"}`}>
-              {x}
-            </button>
-          ))}
-          {!f.core && value !== undefined && fallback && (
-            <button type="button" onClick={() => commit(fallback)} className="h-9 rounded-full bg-white/15 px-4 text-[14px] font-semibold text-white">
-              Use the design&rsquo;s wording
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }
 
