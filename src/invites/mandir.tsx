@@ -280,7 +280,8 @@ function Blessing({ invite }: { invite: Invite }) {
         )}
         {invite.hostsLines && invite.hosts ? (
           // one family per line, "&" between them
-          <div className="inv-label mt-[4cqw] text-[3cqw] leading-relaxed font-semibold" style={{ color: c.goldDeep }}>
+          // a line break the couple typed stays (e.g. a grandmother's name, then "W/o …")
+          <div className="inv-label mt-[4cqw] text-[3cqw] leading-relaxed font-semibold whitespace-pre-line" style={{ color: c.goldDeep }}>
             {invite.hosts.split(/\s+&\s+/).map((name, i) => (
               <p key={i}>
                 {i > 0 && <span className="my-[0.5cqw] block">&amp;</span>}
@@ -289,7 +290,7 @@ function Blessing({ invite }: { invite: Invite }) {
             ))}
           </div>
         ) : (
-          <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed" style={{ color: c.goldDeep }}>
+          <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed whitespace-pre-line" style={{ color: c.goldDeep }}>
             {invite.hosts || t.togetherWithFamilies}
           </p>
         )}
