@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { site } from "@/config/site";
 import type { Invite } from "@/data/invites";
 import { fmtDate } from "@/lib/format";
@@ -328,6 +328,14 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
 function Letters({ text, delay, className }: { text: string; delay: number; className: string }) {
   const opened = useOpened();
   const { lang } = useT();
+  // Once the name has arrived, letters typed later (in the editor) appear at once rather than
+  // waiting for the opening's delay again.
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    if (!opened) return;
+    const t = window.setTimeout(() => setSettled(true), (delay + 1.5) * 1000);
+    return () => window.clearTimeout(t);
+  }, [opened, delay]);
   // Devanagari letters join (क्ष, मी), so a Hindi name arrives as one word, not letter by letter.
   if (lang === "hi")
     return (
@@ -335,7 +343,7 @@ function Letters({ text, delay, className }: { text: string; delay: number; clas
         className={`inline-block ${className}`}
         initial={{ opacity: 0, y: "0.3em", filter: "blur(6px)" }}
         animate={opened ? { opacity: 1, y: "0em", filter: "blur(0px)" } : {}}
-        transition={{ delay, duration: 1, ease }}
+        transition={{ delay: settled ? 0 : delay, duration: settled ? 0.3 : 1, ease }}
       >
         {text}
       </motion.span>
@@ -349,7 +357,7 @@ function Letters({ text, delay, className }: { text: string; delay: number; clas
           className="inline-block whitespace-pre"
           initial={{ opacity: 0, y: "0.3em", filter: "blur(6px)" }}
           animate={opened ? { opacity: 1, y: "0em", filter: "blur(0px)" } : {}}
-          transition={{ delay: delay + i * 0.045, duration: 0.7, ease }}
+          transition={settled ? { duration: 0.3, ease } : { delay: delay + i * 0.045, duration: 0.7, ease }}
         >
           {ch}
         </motion.span>

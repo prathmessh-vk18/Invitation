@@ -47,7 +47,11 @@ export function FullPreview() {
       e.stopPropagation();
       const id = part.dataset.edit!;
       select(id);
-      const words = (target.innerText || target.textContent || "").replace(/\s+/g, " ").trim();
+      // A tap on one letter (names spelled out letter by letter) means the whole word.
+      let el: HTMLElement = target;
+      const text = (x: HTMLElement) => (x.innerText || x.textContent || "").replace(/\s+/g, " ").trim();
+      while (text(el).length < 2 && el.parentElement && el !== part) el = el.parentElement;
+      const words = text(el);
       window.parent?.postMessage({ type: EDIT_SECTION, id, text: words.length <= 200 ? words : "" }, window.location.origin);
       // The settings panel covers the lower half: bring what was tapped above it.
       const r = target.getBoundingClientRect();
@@ -79,14 +83,14 @@ export function FullPreview() {
   );
 }
 
-// Every part outlined faintly so it reads as something to tap; the tapped one outlined strongly,
-// with its name on a tag.
+// Every part outlined faintly in white (as a story's guides) so it reads as something to tap; the
+// tapped one outlined strongly, with its name on a tag at the top.
 const EDIT_STYLE = `
 [data-edit] { position: relative; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-[data-edit]::after { content: ""; position: absolute; inset: 8px; border: 1.5px dashed rgba(124, 58, 237, .45); border-radius: 16px; pointer-events: none; z-index: 44; transition: border-color .2s, box-shadow .2s; }
-[data-edit][data-selected]::after { border: 2.5px solid #7c3aed; box-shadow: 0 0 0 5px rgba(124, 58, 237, .18); }
-[data-edit][data-selected]::before { content: attr(data-label); position: absolute; top: 18px; left: 18px; z-index: 46; background: #7c3aed; color: #fff; font: 600 12px/1 system-ui, sans-serif; padding: 7px 10px; border-radius: 999px; letter-spacing: .01em; pointer-events: none; }
-@media (hover: hover) { [data-edit]:hover::after { border-color: #7c3aed; } }
+[data-edit]::after { content: ""; position: absolute; inset: 8px; border: 1.5px dashed rgba(255, 255, 255, .8); border-radius: 16px; pointer-events: none; z-index: 44; filter: drop-shadow(0 0 1px rgba(0, 0, 0, .55)); transition: border-color .2s, box-shadow .2s; }
+[data-edit][data-selected]::after { border: 2.5px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .25), 0 0 0 6px rgba(255, 255, 255, .22); filter: none; }
+[data-edit][data-selected]::before { content: attr(data-label); position: absolute; top: 18px; left: 50%; transform: translateX(-50%); z-index: 46; background: rgba(0, 0, 0, .7); color: #fff; font: 600 12px/1 system-ui, sans-serif; padding: 7px 11px; border-radius: 999px; white-space: nowrap; pointer-events: none; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+@media (hover: hover) { [data-edit]:hover::after { border-color: #fff; } }
 `;
 
 /** The element inside `root` whose own text contains `text` (spaces and case ignored), if any. */

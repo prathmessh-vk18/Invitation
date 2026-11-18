@@ -36,7 +36,16 @@ type Props = {
 
 /** Everything the couple can change: their details, and the song and photos kept beside them. */
 type Doc = { details: InviteDetails; songPath: string | null; photoPaths: string[] };
-type Sheet = { kind: "section"; id: string; text?: string } | { kind: "parts" } | { kind: "style" } | { kind: "song" } | { kind: "finish" } | null;
+type TextField = Extract<Field, { kind: "text" }>;
+type Sheet =
+  | { kind: "section"; id: string; text?: string }
+  // Instagram's text tool: the tapped words, big, over the dimmed invite.
+  | { kind: "text"; id: string; path: string; f: TextField }
+  | { kind: "parts" }
+  | { kind: "style" }
+  | { kind: "song" }
+  | { kind: "finish" }
+  | null;
 type Contact = { name: string; phone: string; email: string };
 const draftKey = (design: string) => `aavjoo-draft-v1-${design}`;
 type Status = { tone: "ok" | "info" | "error"; text: string } | null;
@@ -135,6 +144,16 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
     setSheet({ kind });
   };
 
+  // The message handler reads these as they are now.
+  const sectionsRef = useRef(sections);
+  const docRef = useRef(doc);
+  const ctxRef = useRef(ctx);
+  useEffect(() => {
+    sectionsRef.current = sections;
+    docRef.current = doc;
+    ctxRef.current = ctx;
+  }, [sections, doc, ctx]);
+
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       if (e.source !== frame.current?.contentWindow) return;
@@ -142,8 +161,18 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
         ready.current = true;
         post({ type: PREVIEW_INVITE, invite: inviteRef.current });
       }
-      // A tap on the invite: the tapped part opens where it is, without scrolling.
-      if (e.data?.type === EDIT_SECTION) openSection(String(e.data.id), typeof e.data.text === "string" ? e.data.text : undefined, false);
+      // A tap on the invite: words that are one text box open big, to type over; anything else
+      // opens its part's panel where it is, without scrolling.
+      if (e.data?.type === EDIT_SECTION) {
+        const id = String(e.data.id);
+        const text = typeof e.data.text === "string" ? e.data.text : undefined;
+        const part = sectionsRef.current.find((x) => x.id === id);
+        const hit = part && text ? findTextField(part.fields, docRef.current.details, ctxRef.current, text) : null;
+        if (hit) {
+          post({ type: PREVIEW_SELECT, id });
+          setSheet({ kind: "text", id, path: hit.path, f: hit.f });
+        } else openSection(id, text, false);
+      }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
@@ -199,7 +228,7 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
   const set = useCallback((path: string, value: unknown) => change((d) => setAt(d, path, value)), [change]);
 
   // The preview follows what's being edited: the line with this text, in the open part.
-  const openId = sheet?.kind === "section" ? sheet.id : null;
+  const openId = sheet?.kind === "section" || sheet?.kind === "text" ? sheet.id : null;
   const revealTimer = useRef(0);
   const reveal = useCallback(
     (text: string | undefined) => {
@@ -291,106 +320,132 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
   const fieldProps = { ctx, details, set, change, reveal, doc, update, setBusy, setStatus };
   const title = current?.title ?? (sheet?.kind === "style" ? "Style" : sheet?.kind === "song" ? "Song" : sheet?.kind === "finish" ? "Almost done" : "Parts of your invite");
 
-  return (
-    <div className="fixed inset-0 flex justify-center bg-[#2a2622]">
-      <style>{`.editor-flash{animation:editor-flash 1.6s ease}@keyframes editor-flash{0%,60%{box-shadow:0 0 0 3px #7c3aed;border-radius:14px}100%{box-shadow:0 0 0 0 transparent}}`}</style>
-      <div className="relative h-full w-full max-w-[480px] overflow-hidden bg-black">
-        <iframe ref={frame} src="/preview?edit=1" title="Your invite" className="absolute inset-x-0 top-0 h-[calc(100%-72px)] w-full border-0" allow="autoplay" />
+  const textTool = sheet?.kind === "text" ? sheet : null;
+  const panelOpen = !!sheet && !textTool;
 
-        {/* Top: back, undo. */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-2 p-3">
-          <Link href={backHref} className="pointer-events-auto rounded-full bg-white/95 px-3.5 py-2 text-[14px] font-medium text-ink shadow-lg">
-            ← {orderId ? "Order" : "Back"}
-          </Link>
-          <div className="flex items-center gap-2">
-            {!orderId && !draft && <span className="rounded-full bg-[#fff3c4] px-3 py-2 text-[13px] font-medium text-[#7a5b00] shadow-lg">Demo</span>}
-            {editsLeft !== null && (
-              <span className="rounded-full bg-white/95 px-3 py-2 text-[13px] font-medium text-ink shadow-lg">
-                {editsLeft} edit{editsLeft === 1 ? "" : "s"} left
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={undo}
-              disabled={!history.length}
-              className="pointer-events-auto flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-2 text-[14px] font-medium text-ink shadow-lg disabled:opacity-40"
-            >
-              <svg viewBox="0 0 20 20" className="size-4" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M7 5 3.5 8.5 7 12M4 8.5h7a5 5 0 0 1 0 10H8" />
-              </svg>
-              Undo
-            </button>
-          </div>
+  return (
+    <div className="fixed inset-0 flex justify-center bg-black">
+      <style>{`.editor-flash{animation:editor-flash 1.6s ease}@keyframes editor-flash{0%,60%{box-shadow:0 0 0 3px #fff;border-radius:14px}100%{box-shadow:0 0 0 0 transparent}}`}</style>
+      <div className="relative h-full w-full max-w-[480px] overflow-hidden bg-black">
+        <iframe ref={frame} src="/preview?edit=1" title="Your invite" className="absolute inset-0 h-full w-full border-0" allow="autoplay" />
+
+        {/* Shades at the top and bottom, so the white buttons read over any invite. */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-black/45 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-32 bg-gradient-to-t from-black/55 to-transparent" />
+
+        {/* Top left: close. Top centre: where this invite stands. */}
+        <Link href={backHref} aria-label="Close" className="absolute top-3 left-3 z-20 grid size-11 place-items-center rounded-full bg-black/35 text-white backdrop-blur-md">
+          <svg viewBox="0 0 20 20" className="size-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden>
+            <path d="M5 5l10 10M15 5 5 15" />
+          </svg>
+        </Link>
+        <div className="pointer-events-none absolute inset-x-16 top-4 z-20 flex justify-center">
+          {!orderId && !draft && <Pill>Demo</Pill>}
+          {editsLeft !== null && (
+            <Pill>
+              {editsLeft} edit{editsLeft === 1 ? "" : "s"} left
+            </Pill>
+          )}
+        </div>
+
+        {/* Top right: the tools, one above the other, like a story's. */}
+        <div className="absolute top-3 right-2 z-20 flex flex-col items-center gap-2.5">
+          <Tool label="Style" active={sheet?.kind === "style"} onClick={() => openPanel("style")}>
+            <span className="text-[17px] font-bold tracking-tight">Aa</span>
+          </Tool>
+          <Tool label="Song" active={sheet?.kind === "song"} onClick={() => openPanel("song")}>
+            <Icon d="M8 15.5V5l8-1.5V14M8 15.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM16 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" />
+          </Tool>
+          <Tool label="Photos" active={sheet?.kind === "section" && sheet.id === "gallery"} onClick={() => openSection("gallery")}>
+            <Icon d="M3.5 5.5h13v10h-13zM3.5 13l4-4 3 3 2-2 4 4M13 8.5h.01" />
+          </Tool>
+          <Tool label="Functions" active={sheet?.kind === "section" && sheet.id === "events"} onClick={() => openSection("events")}>
+            <Icon d="M4 5.5h12v11H4zM4 8.5h12M7.5 3.5v3M12.5 3.5v3M7 11.5h2M11 11.5h2M7 14h2" />
+          </Tool>
+          <Tool label="Parts" active={sheet?.kind === "parts"} onClick={() => openPanel("parts")}>
+            <Icon d="M3.5 4.5h13v4h-13zM3.5 11.5h6v4h-6zM12.5 11.5h4v4h-4z" />
+          </Tool>
+          <Tool label="Undo" onClick={undo} disabled={!history.length}>
+            <Icon d="M7 5 3.5 8.5 7 12M4 8.5h7a5 5 0 0 1 0 10H8" />
+          </Tool>
         </div>
 
         {!hintClosed && !sheet && (
-          <div className="absolute inset-x-4 bottom-[88px] z-10 flex items-center gap-2 rounded-2xl bg-[#7c3aed] py-2 pr-2 pl-4 text-[15px] leading-snug font-medium text-white shadow-xl">
-            <span className="flex-1">Tap any part of your invite to change it</span>
-            <button type="button" onClick={dismissHint} aria-label="Close tip" className="grid size-10 shrink-0 place-items-center rounded-full text-[18px] active:bg-white/15">
-              ✕
-            </button>
+          <div className="absolute inset-x-0 bottom-[96px] z-20 flex justify-center px-4">
+            <div className="flex items-center gap-1 rounded-full bg-black/55 py-1.5 pr-1.5 pl-4 text-[14px] font-medium text-white backdrop-blur-md">
+              <span>Tap anything on your invite to change it</span>
+              <button type="button" onClick={dismissHint} aria-label="Close tip" className="grid size-8 shrink-0 place-items-center rounded-full text-[15px] active:bg-white/15">
+                ✕
+              </button>
+            </div>
           </div>
         )}
 
         {confirming && (
-          <div className="absolute inset-x-3 bottom-[84px] z-40 rounded-2xl bg-white p-4 shadow-2xl">
-            <p className="text-[16px] font-semibold text-ink">Save and put these changes live?</p>
-            <p className="mt-1 text-[14px] leading-snug text-muted">
+          <div className="absolute inset-x-3 bottom-[92px] z-40 rounded-3xl bg-[#1c1c1e] p-5 text-white shadow-2xl">
+            <p className="text-[17px] font-semibold">Save and put these changes live?</p>
+            <p className="mt-1 text-[14px] leading-snug text-white/65">
               This uses 1 edit{editsLeft !== null ? ` (${Math.max(0, editsLeft - 1)} left after)` : ""}. Make all your changes first, then save once.
             </p>
-            <div className="mt-3 flex gap-2">
-              <button type="button" onClick={() => setConfirming(false)} className="h-11 flex-1 rounded-full bg-panel text-[15px] font-medium text-ink">
+            <div className="mt-4 flex gap-2">
+              <button type="button" onClick={() => setConfirming(false)} className="h-11 flex-1 rounded-full bg-white/10 text-[15px] font-medium">
                 Keep editing
               </button>
-              <button type="button" onClick={save} className="h-11 flex-1 rounded-full bg-ink text-[15px] font-semibold text-white">
+              <button type="button" onClick={save} className="h-11 flex-1 rounded-full bg-white text-[15px] font-semibold text-black">
                 Save
               </button>
             </div>
           </div>
         )}
         {status && (
-          <div
-            role="status"
-            className={`absolute inset-x-3 bottom-[84px] z-40 rounded-2xl px-4 py-3 text-[15px] leading-snug shadow-xl ${status.tone === "ok" ? "bg-[#1d6b35] text-white" : status.tone === "error" ? "bg-[#8a1c1c] text-white" : "bg-white text-ink"}`}
-            onClick={() => setStatus(null)}
-          >
-            {status.text}
+          <div className="absolute inset-x-0 top-[68px] z-40 flex justify-center px-4">
+            <div
+              role="status"
+              onClick={() => setStatus(null)}
+              className={`max-w-full rounded-2xl px-4 py-2.5 text-center text-[14px] leading-snug font-medium text-white shadow-xl backdrop-blur-md ${status.tone === "ok" ? "bg-[#1f7a3a]/90" : status.tone === "error" ? "bg-[#b3261e]/90" : "bg-black/70"}`}
+            >
+              {status.text}
+            </div>
           </div>
         )}
 
-        {/* Bottom bar. */}
-        <div className="absolute inset-x-0 bottom-0 z-10 flex h-[72px] items-center gap-0.5 border-t border-white/10 bg-[#1c1917] px-1.5 pb-[env(safe-area-inset-bottom)] text-white">
-          <BarButton active={sheet?.kind === "parts"} onClick={() => openPanel("parts")} icon={<path d="M3.5 4.5h13v4h-13zM3.5 11.5h6v4h-6zM12.5 11.5h4v4h-4z" />}>
-            Parts
-          </BarButton>
-          <BarButton active={sheet?.kind === "style"} onClick={() => openPanel("style")} icon={<path d="M4 15 8.5 5h1L14 15M6 11h6M15.5 9.5v5.5" />}>
-            Style
-          </BarButton>
-          <BarButton active={sheet?.kind === "song"} onClick={() => openPanel("song")} icon={<path d="M8 15.5V5l8-1.5V14M8 15.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM16 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" />}>
-            Song
-          </BarButton>
-          <BarButton active={sheet?.kind === "section" && sheet.id === "gallery"} onClick={() => openSection("gallery")} icon={<path d="M3.5 5.5h13v10h-13zM3.5 13l4-4 3 3 2-2 4 4M13 8.5h.01" />}>
-            Photos
-          </BarButton>
-          <BarButton active={sheet?.kind === "section" && sheet.id === "events"} onClick={() => openSection("events")} icon={<path d="M4 5.5h12v11H4zM4 8.5h12M7.5 3.5v3M12.5 3.5v3M7 11.5h2M11 11.5h2M7 14h2" />}>
-            Functions
-          </BarButton>
+        {/* Bottom right: the next step. */}
+        <div className="absolute right-3 bottom-[max(16px,env(safe-area-inset-bottom))] z-20">
           <button
             type="button"
             onClick={primary}
             disabled={saving || busy > 0 || (!draft && !dirty && !!orderId && !(unpaid && account.pay))}
-            className="ml-auto h-12 min-w-0 shrink rounded-full bg-white px-3.5 text-[15px] leading-tight font-semibold text-ink transition disabled:opacity-40"
+            className="flex h-12 items-center gap-2 rounded-full bg-white pr-2 pl-5 text-[16px] font-semibold text-black shadow-lg transition active:scale-[.97] disabled:opacity-50"
           >
-            {primaryLabel}
+            {primaryLabel.replace(/\s*→$/, "")}
+            <span className="grid size-8 place-items-center rounded-full bg-black text-white">
+              <svg viewBox="0 0 20 20" className="size-4" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M4 10h11M11 5.5 15.5 10 11 14.5" />
+              </svg>
+            </span>
           </button>
         </div>
 
-        <BottomSheet open={!!sheet} title={title} onClose={closeSheet} bodyRef={sheetBody}>
+        {textTool && (
+          <TextTool
+            key={textTool.path}
+            f={textTool.f}
+            path={textTool.path}
+            ctx={ctx}
+            value={getAt(details, textTool.path) as string | undefined}
+            set={set}
+            reveal={reveal}
+            onMore={() => openSection(textTool.id, undefined, false)}
+            onDone={closeSheet}
+          />
+        )}
+
+        <BottomSheet open={panelOpen} title={title} onClose={closeSheet} bodyRef={sheetBody}>
           {current && (
-            <div className="space-y-6">
-              {current.note && <p className="text-[14px] leading-snug text-muted">{current.note}</p>}
+            <div className="space-y-7">
+              {current.note && <p className="text-[14px] leading-snug text-white/60">{current.note}</p>}
               {current.optional && hidden(current.optional) && (
-                <p className="rounded-xl bg-[#fff3c4] px-3 py-2 text-[14px] text-[#7a5b00]">This part is hidden. Turn on “Show this part” to bring it back.</p>
+                <p className="rounded-xl bg-[#3a3216] px-3 py-2 text-[14px] text-[#ffd479]">This part is hidden. Turn on “Show this part” to bring it back.</p>
               )}
               {current.fields.map((f) => (
                 <FieldView key={f.key + f.label} f={f} {...fieldProps} />
@@ -398,7 +453,7 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
             </div>
           )}
           {sheet?.kind === "style" && (
-            <div className="space-y-7">
+            <div className="space-y-8">
               {lookFields.map((f) => (
                 <FieldView key={f.key} f={f} {...fieldProps} />
               ))}
@@ -423,13 +478,13 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
             />
           )}
           {sheet?.kind === "parts" && (
-            <ul className="divide-y divide-line">
+            <ul className="divide-y divide-white/10">
               {sections.map((s) => (
                 <li key={s.id} className="flex items-center gap-3 py-3">
                   <div className="min-w-0 flex-1">
-                    <p className="text-[16px] font-medium text-ink">{s.title}</p>
-                    {s.optional && <p className="text-[13px] text-subtle">{hidden(s.optional) ? "Hidden" : "Showing"}</p>}
-                    {s.id === "contacts" && !details.contacts?.length && <p className="text-[13px] text-subtle">None yet</p>}
+                    <p className="text-[16px] font-medium text-white">{s.title}</p>
+                    {s.optional && <p className="text-[13px] text-white/50">{hidden(s.optional) ? "Hidden" : "Showing"}</p>}
+                    {s.id === "contacts" && !details.contacts?.length && <p className="text-[13px] text-white/50">None yet</p>}
                   </div>
                   {s.optional && (
                     <Switch
@@ -438,7 +493,7 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
                       onChange={(on) => change((d) => ({ ...d, hide: on ? (d.hide ?? []).filter((x) => x !== s.optional) : [...(d.hide ?? []), s.optional!] }))}
                     />
                   )}
-                  <button type="button" onClick={() => openSection(s.id)} className="h-10 rounded-full bg-panel px-4 text-[14px] font-medium text-ink">
+                  <button type="button" onClick={() => openSection(s.id)} className="h-9 rounded-full bg-white/10 px-4 text-[14px] font-medium text-white">
                     {s.id === "contacts" && !details.contacts?.length ? "Add" : "Edit"}
                   </button>
                 </li>
@@ -452,7 +507,7 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
                       update(() => start);
                       closeSheet();
                     }}
-                    className="h-11 text-[14px] font-medium text-[#8a1c1c]"
+                    className="h-11 text-[14px] font-medium text-[#ff6b6b]"
                   >
                     Start again from the sample
                   </button>
@@ -468,33 +523,133 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
 
 const norm = (s?: string) => (s ?? "").replace(/\s+/g, " ").trim().toLowerCase();
 
-function BarButton({ onClick, active, icon, children }: { onClick: () => void; active?: boolean; icon: ReactNode; children: ReactNode }) {
+/** The text box (if any) that holds the words tapped on the invite, among a part's fields. */
+function findTextField(fields: Field[], d: InviteDetails, ctx: Ctx, tapped: string): { f: TextField; path: string } | null {
+  const want = norm(tapped);
+  if (want.length < 2) return null;
+  const boxes: { f: TextField; path: string; shown: string }[] = [];
+  const add = (f: TextField, path: string) => boxes.push({ f, path, shown: norm((getAt(d, path) as string | undefined) ?? (f.core ? "" : (f.fallback?.(ctx) ?? ""))) });
+  for (const f of fields) {
+    if (f.kind === "text") add(f, f.key);
+    if (f.kind === "people")
+      for (const who of ["bride", "groom"] as const) for (const sub of f.fields) if (sub.kind === "text" && (!sub.when || sub.when(ctx, d[who]))) add(sub, `${who}.${sub.key}`);
+  }
   return (
-    <button type="button" onClick={onClick} className={`flex h-14 w-[54px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl text-[12px] font-medium ${active ? "bg-white/15" : "active:bg-white/10"}`}>
-      <svg viewBox="0 0 20 20" className="size-5" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        {icon}
-      </svg>
-      {children}
+    boxes.find((b) => b.shown === want) ??
+    boxes.find((b) => b.shown.length > 1 && b.shown.includes(want)) ??
+    boxes.find((b) => b.shown.length > 2 && want.includes(b.shown)) ??
+    null
+  );
+}
+
+function Pill({ children }: { children: ReactNode }) {
+  return <span className="rounded-full bg-black/45 px-3 py-1.5 text-[13px] font-semibold text-white backdrop-blur-md">{children}</span>;
+}
+
+function Icon({ d }: { d: string }) {
+  return (
+    <svg viewBox="0 0 20 20" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d={d} />
+    </svg>
+  );
+}
+
+/** One of the story-style tools down the right: a round button with its name under it. */
+function Tool({ label, onClick, active, disabled, children }: { label: string; onClick: () => void; active?: boolean; disabled?: boolean; children: ReactNode }) {
+  return (
+    <button type="button" onClick={onClick} disabled={disabled} aria-label={label} className="flex w-14 flex-col items-center gap-1 text-white disabled:opacity-40">
+      <span className={`grid size-11 place-items-center rounded-full backdrop-blur-md transition active:scale-95 ${active ? "bg-white text-black" : "bg-black/35"}`}>{children}</span>
+      <span className="text-[11px] leading-none font-semibold [text-shadow:0_1px_3px_rgba(0,0,0,.7)]">{label}</span>
     </button>
   );
 }
 
-/** A panel from the bottom, over the lower part of the invite, so the part being edited stays in view above it. */
+/**
+ * Instagram's text tool: the tapped words in a big box over the dimmed invite, typed over in place.
+ * Changes show on the invite behind as they're typed; "More options" opens the part's full panel.
+ */
+function TextTool({ f, path, ctx, value, set, reveal, onMore, onDone }: { f: TextField; path: string; ctx: Ctx; value: string | undefined; set: (path: string, v: unknown) => void; reveal: (t: string | undefined) => void; onMore: () => void; onDone: () => void }) {
+  const fallback = f.fallback?.(ctx) ?? "";
+  const [v, setV] = useState(value ?? (f.core ? "" : fallback));
+  const commit = (x: string) => {
+    setV(x);
+    reveal(x.split("\n").pop() || x);
+    if (f.core) set(path, x);
+    else if (x === fallback) set(path, undefined);
+    else if (x.trim() === "") set(path, f.emptyHides ? "" : undefined);
+    else set(path, x);
+  };
+  return (
+    <div className="absolute inset-0 z-40 flex flex-col bg-black/60 backdrop-blur-[3px]" role="dialog" aria-label={f.label}>
+      <div className="flex items-center justify-between px-4 pt-4">
+        <button type="button" onClick={onMore} className="h-10 rounded-full bg-white/15 px-4 text-[14px] font-semibold text-white">
+          More options
+        </button>
+        <button type="button" onClick={onDone} className="h-10 px-2 text-[17px] font-bold text-white">
+          Done
+        </button>
+      </div>
+      <div className="flex flex-1 flex-col items-center px-6 pt-[14vh]">
+        <p className="text-[12px] font-semibold tracking-[0.12em] text-white/60 uppercase">{f.label}</p>
+        <textarea
+          autoFocus
+          value={v}
+          maxLength={f.max}
+          rows={Math.min(5, Math.max(1, v.split("\n").length + Math.floor(v.length / 22)))}
+          placeholder={f.placeholder ?? fallback}
+          onChange={(e) => commit(f.multiline ? e.target.value : e.target.value.replace(/\n/g, " "))}
+          onFocus={(e) => e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)}
+          className="mt-3 w-full resize-none bg-transparent text-center text-[28px] leading-tight font-semibold text-white outline-none [text-shadow:0_2px_12px_rgba(0,0,0,.5)] placeholder:text-white/35"
+        />
+        {f.help && <p className="mt-3 text-center text-[13px] text-white/60">{f.help}</p>}
+        <div className="mt-5 flex max-w-full flex-wrap justify-center gap-2">
+          {f.suggestions?.map((x) => (
+            <button key={x} type="button" onClick={() => commit(x)} className={`h-9 rounded-full px-4 text-[14px] font-semibold ${v === x ? "bg-white text-black" : "bg-white/15 text-white"}`}>
+              {x}
+            </button>
+          ))}
+          {!f.core && value !== undefined && fallback && (
+            <button type="button" onClick={() => commit(fallback)} className="h-9 rounded-full bg-white/15 px-4 text-[14px] font-semibold text-white">
+              Use the design&rsquo;s wording
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** A dark panel from the bottom, like a story's music and sticker trays; drag it down to close. */
 function BottomSheet({ open, title, onClose, bodyRef, children }: { open: boolean; title: string; onClose: () => void; bodyRef: RefObject<HTMLDivElement | null>; children: ReactNode }) {
+  const startY = useRef<number | null>(null);
+  const [drag, setDrag] = useState(0);
   return (
     <div
-      className={`absolute inset-x-0 bottom-0 z-30 flex max-h-[54%] flex-col rounded-t-[22px] bg-white shadow-[0_-10px_40px_rgba(0,0,0,.35)] transition-transform duration-300 ${open ? "translate-y-0" : "pointer-events-none translate-y-full"}`}
+      className={`absolute inset-x-0 bottom-0 z-30 flex max-h-[58%] flex-col rounded-t-[26px] bg-[#1c1c1e] text-white shadow-[0_-12px_40px_rgba(0,0,0,.5)] ${drag ? "" : "transition-transform duration-300"} ${open ? "" : "pointer-events-none translate-y-full"}`}
+      style={open && drag ? { transform: `translateY(${drag}px)` } : undefined}
       role="dialog"
       aria-label={title}
       aria-hidden={!open}
     >
-      <div className="flex items-center justify-between border-b border-line px-4 py-3">
-        <p className="text-[17px] font-semibold text-ink">{title}</p>
-        <button type="button" onClick={onClose} className="h-10 rounded-full bg-ink px-5 text-[15px] font-semibold text-white">
-          Done
-        </button>
+      <div
+        className="touch-none px-4 pt-2.5 pb-3"
+        onTouchStart={(e) => (startY.current = e.touches[0].clientY)}
+        onTouchMove={(e) => startY.current !== null && setDrag(Math.max(0, e.touches[0].clientY - startY.current))}
+        onTouchEnd={() => {
+          if (drag > 70) onClose();
+          setDrag(0);
+          startY.current = null;
+        }}
+      >
+        <div className="mx-auto h-1.5 w-10 rounded-full bg-white/25" />
+        <div className="mt-3 flex items-center justify-between">
+          <p className="text-[18px] font-bold">{title}</p>
+          <button type="button" onClick={onClose} className="h-9 rounded-full bg-white px-4 text-[15px] font-semibold text-black">
+            Done
+          </button>
+        </div>
       </div>
-      <div ref={bodyRef} className="overflow-y-auto overscroll-contain px-4 pt-4 pb-[calc(24px+env(safe-area-inset-bottom))]">
+      <div ref={bodyRef} className="overflow-y-auto overscroll-contain px-4 pt-2 pb-[calc(28px+env(safe-area-inset-bottom))]">
         {open && children}
       </div>
     </div>
@@ -520,13 +675,13 @@ type FieldProps = {
   person?: Person;
 };
 
-const box = "w-full rounded-xl border border-[#d9d9d9] bg-white px-3.5 py-3 text-[16px] leading-snug text-ink outline-none focus:border-ink";
+const box = "w-full rounded-xl border border-transparent bg-white/[0.09] px-3.5 py-3 text-[16px] leading-snug text-white outline-none [color-scheme:dark] placeholder:text-white/35 focus:border-white/40";
 
 function Label({ children, help }: { children: ReactNode; help?: string }) {
   return (
     <div className="mb-2">
-      <p className="text-[15px] font-semibold text-ink">{children}</p>
-      {help && <p className="mt-0.5 text-[13px] leading-snug text-subtle">{help}</p>}
+      <p className="text-[15px] font-semibold text-white">{children}</p>
+      {help && <p className="mt-0.5 text-[13px] leading-snug text-white/50">{help}</p>}
     </div>
   );
 }
@@ -567,7 +722,7 @@ function FieldView(props: FieldProps) {
                 key={String(o.value)}
                 type="button"
                 onClick={() => pick(o.value)}
-                className={`min-h-11 rounded-full border px-4 text-[15px] font-medium transition ${cur === o.value ? "border-ink bg-ink text-white" : "border-[#d9d9d9] bg-white text-ink"}`}
+                className={`min-h-11 rounded-full border px-4 text-[15px] font-medium transition ${cur === o.value ? "border-white bg-white text-black" : "border-transparent bg-white/10 text-white"}`}
               >
                 {o.label}
               </button>
@@ -581,9 +736,9 @@ function FieldView(props: FieldProps) {
       return (
         <div>
           <Label help={f.help}>
-            {f.label} <span className="font-normal text-subtle">· {Math.round(n * 100)}%</span>
+            {f.label} <span className="font-normal text-white/50">· {Math.round(n * 100)}%</span>
           </Label>
-          <input type="range" min={f.min} max={f.max} step={f.step} value={n} onChange={(e) => set(key, Number(e.target.value) === f.fallback ? undefined : Number(e.target.value))} className="h-11 w-full accent-[#141414]" />
+          <input type="range" min={f.min} max={f.max} step={f.step} value={n} onChange={(e) => set(key, Number(e.target.value) === f.fallback ? undefined : Number(e.target.value))} className="h-11 w-full accent-white" />
         </div>
       );
     }
@@ -641,11 +796,11 @@ function FieldView(props: FieldProps) {
         <div>
           <Label help={f.help}>{f.label}</Label>
           <div className="flex items-center gap-3">
-            <button type="button" aria-label="Smaller text" disabled={i === 0} onClick={() => step(-1)} className="h-12 w-16 rounded-xl border border-[#d9d9d9] text-[16px] font-semibold text-ink disabled:opacity-35">
+            <button type="button" aria-label="Smaller text" disabled={i === 0} onClick={() => step(-1)} className="h-12 w-16 rounded-xl border border-[#d9d9d9] text-[16px] font-semibold text-white disabled:opacity-35">
               A−
             </button>
-            <span className="flex-1 text-center text-[16px] font-semibold text-ink">{Math.round(n * 100)}%</span>
-            <button type="button" aria-label="Bigger text" disabled={i === TEXT_SCALES.length - 1} onClick={() => step(1)} className="h-12 w-16 rounded-xl border border-[#d9d9d9] text-[20px] font-semibold text-ink disabled:opacity-35">
+            <span className="flex-1 text-center text-[16px] font-semibold text-white">{Math.round(n * 100)}%</span>
+            <button type="button" aria-label="Bigger text" disabled={i === TEXT_SCALES.length - 1} onClick={() => step(1)} className="h-12 w-16 rounded-xl border border-[#d9d9d9] text-[20px] font-semibold text-white disabled:opacity-35">
               A+
             </button>
           </div>
@@ -659,9 +814,9 @@ function FieldView(props: FieldProps) {
       return (
         <div className="space-y-4">
           {order.map((who) => (
-            <div key={who} className="rounded-2xl bg-panel p-4">
-              <p className="mb-4 text-[16px] font-semibold text-ink">
-                {details[who].first || (who === "bride" ? "Bride" : "Groom")}&rsquo;s family <span className="font-normal text-subtle">({who})</span>
+            <div key={who} className="rounded-2xl bg-white/[0.07] p-4">
+              <p className="mb-4 text-[16px] font-semibold text-white">
+                {details[who].first || (who === "bride" ? "Bride" : "Groom")}&rsquo;s family <span className="font-normal text-white/50">({who})</span>
               </p>
               <div className="space-y-5">
                 {f.fields.map((sub) => (
@@ -680,8 +835,8 @@ function Row({ label, help, children }: { label: string; help?: string; children
   return (
     <div className="flex items-center gap-4">
       <div className="min-w-0 flex-1">
-        <p className="text-[15px] font-semibold text-ink">{label}</p>
-        {help && <p className="mt-0.5 text-[13px] leading-snug text-subtle">{help}</p>}
+        <p className="text-[15px] font-semibold text-white">{label}</p>
+        {help && <p className="mt-0.5 text-[13px] leading-snug text-white/50">{help}</p>}
       </div>
       {children}
     </div>
@@ -690,7 +845,7 @@ function Row({ label, help, children }: { label: string; help?: string; children
 
 function Switch({ on, onChange, label }: { on: boolean; onChange: (on: boolean) => void; label: string }) {
   return (
-    <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={() => onChange(!on)} className={`relative h-8 w-[52px] shrink-0 rounded-full transition ${on ? "bg-[#1d6b35]" : "bg-[#cfcfcf]"}`}>
+    <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={() => onChange(!on)} className={`relative h-8 w-[52px] shrink-0 rounded-full transition ${on ? "bg-[#34c759]" : "bg-white/20"}`}>
       <span className={`absolute top-1 size-6 rounded-full bg-white shadow transition-all ${on ? "left-[24px]" : "left-1"}`} />
     </button>
   );
@@ -727,17 +882,17 @@ function TextField({ f, ctx, set, reveal, value, path }: FieldProps & { value: s
       />
       <div className="mt-1.5 flex flex-wrap items-center gap-2">
         {t.suggestions?.map((s) => (
-          <button key={s} type="button" onClick={() => commit(s)} className="h-9 rounded-full bg-panel px-3 text-[14px] text-ink">
+          <button key={s} type="button" onClick={() => commit(s)} className="h-9 rounded-full bg-white/[0.07] px-3 text-[14px] text-white">
             {s}
           </button>
         ))}
-        {!t.core && value === "" && t.emptyHides && <span className="text-[13px] text-subtle">Hidden on the invite</span>}
+        {!t.core && value === "" && t.emptyHides && <span className="text-[13px] text-white/50">Hidden on the invite</span>}
         {!t.core && value !== undefined && fallback && (
-          <button type="button" onClick={() => (setDraft(null), set(path, undefined))} className="h-9 text-[14px] font-medium text-[#8a5a00] underline underline-offset-2">
+          <button type="button" onClick={() => (setDraft(null), set(path, undefined))} className="h-9 text-[14px] font-medium text-[#ffd479] underline underline-offset-2">
             Use the design&rsquo;s wording
           </button>
         )}
-        {v.length > t.max * 0.8 && <span className="ml-auto text-[12px] text-subtle">{t.max - v.length} left</span>}
+        {v.length > t.max * 0.8 && <span className="ml-auto text-[12px] text-white/50">{t.max - v.length} left</span>}
       </div>
     </div>
   );
@@ -824,17 +979,17 @@ function FunctionsField({ details, change, reveal, f }: FieldProps) {
           };
           const isOpen = open === i;
           return (
-            <div key={i} data-match={`${e.name} ${e.venue}`} className="rounded-2xl bg-panel">
+            <div key={i} data-match={`${e.name} ${e.venue}`} className="rounded-2xl bg-white/[0.07]">
               <button type="button" onClick={() => (setOpen(isOpen ? null : i), reveal(e.name))} className="flex w-full items-center gap-3 p-4 text-left">
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white text-[14px] font-semibold text-ink">{i + 1}</span>
+                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 text-[14px] font-semibold text-white">{i + 1}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[16px] font-semibold text-ink">{e.name || "New function"}</span>
-                  <span className="block truncate text-[13px] text-subtle">
+                  <span className="block truncate text-[16px] font-semibold text-white">{e.name || "New function"}</span>
+                  <span className="block truncate text-[13px] text-white/50">
                     {prettyDay(e.start)}
                     {e.venue ? ` · ${e.venue}` : ""}
                   </span>
                 </span>
-                <span className="text-[20px] text-subtle">{isOpen ? "−" : "+"}</span>
+                <span className="text-[20px] text-white/50">{isOpen ? "−" : "+"}</span>
               </button>
               {isOpen && (
                 <div className="space-y-4 px-4 pb-4">
@@ -843,7 +998,7 @@ function FunctionsField({ details, change, reveal, f }: FieldProps) {
                     <input value={e.name} maxLength={40} placeholder="e.g. Haldi" onChange={(x) => edit({ name: x.target.value })} className={`${box} h-12`} />
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {KIND_PICKS.map((k) => (
-                        <button key={k.kind} type="button" onClick={() => edit({ name: k.name, kind: k.kind })} className={`h-9 rounded-full px-3 text-[14px] ${e.name === k.name ? "bg-ink text-white" : "bg-white text-ink"}`}>
+                        <button key={k.kind} type="button" onClick={() => edit({ name: k.name, kind: k.kind })} className={`h-9 rounded-full px-3 text-[14px] ${e.name === k.name ? "bg-white text-black" : "bg-white/10 text-white"}`}>
                           {k.name}
                         </button>
                       ))}
@@ -881,14 +1036,14 @@ function FunctionsField({ details, change, reveal, f }: FieldProps) {
                     <input value={e.note ?? ""} maxLength={240} placeholder="e.g. Followed by dinner" onChange={(x) => edit({ note: x.target.value })} className={`${box} h-12`} />
                   </div>
                   <div className="flex flex-wrap gap-2 pt-1">
-                    <button type="button" disabled={i === 0} onClick={() => (move(i, -1), setOpen(i - 1))} className="h-10 rounded-full bg-white px-4 text-[14px] font-medium text-ink disabled:opacity-40">
+                    <button type="button" disabled={i === 0} onClick={() => (move(i, -1), setOpen(i - 1))} className="h-10 rounded-full bg-white/10 px-4 text-[14px] font-medium text-white disabled:opacity-40">
                       ↑ Move up
                     </button>
-                    <button type="button" disabled={i === events.length - 1} onClick={() => (move(i, 1), setOpen(i + 1))} className="h-10 rounded-full bg-white px-4 text-[14px] font-medium text-ink disabled:opacity-40">
+                    <button type="button" disabled={i === events.length - 1} onClick={() => (move(i, 1), setOpen(i + 1))} className="h-10 rounded-full bg-white/10 px-4 text-[14px] font-medium text-white disabled:opacity-40">
                       ↓ Move down
                     </button>
                     {events.length > 1 && (
-                      <button type="button" onClick={() => (put(i, null), setOpen(null))} className="ml-auto h-10 px-2 text-[14px] font-medium text-[#8a1c1c]">
+                      <button type="button" onClick={() => (put(i, null), setOpen(null))} className="ml-auto h-10 px-2 text-[14px] font-medium text-[#ff6b6b]">
                         Remove
                       </button>
                     )}
@@ -899,7 +1054,7 @@ function FunctionsField({ details, change, reveal, f }: FieldProps) {
           );
         })}
         {events.length < 12 && (
-          <button type="button" onClick={add} className="h-12 w-full rounded-xl border border-dashed border-[#bdbdbd] text-[15px] font-medium text-ink">
+          <button type="button" onClick={add} className="h-12 w-full rounded-xl border border-dashed border-white/25 text-[15px] font-medium text-white">
             + Add a function
           </button>
         )}
@@ -951,12 +1106,12 @@ function PhotosField({ doc, update, setBusy, setStatus, f, details, change, ctx 
   return (
     <div>
       <Label help={f.help}>
-        {f.label} <span className="font-normal text-subtle">· {photos.length}/{MAX_PHOTOS}</span>
+        {f.label} <span className="font-normal text-white/50">· {photos.length}/{MAX_PHOTOS}</span>
       </Label>
-      {demoPhotos.length > 0 && <p className="mb-2 text-[13px] text-subtle">The demo&rsquo;s photos show until you add your own.</p>}
+      {demoPhotos.length > 0 && <p className="mb-2 text-[13px] text-white/50">The demo&rsquo;s photos show until you add your own.</p>}
       <div className="grid grid-cols-3 gap-2">
         {photos.map((p, i) => (
-          <div key={p} className="relative aspect-square overflow-hidden rounded-xl bg-panel">
+          <div key={p} className="relative aspect-square overflow-hidden rounded-xl bg-white/[0.07]">
             {/* eslint-disable-next-line @next/next/no-img-element -- the couple's own upload, already resized */}
             <img src={mediaUrl("photos", p)} alt={`Photo ${i + 1}`} className="size-full object-cover" />
             <button
@@ -975,12 +1130,12 @@ function PhotosField({ doc, update, setBusy, setStatus, f, details, change, ctx 
           </div>
         ))}
         {Array.from({ length: uploading }).map((_, i) => (
-          <div key={`u${i}`} className="grid aspect-square animate-pulse place-items-center rounded-xl bg-panel text-[13px] text-subtle">
+          <div key={`u${i}`} className="grid aspect-square animate-pulse place-items-center rounded-xl bg-white/[0.07] text-[13px] text-white/50">
             Uploading…
           </div>
         ))}
         {photos.length + uploading < MAX_PHOTOS && (
-          <label className="grid aspect-square cursor-pointer place-items-center rounded-xl border border-dashed border-[#bdbdbd] text-center text-[14px] font-medium text-ink">
+          <label className="grid aspect-square cursor-pointer place-items-center rounded-xl border border-dashed border-white/25 text-center text-[14px] font-medium text-white">
             <span>
               <span className="block text-[26px] leading-none">+</span>
               Add photos
@@ -1015,12 +1170,12 @@ function FontField({ details, set, f, ctx }: FieldProps) {
         {options.map((o) => {
           const on = (details.font ?? "") === o.id;
           return (
-            <button key={o.id || "own"} type="button" onClick={() => set("font", o.id || undefined)} className={`rounded-2xl border p-3 text-left transition ${on ? "border-ink bg-ink text-white" : "border-[#d9d9d9] bg-white text-ink"}`}>
+            <button key={o.id || "own"} type="button" onClick={() => set("font", o.id || undefined)} className={`rounded-2xl border p-3 text-left transition ${on ? "border-white bg-white text-black" : "border-transparent bg-white/10 text-white"}`}>
               <span className="block truncate text-[22px] leading-tight" style={o.script ? { fontFamily: o.script } : undefined}>
                 {sample}
               </span>
               <span className="mt-1 block text-[13px] font-semibold">{o.name}</span>
-              <span className={`block text-[12px] ${on ? "text-white/70" : "text-subtle"}`}>{o.note}</span>
+              <span className={`block text-[12px] ${on ? "text-black/55" : "text-white/50"}`}>{o.note}</span>
             </button>
           );
         })}
@@ -1056,16 +1211,16 @@ function SongPicker({ doc, update, setBusy, demo }: { doc: Doc; update: FieldPro
   };
   return (
     <div className="space-y-6">
-      <p className="text-[14px] leading-snug text-muted">It plays softly when guests open your invite. Tap ▶ to listen.</p>
+      <p className="text-[14px] leading-snug text-white/65">It plays softly when guests open your invite. Tap ▶ to listen.</p>
       <div>
         <Label help="An MP3 or M4A from your phone, up to 15 MB.">Your own song</Label>
         {doc.songPath && (
-          <div className="mb-2 flex items-center gap-3 rounded-2xl bg-ink p-3 text-white">
+          <div className="mb-2 flex items-center gap-3 rounded-2xl bg-white p-3 text-black">
             <PlayButton id="upload" src={mediaUrl("songs", doc.songPath)} playing={playing} setPlaying={setPlaying} />
             <span className="flex-1 text-[15px] font-semibold">Your uploaded song ✓</span>
           </div>
         )}
-        <label className={`flex h-12 cursor-pointer items-center justify-center rounded-xl border border-dashed border-[#bdbdbd] text-[15px] font-medium text-ink ${progress !== null ? "pointer-events-none opacity-60" : ""}`}>
+        <label className={`flex h-12 cursor-pointer items-center justify-center rounded-xl border border-dashed border-white/25 text-[15px] font-medium text-white ${progress !== null ? "pointer-events-none opacity-60" : ""}`}>
           {progress !== null ? `Uploading… ${progress}%` : doc.songPath ? "Upload a different song" : "+ Upload a song"}
           <input
             type="file"
@@ -1077,12 +1232,12 @@ function SongPicker({ doc, update, setBusy, demo }: { doc: Doc; update: FieldPro
             }}
           />
         </label>
-        {error && <p className="mt-2 text-[13px] text-[#b42318]">{error}</p>}
-        {demo && <p className="mt-2 text-[13px] text-subtle">In the demo, an upload is only for trying it out.</p>}
+        {error && <p className="mt-2 text-[13px] text-[#ff8a80]">{error}</p>}
+        {demo && <p className="mt-2 text-[13px] text-white/50">In the demo, an upload is only for trying it out.</p>}
       </div>
       <TrackList title="Songs" list={songs} chosen={chosen} choose={choose} playing={playing} setPlaying={setPlaying} />
       <TrackList title="Instrumentals" list={instrumentals} chosen={chosen} choose={choose} playing={playing} setPlaying={setPlaying} />
-      <button type="button" onClick={() => choose(undefined)} className={`h-12 w-full rounded-xl border text-[15px] font-medium ${chosen === "" ? "border-ink bg-ink text-white" : "border-[#d9d9d9] text-ink"}`}>
+      <button type="button" onClick={() => choose(undefined)} className={`h-12 w-full rounded-xl border text-[15px] font-medium ${chosen === "" ? "border-white bg-white text-black" : "border-white/20 text-white"}`}>
         No music
       </button>
     </div>
@@ -1097,11 +1252,11 @@ function TrackList({ title, list, chosen, choose, playing, setPlaying }: { title
         {list.map((t) => {
           const on = chosen === t.id;
           return (
-            <div key={t.id} className={`flex items-center gap-3 rounded-2xl p-2.5 pr-3 ${on ? "bg-ink text-white" : "bg-panel text-ink"}`}>
+            <div key={t.id} className={`flex items-center gap-3 rounded-2xl p-2.5 pr-3 ${on ? "bg-white text-black" : "bg-white/[0.07] text-white"}`}>
               <PlayButton id={t.id} src={t.id} playing={playing} setPlaying={setPlaying} />
               <button type="button" onClick={() => choose(t.id)} className="min-w-0 flex-1 text-left" aria-pressed={on}>
                 <span className="block truncate text-[15px] font-semibold">{t.name}</span>
-                <span className={`block truncate text-[12px] ${on ? "text-white/70" : "text-subtle"}`}>{t.mood}</span>
+                <span className={`block truncate text-[12px] ${on ? "text-black/55" : "text-white/50"}`}>{t.mood}</span>
               </button>
               {on && <span className="text-[13px] font-semibold">Chosen ✓</span>}
             </div>
@@ -1134,7 +1289,7 @@ function PlayButton({ id, src, playing, setPlaying }: { id: string; src: string;
           player.play();
         }
       }}
-      className="grid size-10 shrink-0 place-items-center rounded-full bg-white text-[14px] text-ink shadow-sm"
+      className="grid size-10 shrink-0 place-items-center rounded-full border border-current/25 text-[14px]"
     >
       {player.playing ? "❚❚" : "▶"}
     </button>
@@ -1159,7 +1314,7 @@ function ListsField({ details, change, f, reveal }: FieldProps) {
       <Label help={f.help}>{f.label}</Label>
       <div className="space-y-3">
         {groups.map((g, i) => (
-          <div key={i} data-match={`${g.title} ${g.lines.join(" ")}`} className="space-y-2 rounded-2xl bg-panel p-3">
+          <div key={i} data-match={`${g.title} ${g.lines.join(" ")}`} className="space-y-2 rounded-2xl bg-white/[0.07] p-3">
             <input value={g.title} maxLength={80} placeholder="Heading, e.g. Our Associates" onChange={(e) => put(i, { ...g, title: e.target.value })} className={`${box} h-12 font-semibold`} />
             <textarea
               value={g.lines.join("\n")}
@@ -1168,13 +1323,13 @@ function ListsField({ details, change, f, reveal }: FieldProps) {
               onChange={(e) => put(i, { ...g, lines: e.target.value.split("\n") })}
               className={`${box} resize-none`}
             />
-            <button type="button" onClick={() => put(i, null)} className="h-9 text-[14px] font-medium text-[#8a1c1c]">
+            <button type="button" onClick={() => put(i, null)} className="h-9 text-[14px] font-medium text-[#ff6b6b]">
               Remove this section
             </button>
           </div>
         ))}
         {groups.length < 8 && (
-          <button type="button" onClick={() => put(groups.length, { title: "", lines: [] })} className="h-12 w-full rounded-xl border border-dashed border-[#bdbdbd] text-[15px] font-medium text-ink">
+          <button type="button" onClick={() => put(groups.length, { title: "", lines: [] })} className="h-12 w-full rounded-xl border border-dashed border-white/25 text-[15px] font-medium text-white">
             + Add a section
           </button>
         )}
@@ -1199,7 +1354,7 @@ function ContactsField({ details, change, reveal }: FieldProps) {
       <Label help="Guests see a button to call, or to message on WhatsApp.">People guests can contact</Label>
       <div className="space-y-3">
         {list.map((c, i) => (
-          <div key={i} data-match={c.name} className="space-y-2 rounded-2xl bg-panel p-3">
+          <div key={i} data-match={c.name} className="space-y-2 rounded-2xl bg-white/[0.07] p-3">
             <input value={c.name} maxLength={60} placeholder="Name, e.g. Rajesh Sharma (Bride's father)" onChange={(e) => put(i, { ...c, name: e.target.value })} className={`${box} h-12`} />
             <input
               value={c.phones[0] ?? ""}
@@ -1212,13 +1367,13 @@ function ContactsField({ details, change, reveal }: FieldProps) {
             <Row label="WhatsApp button">
               <Switch on={!!c.whatsapp} label="WhatsApp button" onChange={(v) => put(i, { ...c, whatsapp: v || undefined })} />
             </Row>
-            <button type="button" onClick={() => put(i, null)} className="h-9 text-[14px] font-medium text-[#8a1c1c]">
+            <button type="button" onClick={() => put(i, null)} className="h-9 text-[14px] font-medium text-[#ff6b6b]">
               Remove
             </button>
           </div>
         ))}
         {list.length < 6 && (
-          <button type="button" onClick={() => put(list.length, { name: "", phones: [""], whatsapp: true })} className="h-12 w-full rounded-xl border border-dashed border-[#bdbdbd] text-[15px] font-medium text-ink">
+          <button type="button" onClick={() => put(list.length, { name: "", phones: [""], whatsapp: true })} className="h-12 w-full rounded-xl border border-dashed border-white/25 text-[15px] font-medium text-white">
             + Add a contact
           </button>
         )}
@@ -1305,17 +1460,17 @@ function Finish({
   return (
     <div className="space-y-6">
       {left.length > 0 && (
-        <div className="rounded-2xl bg-[#fff8e6] p-4">
-          <p className="text-[15px] font-semibold text-ink">Still showing the sample</p>
-          <p className="mt-0.5 text-[13px] leading-snug text-muted">Change these to your own before you continue.</p>
+        <div className="rounded-2xl bg-[#2b2513] p-4">
+          <p className="text-[15px] font-semibold text-white">Still showing the sample</p>
+          <p className="mt-0.5 text-[13px] leading-snug text-white/65">Change these to your own before you continue.</p>
           <ul className="mt-3 space-y-2">
             {left.map((x) => (
               <li key={x.label} className="flex items-center gap-3">
-                <span className={`flex-1 text-[15px] ${x.must && tried ? "font-semibold text-[#8a1c1c]" : "text-ink"}`}>
+                <span className={`flex-1 text-[15px] ${x.must && tried ? "font-semibold text-[#ff6b6b]" : "text-white"}`}>
                   {x.label}
                   {x.must ? " *" : ""}
                 </span>
-                <button type="button" onClick={() => open(x.part)} className="h-9 rounded-full bg-white px-4 text-[14px] font-medium text-ink shadow-sm">
+                <button type="button" onClick={() => open(x.part)} className="h-9 rounded-full bg-white/10 px-4 text-[14px] font-medium text-white shadow-sm">
                   Change
                 </button>
               </li>
@@ -1346,10 +1501,10 @@ function Finish({
             className={`${box} h-12`}
           />
         </div>
-        <p className="mt-2 text-[13px] text-subtle">Guests&rsquo; RSVPs come to this WhatsApp number unless you set another in the RSVP part.</p>
+        <p className="mt-2 text-[13px] text-white/50">Guests&rsquo; RSVPs come to this WhatsApp number unless you set another in the RSVP part.</p>
       </div>
       {tried && (must.length > 0 || problems.length > 0 || errors.length > 0) && (
-        <div role="alert" className="space-y-1 rounded-2xl bg-[#fdecec] p-4 text-[14px] text-[#8a1c1c]">
+        <div role="alert" className="space-y-1 rounded-2xl bg-[#3a1717] p-4 text-[14px] text-[#ff6b6b]">
           {must.map((x) => (
             <p key={x.label}>{x.label}: still the sample. Tap Change to add yours.</p>
           ))}
@@ -1358,10 +1513,10 @@ function Finish({
           ))}
         </div>
       )}
-      <button type="button" onClick={create} disabled={sending} className="h-13 w-full rounded-full bg-ink text-[17px] font-semibold text-white disabled:opacity-60">
+      <button type="button" onClick={create} disabled={sending} className="h-13 w-full rounded-full bg-white text-[17px] font-semibold text-black disabled:opacity-60">
         {sending ? "Creating your invite…" : `Create my invite · Pay ${price}`}
       </button>
-      <p className="text-center text-[13px] text-subtle">Your invite goes live the moment you pay. You can keep changing it after.</p>
+      <p className="text-center text-[13px] text-white/50">Your invite goes live the moment you pay. You can keep changing it after.</p>
     </div>
   );
 }

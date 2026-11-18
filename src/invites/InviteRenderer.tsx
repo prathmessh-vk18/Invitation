@@ -83,7 +83,8 @@ export function InviteRenderer({ invite: given, editing }: { invite: Invite; edi
           </div>
         )}
 
-        {opened && (
+        {/* The scroll hint and music button; the editor has its own buttons in these corners. */}
+        {opened && !editing && (
           <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center">
             <div className="relative w-full max-w-[480px]">
               <ScrollHint theme={theme} ready={gone} />
