@@ -245,7 +245,11 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
           ]}
         />
       </Card>
-      <AnimatePresence>{link && holdSince > 0 && s.bride.first.trim() && s.groom.first.trim() && <LinkCard slug={link} since={holdSince} />}</AnimatePresence>
+      <AnimatePresence>
+        {link && holdSince > 0 && s.bride.first.trim() && s.groom.first.trim() && (
+          <ShareMessage slug={link} since={holdSince} template={t.id} names={`${a.first} & ${b.first}`} occasion={occasion} when={[s.weddingDate && longDay(s.weddingDate), s.city].filter(Boolean).join(" · ")} />
+        )}
+      </AnimatePresence>
       <Card title={occasion === "engagement" ? "When & where" : "Wedding day"}>
         <div className="grid grid-cols-2 gap-3">
           <Text k="weddingDate" type="date" label="Date" value={s.weddingDate} min={today || undefined} onChange={(v) => set("weddingDate", v)} error={err("weddingDate")} />
@@ -314,12 +318,12 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
                   rows={2}
                 />
                 <Choice
-                  label="Show it"
+                  label="Grandparents' line goes"
                   value={p.eldersBelow ? "below" : "above"}
                   onChange={(v) => setP({ eldersBelow: v === "below" })}
                   options={[
-                    { v: "above", l: "Above the parents" },
-                    { v: "below", l: "Below the parents" },
+                    { v: "above", l: "Above the parents' line" },
+                    { v: "below", l: "Below the parents' line" },
                   ]}
                 />
               </>
@@ -350,7 +354,6 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
           { key: "mapUrl", label: "Map link", value: e.mapUrl },
           { key: "dress", label: "Dress code", value: e.dress },
           { key: "note", label: "Note", value: e.note },
-          ...(supports(t.id, "timeText") ? [{ key: "timeText", label: "Time in your words", value: e.timeText ?? "" }] : []),
         ];
         return (
           <div key={i} className={`overflow-hidden rounded-[20px] bg-panel ${bad ? "ring-2 ring-[#d64545]/40" : ""}`}>
@@ -390,7 +393,6 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
                 {isOpen(`${k}.mapUrl`, e.mapUrl) && <Text k={`${k}.mapUrl`} label="Google Maps link" help="In Google Maps, tap Share and copy the link." value={e.mapUrl} onChange={(v) => setEvent(i, { mapUrl: v })} placeholder="https://maps.app.goo.gl/…" error={err(`${k}.mapUrl`)} max={300} />}
                 {isOpen(`${k}.dress`, e.dress) && <Text k={`${k}.dress`} label="Dress code" value={e.dress} onChange={(v) => setEvent(i, { dress: v })} placeholder="Shades of yellow" max={80} />}
                 {isOpen(`${k}.note`, e.note) && <Text k={`${k}.note`} label="Note" value={e.note} onChange={(v) => setEvent(i, { note: v })} placeholder="Lunch to follow" max={240} />}
-                {isOpen(`${k}.timeText`, e.timeText) && <Text k={`${k}.timeText`} label="Time, in your words" help="Shown in place of the start time." value={e.timeText ?? ""} onChange={(v) => setEvent(i, { timeText: v || undefined })} placeholder="7 pm till late" max={60} />}
                 <Chips items={extra.map((x) => !isOpen(`${k}.${x.key}`, x.value) && { label: x.label, on: () => open(`${k}.${x.key}`) })} />
               </div>
             )}
@@ -419,17 +421,17 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
         <Text k="hashtag" label="Hashtag" optional value={s.hashtag} onChange={(v) => set("hashtag", v)} placeholder="#AaravKiMeera" max={40} />
       </Card>
       {(t.extraFields?.length || supports(t.id, "lists")) && (
-        <Card title="At the very end" optional>
+        <Card title="Family at the end" optional note="Names printed after your closing words, as on a printed card.">
           {t.extraFields?.includes("compliments") && <Area k="compliments" label="With best compliments from" optional value={s.compliments} onChange={(v) => set("compliments", v)} placeholder={"Sri S. Sridhar Rao\nSri S. Srikrishna"} max={800} rows={3} />}
           {t.extraFields?.includes("signoff") && <Text k="signoff" label="Sign-off" optional value={s.signoff} onChange={(v) => set("signoff", v)} placeholder="With love · the Saranala family" max={80} />}
           {(t.extraFields?.includes("lists") || supports(t.id, "lists")) &&
             (isOpen("lists", s.listTitle || s.listLines) ? (
               <>
-                <Text k="listTitle" label="A list: its heading" value={s.listTitle} onChange={(v) => set("listTitle", v)} placeholder="Our Associates" max={80} />
-                <Area k="listLines" label="Names, one per line" value={s.listLines} onChange={(v) => set("listLines", v)} placeholder={"Anil Gupta, Bimal Gupta\nK.V Enterprises"} max={6000} rows={4} />
+                <Text k="listTitle" label="Heading" value={s.listTitle} onChange={(v) => set("listTitle", v)} placeholder="With best compliments from" max={80} />
+                <Area k="listLines" label="Names, one per line" value={s.listLines} onChange={(v) => set("listLines", v)} placeholder={"Nanke & Dadke\nThe Sharma family\nThe Verma family"} max={6000} rows={4} />
               </>
             ) : (
-              <Chips items={[{ label: "A list, e.g. Our Associates", on: () => open("lists") }]} />
+              <Chips items={[{ label: "Family names at the end", on: () => open("lists") }]} />
             ))}
         </Card>
       )}
@@ -606,12 +608,18 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
   return (
     <div ref={top} className="scroll-mt-24 pb-32 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-10">
       <div className="min-w-0">
-        {/* Where they are, and how long is left. */}
+        {step === 0 && (
+          <div className="mb-6">
+            <h2 className="text-[32px] leading-[1.05] font-semibold tracking-[-0.03em] sm:text-[44px]">Make {t.name} yours</h2>
+            <p className="mt-2 text-[16px] text-muted">Ready in 3 minutes. Watch it come alive as you type.</p>
+          </div>
+        )}
+        {/* Where they are, and the time: their link's, once it shows, or what's left of the form. */}
         <div className="flex items-center justify-between gap-3 text-[13px]">
-          <span className="font-semibold text-ink">
-            {step + 1} of {PARTS.length} · {part.title}
+          <span className="font-semibold text-subtle">
+            Step {step + 1} of {PARTS.length}
           </span>
-          <span className="shrink-0 text-subtle">About {Math.max(1, Math.round(left / 60))} min left</span>
+          {link && holdSince > 0 ? <HoldChip since={holdSince} /> : <span className="shrink-0 text-subtle">About {Math.max(1, Math.round(left / 60))} min left</span>}
         </div>
         <div className="mt-2 grid gap-1" style={{ gridTemplateColumns: `repeat(${PARTS.length}, minmax(0, 1fr))` }}>
           {PARTS.map((x, i) => (
@@ -655,9 +663,8 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
               <path d="M1.5 10s3-5.5 8.5-5.5S18.5 10 18.5 10s-3 5.5-8.5 5.5S1.5 10 1.5 10Z" />
               <circle cx="10" cy="10" r="2.5" />
             </svg>
-            <span className="hidden min-[400px]:inline">Preview</span>
+            Preview invite
           </button>
-          {link && holdSince > 0 && <HoldChip since={holdSince} />}
           <button type="button" onClick={next} disabled={sending || busy > 0} className="ml-auto h-12 min-w-0 flex-1 rounded-full bg-ink px-5 text-[16px] font-semibold text-white transition active:scale-[.98] disabled:opacity-60 sm:max-w-[260px]">
             {sending ? "Creating…" : busy > 0 ? "Uploading…" : last ? `Pay ${formatINR(total)}` : "Continue →"}
           </button>
@@ -673,6 +680,7 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
 const clock = () => Date.now();
 const secondsSince = (from: number) => Math.round((clock() - from) / 1000);
 
+const longDay = (date: string) => new Date(`${date}T12:00:00+05:30`).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata" });
 const short = (date: string) => new Date(`${date}T12:00:00+05:30`).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" });
 
 /* ───────── The link ───────── */
@@ -687,54 +695,97 @@ function useCountdown(since: number) {
   return { left, text: `${Math.floor(left / 60000)}:${String(Math.floor((left % 60000) / 1000)).padStart(2, "0")}` };
 }
 
-/** "It's available!": their own address, with a ring counting down the time to claim it. */
-function LinkCard({ slug, since }: { slug: string; since: number }) {
+// Each design's painted art for its share card, and where the band under the names starts (as
+// src/lib/share-card.tsx draws it for WhatsApp), so the preview here matches what guests get.
+const SHARE_ART: Record<string, { src: string; y: number }> = {
+  gaurishankar: { src: "/art/illus/shiv-share.jpg", y: 0.27 },
+  sarovar: { src: "/art/illus/sarovar-hero.jpg", y: 0.4 },
+  mandir: { src: "/art/illus/mandir-temple.jpg", y: 0.45 },
+  vachan: { src: "/art/illus/mandir-temple.jpg", y: 0.45 },
+  haveli: { src: "/art/illus/haveli-arrival.jpg", y: 0.16 },
+  mahal: { src: "/art/illus/mahal-hero.jpg", y: 0.15 },
+  khat: { src: "/art/illus/khat-hero.jpg", y: 0.45 },
+  mudrika: { src: "/art/illus/khat-hero.jpg", y: 0.45 },
+  angoothi: { src: "/art/illus/angoothi-hero.jpg", y: 0.42 },
+  chandni: { src: "/art/illus/chandni-hero.jpg", y: 0.44 },
+  roka: { src: "/art/illus/roka-hero.jpg", y: 0.42 },
+  khatred: { src: "/art/illus/khat-red-hero.jpg", y: 0.42 },
+  gopuram: { src: "/art/illus/gopuram-hero.jpg", y: 0.19 },
+  bagh: { src: "/art/illus/bagh-hero.jpg", y: 0.21 },
+  chameli: { src: "/art/illus/chameli-envelope.jpg", y: 0.3 },
+  chamelisagai: { src: "/art/illus/chameli-envelope.jpg", y: 0.3 },
+  shivakalyanam: { src: "/art/illus/telugu-share.jpg", y: 0.38 },
+};
+
+/**
+ * Their link as guests will get it: a WhatsApp message with the invite's share card (the design's
+ * art, their names and date), the address, and how long is left to claim it.
+ */
+function ShareMessage({ slug, since, template, names, occasion, when }: { slug: string; since: number; template: string; names: string; occasion: string; when: string }) {
   const { left, text } = useCountdown(since);
-  const share = left / HOLD_MS;
+  const art = SHARE_ART[template];
+  // The art is portrait (864×1536) and the card 1200×630: show the same band the share card does.
+  const posY = art ? `${Math.round(art.y * 1.4191 * 100)}%` : "50%";
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ type: "spring", stiffness: 260, damping: 22 }}
-      className="relative overflow-hidden rounded-[20px] bg-gradient-to-br from-[#2b1a12] to-[#5b2a3a] p-5 text-white shadow-lg"
-    >
-      <motion.span aria-hidden className="pointer-events-none absolute -top-2 right-16 text-[22px]" initial={{ opacity: 0, y: 8 }} animate={{ opacity: [0, 1, 0], y: -6 }} transition={{ duration: 1.6, delay: 0.2 }}>
-        ✨
-      </motion.span>
-      <div className="flex items-center gap-4">
-        <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-semibold tracking-wide text-[#ffd479] uppercase">{left ? "It's available!" : "Still free"}</p>
-          <p className="mt-1 text-[13px] text-white/70">aavjoo.in/i/</p>
-          <p className="truncate text-[20px] leading-tight font-bold">{slug}</p>
-          <p className="mt-2 text-[13px] text-white/75">{left ? "Finish in time to make this link yours." : "Finish now to make this link yours."}</p>
+    <motion.div initial={{ opacity: 0, y: 12, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0 }} transition={{ type: "spring", stiffness: 240, damping: 22 }} className="overflow-hidden rounded-[20px] bg-panel">
+      <div className="flex items-start justify-between gap-3 px-5 pt-5">
+        <div>
+          <p className="text-[17px] font-semibold">✨ Your link is free</p>
+          <p className="mt-0.5 text-[14px] leading-snug text-muted">This is how your guests will get it on WhatsApp.</p>
         </div>
-        {left > 0 && (
-          <div className="relative grid size-[72px] shrink-0 place-items-center">
-            <svg viewBox="0 0 72 72" className="absolute inset-0 -rotate-90" aria-hidden>
-              <circle cx="36" cy="36" r="32" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="5" />
-              <circle cx="36" cy="36" r="32" fill="none" stroke="#ffd479" strokeWidth="5" strokeLinecap="round" strokeDasharray={2 * Math.PI * 32} strokeDashoffset={2 * Math.PI * 32 * (1 - share)} />
-            </svg>
-            <span className="font-mono text-[15px] font-bold tabular-nums">{text}</span>
-          </div>
-        )}
       </div>
+      {/* A WhatsApp chat: their message, with the link's preview card. */}
+      <div className="mx-4 mt-4 rounded-[16px] bg-[#efeae2] p-3">
+        <motion.div initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25, type: "spring", stiffness: 220, damping: 20 }} className="ml-auto w-[92%] rounded-[12px] rounded-tr-[4px] bg-[#d9fdd3] p-1.5 shadow-[0_1px_1px_rgba(0,0,0,.08)]">
+          <div className="overflow-hidden rounded-[9px] bg-[#cfe9c7]">
+            <div
+              className="relative grid aspect-[1200/630] place-items-center bg-cover text-center"
+              style={art ? { backgroundImage: `url(${art.src})`, backgroundSize: "100% auto", backgroundPosition: `center ${posY}` } : { background: "linear-gradient(135deg,#fbf5ec,#f4ebe1)" }}
+            >
+              <div className="px-3 [text-shadow:0_0_14px_rgba(255,250,244,.95),0_0_4px_rgba(255,250,244,.9)]">
+                <p className="text-[9px] font-semibold tracking-[0.2em] text-[#3b1f24] uppercase">{occasion === "engagement" ? "Engagement invitation" : "Wedding invitation"}</p>
+                <p className="mt-0.5 font-serif text-[24px] leading-none font-semibold text-[#3b1f24]">{names}</p>
+                {when && <p className="mt-1 text-[10px] font-medium text-[#3b1f24]">{when}</p>}
+              </div>
+            </div>
+            <div className="px-2.5 py-2">
+              <p className="truncate text-[13px] font-semibold text-[#111b21]">{names} · You&rsquo;re invited</p>
+              <p className="text-[12px] text-[#667781]">aavjoo.in</p>
+            </div>
+          </div>
+          <p className="px-1.5 pt-1.5 text-[14px] leading-snug break-all text-[#027eb5] underline">https://aavjoo.in/i/{slug}</p>
+          <p className="px-1.5 pt-0.5 text-right text-[11px] text-[#667781]">
+            now <span className="text-[#53bdeb]">✓✓</span>
+          </p>
+        </motion.div>
+      </div>
+      <p className="px-5 pt-3 pb-5 text-[14px] leading-snug">
+        {left ? (
+          <>
+            <span className="font-semibold">aavjoo.in/i/{slug}</span> is yours if you finish in <span className="font-semibold tabular-nums">{text}</span>.
+          </>
+        ) : (
+          <>
+            <span className="font-semibold">aavjoo.in/i/{slug}</span> is still free: finish now to make it yours.
+          </>
+        )}
+      </p>
     </motion.div>
   );
 }
 
-/** The countdown in the bottom bar, warmer as time runs short. */
+/** The link's countdown beside "Step 2 of 7", warmer as time runs short. */
 function HoldChip({ since }: { since: number }) {
   const { left, text } = useCountdown(since);
-  if (!left) return null;
+  if (!left) return <span className="shrink-0 font-semibold text-[#b4410f]">Finish now to claim your link</span>;
   const late = left < 3 * 60 * 1000;
   return (
-    <span className={`hidden h-12 shrink-0 items-center gap-1.5 rounded-full px-3 text-[14px] font-semibold tabular-nums min-[360px]:flex ${late ? "animate-pulse bg-[#fff1e6] text-[#b4410f]" : "bg-[#fff6e5] text-[#8a5a00]"}`}>
-      <svg viewBox="0 0 20 20" className="size-4" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" aria-hidden>
+    <span className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold tabular-nums ${late ? "animate-pulse bg-[#fff1e6] text-[#b4410f]" : "bg-[#fff6e5] text-[#8a5a00]"}`}>
+      <svg viewBox="0 0 20 20" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden>
         <rect x="4.5" y="9" width="11" height="8" rx="2" />
         <path d="M7 9V6.5a3 3 0 0 1 6 0V9" />
       </svg>
-      {text}
+      Link held · {text}
     </span>
   );
 }

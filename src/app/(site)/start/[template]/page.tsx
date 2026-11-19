@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getTemplate, templates } from "@/data/templates";
-import { Container, Eyebrow, Heading, Lead } from "@/ui";
+import { Container, Eyebrow } from "@/ui";
 import { MakeItYours } from "./MakeItYours";
 
 // One page per design, prerendered.
@@ -29,13 +29,8 @@ export default async function StartPage({ params }: PageProps<"/start/[template]
             ← Back to {t.name}
           </Link>
         </Eyebrow>
-        <Heading as="h2" className="mt-4">
-          Make {t.name} yours.
-        </Heading>
-        <Lead className="mt-3 max-w-[640px]">
-          Your invite, ready in 3 minutes. Watch it come alive as you type.
-        </Lead>
-        <div className="mt-10">
+        {/* The form says the rest (its title shows on the first step only). */}
+        <div className="mt-6">
           <Suspense fallback={<div className="h-[60vh] rounded-card bg-panel" />}>
             <MakeItYours t={t} />
           </Suspense>
