@@ -548,7 +548,7 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
       </Card>
       {showing("rsvp") && (
         <Card title="RSVPs" note="Guests reply on WhatsApp.">
-          <Toggle label="Send RSVPs to my WhatsApp" on={s.rsvpSame} onChange={(on) => set("rsvpSame", on)} />
+          <Toggle label="Send RSVPs to my WhatsApp" words={["Yes", "No"]} on={s.rsvpSame} onChange={(on) => set("rsvpSame", on)} />
           {!s.rsvpSame && <Text k="rsvpPhone" type="tel" label="RSVP number" value={s.rsvpPhone} onChange={(v) => set("rsvpPhone", v)} placeholder="98765 43210" error={err("rsvpPhone")} max={20} />}
           {isOpen("rsvpBy", s.rsvpBy) ? (
             <Text k="rsvpBy" type="date" label="Reply by" optional value={s.rsvpBy} min={today || undefined} maxDate={s.weddingDate || undefined} onChange={(v) => set("rsvpBy", v)} error={err("rsvpBy")} />
@@ -822,21 +822,29 @@ function Choice({ label, value, onChange, options }: { label: string; value: str
   );
 }
 
-function Toggle({ label, note, on, onChange }: { label: string; note?: string; on: boolean; onChange: (on: boolean) => void }) {
+/** An on/off choice in words ("Show" or "Hide"): a switch alone wasn't clear to many couples. */
+function Toggle({ label, note, on, onChange, words = ["Show", "Hide"] }: { label: string; note?: string; on: boolean; onChange: (on: boolean) => void; words?: [string, string] }) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-3">
       <div className="min-w-0 flex-1">
         <p className="text-[15px] font-medium">{label}</p>
         {note && <p className="text-[13px] leading-snug text-subtle">{note}</p>}
       </div>
-      <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={() => onChange(!on)} className={`relative h-8 w-[52px] shrink-0 rounded-full transition ${on ? "bg-ink" : "bg-[#d4d4d4]"}`}>
-        <span className={`absolute top-1 size-6 rounded-full bg-white shadow transition-all ${on ? "left-[24px]" : "left-1"}`} />
-      </button>
+      <div role="radiogroup" aria-label={label} className="flex shrink-0 rounded-full bg-white p-1 ring-1 ring-line">
+        {words.map((w, i) => {
+          const picked = i === 0 ? on : !on;
+          return (
+            <button key={w} type="button" role="radio" aria-checked={picked} onClick={() => onChange(i === 0)} className={`h-9 min-w-[60px] rounded-full px-3 text-[14px] font-semibold transition ${picked ? "bg-ink text-white" : "text-muted"}`}>
+              {w}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-/** A value shown in one line, with "Change" to edit it. */
+/** Extra fields, each opened with a tap. */
 function Chips({ items }: { items: (false | undefined | "" | 0 | { label: string; on: () => void })[] }) {
   const list = items.filter((x): x is { label: string; on: () => void } => !!x);
   if (!list.length) return null;
