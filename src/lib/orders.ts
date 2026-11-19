@@ -207,7 +207,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       // Kept even when empty, so a couple who clears their list in the form really clears it.
       ...(Array.isArray(d.extras)
         ? {
-            extras: d.extras.slice(0, 8).map((g) => {
+            extras: d.extras.slice(0, 12).map((g) => {
               const o = (g ?? {}) as Record<string, unknown>;
               return { title: str(o.title, 80), lines: (Array.isArray(o.lines) ? o.lines : []).slice(0, 80).map((l) => str(l, 240)).filter(Boolean) };
             }).filter((g) => g.lines.length),

@@ -1,3 +1,4 @@
+import { extraLine } from "@/lib/extra-lines";
 import { getFontStyle, isScriptFont, scriptFonts } from "@/config/customise";
 import type { Invite, InviteEvent } from "@/data/invites";
 
@@ -201,7 +202,15 @@ export function pdfHtml(invite: Invite, opts: { siteUrl: string; inviteUrl: stri
           .map(
             (g, i) =>
               `${i ? sep : ""}<div class="ev"><p class="script title" style="font-size:calc(46px * var(--k,1))">${esc(g.title)}</p>${g.lines
-                .map((l) => `<p class="ven" style="font-size:calc(22px * var(--k,1));margin-top:6px">${esc(l)}</p>`)
+                .map((l) => {
+                  // Sub-headings, large names, "&" and gaps, as on the invite (src/lib/extra-lines.ts).
+                  const x = extraLine(l);
+                  if (x.kind === "gap") return `<div style="height:calc(14px * var(--k,1))"></div>`;
+                  if (x.kind === "and") return `<p class="ven" style="font-size:calc(17px * var(--k,1));margin-top:2px;opacity:.75">&amp;</p>`;
+                  if (x.kind === "sub") return `<p class="ven" style="font-size:calc(19px * var(--k,1));margin-top:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">${esc(x.text)}</p>`;
+                  if (x.kind === "big") return `<p class="script" style="font-size:calc(40px * var(--k,1));margin-top:8px">${esc(x.text)}</p>`;
+                  return `<p class="ven" style="font-size:calc(22px * var(--k,1));margin-top:6px">${esc(x.text)}</p>`;
+                })
                 .join("")}</div>`,
           )
           .join("")}${d.welcome ? `<p class="msg" style="margin-top:26px">${esc(d.welcome)}</p>` : ""}`,
