@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Badge, Button, Container, FilterPills, Panel } from "@/ui";
+import { Button, Container, FilterPills, Panel } from "@/ui";
 
 /**
  * The couple's RSVP page, as a preview with sample replies. The real page reads the invite's RSVPs
@@ -9,7 +9,9 @@ import { Badge, Button, Container, FilterPills, Panel } from "@/ui";
  * order page). Guests' replies still go to the couple's WhatsApp; this page counts and lists them.
  */
 
-type Reply = { name: string; coming: boolean; guests: number; functions: string[]; stay?: number; note?: string; ago: string };
+// Exactly what the invite's RSVP form sends: coming or not, a name, guests (1–12, only when coming),
+// the functions picked (only when there's more than one) and an optional note. We add when it came.
+type Reply = { name: string; coming: boolean; guests: number; functions: string[]; note?: string; ago: string };
 
 const FUNCTIONS = [
   { name: "Mehndi", when: "Thu, 10 Dec · 4:00 pm" },
@@ -19,16 +21,16 @@ const FUNCTIONS = [
 ];
 
 const REPLIES: Reply[] = [
-  { name: "Sharma family", coming: true, guests: 4, functions: ["Sangeet", "Wedding", "Reception"], stay: 2, note: "So happy for you both! Can't wait to dance 💃", ago: "12 min ago" },
+  { name: "Sharma family", coming: true, guests: 4, functions: ["Sangeet", "Wedding", "Reception"], note: "So happy for you both! Can't wait to dance 💃", ago: "12 min ago" },
   { name: "Priya & Rohan", coming: true, guests: 2, functions: ["Mehndi", "Sangeet", "Wedding"], ago: "40 min ago" },
-  { name: "Verma Uncle", coming: true, guests: 3, functions: ["Wedding", "Reception"], stay: 3, ago: "1 h ago" },
+  { name: "Verma Uncle", coming: true, guests: 3, functions: ["Wedding", "Reception"], ago: "1 h ago" },
   { name: "Ananya Iyer", coming: false, guests: 1, functions: [], note: "I'm abroad that week, sending all my love 🙏", ago: "2 h ago" },
-  { name: "Kapoor family", coming: true, guests: 5, functions: ["Mehndi", "Sangeet", "Wedding", "Reception"], stay: 5, ago: "3 h ago" },
+  { name: "Kapoor family", coming: true, guests: 5, functions: ["Mehndi", "Sangeet", "Wedding", "Reception"], ago: "3 h ago" },
   { name: "Neha Gupta", coming: true, guests: 1, functions: ["Sangeet"], note: "Saving my best moves for the sangeet!", ago: "5 h ago" },
   { name: "Mehta family", coming: true, guests: 4, functions: ["Wedding"], ago: "Yesterday" },
   { name: "Arjun Nair", coming: false, guests: 1, functions: [], ago: "Yesterday" },
   { name: "Joshi Aunty", coming: true, guests: 2, functions: ["Mehndi", "Wedding"], ago: "Yesterday" },
-  { name: "Riya & Kabir", coming: true, guests: 2, functions: ["Sangeet", "Wedding", "Reception"], stay: 2, note: "Count us in for everything ✨", ago: "2 days ago" },
+  { name: "Riya & Kabir", coming: true, guests: 2, functions: ["Sangeet", "Wedding", "Reception"], note: "Count us in for everything ✨", ago: "2 days ago" },
   { name: "Banerjee family", coming: true, guests: 3, functions: ["Reception"], ago: "2 days ago" },
   { name: "Simran Kaur", coming: true, guests: 1, functions: ["Mehndi", "Sangeet"], ago: "3 days ago" },
 ];
@@ -41,9 +43,7 @@ export function RsvpDashboard() {
 
   const coming = REPLIES.filter((r) => r.coming);
   const guests = coming.reduce((n, r) => n + r.guests, 0);
-  const stays = coming.reduce((n, r) => n + (r.stay ?? 0), 0);
   const perFunction = FUNCTIONS.map((f) => ({ ...f, guests: coming.filter((r) => r.functions.includes(f.name)).reduce((n, r) => n + r.guests, 0) }));
-  const most = Math.max(1, ...perFunction.map((f) => f.guests));
 
   const list = REPLIES.filter((r) => (filter === "Coming" ? r.coming : filter === "Can't come" ? !r.coming : true)).filter((r) => r.name.toLowerCase().includes(q.trim().toLowerCase()));
 
@@ -59,32 +59,29 @@ export function RsvpDashboard() {
             <h1 className="mt-1 text-[clamp(34px,6vw,48px)] leading-[1.05] font-semibold tracking-[-0.03em]">Aarav &amp; Meera</h1>
             <p className="mt-2 text-body text-muted">Wedding · Saturday, 12 December 2026 · Udaipur</p>
           </div>
-          <Badge live>Updated just now</Badge>
+          <p className="text-caption text-subtle">Last reply {REPLIES[0].ago}</p>
         </div>
 
         {/* Totals */}
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat label="Replies" value={REPLIES.length} />
+        <div className="mt-8 grid grid-cols-3 gap-3">
           <Stat label="Guests coming" value={guests} strong />
+          <Stat label="Replies" value={REPLIES.length} />
           <Stat label="Can't come" value={REPLIES.length - coming.length} />
-          <Stat label="Need a stay" value={stays} note="guests" />
         </div>
 
         {/* By function */}
         <Panel className="mt-6 p-5 sm:p-7">
           <p className="text-title">Guests at each function</p>
-          <div className="mt-5 space-y-4">
+          <p className="mt-1 text-caption text-subtle">For catering and seating: guests who said they&rsquo;ll come to each.</p>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {perFunction.map((f) => (
-              <div key={f.name}>
-                <div className="flex items-baseline justify-between gap-3">
-                  <p className="text-body font-semibold">
-                    {f.name} <span className="font-normal text-subtle">· {f.when}</span>
-                  </p>
-                  <p className="text-body font-semibold tabular-nums">{f.guests}</p>
-                </div>
-                <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-surface">
-                  <div className="h-full rounded-full bg-ink" style={{ width: `${(f.guests / most) * 100}%` }} />
-                </div>
+              <div key={f.name} className="rounded-[16px] bg-surface p-4">
+                <p className="text-body font-semibold">{f.name}</p>
+                <p className="text-caption text-subtle">{f.when}</p>
+                <p className="mt-3 text-[30px] leading-none font-semibold tracking-[-0.03em] tabular-nums">
+                  {f.guests}
+                  <span className="ml-1.5 text-caption font-medium tracking-normal text-subtle">guests</span>
+                </p>
               </div>
             ))}
           </div>
@@ -115,8 +112,7 @@ export function RsvpDashboard() {
                   <div className="min-w-0">
                     <p className="text-body font-semibold">{r.name}</p>
                     <p className="mt-0.5 text-caption text-subtle">
-                      {r.coming ? `${r.guests} ${r.guests === 1 ? "guest" : "guests"}` : "Can't come"}
-                      {r.stay ? ` · stay for ${r.stay}` : ""} · {r.ago}
+                      {r.coming ? `${r.guests} ${r.guests === 1 ? "guest" : "guests"}` : "Can't come"} · {r.ago}
                     </p>
                   </div>
                   <span className={`shrink-0 rounded-full px-2.5 py-1 text-[12px] font-semibold ${r.coming ? "bg-whatsapp-wash text-[#1d6b35]" : "bg-panel text-muted"}`}>{r.coming ? "Coming" : "Not coming"}</span>
@@ -145,13 +141,12 @@ export function RsvpDashboard() {
   );
 }
 
-function Stat({ label, value, note, strong }: { label: string; value: number; note?: string; strong?: boolean }) {
+function Stat({ label, value, strong }: { label: string; value: number; strong?: boolean }) {
   return (
     <div className={`rounded-[20px] p-4 sm:p-5 ${strong ? "bg-ink text-white" : "bg-panel"}`}>
       <p className={`text-caption font-medium ${strong ? "text-white/70" : "text-subtle"}`}>{label}</p>
       <p className="mt-1 text-[34px] leading-none font-semibold tracking-[-0.03em] tabular-nums">
         {value}
-        {note && <span className={`ml-1.5 text-caption font-medium tracking-normal ${strong ? "text-white/70" : "text-subtle"}`}>{note}</span>}
       </p>
     </div>
   );
