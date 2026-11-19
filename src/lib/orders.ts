@@ -153,6 +153,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       dress: str(o.dress, 80) || undefined,
       note: str(o.note, 240) || undefined,
       timeText: str(o.timeText, 60) || undefined,
+      noTime: o.noTime === true || undefined,
       ...(mapUrl ? { mapUrl } : {}),
       ...(Array.isArray(o.schedule) && o.schedule.length
         ? {

@@ -14,6 +14,8 @@ export type InviteEvent = {
   end?: string;
   // The couple's own wording for the time, shown in place of the start time (e.g. "शाम 8:30 से रात 2:00 बजे तक").
   timeText?: string;
+  // No time on the card at all, only the day (a ritual with no fixed hour).
+  noTime?: boolean;
   venue: string;
   address: string;
   dress?: string;

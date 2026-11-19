@@ -471,7 +471,8 @@ function ArchCard({ e, invite }: { e: InviteEvent; invite: Invite }) {
             {fmtDate(e.start, { day: "numeric" })}
           </p>
           <p className="inv-label mt-[1cqw] text-[3.4cqw] leading-snug font-bold" style={{ color: c.crimson, letterSpacing: "0.08em" }}>
-            {hi ? `${d.month(e.start)} ${d.year(e.start)}` : fmtDate(e.start, { month: "long", year: "numeric" })} · {when}
+            {hi ? `${d.month(e.start)} ${d.year(e.start)}` : fmtDate(e.start, { month: "long", year: "numeric" })}
+            {!e.noTime && <> · {when}</>}
           </p>
           {invite.venueLines ? (
             // one part of the venue per line, all alike
@@ -587,6 +588,12 @@ function Closing({ invite }: { invite: Invite }) {
             </div>
           </div>
         ))}
+        {invite.welcome && (
+          // the family's own line under their lists
+          <p className="inv-serif mx-auto mt-[8cqw] max-w-[72cqw] text-[4.6cqw] leading-snug font-semibold italic whitespace-pre-line" style={{ color: c.rose, textShadow: HALO }}>
+            {invite.welcome}
+          </p>
+        )}
         {!invite.noBranding && (
           <Link href="/" className="inv-label mt-[6cqw] inline-block text-[2.4cqw] font-semibold" style={{ color: c.soft, textShadow: HALO }}>
             {t.craftedBy(site.name)}
