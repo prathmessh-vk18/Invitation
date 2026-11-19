@@ -733,8 +733,16 @@ function ShareMessage({ slug, template, names, occasion, when }: { slug: string;
   return (
     <motion.div initial={{ opacity: 0, y: 12, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0 }} transition={{ type: "spring", stiffness: 240, damping: 22 }} className="overflow-hidden rounded-[20px] bg-panel pb-4">
       <div className="px-5 pt-5">
-        <p className="text-[17px] font-semibold">✨ How your guests will get it</p>
-        <p className="mt-0.5 text-[14px] leading-snug text-muted">Your invite on WhatsApp, with its own link.</p>
+        {/* Their own link, found for them: links go first come, first served, so finishing claims it. */}
+        <p className="text-[17px] font-semibold">✨ We found your link</p>
+        <div className="mt-2 flex min-w-0 items-center gap-2 rounded-[14px] bg-white px-3.5 py-3 ring-1 ring-line">
+          <span className="min-w-0 flex-1 truncate text-[15px] font-semibold">
+            <span className="text-subtle">aavjoo.in/i/</span>
+            {slug}
+          </span>
+          <span className="shrink-0 rounded-full bg-[#e7f6ec] px-2.5 py-1 text-[12px] font-semibold text-[#1f7a44]">✓ Available</span>
+        </div>
+        <p className="mt-2 text-[14px] leading-snug text-muted">Finish the form to claim it before someone else does. This is how your guests will get it on WhatsApp.</p>
       </div>
       <motion.div initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25, type: "spring", stiffness: 220, damping: 20 }} className="mx-4 mt-4">
         <WhatsAppMessage card={card} names={names} occasion={occasion} url={`https://aavjoo.in/i/${slug}`} />
