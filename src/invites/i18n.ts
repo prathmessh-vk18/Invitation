@@ -232,10 +232,12 @@ export const langOf = (invite: { lang?: string }): Lang => (invite.lang === "hi"
  * Hindi invites set their type in Devanagari faces: the decorative Latin scripts can't draw it, and
  * letter-spaced capitals break up Devanagari, so labels drop both.
  */
-export function langVars(lang: Lang): CSSProperties {
+export function langVars(lang: Lang, scriptFont?: string): CSSProperties {
   if (lang !== "hi") return {};
   return {
-    "--inv-script": "var(--font-rozha), var(--font-deva), serif",
+    // Tiro Devanagari for names and titles; Rozha One (heavy) only for invites pinned to it
+    // (scriptFont: "rozha"), the Hindi invites made before 19 Nov 2026.
+    "--inv-script": scriptFont === "rozha" ? "var(--font-rozha), var(--font-deva), serif" : "var(--font-deva), serif",
     "--inv-serif": "var(--font-deva), serif",
     "--inv-label": "var(--font-deva), serif",
   } as CSSProperties;

@@ -68,7 +68,8 @@ export const skins: Record<string, Skin> = {
 export function skinFor(invite: Invite): Skin {
   const pinned = skins[invite.template] ?? khatSkin;
   // An invite pinned to one script face (scriptFont) prints in it, as on the invite.
-  const base = isScriptFont(invite.scriptFont) ? { ...pinned, script: scriptFonts[invite.scriptFont] } : pinned;
+  // (A Hindi invite's pin is for the invite's own lettering; its PDF keeps its Devanagari faces.)
+  const base = isScriptFont(invite.scriptFont) && invite.lang !== "hi" ? { ...pinned, script: scriptFonts[invite.scriptFont] } : pinned;
   const style = getFontStyle(invite.font);
   if (!style) return base;
   const family = (cssVar: string) => FONT_FAMILIES[/--font-[a-z-]+/.exec(cssVar)?.[0] ?? ""];
