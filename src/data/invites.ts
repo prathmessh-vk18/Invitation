@@ -86,6 +86,8 @@ export type Invite = {
   readable?: boolean;
   // The link to publish at when the names can't make one (e.g. Hindi names): "nikhil-weds-nandini".
   slugBase?: string;
+  // Space above / below "weds" between the cover names, in cqw (Mandir; the design tucks both at -1).
+  joinerGap?: { above?: number; below?: number };
   // Pin the design's script lettering to one face (customise.ts scriptFonts), unless a font style is picked.
   scriptFont?: string;
   // Stack the couple's names vertically on the hero cover (first name, &, second name). On Rajwada,
@@ -143,7 +145,7 @@ export type Invite = {
   // A finished video invitation the couple brings (made elsewhere), played full screen in place of the design.
   // The design (`template`) then only sets the share card's colours. Files live on R2 under videos/.
   video?: { src: string; poster: string };
-  // Leave the date line off the cover (the dates still show on every function card). Rajwada and Gauri Shankar.
+  // Leave the date line off the cover (the dates still show on every function card). Rajwada, Gauri Shankar and Chameli.
   hideHeroDate?: boolean;
   // Leave the hosts' line ("The … family") off the cover; it still opens the blessing (Phulkari).
   hideHeroHosts?: boolean;

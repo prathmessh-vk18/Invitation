@@ -41,6 +41,7 @@ Use these before writing new code.
 - `closingNames`: words in place of the names at the end.
 - `hostsLines`
 - `nameScale`: allowed range 0.45 to 1.
+- `joinerGap` (`{ above, below }` in cqw; the design tucks both at -1): even space around "weds" on the cover when a tall capital crowds it (Rahul & Priya: -0.5 / 3.1).
 
 **Gauri Shankar**
 

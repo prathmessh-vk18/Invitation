@@ -166,7 +166,16 @@ function Names({ invite, show }: { invite: Invite; show: (d: number) => object }
           <InlineTitle p={a} cover />
         </span>
         {title(a)}
-        <span className={`text-[8.5cqw] leading-none ${lang === "hi" ? "my-[2cqw]" : "-my-[1cqw]"}`} style={{ color: c.ink, fontFamily: lang === "hi" ? "var(--inv-script)" : HAND }}>
+        {/* "weds" tucks between the names; joinerGap (cqw above / below) gives it room where tall letters crowd it. */}
+        <span
+          className={`text-[8.5cqw] leading-none ${lang === "hi" ? "my-[2cqw]" : "-my-[1cqw]"}`}
+          style={{
+            color: c.ink,
+            fontFamily: lang === "hi" ? "var(--inv-script)" : HAND,
+            ...(invite.joinerGap?.above !== undefined ? { marginTop: `${invite.joinerGap.above}cqw` } : {}),
+            ...(invite.joinerGap?.below !== undefined ? { marginBottom: `${invite.joinerGap.below}cqw` } : {}),
+          }}
+        >
           {invite.joiner ?? (invite.occasion === "engagement" ? "&" : t.weds)}
         </span>
         <span className={`inv-script text-[15cqw] leading-[0.95] ${b.coverName ? "whitespace-nowrap" : ""}`} style={{ color: c.name, ...big }}>
@@ -305,7 +314,8 @@ function Blessing({ invite }: { invite: Invite }) {
         )}
         {invite.hostsLines && invite.hosts ? (
           // one family per line, "&" between them
-          <div className="inv-label mt-[4cqw] text-[3cqw] leading-relaxed font-semibold" style={{ color: c.goldDeep }}>
+          // a line break the couple typed stays (e.g. a grandmother's name, then "W/o …")
+          <div className="inv-label mt-[4cqw] text-[3cqw] leading-relaxed font-semibold whitespace-pre-line" style={{ color: c.goldDeep }}>
             {invite.hosts.split(/\s+&\s+/).map((name, i) => (
               <p key={i}>
                 {i > 0 && <span className="my-[0.5cqw] block">&amp;</span>}
@@ -314,7 +324,7 @@ function Blessing({ invite }: { invite: Invite }) {
             ))}
           </div>
         ) : (
-          <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed" style={{ color: c.goldDeep }}>
+          <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed whitespace-pre-line" style={{ color: c.goldDeep }}>
             {invite.hosts || t.togetherWithFamilies}
           </p>
         )}

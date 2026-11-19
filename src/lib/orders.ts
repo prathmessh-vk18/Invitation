@@ -249,6 +249,14 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(isScriptFont(d.scriptFont) ? { scriptFont: d.scriptFont } : {}),
       ...(typeof d.slugBase === "string" && isValidSlug(d.slugBase) ? { slugBase: d.slugBase } : {}),
       ...(typeof d.readable === "boolean" ? { readable: d.readable } : {}),
+      ...(d.joinerGap && typeof d.joinerGap === "object"
+        ? (() => {
+            const g = d.joinerGap as Record<string, unknown>;
+            const ok = (v: unknown): v is number => typeof v === "number" && v >= -3 && v <= 8;
+            const out = { ...(ok(g.above) ? { above: g.above } : {}), ...(ok(g.below) ? { below: g.below } : {}) };
+            return Object.keys(out).length ? { joinerGap: out } : {};
+          })()
+        : {}),
       ...(d.stackNames === true ? { stackNames: true } : {}),
       ...(d.noSignoff === true ? { noSignoff: true } : {}),
       ...(typeof d.signoff === "string" ? { signoff: str(d.signoff, 80) } : {}),
