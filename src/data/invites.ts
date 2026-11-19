@@ -145,6 +145,8 @@ export type Invite = {
   video?: { src: string; poster: string };
   // Leave the date line off the cover (the dates still show on every function card). Rajwada, Gauri Shankar and Chameli.
   hideHeroDate?: boolean;
+  // A save-the-date: no functions section (the order still keeps one function, for the checks).
+  hideEvents?: boolean;
   // Leave the hosts' line ("The … family") off the cover; it still opens the blessing (Phulkari).
   hideHeroHosts?: boolean;
   // Leave the city off the cover too (Rajwada). Venues still show on every function card.

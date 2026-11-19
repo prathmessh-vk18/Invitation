@@ -41,7 +41,8 @@ export function InviteRenderer({ invite: given }: { invite: Invite }) {
     <theme.Divider key="divider" />,
     shows(invite, "scratch") && (theme.ScratchSection ? <theme.ScratchSection key="scratch" invite={invite} /> : <ScratchDate key="scratch" invite={invite} theme={theme} />),
     shows(invite, "countdown") && (theme.CountdownSection ? <theme.CountdownSection key="countdown" invite={invite} /> : <Countdown key="countdown" invite={invite} theme={theme} />),
-    <theme.Events key="events" invite={invite} />,
+    // A save-the-date has no functions to list (hideEvents).
+    !invite.hideEvents && <theme.Events key="events" invite={invite} />,
     <Story key="story" invite={invite} theme={theme} />,
     shows(invite, "gallery") && (theme.GallerySection ? <theme.GallerySection key="gallery" invite={invite} /> : <Gallery key="gallery" invite={invite} theme={theme} />),
     <Contacts key="contacts" invite={invite} theme={theme} />,
