@@ -736,7 +736,7 @@ function ShareMessage({ slug, template, names, occasion, when }: { slug: string;
         {/* Their own link, found for them: links go first come, first served, so finishing claims it. */}
         <p className="text-[17px] font-semibold">✨ We found your link</p>
         <div className="mt-2 flex min-w-0 items-center gap-2 rounded-[14px] bg-white px-3.5 py-3 ring-1 ring-line">
-          <span className="min-w-0 flex-1 truncate text-[15px] font-semibold">
+          <span className="min-w-0 flex-1 text-[15px] leading-snug font-semibold [overflow-wrap:anywhere]">
             <span className="text-subtle">aavjoo.in/i/</span>
             {slug}
           </span>
