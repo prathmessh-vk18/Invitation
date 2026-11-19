@@ -15,7 +15,8 @@ import { ScratchDate } from "./scratch";
 import { Contacts, Countdown, Gallery, MusicToggle, Rsvp, Story } from "./shared";
 
 /** `editing`: the couple's editor, which skips the opening and puts an edit button on each section. */
-export function InviteRenderer({ invite: given, editing }: { invite: Invite; editing?: boolean }) {
+/** `bare`: no painted frame over the invite (while the couple types in the editor). */
+export function InviteRenderer({ invite: given, editing, bare }: { invite: Invite; editing?: boolean; bare?: boolean }) {
   const invite = useMemo(() => withMapLinks(given), [given]);
   const theme = themes[invite.template];
   const [opened, setOpened] = useState(!!editing);
@@ -75,7 +76,7 @@ export function InviteRenderer({ invite: given, editing }: { invite: Invite; edi
           </div>
         </main>
 
-        {opened && theme.Frame && (
+        {opened && theme.Frame && !bare && (
           <div className="pointer-events-none fixed inset-0 z-30 flex justify-center">
             {/* A size container, so a frame drawn in cqw scales with the invite (≤480px), not the window. */}
             <div className="@container relative h-full w-full max-w-[480px] overflow-hidden">

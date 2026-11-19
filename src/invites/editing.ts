@@ -7,3 +7,5 @@ export const PREVIEW_SCROLL = "aavjoo:preview-scroll";
 export const EDIT_SECTION = "aavjoo:edit-section";
 // The editor marks which part is being edited (null: none).
 export const PREVIEW_SELECT = "aavjoo:preview-select";
+// The couple is typing: the design's frame steps aside so the line being changed is never under it.
+export const PREVIEW_TYPING = "aavjoo:preview-typing";

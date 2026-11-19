@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { unstable_isUnrecognizedActionError, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent, type ReactNode, type RefObject } from "react";
 import { fontStyles } from "@/config/customise";
 import { getAt, lookFields, sectionsFor, setAt, TEXT_SCALES, type Ctx, type Field } from "@/config/editor";
 import { instrumentals, songs, type Track } from "@/config/music";
@@ -14,7 +14,7 @@ import { cleanPartnerCode, readRefCookie } from "@/config/partners";
 import { waNumber } from "@/app/(site)/start/[template]/form-model";
 import { eventKinds, kindName, type InviteDetails } from "@/lib/orders";
 import { shrink, uploadTo } from "@/lib/upload-client";
-import { EDIT_SECTION, PREVIEW_INVITE, PREVIEW_READY, PREVIEW_SCROLL, PREVIEW_SELECT } from "@/invites/editing";
+import { EDIT_SECTION, PREVIEW_INVITE, PREVIEW_READY, PREVIEW_SCROLL, PREVIEW_SELECT, PREVIEW_TYPING } from "@/invites/editing";
 import { defaultWord, langOf } from "@/invites/i18n";
 import { useInviteMusic } from "@/invites/music";
 
@@ -97,6 +97,34 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
   }, [hintClosed]);
   const frame = useRef<HTMLIFrameElement>(null);
   const sheetBody = useRef<HTMLDivElement>(null);
+
+  /* Typing: while the keyboard is up and a box in the panel has focus, the panel shows only that
+     box, right on the keyboard, with ↑ ↓ and Done ("split", the invite above scrolled to the line);
+     or, with ?typing=focus, a typing screen with large text under a small live preview window. */
+  const [typingMode] = useState<"split" | "focus">(() => (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("typing") === "focus" ? "focus" : "split"));
+  // The part of the screen the keyboard leaves (?kb=<px> pretends a keyboard, for testing on a computer).
+  const [view, setView] = useState<{ top: number; height: number } | null>(null);
+  const [typingIn, setTypingIn] = useState<HTMLElement | null>(null);
+  // Which box of how many, for the bar ("2/6").
+  const [typingPos, setTypingPos] = useState({ at: 0, total: 0 });
+  useEffect(() => {
+    const fake = Number(new URLSearchParams(window.location.search).get("kb")) || 0;
+    const v = window.visualViewport;
+    const measure = () => {
+      if (fake) return setView({ top: 0, height: window.innerHeight - fake });
+      if (!v) return;
+      setView(window.innerHeight - v.height > 120 ? { top: v.offsetTop, height: v.height } : null);
+    };
+    v?.addEventListener("resize", measure);
+    v?.addEventListener("scroll", measure);
+    const t = window.setTimeout(measure, 0);
+    return () => {
+      v?.removeEventListener("resize", measure);
+      v?.removeEventListener("scroll", measure);
+      window.clearTimeout(t);
+    };
+  }, []);
+  const typing = !!typingIn && !!view;
   const ready = useRef(false);
 
   const { details } = doc;
@@ -208,14 +236,50 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
   // The preview follows what's being edited: the line with this text, in the open part.
   const openId = sheet?.kind === "section" ? sheet.id : null;
   const revealTimer = useRef(0);
+  // While typing, the line being changed sits in the part of the invite still in view.
+  const lastReveal = useRef<string | undefined>(undefined);
+  const revealAt = useRef(0.3);
   const reveal = useCallback(
     (text: string | undefined) => {
       if (!openId || !text?.trim()) return;
       window.clearTimeout(revealTimer.current);
-      revealTimer.current = window.setTimeout(() => post({ type: PREVIEW_SCROLL, id: openId, text }), 250);
+      lastReveal.current = text;
+      revealTimer.current = window.setTimeout(() => post({ type: PREVIEW_SCROLL, id: openId, text, at: revealAt.current }), 250);
     },
     [openId, post],
   );
+  useEffect(() => {
+    revealAt.current = typing ? (typingMode === "focus" ? 0.1 : 0.22) : 0.3;
+    post({ type: PREVIEW_TYPING, on: typing });
+    if (typing && lastReveal.current) reveal(lastReveal.current);
+  }, [typing, typingMode, reveal, post]);
+
+  /** The box being typed in shows; the others in the panel step aside (CSS on [data-active]). */
+  const markActive = (el: HTMLElement) => {
+    sheetBody.current?.querySelectorAll("[data-active]").forEach((x) => x.removeAttribute("data-active"));
+    (el.closest<HTMLElement>("[data-field]") ?? el.parentElement)?.setAttribute("data-active", "");
+  };
+  const typingBoxes = () => Array.from(sheetBody.current?.querySelectorAll<HTMLElement>("input:not([type=range]):not([type=file]):not([type=checkbox]), textarea") ?? []);
+  const stepBox = (by: number) => {
+    const list = typingBoxes();
+    const next = typingIn ? list[list.indexOf(typingIn) + by] : undefined;
+    if (!next) return;
+    markActive(next);
+    next.focus();
+  };
+  const onSheetFocus = (e: FocusEvent) => {
+    const el = e.target as HTMLElement;
+    if (!el.matches("input:not([type=range]):not([type=file]):not([type=checkbox]), textarea")) return;
+    markActive(el);
+    setTypingIn(el);
+    const list = typingBoxes();
+    setTypingPos({ at: list.indexOf(el) + 1, total: list.length });
+  };
+  const onSheetBlur = () =>
+    window.setTimeout(() => {
+      const now = document.activeElement as HTMLElement | null;
+      if (!now || !sheetBody.current?.contains(now)) setTypingIn(null);
+    }, 60);
 
   const undo = () => {
     const prev = history[history.length - 1];
@@ -301,14 +365,21 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
 
   return (
     <div className="fixed inset-0 flex justify-center bg-black">
-      <style>{`.editor-flash{animation:editor-flash 1.6s ease}@keyframes editor-flash{0%,60%{box-shadow:0 0 0 3px #fff;border-radius:14px}100%{box-shadow:0 0 0 0 transparent}}`}</style>
+      <style>{`.editor-flash{animation:editor-flash 1.6s ease}@keyframes editor-flash{0%,60%{box-shadow:0 0 0 3px #fff;border-radius:14px}100%{box-shadow:0 0 0 0 transparent}}
+.typing-body[data-typing] *:not(:has([data-active])):not([data-active]):not([data-active] *){display:none!important}
+.typing-body[data-typing] *:has([data-active]){padding:0!important;background:none!important;margin:0!important;gap:0!important;border:0!important}
+.typing-body[data-typing="focus"] [data-active] :is(input,textarea){font-size:22px;line-height:1.35;padding:14px 16px}
+.typing-body[data-typing="focus"] [data-active] textarea{min-height:150px}`}</style>
       <div className="relative h-full w-full max-w-[480px] overflow-hidden bg-black">
         <iframe ref={frame} src="/preview?edit=1" title="Your invite" className="absolute inset-0 h-full w-full border-0" allow="autoplay" />
 
         {/* Shades at the top and bottom, so the white buttons read over any invite. */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-black/45 to-transparent" />
+        {!typing && <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-black/45 to-transparent" />}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-32 bg-gradient-to-t from-black/55 to-transparent" />
 
+        {/* Close, where this invite stands, and undo; out of the way while typing. */}
+        {!typing && (
+          <>
         {/* Top left: close. Top centre: where this invite stands. */}
         <Link href={backHref} aria-label="Close" className="absolute top-3 left-3 z-20 grid size-11 place-items-center rounded-full bg-black/35 text-white backdrop-blur-md">
           <svg viewBox="0 0 20 20" className="size-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden>
@@ -334,6 +405,8 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
         >
           <Icon d="M7 5 3.5 8.5 7 12M4 8.5h7a5 5 0 0 1 0 10H8" />
         </button>
+          </>
+        )}
 
         {/* Bottom: the tools in a row, and the next step at the end. Only the buttons catch
             touches, so a swipe anywhere else scrolls the invite. */}
@@ -409,7 +482,34 @@ export function InviteEditor({ orderId, design, extra, details: startDetails, so
           </div>
         )}
 
-        <BottomSheet open={!!sheet} title={title} onClose={closeSheet} bodyRef={sheetBody}>
+        {/* Typing view: the invite shows in a framed window above the typing screen. */}
+        {typing && typingMode === "focus" && view && (
+          <div className="pointer-events-none absolute inset-x-3 z-20 rounded-[18px] ring-2 ring-white/70" style={{ top: view.top + 10, height: view.height * 0.34 - 20 }}>
+            <span className="absolute top-2 right-2 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md">Live preview</span>
+          </div>
+        )}
+        <BottomSheet
+          open={!!sheet}
+          title={title}
+          onClose={closeSheet}
+          bodyRef={sheetBody}
+          onFocus={onSheetFocus}
+          onBlur={onSheetBlur}
+          typing={
+            typing && view && typingIn
+              ? {
+                  mode: typingMode,
+                  view,
+                  label: title,
+                  at: typingPos.at,
+                  total: typingPos.total,
+                  prev: () => stepBox(-1),
+                  next: () => stepBox(1),
+                  done: () => typingIn.blur(),
+                }
+              : null
+          }
+        >
           {current && (
             <div className="space-y-7">
               {current.note && <p className="text-[14px] leading-snug text-white/60">{current.note}</p>}
@@ -514,37 +614,78 @@ function Tool({ label, onClick, active, disabled, children }: { label: string; o
   );
 }
 
-/** A dark panel from the bottom, like a story's music and sticker trays; drag it down to close. */
-function BottomSheet({ open, title, onClose, bodyRef, children }: { open: boolean; title: string; onClose: () => void; bodyRef: RefObject<HTMLDivElement | null>; children: ReactNode }) {
+/** While typing: how the panel sits, what the bar says, and its buttons. */
+type Typing = { mode: "split" | "focus"; view: { top: number; height: number }; label: string; at: number; total: number; prev: () => void; next: () => void; done: () => void };
+
+/**
+ * A dark panel from the bottom, like a story's music and sticker trays; drag it down to close.
+ * While typing it sits right on the keyboard and shows only the box being typed in, under a bar
+ * with ↑ ↓ and Done; in "focus" mode it fills the screen below a small live preview window.
+ */
+function BottomSheet({ open, title, onClose, bodyRef, onFocus, onBlur, typing, children }: { open: boolean; title: string; onClose: () => void; bodyRef: RefObject<HTMLDivElement | null>; onFocus: (e: FocusEvent) => void; onBlur: () => void; typing: Typing | null; children: ReactNode }) {
   const startY = useRef<number | null>(null);
   const [drag, setDrag] = useState(0);
+  // Measured against the layout viewport, which the keyboard doesn't shrink.
+  const above = typing ? Math.max(0, (typeof window === "undefined" ? 0 : window.innerHeight) - (typing.view.top + typing.view.height)) : 0;
+  const style = typing
+    ? typing.mode === "focus"
+      ? { bottom: above, top: typing.view.top + typing.view.height * 0.34 }
+      : { bottom: above, maxHeight: typing.view.height * 0.62 }
+    : open && drag
+      ? { transform: `translateY(${drag}px)` }
+      : undefined;
+  const nav = "grid size-10 place-items-center rounded-full bg-white/10 text-white disabled:opacity-30";
   return (
     <div
-      className={`absolute inset-x-0 bottom-0 z-30 flex max-h-[58%] flex-col rounded-t-[26px] bg-[#1c1c1e] text-white shadow-[0_-12px_40px_rgba(0,0,0,.5)] ${drag ? "" : "transition-transform duration-300"} ${open ? "" : "pointer-events-none translate-y-full"}`}
-      style={open && drag ? { transform: `translateY(${drag}px)` } : undefined}
+      className={`absolute inset-x-0 bottom-0 z-30 flex flex-col bg-[#1c1c1e] text-white shadow-[0_-12px_40px_rgba(0,0,0,.5)] ${typing ? (typing.mode === "focus" ? "rounded-t-[22px]" : "rounded-t-[20px]") : "max-h-[58%] rounded-t-[26px]"} ${drag || typing ? "" : "transition-transform duration-300"} ${open ? "" : "pointer-events-none translate-y-full"}`}
+      style={style}
       role="dialog"
       aria-label={title}
       aria-hidden={!open}
     >
-      <div
-        className="touch-none px-4 pt-2.5 pb-3"
-        onTouchStart={(e) => (startY.current = e.touches[0].clientY)}
-        onTouchMove={(e) => startY.current !== null && setDrag(Math.max(0, e.touches[0].clientY - startY.current))}
-        onTouchEnd={() => {
-          if (drag > 70) onClose();
-          setDrag(0);
-          startY.current = null;
-        }}
-      >
-        <div className="mx-auto h-1.5 w-10 rounded-full bg-white/25" />
-        <div className="mt-3 flex items-center justify-between">
-          <p className="text-[18px] font-bold">{title}</p>
-          <button type="button" onClick={onClose} className="h-9 rounded-full bg-white px-4 text-[15px] font-semibold text-black">
+      {typing ? (
+        <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2">
+          {/* Pressing these keeps the box focused, so the keyboard stays up. */}
+          <button type="button" aria-label="Previous box" onPointerDown={(e) => e.preventDefault()} onClick={typing.prev} disabled={typing.at <= 1} className={nav}>
+            <Icon d="M5 12.5 10 7.5l5 5" />
+          </button>
+          <button type="button" aria-label="Next box" onPointerDown={(e) => e.preventDefault()} onClick={typing.next} disabled={typing.at >= typing.total} className={nav}>
+            <Icon d="M5 7.5 10 12.5l5-5" />
+          </button>
+          <p className="min-w-0 flex-1 truncate text-center text-[13px] font-medium text-white/60">
+            {typing.label} · {typing.at}/{typing.total}
+          </p>
+          <button type="button" onPointerDown={(e) => e.preventDefault()} onClick={typing.done} className="h-9 rounded-full bg-white px-4 text-[15px] font-semibold text-black">
             Done
           </button>
         </div>
-      </div>
-      <div ref={bodyRef} className="overflow-y-auto overscroll-contain px-4 pt-2 pb-[calc(28px+env(safe-area-inset-bottom))]">
+      ) : (
+        <div
+          className="touch-none px-4 pt-2.5 pb-3"
+          onTouchStart={(e) => (startY.current = e.touches[0].clientY)}
+          onTouchMove={(e) => startY.current !== null && setDrag(Math.max(0, e.touches[0].clientY - startY.current))}
+          onTouchEnd={() => {
+            if (drag > 70) onClose();
+            setDrag(0);
+            startY.current = null;
+          }}
+        >
+          <div className="mx-auto h-1.5 w-10 rounded-full bg-white/25" />
+          <div className="mt-3 flex items-center justify-between">
+            <p className="text-[18px] font-bold">{title}</p>
+            <button type="button" onClick={onClose} className="h-9 rounded-full bg-white px-4 text-[15px] font-semibold text-black">
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+      <div
+        ref={bodyRef}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        data-typing={typing?.mode}
+        className={`typing-body overflow-y-auto overscroll-contain px-4 ${typing ? "pt-3 pb-3" : "pt-2 pb-[calc(28px+env(safe-area-inset-bottom))]"}`}
+      >
         {open && children}
       </div>
     </div>
@@ -825,7 +966,7 @@ function DateTimeField({ f, details, set, reveal }: FieldProps) {
     reveal(prettyDay(joinIst(nd, nt)));
   };
   return (
-    <div data-match={prettyDay(details.date)}>
+    <div data-field data-match={prettyDay(details.date)}>
       <Label help={f.help}>{f.label}</Label>
       <div className="grid grid-cols-[1.4fr_1fr] gap-2">
         <input type="date" value={d} onChange={(e) => put(e.target.value, t)} className={`${box} h-12`} />
@@ -922,7 +1063,7 @@ function FunctionsField({ details, change, reveal, f }: FieldProps) {
                       ))}
                     </div>
                   </div>
-                  <div>
+                  <div data-field>
                     <Label>Date & time</Label>
                     <div className="grid grid-cols-[1.4fr_1fr] gap-2">
                       <input type="date" value={d} onChange={(x) => x.target.value && edit({ start: joinIst(x.target.value, t) })} className={`${box} h-12`} />

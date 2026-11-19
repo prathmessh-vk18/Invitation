@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Invite } from "@/data/invites";
-import { EDIT_SECTION, PREVIEW_INVITE, PREVIEW_READY, PREVIEW_SCROLL, PREVIEW_SELECT } from "@/invites/editing";
+import { EDIT_SECTION, PREVIEW_INVITE, PREVIEW_READY, PREVIEW_SCROLL, PREVIEW_SELECT, PREVIEW_TYPING } from "@/invites/editing";
 import { InviteRenderer } from "@/invites/InviteRenderer";
 
 export { PREVIEW_INVITE, PREVIEW_READY };
@@ -14,6 +14,7 @@ export { PREVIEW_INVITE, PREVIEW_READY };
  */
 export function FullPreview() {
   const [shown, setShown] = useState<{ invite: Invite; editing: boolean } | null>(null);
+  const [typing, setTyping] = useState(false);
 
   useEffect(() => {
     const editing = new URLSearchParams(window.location.search).get("edit") === "1";
@@ -25,13 +26,14 @@ export function FullPreview() {
       if (e.origin !== window.location.origin) return;
       if (e.data?.type === PREVIEW_INVITE) setShown({ invite: e.data.invite as Invite, editing });
       if (e.data?.type === PREVIEW_SELECT) select(e.data.id ?? null);
+      if (e.data?.type === PREVIEW_TYPING) setTyping(!!e.data.on);
       if (e.data?.type === PREVIEW_SCROLL) {
         const part = document.querySelector(`[data-edit="${String(e.data.id).replace(/[^\w-]/g, "")}"]`);
         if (!part) return;
-        // With `text`, the line that shows it (what the couple is typing), a little below the top;
-        // otherwise the top of the part.
+        // With `text`, the line that shows it (what the couple is typing), a little below the top
+        // (`at`: how far down, as a share of the screen); otherwise the top of the part.
         const line = typeof e.data.text === "string" ? findText(part, e.data.text) : null;
-        const top = line ? line.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.3 : part.getBoundingClientRect().top + window.scrollY + (Number(e.data.offset) || 0);
+        const top = line ? line.getBoundingClientRect().top + window.scrollY - window.innerHeight * (Number(e.data.at) || 0.3) : part.getBoundingClientRect().top + window.scrollY + (Number(e.data.offset) || 0);
         window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
       }
     };
@@ -78,7 +80,7 @@ export function FullPreview() {
   return (
     <>
       {shown.editing && <style>{EDIT_STYLE}</style>}
-      <InviteRenderer invite={shown.invite} editing={shown.editing} />
+      <InviteRenderer invite={shown.invite} editing={shown.editing} bare={shown.editing && typing} />
     </>
   );
 }
