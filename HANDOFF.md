@@ -102,6 +102,26 @@ This was done for shamim-family-weddings.
 - **Intro:** after the tap, the blessings శ్రీరస్తు / శుభమస్తు / అవిఘ్నమస్తు write in one by one. Keep these. The Vakratunda mantra appears **only** above the Ganesha in the families section.
 - The temple doors over the wedding card use `pointer-events-none`. Keep that, or they block the Directions button.
 
+## Couples' RSVP page (from 2026-11-19, 11 PM IST)
+
+- Free for orders placed from `site.rsvpTrackingFrom` with RSVP on. A guest's "Send RSVP on WhatsApp" also saves the reply (`recordRsvp`, src/lib/rsvp-actions.ts) into `rsvp_replies` (migration 0016, run). No phone numbers.
+- Couple's page: `/order/<id>/rsvps` (src/app/(site)/order/[id]/rsvps, view in src/site/rsvp-view.tsx). Linked from the order page and emailed right after "your invite is live" (`sendRsvpPageEmail`). A guest who replies twice counts once (latest).
+- Preview with sample guests: `/lab/rsvps`. Not yet seen with a real order: check the first new order's page and email.
+
+## SEO: wording pages and free tools (live 2026-11-20)
+
+- 40 wording pages at `/wording/<slug>` (src/data/wordings/*.ts: Haldi, Mehndi, Sangeet, engagement, wedding × English/Hindi × traditional, WhatsApp, from parents, funny), index `/wording`.
+- Free tools: `/tools/invitation-wording-generator` (choice after `#fn=…&lang=…&tone=…`) and `/tools/wedding-hashtag-generator`.
+- `WORDING_LIVE` (src/data/wordings/index.ts) puts them in the sitemap, footer and guides; bump `WORDING_UPDATED` when the pages change.
+- Rules for new SEO pages (from Search Console): self-canonical, unique titles, no `?…` links, no links to `/start/`, real sitemap dates, review a batch before going live.
+
+## Next up (owner's list, 2026-11-20)
+
+1. **Save the date** as a category.
+2. **Birthday invitation** designs.
+3. **Marathi design:** finish it (branch `marathi-template`, `/lab/marathi`).
+4. Also pending: the Next.js security upgrade (16.4.2 has an advisory), in its own branch; more wording batches; the first real RSVP-page check.
+
 ## Open items
 
 - **Site-wide map links:** 378 live invites use short `maps.app.goo.gl` links, which don't open on some networks. Proposed fix, not yet approved: save the full Google Maps address instead.
