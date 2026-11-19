@@ -276,6 +276,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.doors === "maroon" ? { doors: "maroon" as const } : {}),
       ...(typeof d.invocationArt === "string" && /^\/art\/seals\/[\w-]+\.(png|webp)$/.test(d.invocationArt) ? { invocationArt: d.invocationArt } : {}),
       ...(d.hideHeroDate === true ? { hideHeroDate: true } : {}),
+      ...(d.hideEvents === true ? { hideEvents: true } : {}),
       ...(d.hideHeroCity === true ? { hideHeroCity: true } : {}),
       ...(d.hideHeroHosts === true ? { hideHeroHosts: true } : {}),
       ...(d.hideCountdownCity === true ? { hideCountdownCity: true } : {}),

@@ -51,7 +51,8 @@ export function InviteRenderer({ invite: given, editing }: { invite: Invite; edi
     <theme.Divider key="divider" />,
     shows(invite, "scratch") && slot("scratch", theme.ScratchSection ? <theme.ScratchSection key="scratch" invite={invite} /> : <ScratchDate key="scratch" invite={invite} theme={theme} />),
     shows(invite, "countdown") && slot("countdown", theme.CountdownSection ? <theme.CountdownSection key="countdown" invite={invite} /> : <Countdown key="countdown" invite={invite} theme={theme} />),
-    slot("events", <theme.Events key="events" invite={invite} />),
+    // A save-the-date has no functions to list (hideEvents).
+    !invite.hideEvents && slot("events", <theme.Events key="events" invite={invite} />),
     <Story key="story" invite={invite} theme={theme} />,
     shows(invite, "gallery") && slot("gallery", theme.GallerySection ? <theme.GallerySection key="gallery" invite={invite} /> : <Gallery key="gallery" invite={invite} theme={theme} />),
     invite.contacts?.length ? slot("contacts", <Contacts key="contacts" invite={invite} theme={theme} />) : null,

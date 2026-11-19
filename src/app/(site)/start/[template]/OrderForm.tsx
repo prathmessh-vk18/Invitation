@@ -413,7 +413,11 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
   const setKind = (i: number, kind: EventKind) =>
     setS((p) => ({ ...p, events: p.events.map((e, j) => (j === i ? { ...e, kind, name: kind === "other" ? "" : kindName(kind) } : e)) }));
 
-  const preview = useMemo(() => toPreview(s, demo), [s, demo]);
+  // Changing an order: its preview starts from the order's own invite, so settings we set by hand
+  // ("&" between the names, spacing, wording, hidden parts…) show as they do live; a new order
+  // starts from the design's demo.
+  const base = useMemo(() => (given ? ({ ...demo, ...given.details, slug: demo.slug, template: demo.template } as typeof demo) : demo), [given, demo]);
+  const preview = useMemo(() => toPreview(s, base), [s, base]);
   const current = steps[step];
   const [a, b] = s.lead === "groom" ? [s.groom, s.bride] : [s.bride, s.groom];
   const showing = (id: SectionId) => !s.hide.includes(id);
