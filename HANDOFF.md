@@ -41,6 +41,7 @@ Use these before writing new code.
 - `occasion: "reception"`
 - `hideEvents`: a save-the-date, with no functions section (the order still keeps one function for the checks; hide `rsvp` too). First for Sayoni & Jay.
 - `lang: "hi"`: the whole invite in Hindi. Mandir, Chameli, Gauri Shankar and the PDF all follow it; give Hindi invites a `slugBase` (e.g. "nikhil-weds-nandini") since Devanagari names can't make a link; translate the couple's own text by hand (names, parents, functions, venues, city, message, closing). Live for anuj-weds-riya (shekhar-weds-meenakshi was tried and reverted to English at the client's request).
+  Hindi names and titles use Tiro Devanagari; the Hindi invites made before 19 Nov 2026 carry `scriptFont: "rozha"` to keep the heavier Rozha One they approved.
 - `video` (`{ src, poster }`): a couple's own finished video plays full screen in place of the design; `template` then only colours the share card. Compress to 1080×1920 H.264 (~15 MB) and upload to R2 `videos/<slug>.mp4` + `.jpg` poster. (Tried for ananya-weds-debi, since deleted: buffered because media.aavjoo.in isn't cached by Cloudflare yet.)
 
 **Fonts:** Gauri Shankar's script is Great Vibes (as Shiva Kalyanam) for orders from 16 Nov 2026 (22:53); the 92 older orders carry `scriptFont: "pinyon"` so they keep the lettering they approved. `scriptFont` pins any invite's script face (customise.ts `scriptFonts`). Great Vibes is also in the font styles as "Graceful".
