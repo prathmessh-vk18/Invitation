@@ -16,7 +16,8 @@ import { themes } from "@/invites/registry";
 import { useInviteMusic } from "@/invites/music";
 import type { EventKind } from "@/data/invites";
 import { eventKinds, kindName } from "@/lib/orders";
-import { checkPartnerCode, createOrder, createPhotoUpload, createSongUpload, saveChanges } from "@/lib/order-actions";
+import { checkPartnerCode, createOrder, createPhotoUpload, createSongUpload, previewLink, saveChanges } from "@/lib/order-actions";
+import { track } from "@vercel/analytics";
 import { EditPackButton } from "@/app/(site)/order/[id]/EditPackButton";
 import { formatINR, site } from "@/config/site";
 import { adminSaveOrder, approveChange } from "@/app/admin/actions";
@@ -38,6 +39,7 @@ import {
   waNumber,
   stepOf,
   steps,
+  supports,
   toDetails,
   toPreview,
   validate,
@@ -186,18 +188,59 @@ function Switch({ id, on, onChange, label, note }: { id: string; on: boolean; on
 
 /* ───────── Stepper ───────── */
 
+// About how long each step takes, for "About 2 min left" (about 3½ minutes in all).
+const STEP_SECONDS: Record<StepId, number> = { couple: 40, wedding: 20, functions: 50, wording: 15, style: 15, photos: 25, music: 15, contact: 25, review: 15 };
+
 function Stepper({ current }: { current: number }) {
   const s = steps[current];
+  const left = steps.slice(current).reduce((n, x) => n + STEP_SECONDS[x.id], 0);
   return (
     <div>
-      <div className="flex items-center justify-between text-caption">
+      <div className="flex items-center justify-between gap-3 text-caption">
         <span className="font-medium text-ink">
           Step {current + 1} of {steps.length} · {s.title}
         </span>
+        <span className="shrink-0 text-subtle">About {Math.max(1, Math.round(left / 60))} min left</span>
       </div>
       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-panel">
         <motion.div className="h-full rounded-full bg-ink" animate={{ width: `${((current + 1) / steps.length) * 100}%` }} transition={{ duration: 0.5, ease }} />
       </div>
+    </div>
+  );
+}
+
+/** An optional field, offered as "+ Full name": it opens when tapped, so each step starts short. */
+function AddChip({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="inline-flex h-9 items-center rounded-full border border-line bg-surface px-3.5 text-[14px] font-medium text-ink transition hover:border-faint">
+      + {label}
+    </button>
+  );
+}
+
+// How long a new invite's link is held while the couple finishes the form.
+const HOLD_MS = 15 * 60 * 1000;
+
+/** Their invite's own address, held while they finish: "aavjoo.in/i/aarav-weds-meera · held for you · 14:32". */
+function LinkHold({ slug, since }: { slug: string; since: number }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const tick = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(tick);
+  }, []);
+  const left = Math.max(0, since + HOLD_MS - now);
+  const time = `${Math.floor(left / 60000)}:${String(Math.floor((left % 60000) / 1000)).padStart(2, "0")}`;
+  return (
+    <div className="mt-4 flex items-center gap-3 rounded-tile bg-[#fff6e5] px-4 py-3 text-[14px] leading-snug text-[#5c3b00]">
+      <svg viewBox="0 0 20 20" className="size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <rect x="4" y="9" width="12" height="8" rx="2" />
+        <path d="M7 9V6.5a3 3 0 0 1 6 0V9" />
+      </svg>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-semibold">aavjoo.in/i/{slug}</span>
+        <span className="block text-[13px] text-[#8a5a00]">{left ? "Your link is held for you while you finish" : "Finish now to make this link yours"}</span>
+      </span>
+      {left > 0 && <span className="shrink-0 font-mono text-[15px] font-semibold tabular-nums">{time}</span>}
     </div>
   );
 }
@@ -382,6 +425,16 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
   const [refCode, setRefCode] = useState("");
   const [partner, setPartner] = useState<{ code: string; name: string } | null>(null);
   const [refState, setRefState] = useState<"idle" | "checking" | "unknown">("idle");
+  // Optional fields the couple has opened ("+ Full name"), by field key.
+  const [opened, setOpened] = useState<Set<string>>(() => new Set());
+  const open = (k: string) => setOpened((p) => new Set(p).add(k));
+  const isOpen = (k: string, value?: unknown) => opened.has(k) || (typeof value === "string" ? value.trim() !== "" : !!value);
+  // Their invite's link, held for 15 minutes while they finish (new orders).
+  const [link, setLink] = useState<string | null>(null);
+  const [holdSince, setHoldSince] = useState(0);
+  // How long each step takes, to see where couples slow down.
+  const stepStart = useRef(0);
+  const formStart = useRef(0);
   const restored = useRef(false);
   const topRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -426,6 +479,31 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
       window.localStorage.setItem(draftKey, JSON.stringify(d));
     } catch {}
   }, [s, step, furthest, song, photos, draftKey]);
+
+  useEffect(() => {
+    stepStart.current = formStart.current = Date.now();
+  }, []);
+
+  // The link their invite would get, once both names are in; held from the first time it shows.
+  useEffect(() => {
+    if (!isNew || !s.bride.first.trim() || !s.groom.first.trim()) return;
+    const holdKey = `nim-hold-${t.id}`;
+    const timer = window.setTimeout(async () => {
+      const slug = await previewLink({ bride: s.bride.first, groom: s.groom.first, lead: s.lead, date: s.weddingDate, city: s.city }).catch(() => null);
+      setLink(slug);
+      if (!slug) return;
+      setHoldSince((h) => {
+        if (h) return h;
+        try {
+          const kept = Number(window.localStorage.getItem(holdKey));
+          if (kept && Date.now() - kept < HOLD_MS) return kept;
+          window.localStorage.setItem(holdKey, String(Date.now()));
+        } catch {}
+        return Date.now();
+      });
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [isNew, s.bride.first, s.groom.first, s.lead, s.weddingDate, s.city, t.id]);
 
   // Bring the new step into view and announce it.
   useEffect(() => {
@@ -495,6 +573,10 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
         ...p,
         events: p.events.map((e) => (mainCeremonies.includes(e.kind) && !e.date ? { ...e, date: p.weddingDate, time: e.time || p.weddingTime } : e)),
       }));
+    }
+    if (isNew) {
+      track("order_step", { design: t.id, step: id, seconds: Math.round((Date.now() - stepStart.current) / 1000) });
+      stepStart.current = Date.now();
     }
     const n = Math.min(step + 1, steps.length - 1);
     setStep(n);
@@ -614,7 +696,9 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
       }
       try {
         window.localStorage.removeItem(draftKey);
+        window.localStorage.removeItem(`nim-hold-${t.id}`);
       } catch {}
+      track("order_done", { design: t.id, seconds: Math.round((Date.now() - formStart.current) / 1000) });
       router.push(`/order/${res.id}?pay=1`);
     });
   }
@@ -660,12 +744,16 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
 
   /* ───── Step bodies ───── */
 
+  // The couple: first name and parents; full name and grandparents open when asked for.
+  const setElders = (who: "bride" | "groom", v: string) =>
+    // A new grandparents' line is set like the parents' (eldersPlain); one we set before keeps its style.
+    setS((p) => ({ ...p, [who]: { ...p[who], elders: v, ...(p[who].eldersPlain === undefined ? { eldersPlain: true } : {}) } }));
   const couple = (
     <div className="space-y-6">
       {(["bride", "groom"] as const).map((who) => (
         <div key={who} className="rounded-tile bg-surface p-5">
           <p className="text-[15px] font-semibold">{who === "bride" ? "The bride" : "The groom"}</p>
-          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+          <div className="mt-3 space-y-4">
             <Input
               k={`${who}.first`}
               label="First name"
@@ -677,18 +765,18 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
               maxLength={LIMITS.name}
               autoComplete="given-name"
             />
-            <Input
-              k={`${who}.full`}
-              label="Full name"
-              hint="optional"
-              value={s[who].full}
-              onChange={(v) => setPerson(who, "full", v)}
-              onBlur={() => touch(`${who}.full`)}
-              placeholder={who === "bride" ? "Meera Shekhawat" : "Aarav Singh Rathore"}
-              maxLength={LIMITS.fullName}
-            />
-          </div>
-          <div className="mt-4">
+            {isOpen(`${who}.full`, s[who].full) && (
+              <Input
+                k={`${who}.full`}
+                label="Full name"
+                hint="optional"
+                value={s[who].full}
+                onChange={(v) => setPerson(who, "full", v)}
+                onBlur={() => touch(`${who}.full`)}
+                placeholder={who === "bride" ? "Meera Shekhawat" : "Aarav Singh Rathore"}
+                maxLength={LIMITS.fullName}
+              />
+            )}
             {/* Two lines, so a line break (Grandson of… / Son of…) survives when the couple saves. */}
             <TextArea
               k={`${who}.parents`}
@@ -701,6 +789,39 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
               placeholder={who === "bride" ? "Daughter of Mrs. Sunita & Mr. Rajendra Shekhawat" : "Son of Mrs. Kavita & Mr. Vikram Rathore"}
               maxLength={LIMITS.parents}
             />
+            {supports(t.id, "elders") && isOpen(`${who}.elders`, s[who].elders) && (
+              <div className="space-y-3">
+                <TextArea
+                  k={`${who}.elders`}
+                  rows={2}
+                  label="Grandparents"
+                  hint="optional"
+                  value={s[who].elders ?? ""}
+                  onChange={(v) => setElders(who, v)}
+                  onBlur={() => touch(`${who}.elders`)}
+                  placeholder={who === "bride" ? "Granddaughter of Smt. Kamla & Shri Ram Lal Sharma" : "Grandson of Smt. Kamla & Shri Ram Lal Sharma"}
+                  maxLength={200}
+                />
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-[14px] font-semibold">Show it</span>
+                  <Toggle
+                    label="Where the grandparents' line goes"
+                    value={s[who].eldersBelow ? "below" : "above"}
+                    onChange={(v) => setS((p) => ({ ...p, [who]: { ...p[who], eldersBelow: v === "below" } }))}
+                    options={[
+                      { v: "above", l: "Above the parents" },
+                      { v: "below", l: "Below the parents" },
+                    ]}
+                  />
+                </div>
+              </div>
+            )}
+            {(!isOpen(`${who}.full`, s[who].full) || (supports(t.id, "elders") && !isOpen(`${who}.elders`, s[who].elders))) && (
+              <div className="flex flex-wrap gap-2">
+                {!isOpen(`${who}.full`, s[who].full) && <AddChip label="Full name" onClick={() => open(`${who}.full`)} />}
+                {supports(t.id, "elders") && !isOpen(`${who}.elders`, s[who].elders) && <AddChip label="Grandparents" onClick={() => open(`${who}.elders`)} />}
+              </div>
+            )}
           </div>
         </div>
       ))}
@@ -716,20 +837,31 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
           ]}
         />
       </div>
+      {/* The blessing at the top: the design's suggestion, shown in one line until they want to change it. */}
       <div className="rounded-tile bg-surface p-5">
-        <p className="text-[15px] font-semibold">Opening blessing</p>
-        <p className="mt-0.5 text-body text-muted">The blessing at the very top of your invite. We&rsquo;ve suggested one that suits this design.</p>
-        <div className="mt-3">
-          <Input k="invocation" label="Opening line" hint="optional" value={s.invocation} onChange={(v) => set("invocation", v)} onBlur={() => touch("invocation")} maxLength={120} />
-        </div>
-        {s.invocation !== demo.invocation && (
-          <button
-            type="button"
-            onClick={() => setS((p) => ({ ...p, invocation: demo.invocation }))}
-            className="mt-3 text-caption font-medium text-muted underline underline-offset-4 hover:text-ink"
-          >
-            Use the suggested line
-          </button>
+        {isOpen("invocation") || errors.invocation ? (
+          <>
+            <Input k="invocation" label="Blessing at the top" hint="optional" value={s.invocation} onChange={(v) => set("invocation", v)} onBlur={() => touch("invocation")} maxLength={120} />
+            {s.invocation !== demo.invocation && (
+              <button
+                type="button"
+                onClick={() => setS((p) => ({ ...p, invocation: demo.invocation }))}
+                className="mt-3 text-caption font-medium text-muted underline underline-offset-4 hover:text-ink"
+              >
+                Use the suggested line
+              </button>
+            )}
+          </>
+        ) : (
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[14px] font-semibold">Blessing at the top</p>
+              <p className="mt-0.5 truncate text-body text-muted">{s.invocation || "None"}</p>
+            </div>
+            <button type="button" onClick={() => open("invocation")} className="shrink-0 text-caption font-medium text-ink underline underline-offset-4">
+              Change
+            </button>
+          </div>
         )}
       </div>
     </div>
@@ -807,21 +939,66 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
                 placeholder="The Courtyard, Jagmandir Palace"
                 maxLength={LIMITS.venue}
               />
-              <Input
-                k={`${k}.mapUrl`}
-                label="Google Maps link"
-                hint="optional"
-                help="In Google Maps, tap Share and copy the link. Guests' Directions button opens it."
-                value={e.mapUrl ?? ""}
-                onChange={(v) => setEvent(i, "mapUrl", v)}
-                onBlur={() => touch(`${k}.mapUrl`)}
-                error={shown(`${k}.mapUrl`)}
-                placeholder="https://maps.app.goo.gl/…"
-                maxLength={300}
-              />
-              <Input k={`${k}.dress`} label="Dress code" hint="optional" value={e.dress} onChange={(v) => setEvent(i, "dress", v)} onBlur={() => touch(`${k}.dress`)} placeholder="Shades of yellow" maxLength={80} />
-              <Input k={`${k}.note`} label="Note" hint="optional" value={e.note} onChange={(v) => setEvent(i, "note", v)} onBlur={() => touch(`${k}.note`)} placeholder="Lunch to follow" maxLength={240} />
             </div>
+            {/* The rest of a function's details open when asked for (or when they already hold something). */}
+            {(() => {
+              const extra = [
+                { key: "mapUrl", label: "Map link", value: e.mapUrl ?? "" },
+                { key: "dress", label: "Dress code", value: e.dress },
+                { key: "note", label: "Note", value: e.note },
+                ...(supports(t.id, "timeText") ? [{ key: "timeText", label: "Time in your words", value: e.timeText ?? "" }] : []),
+              ].map((x) => ({ ...x, on: isOpen(`${k}.${x.key}`, x.value) || !!shown(`${k}.${x.key}`) }));
+              return (
+                <>
+                  {extra.some((x) => x.on) && (
+                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                      {extra.find((x) => x.key === "mapUrl")?.on && (
+                        <Input
+                          k={`${k}.mapUrl`}
+                          label="Google Maps link"
+                          hint="optional"
+                          help="In Google Maps, tap Share and copy the link. Guests' Directions button opens it."
+                          value={e.mapUrl ?? ""}
+                          onChange={(v) => setEvent(i, "mapUrl", v)}
+                          onBlur={() => touch(`${k}.mapUrl`)}
+                          error={shown(`${k}.mapUrl`)}
+                          placeholder="https://maps.app.goo.gl/…"
+                          maxLength={300}
+                        />
+                      )}
+                      {extra.find((x) => x.key === "dress")?.on && (
+                        <Input k={`${k}.dress`} label="Dress code" hint="optional" value={e.dress} onChange={(v) => setEvent(i, "dress", v)} onBlur={() => touch(`${k}.dress`)} placeholder="Shades of yellow" maxLength={80} />
+                      )}
+                      {extra.find((x) => x.key === "note")?.on && (
+                        <Input k={`${k}.note`} label="Note" hint="optional" value={e.note} onChange={(v) => setEvent(i, "note", v)} onBlur={() => touch(`${k}.note`)} placeholder="Lunch to follow" maxLength={240} />
+                      )}
+                      {extra.find((x) => x.key === "timeText")?.on && (
+                        <Input
+                          k={`${k}.timeText`}
+                          label="Time, in your words"
+                          hint="optional"
+                          help="Shown in place of the start time."
+                          value={e.timeText ?? ""}
+                          onChange={(v) => setEvent(i, "timeText", v)}
+                          onBlur={() => touch(`${k}.timeText`)}
+                          placeholder="7 pm till late"
+                          maxLength={60}
+                        />
+                      )}
+                    </div>
+                  )}
+                  {extra.some((x) => !x.on) && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {extra
+                        .filter((x) => !x.on)
+                        .map((x) => (
+                          <AddChip key={x.key} label={x.label} onClick={() => open(`${k}.${x.key}`)} />
+                        ))}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
             {prev && prev.venue && !e.venue && (
               <button
                 type="button"
@@ -858,12 +1035,18 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
         <Input k="closing" label="Closing line" value={s.closing} onChange={(v) => set("closing", v)} onBlur={() => touch("closing")} error={shown("closing")} maxLength={LIMITS.closing} counter />
         <Input k="hashtag" label="Hashtag" hint="optional" value={s.hashtag} onChange={(v) => set("hashtag", v)} onBlur={() => touch("hashtag")} placeholder="#AaravKiMeera" maxLength={40} />
       </div>
-      {t.extraFields?.includes("lists") && (
-        <>
-          <Input k="listTitle" label="A list at the end: its heading" hint="optional" value={s.listTitle} onChange={(v) => set("listTitle", v)} onBlur={() => {}} placeholder="Our Associates" maxLength={80} />
-          <TextArea k="listLines" label="The list" hint="optional · one line each: names, firms, phone numbers" value={s.listLines} onChange={(v) => set("listLines", v)} onBlur={() => {}} placeholder={"Anil Gupta, Bimal Gupta\nK.V Enterprises, ATG Architects\n98xxxxxx10, 98xxxxxx20"} maxLength={6000} rows={5} />
-        </>
-      )}
+      {(t.extraFields?.includes("lists") || supports(t.id, "lists")) &&
+        (isOpen("lists", s.listTitle || s.listLines) ? (
+          <>
+            <Input k="listTitle" label="A list at the end: its heading" hint="optional" value={s.listTitle} onChange={(v) => set("listTitle", v)} onBlur={() => {}} placeholder="Our Associates" maxLength={80} />
+            <TextArea k="listLines" label="The list" hint="optional · one line each: names, firms, phone numbers" value={s.listLines} onChange={(v) => set("listLines", v)} onBlur={() => {}} placeholder={"Anil Gupta, Bimal Gupta\nK.V Enterprises, ATG Architects\n98xxxxxx10, 98xxxxxx20"} maxLength={6000} rows={5} />
+          </>
+        ) : (
+          <div>
+            <AddChip label="A list at the end" onClick={() => open("lists")} />
+            <p className="mt-1.5 text-caption text-subtle">A heading with names under it, e.g. Our Associates or With best compliments from.</p>
+          </div>
+        ))}
       {t.extraFields?.includes("signoff") && (
         <Input k="signoff" label="Sign-off" hint="optional · the last line" value={s.signoff} onChange={(v) => set("signoff", v)} onBlur={() => {}} placeholder="With love · the Saranala family" maxLength={80} />
       )}
@@ -915,6 +1098,87 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
           ))}
         </div>
       </div>
+      {isOpen("look", s.joiner || s.heroKicker || s.hideHeroDate || s.hideHeroCity || (s.textScale && s.textScale !== 1)) ? (
+        <div className="space-y-6">
+          <p className="text-[14px] font-semibold">More options</p>
+          {supports(t.id, "joiner") && (
+            <div>
+              <p className="text-[14px] font-semibold">Between the names</p>
+              {/* Separate chips, so they wrap on a phone instead of running off the edge. */}
+              <div role="radiogroup" aria-label="Between the names" className="mt-2 flex flex-wrap gap-2">
+                {[
+                  { v: "", l: "As designed" },
+                  { v: "&", l: "&" },
+                  { v: "weds", l: "weds" },
+                  { v: "and", l: "and" },
+                  { v: "with", l: "with" },
+                ].map((o) => (
+                  <button
+                    key={o.v || "design"}
+                    type="button"
+                    role="radio"
+                    aria-checked={(s.joiner ?? "") === o.v}
+                    onClick={() => setS((p) => ({ ...p, joiner: o.v || undefined }))}
+                    className={`h-10 rounded-full px-4 text-[14px] font-medium whitespace-nowrap transition ${(s.joiner ?? "") === o.v ? "bg-ink text-white" : "bg-surface text-ink hover:bg-panel-strong"}`}
+                  >
+                    {o.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {supports(t.id, "heroKicker") && (
+            <Input
+              k="heroKicker"
+              label="Line above the names"
+              hint="optional"
+              help="Leave it empty for the design's own."
+              value={s.heroKicker ?? ""}
+              onChange={(v) => setS((p) => ({ ...p, heroKicker: v.trim() ? v : undefined }))}
+              onBlur={() => {}}
+              placeholder="e.g. Save the date for the wedding of"
+              maxLength={80}
+            />
+          )}
+          {(supports(t.id, "hideHeroDate") || supports(t.id, "hideHeroCity")) && (
+            <div className="grid gap-2">
+              {supports(t.id, "hideHeroDate") && (
+                <Switch id="cover-date" on={!s.hideHeroDate} onChange={(on) => setS((p) => ({ ...p, hideHeroDate: !on || undefined }))} label="Date on the cover" note="The day and date under the names." />
+              )}
+              {supports(t.id, "hideHeroCity") && (
+                <Switch id="cover-city" on={!s.hideHeroCity} onChange={(on) => setS((p) => ({ ...p, hideHeroCity: !on || undefined }))} label="City on the cover" note="The city under the date." />
+              )}
+            </div>
+          )}
+          <div>
+            <p className="text-[14px] font-semibold">Text size</p>
+            <p className="mt-0.5 text-caption text-muted">Bigger for older guests. Names keep their size.</p>
+            <div className="mt-2 flex items-center gap-3">
+              {(() => {
+                const sizes = [0.85, 0.92, 1, 1.08, 1.16, 1.25];
+                const i = Math.max(0, sizes.indexOf(s.textScale ?? 1));
+                const go = (by: number) => setS((p) => ({ ...p, textScale: sizes[Math.min(sizes.length - 1, Math.max(0, i + by))] }));
+                return (
+                  <>
+                    <button type="button" aria-label="Smaller text" disabled={i === 0} onClick={() => go(-1)} className="h-11 w-14 rounded-field border border-line bg-surface text-[15px] font-semibold disabled:opacity-35">
+                      A−
+                    </button>
+                    <span className="w-14 text-center text-[15px] font-semibold tabular-nums">{Math.round((s.textScale ?? 1) * 100)}%</span>
+                    <button type="button" aria-label="Bigger text" disabled={i === sizes.length - 1} onClick={() => go(1)} className="h-11 w-14 rounded-field border border-line bg-surface text-[18px] font-semibold disabled:opacity-35">
+                      A+
+                    </button>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <AddChip label="More options" onClick={() => open("look")} />
+          <p className="mt-1.5 text-caption text-subtle">&ldquo;&amp;&rdquo; or &ldquo;weds&rdquo;, the line above the names, date and city on the cover, text size.</p>
+        </div>
+      )}
     </div>
   );
 
@@ -1069,28 +1333,32 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
         maxLength={120}
         autoComplete="email"
       />
-      <Input
-        k="partnerCode"
-        label="Partner code"
-        hint="optional"
-        value={refCode}
-        onChange={(v) => {
-          setRefCode(cleanPartnerCode(v));
-          setRefState("idle");
-          setPartner(null);
-        }}
-        onBlur={() => applyRef(refCode)}
-        error={refState === "unknown" ? "We don't recognise this code. Check it, or clear it." : undefined}
-        help={
-          partner
-            ? `✓ Code ${partner.code} applied · referred by ${partner.name}`
-            : refState === "checking"
-              ? "Checking the code…"
-              : "Did a friend or creator send you here? Add their code so they get the credit."
-        }
-        placeholder="e.g. PRIYA"
-        maxLength={20}
-      />
+      {isOpen("partner", refCode) ? (
+        <Input
+          k="partnerCode"
+          label="Partner code"
+          hint="optional"
+          value={refCode}
+          onChange={(v) => {
+            setRefCode(cleanPartnerCode(v));
+            setRefState("idle");
+            setPartner(null);
+          }}
+          onBlur={() => applyRef(refCode)}
+          error={refState === "unknown" ? "We don't recognise this code. Check it, or clear it." : undefined}
+          help={
+            partner
+              ? `✓ Code ${partner.code} applied · referred by ${partner.name}`
+              : refState === "checking"
+                ? "Checking the code…"
+                : "Did a friend or creator send you here? Add their code so they get the credit."
+          }
+          placeholder="e.g. PRIYA"
+          maxLength={20}
+        />
+      ) : (
+        <AddChip label="Partner code" onClick={() => open("partner")} />
+      )}
       </>
       )}
       {!isNew && <p className="text-body text-muted">We&rsquo;ll keep messaging you at {showPhone(s.customer.phone)}. To change that number, message us on WhatsApp.</p>}
@@ -1308,6 +1576,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
     <div ref={topRef} className="grid scroll-mt-24 gap-10 lg:grid-cols-[1fr_360px]">
       <div className="min-w-0">
         <Stepper current={step} />
+        {isNew && link && holdSince > 0 && s.bride.first.trim() && s.groom.first.trim() && <LinkHold slug={link} since={holdSince} />}
 
         <Panel className="mt-6 p-6 sm:p-8">
           <AnimatePresence mode="wait" initial={false}>
@@ -1343,7 +1612,15 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
                       </button>
                     )}
                     <Button type="submit" disabled={pending || songState === "uploading" || photoBusy > 0 || (isLast && outOfEdits)}>
-                      {isLast ? (pending ? "Sending…" : submitLabel) : `Continue to ${steps[step + 1].title.toLowerCase()} →`}
+                      {isLast ? (
+                        pending ? "Sending…" : submitLabel
+                      ) : (
+                        // On a phone, the short label keeps Back, Skip and Continue on one line.
+                        <>
+                          <span className="sm:hidden">Continue →</span>
+                          <span className="hidden sm:inline">Continue to {steps[step + 1].title.toLowerCase()} →</span>
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>

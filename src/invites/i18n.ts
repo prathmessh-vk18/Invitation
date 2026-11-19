@@ -188,6 +188,12 @@ export const WordsContext = createContext<Record<string, string>>({});
 const NO_WORDS: Record<string, string> = {};
 export const wordsOf = (invite: { words?: Record<string, string> }) => invite.words ?? NO_WORDS;
 
+/** A design's own wording for one of its fixed words, before a couple changes it (the editor's starting text). */
+export const defaultWord = (lang: Lang, key: string): string => {
+  const v = (lang === "hi" ? hi : en)[key as keyof typeof en];
+  return typeof v === "string" ? v : "";
+};
+
 /** Date words in the invite's language. Numbers stay as 0–9 in both. */
 function dates(lang: Lang) {
   const loc = lang === "hi" ? "hi-IN-u-nu-latn" : "en-IN";

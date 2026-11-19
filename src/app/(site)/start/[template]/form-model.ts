@@ -6,7 +6,8 @@ import { isMapUrl, splitMapLink } from "@/lib/format";
 
 /* ───────── State ───────── */
 
-export type Person = { first: string; full: string; parents: string };
+// `elders`: a grandparents' line, above the parents' (or below, with eldersBelow), set like theirs.
+export type Person = { first: string; full: string; parents: string; elders?: string; eldersBelow?: boolean; eldersPlain?: boolean };
 // `devanagari` and `end` aren't in the form, but are kept when editing an order that has them.
 export type EventRow = { kind: EventKind; name: string; date: string; time: string; venue: string; address: string; mapUrl: string; dress: string; note: string; devanagari?: string; end?: string; timeText?: string };
 export type FormState = {
@@ -43,6 +44,12 @@ export type FormState = {
   listTitle: string;
   listLines: string;
   listsRest?: { title: string; lines: string[] }[];
+  // "More options" in Look: each left out means the design's own way.
+  heroKicker?: string;
+  joiner?: string;
+  hideHeroDate?: boolean;
+  hideHeroCity?: boolean;
+  textScale?: number;
 };
 
 export const LIMITS = { name: 40, fullName: 80, parents: 160, city: 80, message: 400, closing: 240, venue: 120, address: 200 };
@@ -301,13 +308,62 @@ export function toDetails(s: FormState, template?: string) {
     hide: s.hide,
     font: s.font,
     ...(s.lang ? { lang: s.lang } : {}),
+    ...looks(s),
     ...extras(s, template),
   };
 }
 
+/** "More options" from Look, each only when the couple chose it. */
+function looks(s: FormState) {
+  return {
+    ...(s.heroKicker !== undefined ? { heroKicker: s.heroKicker } : {}),
+    ...(s.joiner?.trim() ? { joiner: s.joiner.trim() } : {}),
+    ...(s.hideHeroDate ? { hideHeroDate: true } : {}),
+    ...(s.hideHeroCity ? { hideHeroCity: true } : {}),
+    ...(s.textScale && s.textScale !== 1 ? { textScale: s.textScale } : {}),
+  };
+}
+
+/** A saved person as the form edits them, grandparents' line included. */
+function personFrom(p: InviteDetails["bride"]): Person {
+  return {
+    first: p.first,
+    full: p.full === p.first ? "" : p.full,
+    parents: p.parents,
+    ...(p.elders ? { elders: p.elders } : {}),
+    ...(p.eldersBelow ? { eldersBelow: true } : {}),
+    ...(p.eldersPlain !== undefined ? { eldersPlain: p.eldersPlain } : {}),
+  };
+}
+
+/* ───────── What each design can show ───────── */
+
+// Designs built on the illustrated engine (Khat and its family).
+const ILLUSTRATED = ["mahal", "khat", "mudrika", "khatred", "gopuram", "bagh", "haveli", "angoothi", "chandni", "roka", "rajwadasagai"];
+const MANDIR = ["mandir", "vachan"];
+const CHAMELI = ["chameli", "chamelisagai"];
+const SUPPORT = {
+  // A grandparents' line, above or below the parents'.
+  elders: [...MANDIR, "gaurishankar", ...CHAMELI, ...ILLUSTRATED],
+  // A function's time in the couple's own words.
+  timeText: [...MANDIR, "gaurishankar", ...CHAMELI, ...ILLUSTRATED],
+  // The small line above the names on the cover.
+  heroKicker: [...MANDIR, "gaurishankar", ...ILLUSTRATED],
+  // The word between the names ("&", "weds"…).
+  joiner: [...MANDIR, "gaurishankar", ...CHAMELI, ...ILLUSTRATED],
+  hideHeroDate: [...MANDIR, "gaurishankar", ...CHAMELI, ...ILLUSTRATED, "rajwada"],
+  hideHeroCity: [...MANDIR, "gaurishankar", ...CHAMELI, ...ILLUSTRATED],
+  // A heading with lines under it at the end ("Our Associates").
+  lists: [...MANDIR, "gaurishankar", ...CHAMELI, ...ILLUSTRATED],
+};
+export type Feature = keyof typeof SUPPORT | "textScale";
+
+/** Whether a design shows an option; the form offers only what the design can show. Text size works everywhere. */
+export const supports = (template: string, f: Feature) => f === "textScale" || SUPPORT[f].includes(template);
+
 /** The extra fields' values, each only for designs that ask for it (always sent there, so clearing one sticks). */
 function extras(s: FormState, template?: string) {
-  const asks = (template && getTemplate(template)?.extraFields) || [];
+  const asks = [...((template && getTemplate(template)?.extraFields) || []), ...(template && supports(template, "lists") ? (["lists"] as const) : [])];
   const lines = s.listLines.split("\n").map((x) => x.trim()).filter(Boolean);
   return {
     ...(asks.includes("compliments") ? { compliments: s.compliments.split("\n").map((x) => x.trim()).filter(Boolean) } : {}),
@@ -335,14 +391,19 @@ export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState[
   return {
     ...initialState(demo),
     lead: d.lead,
-    bride: { first: d.bride.first, full: d.bride.full === d.bride.first ? "" : d.bride.full, parents: d.bride.parents },
-    groom: { first: d.groom.first, full: d.groom.full === d.groom.first ? "" : d.groom.full, parents: d.groom.parents },
+    bride: personFrom(d.bride),
+    groom: personFrom(d.groom),
     weddingDate: wedding.date,
     weddingTime: wedding.time,
     city: d.city,
     invocation: d.invocation,
     invocationMeaning: d.invocationMeaning,
     hosts: d.hosts,
+    ...(d.heroKicker !== undefined ? { heroKicker: d.heroKicker } : {}),
+    ...(d.joiner ? { joiner: d.joiner } : {}),
+    ...(d.hideHeroDate ? { hideHeroDate: true } : {}),
+    ...(d.hideHeroCity ? { hideHeroCity: true } : {}),
+    ...(d.textScale ? { textScale: d.textScale } : {}),
     message: d.message,
     closing: d.closing,
     hashtag: d.hashtag ?? "",
@@ -382,7 +443,12 @@ export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState[
 
 /** The same invite with friendly stand-ins for anything not filled yet, for the live preview. */
 export function toPreview(s: FormState, demo: Invite): Invite {
-  const person = (p: Person, fallback: string) => ({ first: p.first || fallback, full: p.full || p.first || fallback, parents: p.parents });
+  const person = (p: Person, fallback: string) => ({
+    first: p.first || fallback,
+    full: p.full || p.first || fallback,
+    parents: p.parents,
+    ...(p.elders?.trim() ? { elders: p.elders, eldersBelow: p.eldersBelow, eldersPlain: p.eldersPlain } : {}),
+  });
   const date = iso(s.weddingDate, s.weddingTime) || demo.date;
   const rsvpPhone = waNumber(s.rsvpSame ? s.customer.phone : s.rsvpPhone);
   return {
@@ -408,6 +474,7 @@ export function toPreview(s: FormState, demo: Invite): Invite {
     hide: s.hide,
     font: s.font || undefined,
     ...(s.lang ? { lang: s.lang } : {}),
+    ...looks(s),
     ...extras(s, demo.template),
     events: s.events.map((e) => ({
       kind: e.kind,
