@@ -17,6 +17,7 @@ import { dateLine, daysToWedding, LINK_IN, saving } from "@/lib/urgency";
 import { paysOnline } from "@/lib/razorpay";
 import { autoPublishOn, freeSlug } from "@/lib/publish";
 import { CopyLink } from "@/site/copy-link";
+import { tracksRsvps } from "@/lib/rsvp";
 import { shareText, WhatsAppMessage } from "@/site/whatsapp-message";
 import { RememberOrder } from "@/site/my-orders";
 import { AskAboutOrder } from "./AskAboutOrder";
@@ -262,6 +263,17 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
                 <WaIcon /> Share on WhatsApp
               </ButtonLink>
             </div>
+          </Panel>
+        )}
+
+        {order.status === "live" && tracksRsvps(order) && (
+          // Free with RSVP: guests' replies counted on the couple's own page.
+          <Panel className="p-6 sm:p-8">
+            <p className="text-title">Your RSVPs</p>
+            <p className="mt-1 text-body text-muted">See who&rsquo;s coming, how many guests for each function, and their notes, as guests reply. Replies still reach you on WhatsApp too.</p>
+            <ButtonLink href={`/order/${order.id}/rsvps`} className="mt-5">
+              See your RSVPs
+            </ButtonLink>
           </Panel>
         )}
 

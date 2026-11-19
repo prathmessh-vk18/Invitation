@@ -51,7 +51,7 @@ const TRADITIONS: { label: string; id?: CategoryId }[] = [
 const FAQS: { q: string; a: string; ticket?: boolean; edit?: boolean }[] = [
   {
     q: "PDF, video or website?",
-    a: "A live website: one link with an opening animation, your song, every function with Google Maps, a countdown and RSVP. It opens instantly on any phone, and unlike a PDF or video it can be updated any time.",
+    a: "A live website: one link with an opening animation, your song, every function with Google Maps, a countdown and RSVP, with a free private page that counts who's coming. It opens instantly on any phone, and unlike a PDF or video it can be updated any time.",
   },
   {
     q: "How do I make my invite?",
@@ -71,7 +71,7 @@ const FAQS: { q: string; a: string; ticket?: boolean; edit?: boolean }[] = [
     q: "How many times can I share it?",
     a: `As many times as you like, with as many people as you like: WhatsApp groups, Instagram, SMS or email. It's one link with no limit on views, and it stays live until ${site.inviteDaysAfterWedding} days after your wedding.`,
   },
-  { q: "Price & what's included", a: `${priceRange}, everything included: every function with Google Maps directions, a countdown, RSVP on WhatsApp, your song, photos and ${site.revisionRounds} free edits.` },
+  { q: "Price & what's included", a: `${priceRange}, everything included: every function with Google Maps directions, a countdown, RSVP on WhatsApp with a free guest-count page, your song, photos and ${site.revisionRounds} free edits.` },
   { q: "Payment", a: "Securely online by UPI, card or netbanking, right after you fill in your details." },
 ];
 

@@ -79,3 +79,47 @@ export async function sendInviteLiveEmail(order: Order, slug: string) {
     await db().from("email_log").insert({ ...log, status: "failed", error: String((e as Error).message ?? e).slice(0, 300) });
   }
 }
+
+/**
+ * "See who's coming": the link to the couple's RSVP page, sent right after "your invite is live"
+ * for orders that track RSVPs (src/lib/rsvp.ts). Free; the replies still reach them on WhatsApp.
+ */
+export function rsvpPageEmail(order: Order) {
+  const d = order.details;
+  const [a, b] = d.lead === "groom" ? [d.groom.first, d.bride.first] : [d.bride.first, d.groom.first];
+  const pair = `${a} & ${b}`;
+  const hi = order.customer_name?.trim().split(/\s+/)[0] || "there";
+  const url = `${site.url}/order/${order.id}/rsvps`;
+  const body = `
+<h1 style="margin:0;font-size:26px;line-height:1.2;letter-spacing:-0.02em;font-weight:800">See who's coming 💌</h1>
+<p style="margin:12px 0 0;font-size:16px;line-height:1.55;color:#333">Hi ${esc(hi)}, as guests reply to ${esc(pair)}'s invite, we count them for you on one private page: how many guests are coming, how many for each function, and their notes.</p>
+<div style="margin-top:18px">${button(url, "See your RSVPs")}</div>
+<p style="margin:14px 0 0;font-size:15px;line-height:1.55;color:#333">It's free and already on. Replies still reach you on WhatsApp, exactly as before. Keep this email: only people with this link can see the page.</p>
+${helpLine}`;
+  const html = layout({ preheader: `Your RSVPs for ${pair}, counted for you.`, body, footer: `Order ${esc(order.code)} · ${esc(site.name)}` });
+  const text = [
+    "See who's coming 💌",
+    "",
+    `Hi ${hi}, as guests reply to ${pair}'s invite, we count them for you on one private page: how many guests are coming, how many for each function, and their notes.`,
+    "",
+    `See your RSVPs: ${url}`,
+    "",
+    "It's free and already on. Replies still reach you on WhatsApp, exactly as before. Keep this email: only people with this link can see the page.",
+  ].join("\n");
+  return { subject: `💌 See who's coming to ${pair}'s ${getTemplate(order.template)?.occasion ?? d.occasion ?? "wedding"}`, html, text };
+}
+
+/** Sends the RSVP-page email if the order has an email address. Never throws. */
+export async function sendRsvpPageEmail(order: Order) {
+  const to = order.customer_email?.trim();
+  if (!to?.includes("@") || !isMailConfigured()) return;
+  const mail = { to, ...rsvpPageEmail(order), idempotencyKey: `rsvp-page-${order.id}` };
+  const log = { order_id: order.id, to_email: to, kind: "rsvp_page", subject: mail.subject };
+  try {
+    await sendMail(mail);
+    await db().from("email_log").insert({ ...log, status: "sent" });
+  } catch (e) {
+    console.error("RSVP-page email failed", order.code, e);
+    await db().from("email_log").insert({ ...log, status: "failed", error: String((e as Error).message ?? e).slice(0, 300) });
+  }
+}

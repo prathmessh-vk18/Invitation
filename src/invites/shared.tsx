@@ -1,5 +1,6 @@
 "use client";
 
+import { recordRsvp } from "@/lib/rsvp-actions";
 import { AnimatePresence, motion, type HTMLMotionProps } from "framer-motion";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Invite, InviteEvent } from "@/data/invites";
@@ -285,6 +286,8 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
     const lines = attending === "yes" ? t.rsvpYes(a.first, b.first, name, guests, going.join(", "), invite.occasion) : t.rsvpNo(a.first, b.first, name, invite.occasion);
     if (askStay && attending === "yes") lines.push(stay === "yes" ? t.rsvpStay(stayDays) : t.rsvpNoStay);
     if (note.trim()) lines.push(t.rsvpNote(note.trim()));
+    // Counted on the couple's RSVP page too (new orders only); WhatsApp opens either way.
+    recordRsvp({ slug: invite.slug, name, coming: attending === "yes", guests, functions: attending === "yes" ? going : [], note }).catch(() => {});
     window.open(`https://wa.me/${invite.rsvp.phone}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank");
   };
 

@@ -115,7 +115,7 @@ export default async function TemplatePage({ params }: PageProps<"/templates/[sl
               </p>
               <PriceTag price={t.price} mrp={t.mrp} size="lg" className="mt-3 flex" />
               <p className="mt-1 text-body text-muted">
-                One price, everything included: music, maps, countdown and RSVP.
+                One price, everything included: music, maps, countdown, and RSVP with a free page counting who&rsquo;s coming.
               </p>
               {/* Phones get one button, the bar along the bottom; the demo opens from the preview above. */}
               <div className="mt-6 flex flex-wrap gap-2 max-lg:hidden">
