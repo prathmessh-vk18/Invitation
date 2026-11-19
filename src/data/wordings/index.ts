@@ -11,7 +11,7 @@ export type { Wording, WordingFunction, WordingLang, WordingPage, WordingTone } 
  * Whether the wording pages and free tools are open to search engines: in the sitemap, indexable and
  * linked from the footer. Off while a batch is being reviewed; the pages still open by link.
  */
-export const WORDING_LIVE = false;
+export const WORDING_LIVE = true;
 
 /** When this batch was last changed: the sitemap's date for these pages. Bump it when you edit them. */
 export const WORDING_UPDATED = "2026-11-20";
