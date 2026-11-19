@@ -56,6 +56,8 @@ Use these before writing new code.
 
 - `heroKicker`: the cover line above the names (in place of "We cordially invite you to the wedding of")
 - per function `timeText`: the couple's own wording for the time ("शाम 8:30 से रात 2:00 बजे तक"); the PDF prints it too
+- per function `noTime`: the card shows only the day (a ritual with no fixed hour); the PDF follows it
+- `welcome`: the family's own line under their lists at the end (Rahul & Pali, AAV-2015)
 
 - `openingLine`
 - `justifyMessage`
