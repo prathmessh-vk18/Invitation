@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import type { CSSProperties, ReactNode } from "react";
 import { site } from "@/config/site";
+import { extraLine } from "@/lib/extra-lines";
 import type { Invite } from "@/data/invites";
 import { fmtDate } from "@/lib/format";
 import { INVITE_ART_SIZES, PREVIEW_ART_SIZES, useOpened, usePreview } from "./opened";
@@ -531,12 +532,53 @@ function Closing({ invite }: { invite: Invite }) {
           {a.first} <span style={{ color: c.gold }}>{lang === "hi" ? t.and : "&"}</span> {b.first}
         </p>
         {invite.hashtag && <p className="inv-serif mt-[4cqw] text-[4.2cqw] font-semibold tracking-[0.04em]" style={{ color: c.gold }}>{invite.hashtag}</p>}
-        {!invite.noBranding && (
-          <Link href="/" className="inv-label mt-[8cqw] inline-block text-[2.4cqw] tracking-[0.26em] opacity-70">
+      </Reveal>
+      {/* A family's own lists at the end, as on their printed card (lines may carry a sub-heading,
+          large names, a small "&" or a gap: src/lib/extra-lines.ts). */}
+      {invite.extras?.map((g, i) => (
+        <Reveal key={g.title + i} className="mt-[10cqw]">
+          <Divider className="mb-[7cqw]" />
+          <p className={`${caps} text-[3.8cqw] leading-snug font-semibold`} style={{ color: c.ink }}>
+            {g.title}
+          </p>
+          <div className="mt-[3.5cqw]">
+            {g.lines.map((l, j) => {
+              const x = extraLine(l);
+              if (x.kind === "gap") return <div key={j} className="h-[3cqw]" />;
+              if (x.kind === "and")
+                return (
+                  <p key={j} className={`${italic} my-[0.5cqw] text-[3.4cqw] leading-none`} style={{ color: c.gold }}>
+                    &amp;
+                  </p>
+                );
+              if (x.kind === "sub")
+                return (
+                  <p key={j} className={`${caps} mt-[2.5cqw] mb-[1cqw] text-[3.2cqw] font-semibold first:mt-0`} style={{ color: c.gold }}>
+                    {x.text}
+                  </p>
+                );
+              if (x.kind === "big")
+                return (
+                  <p key={j} className="inv-script my-[1.5cqw] text-[10cqw] leading-tight">
+                    {x.text}
+                  </p>
+                );
+              return (
+                <p key={j} className={`${italic} text-[3.95cqw] leading-relaxed`} style={{ color: c.soft, textWrap: "balance" }}>
+                  {x.text}
+                </p>
+              );
+            })}
+          </div>
+        </Reveal>
+      ))}
+      {!invite.noBranding && (
+        <Reveal>
+          <Link href="/" className="inv-label mt-[10cqw] inline-block text-[2.4cqw] tracking-[0.26em] opacity-70">
             {t.craftedBy(site.name)}
           </Link>
-        )}
-      </Reveal>
+        </Reveal>
+      )}
     </section>
   );
 }
