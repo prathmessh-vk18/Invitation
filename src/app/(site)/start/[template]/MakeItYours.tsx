@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { unstable_isUnrecognizedActionError, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { WhatsAppMessage } from "@/site/whatsapp-message";
 import { track } from "@vercel/analytics";
 import { fontStyles, sectionsFor, type SectionId } from "@/config/customise";
 import { instrumentals, songs, type Track } from "@/config/music";
@@ -21,13 +22,13 @@ import { eventKinds, kindName } from "@/lib/orders";
 import { shrink, uploadTo } from "@/lib/upload-client";
 import { PriceTag } from "@/site/offer";
 import { PhoneFrame } from "@/ui";
-import { addDays, blankEvent, initialState, LIMITS, mainCeremonies, supports, toDetails, toPreview, validate, waNumber, type EventRow, type FormState } from "./form-model";
+import { addDays, blankEvent, coverDefaults, initialState, LIMITS, mainCeremonies, supports, toDetails, toPreview, validate, waNumber, type EventRow, type FormState } from "./form-model";
 
 /**
  * "Make it yours": a new order, one part of the invite per screen (as guests meet them: cover,
  * families, functions, ending), then its look, photos and song, and the couple's details. Each
  * screen shows what most couples fill; everything else opens on a tap. A bar at the bottom keeps
- * Back, Preview and Continue under the thumb, with the countdown on their invite's link.
+ * Back, Preview and Next under the thumb.
  */
 const PARTS = [
   { id: "cover", title: "The cover", note: "The first screen your guests see.", secs: 40 },
@@ -49,8 +50,6 @@ function partOf(key: string): PartId {
   return "cover";
 }
 
-// How long their invite's link waits for them to claim it.
-const HOLD_MS = 15 * 60 * 1000;
 const MAX_PHOTOS = 8;
 type Draft = { v: 1; s: FormState; step: number; song: { path: string; name: string } | null; photos: string[] };
 
@@ -58,7 +57,6 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
   const demo = getInvite(t.demoSlug)!;
   const router = useRouter();
   const draftKey = `nim-make-${t.id}`;
-  const holdKey = `nim-hold-${t.id}`;
   const occasion = t.occasion ?? "wedding";
 
   const [s, setS] = useState<FormState>(() => initialState(demo));
@@ -79,7 +77,6 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
   const [refCode, setRefCode] = useState("");
   const [partner, setPartner] = useState<{ code: string; name: string } | null>(null);
   const [link, setLink] = useState<string | null>(null);
-  const [holdSince, setHoldSince] = useState(0);
   const closePreview = useCallback(() => setPreviewOpen(false), []);
   const [songPct, setSongPct] = useState<number | null>(null);
   const [playing, setPlaying] = useState<string | null>(null);
@@ -122,25 +119,15 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
     } catch {}
   }, [s, step, song, photos, draftKey]);
 
-  // Their link, once both names are in; the countdown starts the first time it shows.
+  // Their link, once both names are in.
   useEffect(() => {
     if (!s.bride.first.trim() || !s.groom.first.trim()) return;
     const timer = window.setTimeout(async () => {
       const slug = await previewLink({ bride: s.bride.first, groom: s.groom.first, lead: s.lead, date: s.weddingDate, city: s.city }).catch(() => null);
       setLink(slug);
-      if (!slug) return;
-      setHoldSince((h) => {
-        if (h) return h;
-        try {
-          const kept = Number(window.localStorage.getItem(holdKey));
-          if (kept && Date.now() - kept < HOLD_MS) return kept;
-          window.localStorage.setItem(holdKey, String(Date.now()));
-        } catch {}
-        return Date.now();
-      });
     }, 600);
     return () => window.clearTimeout(timer);
-  }, [s.bride.first, s.groom.first, s.lead, s.weddingDate, s.city, holdKey]);
+  }, [s.bride.first, s.groom.first, s.lead, s.weddingDate, s.city]);
 
   const errors = useMemo(() => validate(s, today, occasion, true), [s, today, occasion]);
   const part = PARTS[step];
@@ -150,6 +137,7 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setS((p) => ({ ...p, [k]: v }));
   const setEvent = (i: number, patch: Partial<EventRow>) => setS((p) => ({ ...p, events: p.events.map((e, j) => (j === i ? { ...e, ...patch } : e)) }));
   const open = (k: string) => setOpened((p) => new Set(p).add(k));
+  const coverDefault = coverDefaults(t.id, occasion);
   const isOpen = (k: string, v?: unknown) => opened.has(k) || (typeof v === "string" ? v.trim() !== "" : !!v);
   const showing = (id: SectionId) => !s.hide.includes(id);
   const [a, b] = s.lead === "groom" ? [s.groom, s.bride] : [s.bride, s.groom];
@@ -211,7 +199,6 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
       }
       try {
         window.localStorage.removeItem(draftKey);
-        window.localStorage.removeItem(holdKey);
       } catch {}
       track("order_done", { design: t.id, seconds: secondsSince(formStart.current) });
       router.push(`/order/${res.id}?pay=1`);
@@ -246,8 +233,8 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
         />
       </Card>
       <AnimatePresence>
-        {link && holdSince > 0 && s.bride.first.trim() && s.groom.first.trim() && (
-          <ShareMessage slug={link} since={holdSince} template={t.id} names={`${a.first} & ${b.first}`} occasion={occasion} when={[s.weddingDate && longDay(s.weddingDate), s.city].filter(Boolean).join(" · ")} />
+        {link && s.bride.first.trim() && s.groom.first.trim() && (
+          <ShareMessage slug={link} template={t.id} names={`${a.first} & ${b.first}`} occasion={occasion} when={[s.weddingDate && longDay(s.weddingDate), s.city].filter(Boolean).join(" · ")} />
         )}
       </AnimatePresence>
       <Card title={occasion === "engagement" ? "When & where" : "Wedding day"}>
@@ -257,39 +244,30 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
         </div>
         <Text k="city" label="City" value={s.city} onChange={(v) => set("city", v)} placeholder="Udaipur, Rajasthan" error={err("city")} max={LIMITS.city} />
       </Card>
-      <Card title="On the cover" optional>
-        {isOpen("invocation") ? (
-          <Text k="invocation" label="Blessing at the top" value={s.invocation} onChange={(v) => set("invocation", v)} max={120} />
-        ) : (
-          <Summary label="Blessing at the top" value={s.invocation || "None"} onChange={() => open("invocation")} />
+      <Card title="On the cover" note="Filled in as the design has it. Change anything you like.">
+        <Text k="invocation" label="Blessing at the top" optional value={s.invocation} onChange={(v) => set("invocation", v)} placeholder="Shri Ganeshaya Namah" max={120} />
+        {!t.noInvocationMeaning && (
+          <Text k="invocationMeaning" label="Its meaning, shown small" optional value={s.invocationMeaning} onChange={(v) => set("invocationMeaning", v)} placeholder="With the blessings of Lord Ganesha" max={120} />
         )}
-        {!t.noInvocationMeaning && isOpen("invocationMeaning") && (
-          <Text k="invocationMeaning" label="Its meaning, shown small" value={s.invocationMeaning} onChange={(v) => set("invocationMeaning", v)} placeholder="With the blessings of Lord Ganesha" max={120} />
-        )}
-        {supports(t.id, "heroKicker") && isOpen("heroKicker", s.heroKicker) && (
-          <Text k="heroKicker" label="Line above the names" help="Leave empty for the design's own." value={s.heroKicker ?? ""} onChange={(v) => set("heroKicker", v.trim() ? v : undefined)} placeholder="Save the date for the wedding of" max={80} />
-        )}
-        {supports(t.id, "joiner") && isOpen("joiner", s.joiner) && (
-          <Choice
-            label="Between the names"
-            value={s.joiner ?? ""}
-            onChange={(v) => set("joiner", v || undefined)}
-            options={[
-              { v: "", l: "As designed" },
-              { v: "&", l: "&" },
-              { v: "weds", l: "weds" },
-              { v: "and", l: "and" },
-              { v: "with", l: "with" },
-            ]}
+        {supports(t.id, "heroKicker") && (
+          <Text
+            k="heroKicker"
+            label="Line above the names"
+            optional
+            value={s.heroKicker ?? coverDefault.kicker}
+            onChange={(v) => set("heroKicker", v === coverDefault.kicker ? undefined : v)}
+            placeholder="Save the date for the wedding of"
+            max={80}
           />
         )}
-        <Chips
-          items={[
-            !t.noInvocationMeaning && !isOpen("invocationMeaning") && { label: "Blessing's meaning", on: () => open("invocationMeaning") },
-            supports(t.id, "heroKicker") && !isOpen("heroKicker", s.heroKicker) && { label: "Line above the names", on: () => open("heroKicker") },
-            supports(t.id, "joiner") && !isOpen("joiner", s.joiner) && { label: "“&” or “weds”", on: () => open("joiner") },
-          ]}
-        />
+        {supports(t.id, "joiner") && (
+          <Choice
+            label="Between the names"
+            value={s.joiner ?? coverDefault.joiner}
+            onChange={(v) => set("joiner", v === coverDefault.joiner ? undefined : v)}
+            options={[...new Set([coverDefault.joiner, "&", "weds", "and", "with"])].map((v) => ({ v, l: v }))}
+          />
+        )}
       </Card>
     </>
   );
@@ -614,12 +592,12 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
             <p className="mt-2 text-[16px] text-muted">Ready in 3 minutes. Watch it come alive as you type.</p>
           </div>
         )}
-        {/* Where they are, and the time: their link's, once it shows, or what's left of the form. */}
+        {/* Where they are, and what's left of the form. */}
         <div className="flex items-center justify-between gap-3 text-[13px]">
           <span className="font-semibold text-subtle">
             Step {step + 1} of {PARTS.length}
           </span>
-          {link && holdSince > 0 ? <HoldChip since={holdSince} /> : <span className="shrink-0 text-subtle">About {Math.max(1, Math.round(left / 60))} min left</span>}
+          <span className="shrink-0 text-subtle">About {Math.max(1, Math.round(left / 60))} min left</span>
         </div>
         <div className="mt-2 grid gap-1" style={{ gridTemplateColumns: `repeat(${PARTS.length}, minmax(0, 1fr))` }}>
           {PARTS.map((x, i) => (
@@ -652,7 +630,7 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
         </div>
       )}
 
-      {/* Under the thumb: back, preview, the link's countdown and the next step. */}
+      {/* Under the thumb: back, preview and the next step. */}
       <div data-sticky-cta="on" className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1100px] items-center gap-2 px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))]">
           <button type="button" aria-label="Back" disabled={step === 0} onClick={() => go(step - 1)} className="grid size-12 shrink-0 place-items-center rounded-full bg-panel text-[20px] disabled:opacity-30">
@@ -663,10 +641,10 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
               <path d="M1.5 10s3-5.5 8.5-5.5S18.5 10 18.5 10s-3 5.5-8.5 5.5S1.5 10 1.5 10Z" />
               <circle cx="10" cy="10" r="2.5" />
             </svg>
-            Preview invite
+            Preview
           </button>
           <button type="button" onClick={next} disabled={sending || busy > 0} className="ml-auto h-12 min-w-0 flex-1 rounded-full bg-ink px-5 text-[16px] font-semibold text-white transition active:scale-[.98] disabled:opacity-60 sm:max-w-[260px]">
-            {sending ? "Creating…" : busy > 0 ? "Uploading…" : last ? `Pay ${formatINR(total)}` : "Continue →"}
+            {sending ? "Creating…" : busy > 0 ? "Uploading…" : last ? `Pay ${formatINR(total)}` : "Next →"}
           </button>
         </div>
       </div>
@@ -684,16 +662,6 @@ const longDay = (date: string) => new Date(`${date}T12:00:00+05:30`).toLocaleDat
 const short = (date: string) => new Date(`${date}T12:00:00+05:30`).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" });
 
 /* ───────── The link ───────── */
-
-function useCountdown(since: number) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const tick = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(tick);
-  }, []);
-  const left = Math.max(0, since + HOLD_MS - now);
-  return { left, text: `${Math.floor(left / 60000)}:${String(Math.floor((left % 60000) / 1000)).padStart(2, "0")}` };
-}
 
 // Each design's painted art for its share card, and where the band under the names starts (as
 // src/lib/share-card.tsx draws it for WhatsApp), so the preview here matches what guests get.
@@ -717,76 +685,33 @@ const SHARE_ART: Record<string, { src: string; y: number }> = {
   shivakalyanam: { src: "/art/illus/telugu-share.jpg", y: 0.38 },
 };
 
-/**
- * Their link as guests will get it: a WhatsApp message with the invite's share card (the design's
- * art, their names and date), the address, and how long is left to claim it.
- */
-function ShareMessage({ slug, since, template, names, occasion, when }: { slug: string; since: number; template: string; names: string; occasion: string; when: string }) {
-  const { left, text } = useCountdown(since);
+/** Their link as guests will get it on WhatsApp, with the share card drawn from what they've typed. */
+function ShareMessage({ slug, template, names, occasion, when }: { slug: string; template: string; names: string; occasion: string; when: string }) {
   const art = SHARE_ART[template];
   // The art is portrait (864×1536) and the card 1200×630: show the same band the share card does.
   const posY = art ? `${Math.round(art.y * 1.4191 * 100)}%` : "50%";
-  return (
-    <motion.div initial={{ opacity: 0, y: 12, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0 }} transition={{ type: "spring", stiffness: 240, damping: 22 }} className="overflow-hidden rounded-[20px] bg-panel">
-      <div className="flex items-start justify-between gap-3 px-5 pt-5">
-        <div>
-          <p className="text-[17px] font-semibold">✨ Your link is free</p>
-          <p className="mt-0.5 text-[14px] leading-snug text-muted">This is how your guests will get it on WhatsApp.</p>
-        </div>
+  const card = (
+    <div
+      className="grid size-full place-items-center bg-cover text-center"
+      style={art ? { backgroundImage: `url(${art.src})`, backgroundSize: "100% auto", backgroundPosition: `center ${posY}` } : { background: "linear-gradient(135deg,#fbf5ec,#f4ebe1)" }}
+    >
+      <div className="px-3 [text-shadow:0_0_14px_rgba(255,250,244,.95),0_0_4px_rgba(255,250,244,.9)]">
+        <p className="text-[9px] font-semibold tracking-[0.2em] text-[#3b1f24] uppercase">{occasion === "engagement" ? "Engagement invitation" : occasion === "reception" ? "Wedding reception invitation" : "Wedding invitation"}</p>
+        <p className="mt-0.5 font-serif text-[24px] leading-none font-semibold text-[#3b1f24]">{names}</p>
+        {when && <p className="mt-1 text-[10px] font-medium text-[#3b1f24]">{when}</p>}
       </div>
-      {/* A WhatsApp chat: their message, with the link's preview card. */}
-      <div className="mx-4 mt-4 rounded-[16px] bg-[#efeae2] p-3">
-        <motion.div initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25, type: "spring", stiffness: 220, damping: 20 }} className="ml-auto w-[92%] rounded-[12px] rounded-tr-[4px] bg-[#d9fdd3] p-1.5 shadow-[0_1px_1px_rgba(0,0,0,.08)]">
-          <div className="overflow-hidden rounded-[9px] bg-[#cfe9c7]">
-            <div
-              className="relative grid aspect-[1200/630] place-items-center bg-cover text-center"
-              style={art ? { backgroundImage: `url(${art.src})`, backgroundSize: "100% auto", backgroundPosition: `center ${posY}` } : { background: "linear-gradient(135deg,#fbf5ec,#f4ebe1)" }}
-            >
-              <div className="px-3 [text-shadow:0_0_14px_rgba(255,250,244,.95),0_0_4px_rgba(255,250,244,.9)]">
-                <p className="text-[9px] font-semibold tracking-[0.2em] text-[#3b1f24] uppercase">{occasion === "engagement" ? "Engagement invitation" : "Wedding invitation"}</p>
-                <p className="mt-0.5 font-serif text-[24px] leading-none font-semibold text-[#3b1f24]">{names}</p>
-                {when && <p className="mt-1 text-[10px] font-medium text-[#3b1f24]">{when}</p>}
-              </div>
-            </div>
-            <div className="px-2.5 py-2">
-              <p className="truncate text-[13px] font-semibold text-[#111b21]">{names} · You&rsquo;re invited</p>
-              <p className="text-[12px] text-[#667781]">aavjoo.in</p>
-            </div>
-          </div>
-          <p className="px-1.5 pt-1.5 text-[14px] leading-snug break-all text-[#027eb5] underline">https://aavjoo.in/i/{slug}</p>
-          <p className="px-1.5 pt-0.5 text-right text-[11px] text-[#667781]">
-            now <span className="text-[#53bdeb]">✓✓</span>
-          </p>
-        </motion.div>
-      </div>
-      <p className="px-5 pt-3 pb-5 text-[14px] leading-snug">
-        {left ? (
-          <>
-            <span className="font-semibold">aavjoo.in/i/{slug}</span> is yours if you finish in <span className="font-semibold tabular-nums">{text}</span>.
-          </>
-        ) : (
-          <>
-            <span className="font-semibold">aavjoo.in/i/{slug}</span> is still free: finish now to make it yours.
-          </>
-        )}
-      </p>
-    </motion.div>
+    </div>
   );
-}
-
-/** The link's countdown beside "Step 2 of 7", warmer as time runs short. */
-function HoldChip({ since }: { since: number }) {
-  const { left, text } = useCountdown(since);
-  if (!left) return <span className="shrink-0 font-semibold text-[#b4410f]">Finish now to claim your link</span>;
-  const late = left < 3 * 60 * 1000;
   return (
-    <span className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold tabular-nums ${late ? "animate-pulse bg-[#fff1e6] text-[#b4410f]" : "bg-[#fff6e5] text-[#8a5a00]"}`}>
-      <svg viewBox="0 0 20 20" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden>
-        <rect x="4.5" y="9" width="11" height="8" rx="2" />
-        <path d="M7 9V6.5a3 3 0 0 1 6 0V9" />
-      </svg>
-      Link held · {text}
-    </span>
+    <motion.div initial={{ opacity: 0, y: 12, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0 }} transition={{ type: "spring", stiffness: 240, damping: 22 }} className="overflow-hidden rounded-[20px] bg-panel pb-4">
+      <div className="px-5 pt-5">
+        <p className="text-[17px] font-semibold">✨ How your guests will get it</p>
+        <p className="mt-0.5 text-[14px] leading-snug text-muted">Your invite on WhatsApp, with its own link.</p>
+      </div>
+      <motion.div initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25, type: "spring", stiffness: 220, damping: 20 }} className="mx-4 mt-4">
+        <WhatsAppMessage card={card} names={names} occasion={occasion} url={`https://aavjoo.in/i/${slug}`} />
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -912,21 +837,6 @@ function Toggle({ label, note, on, onChange }: { label: string; note?: string; o
 }
 
 /** A value shown in one line, with "Change" to edit it. */
-function Summary({ label, value, onChange }: { label: string; value: string; onChange: () => void }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <div className="min-w-0">
-        <p className="text-[14px] font-semibold">{label}</p>
-        <p className="truncate text-[15px] text-muted">{value}</p>
-      </div>
-      <button type="button" onClick={onChange} className="shrink-0 text-[14px] font-semibold underline underline-offset-4">
-        Change
-      </button>
-    </div>
-  );
-}
-
-/** Optional fields, offered as "+ Full name" chips. */
 function Chips({ items }: { items: (false | undefined | "" | 0 | { label: string; on: () => void })[] }) {
   const list = items.filter((x): x is { label: string; on: () => void } => !!x);
   if (!list.length) return null;

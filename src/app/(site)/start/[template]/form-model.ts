@@ -358,6 +358,23 @@ const SUPPORT = {
 };
 export type Feature = keyof typeof SUPPORT | "textScale";
 
+/**
+ * What a design shows on its cover when the couple leaves it alone: the line above the names and
+ * the word between them (as mandir.tsx, gaurishankar.tsx, illustrated.tsx and chameli.tsx draw them).
+ */
+export function coverDefaults(template: string, occasion: string) {
+  const engaged = occasion === "engagement";
+  const kicker = MANDIR.includes(template)
+    ? template === "vachan" && engaged ? "The engagement of" : ""
+    : template === "gaurishankar"
+      ? "We cordially invite you to the wedding of"
+      : ILLUSTRATED.includes(template)
+        ? engaged ? "The engagement of" : "The wedding of"
+        : "";
+  const joiner = MANDIR.includes(template) ? (engaged ? "&" : "weds") : CHAMELI.includes(template) ? "and" : "&";
+  return { kicker, joiner };
+}
+
 /** Whether a design shows an option; the form offers only what the design can show. Text size works everywhere. */
 export const supports = (template: string, f: Feature) => f === "textScale" || SUPPORT[f].includes(template);
 
