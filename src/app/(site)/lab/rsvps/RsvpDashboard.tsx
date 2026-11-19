@@ -14,10 +14,10 @@ import { Button, Container, FilterPills, Panel } from "@/ui";
 type Reply = { name: string; coming: boolean; guests: number; functions: string[]; note?: string; ago: string };
 
 const FUNCTIONS = [
-  { name: "Mehndi", when: "Thu, 10 Dec · 4:00 pm" },
-  { name: "Sangeet", when: "Fri, 11 Dec · 7:00 pm" },
-  { name: "Wedding", when: "Sat, 12 Dec · 7:30 pm" },
-  { name: "Reception", when: "Sun, 13 Dec · 8:00 pm" },
+  { name: "Mehndi", day: "Thu, 10 Dec", time: "4:00 pm" },
+  { name: "Sangeet", day: "Fri, 11 Dec", time: "7:00 pm" },
+  { name: "Wedding", day: "Sat, 12 Dec", time: "7:30 pm" },
+  { name: "Reception", day: "Sun, 13 Dec", time: "8:00 pm" },
 ];
 
 const REPLIES: Reply[] = [
@@ -77,7 +77,8 @@ export function RsvpDashboard() {
             {perFunction.map((f) => (
               <div key={f.name} className="rounded-[16px] bg-surface p-4">
                 <p className="text-body font-semibold">{f.name}</p>
-                <p className="text-caption text-subtle">{f.when}</p>
+                <p className="text-caption text-subtle">{f.day}</p>
+                <p className="text-caption text-subtle">{f.time}</p>
                 <p className="mt-3 text-[30px] leading-none font-semibold tracking-[-0.03em] tabular-nums">
                   {f.guests}
                   <span className="ml-1.5 text-caption font-medium tracking-normal text-subtle">guests</span>
