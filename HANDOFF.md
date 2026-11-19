@@ -24,6 +24,7 @@ Settings set by hand are kept through a couple's own edits by `keepInviteSetting
 - Both forms share `form-model.ts` (toDetails / fromDetails / validate). A new field added to one should round-trip through the other. Check with `scripts/check-approvals.mts`.
 - Cover defaults per design (line above the names, word between them) are set in `coverDefaults` in form-model.ts. If a design's own default changes, update it there too.
 - Prefilled designs (`prefill: true`, e.g. Shiva Kalyanam) start with the demo's details and photos.
+- **Every word the design prints** (Mandir, Gauri Shankar, Chameli, Khat): each screen has a "✎ Change …" panel (`MoreWording.tsx`) drawn from the editor's field map in `src/config/editor.ts`: headings and small lines of save-the-date, countdown ("Until we say I do"), functions, photos, contacts and RSVP, Chameli's cover words, and small layout options. Values ride in `FormState.more` by their path ("words.countdownTitle", "rsvpTitle"…) and `toDetails`/`toPreview` set them in. A new field in editor.ts shows up here automatically. Changing an existing order (OrderForm) keeps them through `keepInviteSettings`, but can't edit them yet.
 
 ## Per-invite settings added recently
 
