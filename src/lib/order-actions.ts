@@ -6,7 +6,7 @@ import { getTemplate } from "@/data/templates";
 import { cleanPhone, cleanPhotoPaths, cleanSongPath, keepInviteSettings, orderTotal, validateDetails, type InviteDetails, type Order } from "@/lib/orders";
 import { findActivePartner } from "@/lib/partners";
 import { logOrderEdit, orderChanges } from "@/lib/order-edits";
-import { autoPublish, warmShareCard } from "@/lib/publish";
+import { autoPublish, freeSlug, warmShareCard } from "@/lib/publish";
 import { createRazorpayOrder, creditAddon, creditEditPack, isRazorpayConfigured, paysOnline, isValidPaymentSignature, markPaidByRazorpayOrder, razorpayKeyId } from "@/lib/razorpay";
 import { r2UploadUrl } from "@/lib/r2";
 import { applyChanges } from "@/lib/apply-changes";
@@ -99,6 +99,19 @@ export async function checkPartnerCode(code: string): Promise<{ code: string; na
   if (await overLimit("partner-code", 20, 60)) return null;
   const p = await findActivePartner(code);
   return p ? { code: p.code, name: p.name } : null;
+}
+
+/**
+ * The link a new invite would go live at, for the order form to show while it's being filled
+ * ("aavjoo.in/i/aarav-weds-meera"): the same choice publishing makes, from the names, year and city.
+ */
+export async function previewLink(input: { bride: string; groom: string; lead: "bride" | "groom"; date: string; city: string }): Promise<string | null> {
+  const name = (v: unknown) => String(v ?? "").trim().slice(0, 40);
+  const [bride, groom] = [name(input.bride), name(input.groom)];
+  if (!bride || !groom) return null;
+  const details = { bride: { first: bride }, groom: { first: groom }, lead: input.lead === "bride" ? "bride" : "groom", date: String(input.date ?? "").slice(0, 10), city: name(input.city) } as unknown as InviteDetails;
+  const slug = await freeSlug({ id: "", code: "new", details }).catch(() => null);
+  return slug && !slug.startsWith("invite-") ? slug : null;
 }
 
 export async function createOrder(input: CreateOrderInput): Promise<{ id: string } | { errors: string[] }> {

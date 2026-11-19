@@ -226,3 +226,8 @@ body:has([data-sticky-cta="on"]) .wa-fab { bottom: 88px; }
 [data-readable] { --ch-soft: #4f4020; }
 [data-readable] .opacity-70,
 [data-readable] .opacity-80 { opacity: 1; }
+
+/* A couple's own text size (A− / A+): paragraphs of the invite scaled, names and script headings
+   left alone (they have their own size settings). zoom scales the cqw sizes and keeps lines inside
+   their column, so text rewraps rather than overflows. */
+[data-text-scale] main p:not(.inv-script) { zoom: var(--text-scale, 1); }

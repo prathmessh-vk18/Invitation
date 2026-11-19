@@ -244,6 +244,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
           })()
         : {}),
       ...(d.largeText === true ? { largeText: true } : {}),
+      ...(typeof d.textScale === "number" && [0.85, 0.92, 1.08, 1.16, 1.25].includes(d.textScale) ? { textScale: d.textScale } : {}),
       // false keeps an invite made before a design went bold by default (Chameli) as its couple approved it.
       ...(typeof d.boldText === "boolean" ? { boldText: d.boldText } : {}),
       ...(isScriptFont(d.scriptFont) ? { scriptFont: d.scriptFont } : {}),
@@ -260,7 +261,8 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.stackNames === true ? { stackNames: true } : {}),
       ...(d.noSignoff === true ? { noSignoff: true } : {}),
       ...(typeof d.signoff === "string" ? { signoff: str(d.signoff, 80) } : {}),
-      ...(typeof d.heroKicker === "string" && d.heroKicker.trim() ? { heroKicker: str(d.heroKicker, 120) } : {}),
+      // "" is kept: on some designs it hides the line.
+      ...(typeof d.heroKicker === "string" ? { heroKicker: str(d.heroKicker, 120) } : {}),
       ...(d.parentsWide === true ? { parentsWide: true } : {}),
       ...(d.noBranding === true ? { noBranding: true } : {}),
       ...(str(d.brandLine, 80) ? { brandLine: str(d.brandLine, 80) } : {}),
@@ -332,8 +334,9 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
 
 // What the order form edits. Anything else on an order was set by us for one couple (a seal, a
 // custom heading, "Dr." on the cover…), and a form save or an approved change must never drop it.
-const FORM_FIELDS = new Set(["bride", "groom", "lead", "invocation", "invocationMeaning", "hosts", "message", "date", "city", "hashtag", "events", "rsvp", "closing", "music", "hide", "font", "lang"]);
-const FORM_PERSON_FIELDS = new Set(["first", "full", "parents"]);
+// The form now also offers the grandparents' line and Look's "more options", so a couple can clear them.
+const FORM_FIELDS = new Set(["bride", "groom", "lead", "invocation", "invocationMeaning", "hosts", "message", "date", "city", "hashtag", "events", "rsvp", "closing", "music", "hide", "font", "lang", "heroKicker", "joiner", "hideHeroDate", "hideHeroCity", "textScale"]);
+const FORM_PERSON_FIELDS = new Set(["first", "full", "parents", "elders", "eldersBelow", "eldersPlain"]);
 // Form fields that are left out when empty rather than sent blank, so a gap means "unchanged".
 const KEPT_IF_MISSING = ["lang"] as const;
 

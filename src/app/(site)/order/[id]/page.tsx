@@ -17,6 +17,7 @@ import { dateLine, daysToWedding, LINK_IN, saving } from "@/lib/urgency";
 import { paysOnline } from "@/lib/razorpay";
 import { autoPublishOn, freeSlug } from "@/lib/publish";
 import { CopyLink } from "@/site/copy-link";
+import { shareText, WhatsAppMessage } from "@/site/whatsapp-message";
 import { RememberOrder } from "@/site/my-orders";
 import { AskAboutOrder } from "./AskAboutOrder";
 import { EditPackOnPage } from "./EditPackButton";
@@ -244,11 +245,20 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
         {order.status === "live" && inviteUrl && (
           <Panel className="p-6 sm:p-8">
             <p className="text-title">Your invite is live 🎉</p>
-            <p className="mt-2 break-all text-lead font-medium">{inviteUrl}</p>
+            <p className="mt-1 text-body text-muted">This is how your guests will get it on WhatsApp.</p>
+            <div className="mt-4">
+              <WhatsAppMessage
+                // eslint-disable-next-line @next/next/no-img-element -- the couple's own share card, already a sized JPEG
+                card={<img src={`/i/${order.invite_slug}/opengraph-image`} alt={`${a.first} & ${b.first}`} className="size-full object-cover" />}
+                names={`${a.first} & ${b.first}`}
+                occasion={t.occasion ?? d.occasion ?? "wedding"}
+                url={inviteUrl}
+              />
+            </div>
             <div className="mt-5 flex flex-wrap gap-2">
               <ButtonLink href={`/i/${order.invite_slug}`} newTab>Open invite</ButtonLink>
-              <CopyLink text={inviteUrl} />
-              <ButtonLink href={`https://wa.me/?text=${encodeURIComponent(`You're invited! ${inviteUrl}`)}`} variant="inverse">
+              <CopyLink text={shareText(`${a.first} & ${b.first}`, t.occasion ?? d.occasion ?? "wedding", inviteUrl)} label="Copy message" />
+              <ButtonLink href={`https://wa.me/?text=${encodeURIComponent(shareText(`${a.first} & ${b.first}`, t.occasion ?? d.occasion ?? "wedding", inviteUrl))}`} variant="inverse">
                 <WaIcon /> Share on WhatsApp
               </ButtonLink>
             </div>
