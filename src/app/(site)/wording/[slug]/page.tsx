@@ -30,7 +30,8 @@ export default async function WordingPageView({ params }: { params: Promise<{ sl
   const tone = TONES.find((t) => t.id === p.tone)!;
   const designs = p.designs.map(getTemplate).filter((t) => t !== undefined);
   const { sameFn, sameTone } = relatedPages(p);
-  const generator = `/tools/invitation-wording-generator?fn=${p.fn}&lang=${p.lang}&tone=${p.tone}`;
+  // The choice rides after "#", so Google sees one generator address (no ?… duplicates).
+  const generator = `/tools/invitation-wording-generator#fn=${p.fn}&lang=${p.lang}&tone=${p.tone}`;
   const url = `${site.url}/wording/${p.slug}`;
 
   return (

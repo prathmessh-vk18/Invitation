@@ -13,6 +13,9 @@ export type { Wording, WordingFunction, WordingLang, WordingPage, WordingTone } 
  */
 export const WORDING_LIVE = false;
 
+/** When this batch was last changed: the sitemap's date for these pages. Bump it when you edit them. */
+export const WORDING_UPDATED = "2026-11-20";
+
 export const wordingPages: WordingPage[] = [...haldiPages, ...mehndiPages, ...sangeetPages, ...engagementPages, ...weddingPages];
 
 export const getWordingPage = (slug: string) => wordingPages.find((p) => p.slug === slug);

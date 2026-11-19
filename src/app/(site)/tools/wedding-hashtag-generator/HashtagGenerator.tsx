@@ -14,16 +14,36 @@ const word = (s: string) =>
     .map((w) => w[0].toUpperCase() + w.slice(1).toLowerCase())
     .join("");
 
-/** Name blends: the start of one name and the end of the other (Aarav + Meera → "Aareera", "Meerav"), only the readable lengths. */
+/**
+ * Name blends that read well: the start of one name joined to the end of the other only where a
+ * consonant meets a vowel (Meer + av → "Meerav"), so we never get "Aarra". The best two, longest
+ * halves first.
+ */
+const vowel = (c: string) => /[aeiouy]/i.test(c);
 function blends(a: string, b: string) {
-  const out = new Set<string>();
-  const cuts = (s: string) => [Math.ceil(s.length / 2), Math.max(2, Math.floor(s.length / 2))];
-  for (const i of cuts(a)) for (const j of cuts(b)) {
-    const x = a.slice(0, i) + b.slice(j).toLowerCase();
-    const y = b.slice(0, i) + a.slice(j).toLowerCase();
-    for (const v of [x, y]) if (v.length >= 4 && v.length <= 10 && v !== a && v !== b) out.add(v);
+  // The best blend each way round: a's start with b's end, then b's start with a's end.
+  return [blendOne(a, b), blendOne(b, a)].filter((v): v is string => Boolean(v));
+}
+
+function blendOne(x: string, y: string) {
+  const out: { v: string; score: number }[] = [];
+  {
+    for (let i = 2; i < x.length; i++)
+      for (let j = 1; j < y.length - 1; j++) {
+        const head = x.slice(0, i);
+        const tail = y.slice(j).toLowerCase();
+        const v = head + tail;
+        if (v.length < 5 || v.length > 9 || v.toLowerCase() === x.toLowerCase() || v.toLowerCase() === y.toLowerCase()) continue;
+        // a clean join, and no doubled letter across it
+        if (vowel(head.at(-1)!) === vowel(tail[0]) || head.at(-1)!.toLowerCase() === tail[0]) continue;
+        // no syllable said twice across the join ("Aara" + "ra")
+        if (head.toLowerCase().endsWith(tail.slice(0, 2))) continue;
+        // both names should still be recognisable: most of the head, a real share of the tail
+        if (i < Math.ceil(x.length / 2) || tail.length < 2) continue;
+        out.push({ v, score: Math.abs(i - x.length * 0.7) + Math.abs(tail.length - 2.5) });
+      }
   }
-  return [...out].slice(0, 3);
+  return out.sort((p, q) => p.score - q.score)[0]?.v;
 }
 
 export function generateHashtags(input: { bride: string; groom: string; brideSurname?: string; groomSurname?: string; year?: string; city?: string }) {
@@ -40,8 +60,7 @@ export function generateHashtags(input: { bride: string; groom: string; brideSur
     `${g}Ki${b}`,
     `${b}Ka${g}`,
     `${b}And${g}`,
-    ...blends(g, b).map((x) => `${x}Forever`),
-    ...blends(b, g),
+    ...blends(g, b).flatMap((x, i) => (i === 0 ? [x, `${x}Forever`] : [x])),
     `${g}${b}KiShaadi`,
     gs && `${gs}KiShaadi`,
     gs && bs && gs !== bs && `${gs}Weds${bs}`,

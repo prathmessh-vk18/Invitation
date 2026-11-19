@@ -1,18 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { findPage, FUNCTIONS, LANGS, TONES, type WordingFunction, type WordingLang, type WordingTone } from "@/data/wordings";
 import { DetailsForm, useDetails, WordingCards } from "@/site/wording-cards";
 
 /** Choose a function, language and style; the matching page's wordings fill with the couple's details. */
 export function WordingGenerator() {
-  const q = useSearchParams();
   const pick = <T extends string>(v: string | null, ok: readonly T[], d: T) => (v && (ok as readonly string[]).includes(v) ? (v as T) : d);
-  const [fn, setFn] = useState<WordingFunction>(() => pick(q.get("fn"), FUNCTIONS.map((f) => f.id), "wedding"));
-  const [lang, setLang] = useState<WordingLang>(() => pick(q.get("lang"), LANGS.map((l) => l.id), "en"));
-  const [tone, setTone] = useState<WordingTone>(() => pick(q.get("tone"), TONES.map((t) => t.id), "traditional"));
+  const [fn, setFn] = useState<WordingFunction>("wedding");
+  const [lang, setLang] = useState<WordingLang>("en");
+  const [tone, setTone] = useState<WordingTone>("traditional");
+  // A wording page links here with its choice after "#" (fn, lang, tone): one address for Google, no ?… copies.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.hash.slice(1));
+    const t0 = window.setTimeout(() => {
+      setFn(pick(q.get("fn"), FUNCTIONS.map((f) => f.id), "wedding"));
+      setLang(pick(q.get("lang"), LANGS.map((l) => l.id), "en"));
+      setTone(pick(q.get("tone"), TONES.map((t) => t.id), "traditional"));
+    }, 0);
+    return () => window.clearTimeout(t0);
+  }, []);
   const [values, setValues] = useDetails();
   const page = findPage(fn, lang, tone);
 
