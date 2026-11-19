@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getTemplate, templates } from "@/data/templates";
 import { Container, Eyebrow, Heading, Lead } from "@/ui";
-import { OrderForm } from "./OrderForm";
+import { MakeItYours } from "./MakeItYours";
 
 // One page per design, prerendered.
 export const instant = false;
@@ -33,13 +33,11 @@ export default async function StartPage({ params }: PageProps<"/start/[template]
           Make {t.name} yours.
         </Heading>
         <Lead className="mt-3 max-w-[640px]">
-          {!t.payDirect
-            ? "About 3 minutes, with a live preview of your invite as you go. Pay securely online at the end, and your invite goes live within minutes."
-            : "About 3 minutes, with a live preview of your invite as you go. Send it when you're done: we'll confirm payment with you directly and put your invite live."}
+          Your invite, ready in 3 minutes. Watch it come alive as you type.
         </Lead>
         <div className="mt-10">
           <Suspense fallback={<div className="h-[60vh] rounded-card bg-panel" />}>
-            <OrderForm t={t} />
+            <MakeItYours t={t} />
           </Suspense>
         </div>
       </Container>
