@@ -22,6 +22,8 @@ import { eventKinds, kindName } from "@/lib/orders";
 import { shrink, uploadTo } from "@/lib/upload-client";
 import { PriceTag } from "@/site/offer";
 import { PhoneFrame } from "@/ui";
+import { hasEditor } from "@/config/editor";
+import { MoreWording } from "./MoreWording";
 import { addDays, blankEvent, coverDefaults, initialState, LIMITS, mainCeremonies, supports, toDetails, toPreview, validate, waNumber, type EventRow, type FormState } from "./form-model";
 
 /**
@@ -140,12 +142,21 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setS((p) => ({ ...p, [k]: v }));
   const setEvent = (i: number, patch: Partial<EventRow>) => setS((p) => ({ ...p, events: p.events.map((e, j) => (j === i ? { ...e, ...patch } : e)) }));
   const open = (k: string) => setOpened((p) => new Set(p).add(k));
+  // A change to one of the design's own words or options (MoreWording); undefined = as designed.
+  const setMore = (key: string, v: string | boolean | undefined) =>
+    setS((p) => {
+      const more = { ...(p.more ?? {}) };
+      if (v === undefined) delete more[key];
+      else more[key] = v;
+      return { ...p, more };
+    });
   const coverDefault = coverDefaults(t.id, occasion);
   const isOpen = (k: string, v?: unknown) => opened.has(k) || (typeof v === "string" ? v.trim() !== "" : !!v);
   const showing = (id: SectionId) => !s.hide.includes(id);
   const [a, b] = s.lead === "groom" ? [s.groom, s.bride] : [s.bride, s.groom];
 
   const preview = useMemo(() => toPreview(s, demo), [s, demo]);
+  const words = (sections: string[], title?: string) => <MoreWording design={t.id} invite={preview} sections={sections} more={s.more ?? {}} onChange={setMore} hidden={s.hide} title={title} />;
   const live = useMemo(
     () => ({
       ...preview,
@@ -271,6 +282,7 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
             options={[...new Set([coverDefault.joiner, "&", "weds", "and", "with"])].map((v) => ({ v, l: v }))}
           />
         )}
+        {words(["cover"], "More words and options on the cover")}
       </Card>
     </>
   );
@@ -321,6 +333,7 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
       <Card title="The invitation" note="We've started you with words that suit this design. Change anything.">
         <Text k="hosts" label="From" optional value={s.hosts} onChange={(v) => set("hosts", v)} placeholder={demo.hosts || "The Sharma & Verma families"} max={160} />
         <Area k="message" label="Message" value={s.message} onChange={(v) => set("message", v)} error={err("message")} max={LIMITS.message} rows={4} />
+        {words(["blessing"], "More options for this part")}
       </Card>
     </>
   );
@@ -392,6 +405,11 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
           + Add a function
         </button>
       )}
+      {hasEditor(t.id) && (
+        <Card title="Functions heading" optional note="The words above your functions, and how the cards are set.">
+          {words(["events"], "Change the heading and card options")}
+        </Card>
+      )}
     </>
   );
 
@@ -400,6 +418,7 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
       <Card title="Closing words">
         <Area k="closing" label="Closing line" value={s.closing} onChange={(v) => set("closing", v)} error={err("closing")} max={LIMITS.closing} rows={2} />
         <Text k="hashtag" label="Hashtag" optional value={s.hashtag} onChange={(v) => set("hashtag", v)} placeholder="#AaravKiMeera" max={40} />
+        {words(["closing"], "More options for the ending")}
       </Card>
       {(t.extraFields?.length || supports(t.id, "lists")) && (
         <Card title="Family at the end" optional note="Names printed after your closing words, as on a printed card.">
@@ -458,6 +477,11 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
         {supports(t.id, "hideHeroDate") && <Toggle label="Date on the cover" on={!s.hideHeroDate} onChange={(on) => set("hideHeroDate", !on || undefined)} />}
         {supports(t.id, "hideHeroCity") && <Toggle label="City on the cover" on={!s.hideHeroCity} onChange={(on) => set("hideHeroCity", !on || undefined)} />}
       </Card>
+      {hasEditor(t.id) && (
+        <Card title="Words in each part" optional note="Every heading the design prints, like the countdown's “Until we say I do”. Change any of them.">
+          {words(["scratch", "countdown", "gallery", "contacts"], "Change these words")}
+        </Card>
+      )}
     </>
   );
 
@@ -558,6 +582,7 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
           ) : (
             <Chips items={[{ label: "Reply-by date", on: () => open("rsvpBy") }]} />
           )}
+          {words(["rsvp"], "Change the RSVP heading")}
         </Card>
       )}
       {!t.payDirect && (

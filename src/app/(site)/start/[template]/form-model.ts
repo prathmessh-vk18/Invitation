@@ -1,6 +1,7 @@
 import type { SectionId } from "@/config/customise";
 import type { EventKind, Invite } from "@/data/invites";
 import type { InviteDetails } from "@/lib/orders";
+import { setAt } from "@/config/editor";
 import { getTemplate } from "@/data/templates";
 import { isMapUrl, splitMapLink } from "@/lib/format";
 
@@ -50,6 +51,9 @@ export type FormState = {
   hideHeroDate?: boolean;
   hideHeroCity?: boolean;
   textScale?: number;
+  // The design's own words and small layout options the couple changed ("words.countdownTitle",
+  // "rsvpTitle", "stackNames"…), by their path in the details (MoreWording.tsx). Left out = as designed.
+  more?: Record<string, string | boolean>;
 };
 
 export const LIMITS = { name: 40, fullName: 80, parents: 160, city: 80, message: 400, closing: 240, venue: 120, address: 200 };
@@ -276,7 +280,16 @@ export function addDays(date: string, n: number) {
 const iso = (date: string, time: string) => (date ? `${date}T${time || "12:00"}:00+05:30` : "");
 
 /** The invite exactly as it will be submitted. */
+/** The couple's changes to the design's own words and options, set into the details at their paths. */
+function withMore<T>(d: T, more?: Record<string, string | boolean>): T {
+  return Object.entries(more ?? {}).reduce((out, [path, v]) => setAt(out, path, v), d);
+}
+
 export function toDetails(s: FormState, template?: string) {
+  return withMore(toDetailsBase(s, template), s.more);
+}
+
+function toDetailsBase(s: FormState, template?: string) {
   const rsvp = s.rsvpSame ? s.customer.phone : s.rsvpPhone;
   return {
     bride: { ...s.bride, first: s.bride.first.trim() },
@@ -462,6 +475,10 @@ export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState[
 
 /** The same invite with friendly stand-ins for anything not filled yet, for the live preview. */
 export function toPreview(s: FormState, demo: Invite): Invite {
+  return withMore(toPreviewBase(s, demo), s.more);
+}
+
+function toPreviewBase(s: FormState, demo: Invite): Invite {
   const person = (p: Person, fallback: string) => ({
     first: p.first || fallback,
     full: p.full || p.first || fallback,
