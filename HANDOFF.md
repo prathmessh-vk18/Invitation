@@ -17,6 +17,14 @@ Settings set by hand are kept through a couple's own edits by `keepInviteSetting
 - a type in `src/data/invites.ts`
 - a passthrough in `validateDetails` (src/lib/orders.ts)
 
+## Order forms: "Make it yours" for new orders (from 2026-11-19)
+
+- **New orders, every design:** `/start/<design>` uses `MakeItYours.tsx` (src/app/(site)/start/[template]/). It has seven screens, one per part of the invite (cover, families, functions, ending, look, photos & song, your details), a bottom bar (← · Preview · Next) and the WhatsApp share preview.
+- **Changing an existing order, and admin:** still use the older `OrderForm.tsx` (`/order/<id>/edit`, `src/app/admin/AdminForm.tsx`). Orders placed before this date are untouched.
+- Both forms share `form-model.ts` (toDetails / fromDetails / validate). A new field added to one should round-trip through the other. Check with `scripts/check-approvals.mts`.
+- Cover defaults per design (line above the names, word between them) are set in `coverDefaults` in form-model.ts. If a design's own default changes, update it there too.
+- Prefilled designs (`prefill: true`, e.g. Shiva Kalyanam) start with the demo's details and photos.
+
 ## Per-invite settings added recently
 
 Use these before writing new code.

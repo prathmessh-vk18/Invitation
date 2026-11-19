@@ -62,7 +62,10 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
   const [s, setS] = useState<FormState>(() => initialState(demo));
   const [step, setStep] = useState(0);
   const [song, setSong] = useState<{ path: string; name: string } | null>(null);
-  const [photos, setPhotos] = useState<string[]>([]);
+  // A design made for one couple (prefill) starts with its demo's photos, as the old form did.
+  const [photos, setPhotos] = useState<string[]>(() =>
+    t.prefill ? (demo.gallery ?? []).map((u) => u.match(/\/photos\/(moments\/[0-9a-f-]{36}\.(?:jpg|png|webp))$/)?.[1]).filter((x): x is string => Boolean(x)) : [],
+  );
   const [opened, setOpened] = useState<Set<string>>(() => new Set());
   const [openEvent, setOpenEvent] = useState(0);
   const [attempted, setAttempted] = useState<Set<PartId>>(() => new Set());
@@ -96,7 +99,7 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
           setS({ ...initialState(demo), ...d.s });
           setStep(Math.min(d.step, PARTS.length - 1));
           setSong(d.song);
-          setPhotos(d.photos ?? []);
+          if (d.photos?.length || !t.prefill) setPhotos(d.photos ?? []);
         }
       } catch {}
       const code = cleanPartnerCode(readRefCookie());
