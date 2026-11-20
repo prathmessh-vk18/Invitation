@@ -8,6 +8,7 @@ import { site } from "@/config/site";
 import { categories } from "@/data/categories";
 import { templates } from "@/data/templates";
 import { guides } from "@/data/guides";
+import { WORDING_LIVE } from "@/data/wordings";
 import { buttonClass } from "@/ui";
 import { OpenChat } from "@/site/chat";
 import { MyOrderLink } from "@/site/my-orders";
@@ -180,6 +181,16 @@ export function Footer() {
           />
           <FooterCol title="Designs" links={templates.map((t) => ({ href: `/templates/${t.id}`, label: `${t.name} · ${t.mood.split(" · ").pop()}` }))} />
           <FooterCol title="Wedding guides" links={[...guides.map((g) => ({ href: `/guides/${g.slug}`, label: guideLabel[g.slug] ?? g.title })), { href: "/guides", label: "All guides" }]} />
+          {WORDING_LIVE && (
+            <FooterCol
+              title="Wording & free tools"
+              links={[
+                { href: "/wording", label: "Invitation wording" },
+                { href: "/tools/invitation-wording-generator", label: "Wording generator" },
+                { href: "/tools/wedding-hashtag-generator", label: "Hashtag generator" },
+              ]}
+            />
+          )}
           <FooterCol
             title="Aavjoo"
             links={[

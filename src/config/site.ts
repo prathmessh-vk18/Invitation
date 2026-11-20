@@ -19,6 +19,9 @@ export const site = {
   pdfAddon: { price: 99 },
   // Hides "Crafted with love by Aavjoo" at the end of the invite.
   brandingAddon: { price: 99 },
+  // Guests' RSVPs are saved for the couple's RSVP page (/order/<id>/rsvps) on orders placed from
+  // this moment, when their invite shows the RSVP section. Free, no add-on.
+  rsvpTrackingFrom: "2026-11-19T23:00:00+05:30",
 
   // UPI payments. Use a business UPI ID (current account or a business app), not a personal one.
   upiId: "vishwakarmaprathmesh18-1@okicici",

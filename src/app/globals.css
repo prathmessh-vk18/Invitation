@@ -213,3 +213,21 @@ body:has([data-sticky-cta="on"]) .wa-fab { bottom: 88px; }
 /* Invites set to large text (for older guests): the shared sections drop their faded "muted" look. */
 [data-large-text] .opacity-70,
 [data-large-text] .opacity-80 { opacity: 1; }
+
+/* Invites set to bold text: heavier type, and (on designs whose text colours are variables, e.g. Chameli) darker ink. */
+[data-bold-text] { --ch-ink: #2b200c; --ch-soft: #3a2e16; --ch-gold: #7f5f22; }
+[data-bold-text] .inv-label,
+[data-bold-text] .inv-serif,
+[data-bold-text] .inv-script { font-weight: 600; }
+[data-bold-text] .opacity-70,
+[data-bold-text] .opacity-80 { opacity: 1; }
+
+/* Readable: faded text made solid, same weight. On Chameli the soft brown lines take the main ink. */
+[data-readable] { --ch-soft: #4f4020; }
+[data-readable] .opacity-70,
+[data-readable] .opacity-80 { opacity: 1; }
+
+/* A couple's own text size (A− / A+): paragraphs of the invite scaled, names and script headings
+   left alone (they have their own size settings). zoom scales the cqw sizes and keeps lines inside
+   their column, so text rewraps rather than overflows. */
+[data-text-scale] main p:not(.inv-script) { zoom: var(--text-scale, 1); }

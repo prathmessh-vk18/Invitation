@@ -6,6 +6,8 @@ export type Track = {
   id: string; // "synth:<preset>" or "file:<url>"
   name: string;
   mood: string;
+  // Start (and loop back) from this second, for a recording with a slow intro.
+  from?: number;
 };
 
 export type SynthPreset = {
@@ -117,11 +119,15 @@ export const instrumentals: Track[] = [
 export const privateSongs: Track[] = [
   { id: "file:/music/krishna-flute.m4a", name: "Krishna Flute Theme", mood: "Iftekharul x Stereo India · flute (Akshay & Vidhi)" },
   { id: "file:/music/raga-hamsadhvani.m4a", name: "Raga Hamsadhvani (Krrish tune)", mood: "Iftekharul Anam · flute (Akshay & Vidhi)" },
+  { id: "file:/music/pournami-flute.mp3", name: "Pournami (flute)", mood: "Flute · Shiva Kalyanam (Srilakshmi & Shiva Chander)", from: 5 },
 ];
 
 export const tracks: Track[] = [...songs, ...instrumentals];
 
 /** The playable URL or synth id for a track id. */
 export const trackSrc = (id: string) => (id.startsWith("file:") ? id.slice(5) : id);
+
+/** Where a track starts playing, in seconds (0 for most). */
+export const trackFrom = (id?: string) => [...songs, ...privateSongs].find((t) => t.id === id)?.from ?? 0;
 
 export const isTrackId = (id: unknown): id is string => typeof id === "string" && [...tracks, ...privateSongs].some((t) => t.id === id);

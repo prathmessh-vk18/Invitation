@@ -1,11 +1,12 @@
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import sharp from "sharp";
 import type { Invite } from "@/data/invites";
 import { getTemplate } from "@/data/templates";
 import { couple } from "@/invites/people";
-import { longDate } from "@/lib/format";
+import { fmtDate, longDate } from "@/lib/format";
 
 /**
  * A couple's share card: their names, date and city over their design's painting, 1200×630 JPEG.
@@ -14,9 +15,10 @@ import { longDate } from "@/lib/format";
 // Each path is written out in full so only these files ship with this route, and they're read
 // once when the module loads (see app/opengraph-image.tsx).
 const jpg = async (file: Promise<Buffer>) => `data:image/jpeg;base64,${(await file).toString("base64")}`;
-const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh, shiv, khatRed, sarovarArt, angoothiArt, chandniArt, rokaArt, chameliArt] = await Promise.all([
+const [fraunces, geist, deva, mandir, haveli, mahal, khat, gopuram, bagh, shiv, khatRed, sarovarArt, angoothiArt, chandniArt, rokaArt, chameliArt, shivKalyanamArt] = await Promise.all([
   readFile(join(process.cwd(), "src/app/i/[slug]/Fraunces-Medium.ttf")),
   readFile(join(process.cwd(), "src/app/i/[slug]/Geist-Medium.ttf")),
+  readFile(join(process.cwd(), "src/app/i/[slug]/NotoSansDevanagari-Medium.ttf")),
   jpg(readFile(join(process.cwd(), "public/art/illus/mandir-temple.jpg"))),
   jpg(readFile(join(process.cwd(), "public/art/illus/haveli-arrival.jpg"))),
   jpg(readFile(join(process.cwd(), "public/art/illus/mahal-hero.jpg"))),
@@ -30,6 +32,7 @@ const [fraunces, geist, mandir, haveli, mahal, khat, gopuram, bagh, shiv, khatRe
   jpg(readFile(join(process.cwd(), "public/art/illus/chandni-hero.jpg"))),
   jpg(readFile(join(process.cwd(), "public/art/illus/roka-hero.jpg"))),
   jpg(readFile(join(process.cwd(), "public/art/illus/chameli-envelope.jpg"))),
+  jpg(readFile(join(process.cwd(), "public/art/illus/telugu-share.jpg"))),
 ]);
 
 // The painted designs' hero art fills the card. The art is portrait (864×1536), so at the card's
@@ -59,7 +62,30 @@ const scenes: Record<string, { src: string; y: number }> = {
   // The sealed ivory envelope from Chameli's opening, its gold-edged flap under the names.
   chameli: { src: chameliArt, y: 0.3 },
   chamelisagai: { src: chameliArt, y: 0.3 },
+  shivakalyanam: { src: shivKalyanamArt, y: 0.38 },
 };
+
+/**
+ * Hindi lines are drawn by sharp (Pango + HarfBuzz), not the card renderer: the renderer can't join
+ * Devanagari letters, so "रिया" came out as "रयिा" and "उत्तर" with a loose half letter. Pango
+ * needs the font as a file, so it's written to the temp folder once.
+ */
+let devaFile: Promise<string> | null = null;
+const devaPath = () => (devaFile ??= (async () => {
+  const path = join(tmpdir(), "aavjoo-NotoSansDevanagari-Medium.ttf");
+  await writeFile(path, deva);
+  return path;
+})());
+const markup = (t: string) => t.replace(/[&<>]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[ch]!);
+async function devaLine(text: string, px: number, color: string) {
+  const { data, info } = await sharp({ text: { text: `<span foreground="${color}">${markup(text)}</span>`, font: `Noto Sans Devanagari Medium ${px}`, fontfile: await devaPath(), rgba: true, dpi: 72 } })
+    .png()
+    .toBuffer({ resolveWithObject: true });
+  // Never wider than the card's margins.
+  if (info.width <= 1120) return { input: data, width: info.width, height: info.height };
+  const height = Math.round((info.height * 1120) / info.width);
+  return { input: await sharp(data).resize(1120, height).png().toBuffer(), width: 1120, height };
+}
 
 /** Names on one line, as large as fits the card. */
 const nameSize = (names: string) => (names.length <= 18 ? 104 : names.length <= 24 ? 84 : names.length <= 30 ? 70 : 58);
@@ -70,7 +96,19 @@ const layer = { position: "absolute", top: 0, left: 0, width: 1200, height: 630,
 export async function shareCard(invite: Invite): Promise<Response> {
   const t = getTemplate(invite.template)!;
   const [a, b] = couple(invite);
-  const names = `${a.first} & ${b.first}`;
+  // A Hindi invite's card is in Hindi too.
+  const hi = invite.lang === "hi";
+  const kind = hi
+    ? invite.occasion === "engagement" ? "सगाई निमंत्रण" : invite.occasion === "reception" ? "स्वागत समारोह निमंत्रण" : "विवाह निमंत्रण"
+    : invite.occasion === "engagement" ? "ENGAGEMENT INVITATION" : invite.occasion === "reception" ? "WEDDING RECEPTION INVITATION" : "WEDDING INVITATION";
+  const when = hi ? fmtDate(invite.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" }, "hi-IN-u-nu-latn") : longDate(invite.date);
+  // Kept off the drawn card for a Hindi invite: sharp writes these lines on afterwards.
+  const text = !hi;
+  // A second couple marrying the same day goes on a line of its own, both in the couple's joiner.
+  const sc = invite.secondCouple;
+  const names = `${a.first} ${sc ? (invite.joiner ?? "&") : hi ? "एवं" : "&"} ${b.first}`;
+  const second = sc ? (invite.lead === "bride" ? `${sc.bride.first} ${invite.joiner ?? "&"} ${sc.groom.first}` : `${sc.groom.first} ${invite.joiner ?? "&"} ${sc.bride.first}`) : "";
+  const size = second ? Math.min(nameSize(names), nameSize(second), 76) : nameSize(names);
   const scene = scenes[invite.template];
   // Over a painting the text is deep maroon on a light wash; on a plain card it takes the design's
   // own pair of colours (gold on maroon for Rajwada, and so on).
@@ -95,11 +133,14 @@ export async function shareCard(invite: Invite): Promise<Response> {
             </svg>
           </>
         )}
-        <div style={{ position: "absolute", top: scene ? 60 : 200, left: 0, width: 1200, display: "flex", flexDirection: "column", alignItems: "center", color: ink }}>
-          <div style={{ fontSize: 22, letterSpacing: 8 }}>{invite.occasion === "engagement" ? "ENGAGEMENT INVITATION" : invite.occasion === "reception" ? "WEDDING RECEPTION INVITATION" : "WEDDING INVITATION"}</div>
-          <div style={{ fontFamily: "Fraunces", fontSize: nameSize(names), lineHeight: 1.05, marginTop: 14, letterSpacing: -2 }}>{names}</div>
-          <div style={{ fontSize: 30, marginTop: 16, letterSpacing: 1 }}>{`${longDate(invite.date)} · ${invite.city}`}</div>
-        </div>
+        {text && (
+          <div style={{ position: "absolute", top: scene ? 60 : 200, left: 0, width: 1200, display: "flex", flexDirection: "column", alignItems: "center", color: ink }}>
+            <div style={{ fontSize: 22, letterSpacing: 8 }}>{kind}</div>
+            <div style={{ fontFamily: "Fraunces", fontSize: size, lineHeight: 1.05, marginTop: 14, letterSpacing: -2 }}>{names}</div>
+            {second && <div style={{ fontFamily: "Fraunces", fontSize: size, lineHeight: 1.05, marginTop: 6, letterSpacing: -2 }}>{second}</div>}
+            <div style={{ fontSize: 30, marginTop: 16, letterSpacing: 1 }}>{`${when} · ${invite.city}`}</div>
+          </div>
+        )}
       </div>
     ),
     {
@@ -111,6 +152,20 @@ export async function shareCard(invite: Invite): Promise<Response> {
       ],
     },
   );
-  const jpeg = await sharp(Buffer.from(await card.arrayBuffer())).jpeg({ quality: 82, mozjpeg: true }).toBuffer();
+  let base = sharp(Buffer.from(await card.arrayBuffer()));
+  if (!text) {
+    // The same lines in the same places, drawn with Devanagari joined properly.
+    const lines = await Promise.all([devaLine(kind, 26, ink), devaLine(names, Math.round(size * 0.92), ink), ...(second ? [devaLine(second, Math.round(size * 0.92), ink)] : []), devaLine(`${when} · ${invite.city}`, 30, ink)]);
+    const gaps = [0, 8, ...(second ? [2] : []), 10];
+    let top = scene ? 56 : 196;
+    const composite = lines.map((l, i) => {
+      top += gaps[i];
+      const at = { input: l.input, left: Math.round((1200 - l.width) / 2), top };
+      top += l.height;
+      return at;
+    });
+    base = sharp(await base.png().toBuffer()).composite(composite);
+  }
+  const jpeg = await base.jpeg({ quality: 82, mozjpeg: true }).toBuffer();
   return new Response(new Uint8Array(jpeg), { headers: { "Content-Type": "image/jpeg", "Cache-Control": card.headers.get("Cache-Control") ?? "public, max-age=31536000, immutable" } });
 }

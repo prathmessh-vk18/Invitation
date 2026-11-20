@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { site } from "@/config/site";
 import { getGuide, guides } from "@/data/guides";
 import { getTemplate } from "@/data/templates";
+import { FUNCTIONS, wordingPages, WORDING_LIVE } from "@/data/wordings";
 import { JsonLd, pageMeta } from "@/lib/seo";
 import { TemplateTile } from "@/site/gallery";
 import { Accordion, ButtonLink, Container, Eyebrow, Heading, Lead, Section } from "@/ui";
@@ -27,6 +28,9 @@ export default async function GuidePage({ params }: PageProps<"/guides/[slug]">)
   if (!g) notFound();
   const designs = g.designs.map(getTemplate).filter((t) => t !== undefined);
   const more = guides.filter((x) => x.slug !== g.slug).slice(0, 3);
+  // The ready-to-copy wording pages for this guide's function (once those pages are live).
+  const fn = FUNCTIONS.find((f) => f.guide === g.slug);
+  const wordings = WORDING_LIVE && fn ? wordingPages.filter((p) => p.fn === fn.id) : [];
 
   return (
     <>
@@ -107,6 +111,22 @@ export default async function GuidePage({ params }: PageProps<"/guides/[slug]">)
             <div className="mt-8 grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
               {designs.map((t, i) => (
                 <TemplateTile key={t.id} t={t} index={i} price />
+              ))}
+            </div>
+          </Container>
+        </Section>
+      )}
+
+      {wordings.length > 0 && (
+        <Section className="pt-6">
+          <Container>
+            <p className="text-title">Ready-to-copy {fn!.name.toLowerCase()} wordings</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {wordings.map((w) => (
+                <Link key={w.slug} href={`/wording/${w.slug}`} className="rounded-tile bg-panel p-5 transition hover:bg-panel-strong">
+                  <p className="text-[15px] font-semibold">{w.title}</p>
+                  <p className="mt-1 text-caption text-muted">{w.wordings.length} wordings →</p>
+                </Link>
               ))}
             </div>
           </Container>

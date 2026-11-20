@@ -84,7 +84,7 @@ function Divider({ className }: { className?: string }) {
   return <Sunburst className={`mx-auto block w-[30cqw] ${className ?? ""}`} />;
 }
 
-function Title({ kicker, children }: { kicker?: string; children: ReactNode }) {
+function Title({ kicker, children, plain }: { kicker?: string; children: ReactNode; plain?: boolean }) {
   return (
     <div className="text-center">
       {kicker && (
@@ -95,7 +95,7 @@ function Title({ kicker, children }: { kicker?: string; children: ReactNode }) {
       <h2 className="inv-script mt-[1.5cqw] text-[8.5cqw] leading-[1.05]" style={{ color: c.ink }}>
         {children}
       </h2>
-      <Divider className="mt-[2.5cqw]" />
+      {!plain && <Divider className="mt-[2.5cqw]" />}
     </div>
   );
 }
@@ -166,7 +166,16 @@ function Names({ invite, show }: { invite: Invite; show: (d: number) => object }
           <InlineTitle p={a} cover />
         </span>
         {title(a)}
-        <span className={`text-[8.5cqw] leading-none ${lang === "hi" ? "my-[2cqw]" : "-my-[1cqw]"}`} style={{ color: c.ink, fontFamily: lang === "hi" ? "var(--inv-script)" : HAND }}>
+        {/* "weds" tucks between the names; joinerGap (cqw above / below) gives it room where tall letters crowd it. */}
+        <span
+          className={`text-[8.5cqw] leading-none ${lang === "hi" ? "my-[2cqw]" : "-my-[1cqw]"}`}
+          style={{
+            color: c.ink,
+            fontFamily: lang === "hi" ? "var(--inv-script)" : HAND,
+            ...(invite.joinerGap?.above !== undefined ? { marginTop: `${invite.joinerGap.above}cqw` } : {}),
+            ...(invite.joinerGap?.below !== undefined ? { marginBottom: `${invite.joinerGap.below}cqw` } : {}),
+          }}
+        >
           {invite.joiner ?? (invite.occasion === "engagement" ? "&" : t.weds)}
         </span>
         <span className={`inv-script text-[15cqw] leading-[0.95] ${b.coverName ? "whitespace-nowrap" : ""}`} style={{ color: c.name, ...big }}>
@@ -175,12 +184,16 @@ function Names({ invite, show }: { invite: Invite; show: (d: number) => object }
         </span>
         {title(b)}
       </motion.h1>
-      <motion.p {...show(1)} className="inv-label mt-[3cqw] text-[2.6cqw]" style={{ color: c.ink }}>
-        {d.weekday(invite.date)} · {d.day(invite.date)} {d.month(invite.date)} {d.year(invite.date)}
-      </motion.p>
-      <motion.p {...show(1.15)} className="inv-serif mt-[1.5cqw] text-[4cqw] italic" style={{ color: c.ink }}>
-        {invite.city}
-      </motion.p>
+      {!invite.hideHeroDate && (
+        <motion.p {...show(1)} className="inv-label mt-[3cqw] text-[2.6cqw]" style={{ color: c.ink }}>
+          {d.weekday(invite.date)} · {d.day(invite.date)} {d.month(invite.date)} {d.year(invite.date)}
+        </motion.p>
+      )}
+      {!invite.hideHeroCity && (
+        <motion.p {...show(1.15)} className="inv-serif mt-[1.5cqw] text-[4cqw] italic" style={{ color: c.ink }}>
+          {invite.city}
+        </motion.p>
+      )}
     </div>
   );
 }
@@ -241,15 +254,39 @@ function Blessing({ invite }: { invite: Invite }) {
   // In a phone preview there's no walk to rise out of: show it still, at full size.
   const still = usePreview();
   const { t, lang } = useT();
+  // New invites open with the blessing ("With the blessings of Lord Ganesha"), as the PDF does; those
+  // made before 17 Nov 2026 carry blessingTop: false and keep it under the names, as approved.
+  const blessingTop = invite.blessingTop ?? true;
   const parents = (p: typeof a, className: string) =>
     p.parents && (
       <p className={`text-[3.3cqw] leading-snug font-semibold ${className}`} style={{ color: c.name }}>
         {p.parents}
       </p>
     );
+  // Grandparents (or any elder who invites): above the parents' line, or under it with eldersBelow;
+  // in small gold capitals, or set like the parents' line with eldersPlain.
+  const elders = (p: typeof a, below: boolean) =>
+    p.elders &&
+    !!p.eldersBelow === below &&
+    (p.eldersPlain ? (
+      <p className="mx-auto max-w-[62cqw] text-[3.3cqw] leading-snug font-semibold whitespace-pre-line" style={{ color: c.name, margin: below ? "1.5cqw auto 0" : "0 auto 1.5cqw" }}>
+        {p.elders}
+      </p>
+    ) : (
+      <p className="inv-label mx-auto max-w-[66cqw] text-[2.7cqw] leading-relaxed font-semibold whitespace-pre-line" style={{ color: c.goldDeep, margin: below ? "1.5cqw auto 0" : "0 auto 1.5cqw" }}>
+        {p.elders}
+      </p>
+    ));
+  const family = (p: typeof a, className: string) => (
+    <>
+      {elders(p, false)}
+      {parents(p, className)}
+      {elders(p, true)}
+    </>
+  );
   const person = (p: typeof a) => (
     <div>
-      {!invite.namesFirst && parents(p, "mx-auto max-w-[62cqw]")}
+      {!invite.namesFirst && family(p, "mx-auto max-w-[62cqw]")}
       <p
         className={`inv-script text-[13.5cqw] leading-[0.95] ${invite.namesFirst ? "whitespace-nowrap" : "mt-[2cqw]"} ${p.title && p.titleInline ? "-mx-[6cqw]" : ""}`}
         style={{ color: c.name, ...(invite.nameScale ? { fontSize: `${(13.5 * invite.nameScale).toFixed(2)}cqw` } : {}) }}
@@ -262,7 +299,7 @@ function Blessing({ invite }: { invite: Invite }) {
           {p.title}
         </p>
       )}
-      {invite.namesFirst && parents(p, "mt-[3cqw] -mx-[6cqw] whitespace-pre-line")}
+      {invite.namesFirst && (p.parents || p.elders) && <div className="mt-[3cqw]">{family(p, "-mx-[6cqw] whitespace-pre-line")}</div>}
     </div>
   );
   return (
@@ -270,9 +307,27 @@ function Blessing({ invite }: { invite: Invite }) {
     <section ref={ref} className={`relative z-10 px-[13cqw] pt-[24cqw] pb-[12cqw] text-center ${still ? "" : "-mt-[55svh]"}`}>
       <motion.div style={still ? undefined : { scale, opacity, filter: blur, transformOrigin: "50% 30%" }}>
         <Divider />
-        <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed" style={{ color: c.goldDeep }}>
-          {invite.hosts || t.togetherWithFamilies}
-        </p>
+        {invite.invocationMeaning && blessingTop && (
+          <p className="inv-serif mt-[4cqw] text-[3.6cqw] italic" style={{ color: c.soft }}>
+            {invite.invocationMeaning}
+          </p>
+        )}
+        {invite.hostsLines && invite.hosts ? (
+          // one family per line, "&" between them
+          // a line break the couple typed stays (e.g. a grandmother's name, then "W/o …")
+          <div className="inv-label mt-[4cqw] text-[3cqw] leading-relaxed font-semibold whitespace-pre-line" style={{ color: c.goldDeep }}>
+            {invite.hosts.split(/\s+&\s+/).map((name, i) => (
+              <p key={i}>
+                {i > 0 && <span className="my-[0.5cqw] block">&amp;</span>}
+                {name}
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p className="inv-label mt-[4cqw] text-[2.7cqw] leading-relaxed whitespace-pre-line" style={{ color: c.goldDeep }}>
+            {invite.hosts || t.togetherWithFamilies}
+          </p>
+        )}
         <p className="inv-serif mt-[3cqw] text-[4.6cqw] leading-snug" style={{ color: c.ink }}>
           {invite.message}
         </p>
@@ -282,7 +337,7 @@ function Blessing({ invite }: { invite: Invite }) {
           {t.and}
         </p>
         {person(b)}
-        {invite.invocationMeaning && (
+        {invite.invocationMeaning && !blessingTop && (
           <p className="inv-serif mt-[7cqw] text-[3.6cqw] italic" style={{ color: c.soft }}>
             {invite.invocationMeaning}
           </p>
@@ -327,7 +382,7 @@ function DayCard({ invite, events }: { invite: Invite; events: InviteEvent[] }) 
           {events.map((e, i) => (
             <li key={e.name + i} className="col-span-2 grid grid-cols-subgrid">
               <span className="inv-serif text-[5cqw] leading-tight font-semibold" style={{ color: c.name }}>
-                {d.time(e.start)}
+                {e.timeText ?? d.time(e.start)}
               </span>
               <span className="inv-serif text-[5cqw] leading-tight font-bold" style={{ color: c.ink }}>
                 {e.name}
@@ -406,7 +461,7 @@ function Events({ invite }: { invite: Invite }) {
                   {d.weekday(e.start)} · {d.shortMonthDate(e.start)}
                 </p>
                 <p className={`inv-serif mt-[1cqw] ${invite.boldEvents ? "text-[4.8cqw] font-semibold" : "text-[4cqw] italic"}`} style={{ color: invite.boldEvents ? c.ink : c.soft }}>
-                  {t.onwards(d.time(e.start))}
+                  {e.timeText ?? t.onwards(d.time(e.start))}
                 </p>
                 <p className={`inv-serif mt-[3cqw] text-[4.4cqw] leading-tight${invite.boldEvents ? " font-semibold" : ""}`} style={{ color: c.ink }}>
                   {e.venue}
@@ -444,7 +499,7 @@ function Closing({ invite }: { invite: Invite }) {
           {invite.closing}
         </p>
         <p className="inv-script mt-[4cqw] text-[11cqw] leading-none" style={{ color: c.name }}>
-          {a.first} {lang === "hi" ? t.and : "&"} {b.first}
+          {invite.closingNames ?? `${a.first} ${lang === "hi" ? t.and : "&"} ${b.first}`}
         </p>
         {invite.hashtag && (
           <p className="inv-label !normal-case mt-[3cqw] text-[2.8cqw]" style={{ color: c.gold }}>

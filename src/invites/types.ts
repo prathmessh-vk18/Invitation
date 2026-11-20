@@ -31,14 +31,25 @@ export type InviteTheme = {
   // Optional ornamental frame drawn above the content; the invite scrolls underneath it.
   Frame?: FC;
   Divider: FC<{ className?: string }>;
-  Title: FC<{ kicker?: string; children: ReactNode }>;
+  // `plain` leaves out the ornament under the title, where a design draws one (Mandir).
+  Title: FC<{ kicker?: string; children: ReactNode; plain?: boolean }>;
   // The words on the shared "tap to open" pill and the "scroll" pill after opening (keys into i18n).
-  tapHint?: "tapSeal" | "tapDoors" | "tapRing" | "tapMoon" | "tapKolam" | "tapDupatta" | "tapCircle" | "tapAnywhere";
+  tapHint?: "tapSeal" | "tapDoors" | "tapRing" | "tapMoon" | "tapKolam" | "tapDupatta" | "tapCircle" | "tapAnywhere" | "tapHere";
+  // Seconds before the tap hint shows, for openings with an animation worth watching first.
+  tapHintDelay?: number;
   scrollHint?: "scrollToSeeMore" | "scrollToWalkIn";
   // How long the opening stays on screen after the tap (ms), for longer intros like Chameli's. Default 1900.
   openingMs?: number;
   // Large, bold text by default for every invite of this design.
   largeText?: boolean;
+  // Heavier, darker text by default for every invite of this design.
+  boldText?: boolean;
+  // Faded text made solid by default (no heavier weight), for every new invite of this design (Chameli).
+  readable?: boolean;
   // A design's own countdown heading (e.g. "Anand Karaj in"), unless the couple set one.
   countdownTitle?: string;
+  // A design's own versions of the shared scratch card, countdown and photo album.
+  ScratchSection?: FC<{ invite: Invite }>;
+  CountdownSection?: FC<{ invite: Invite }>;
+  GallerySection?: FC<{ invite: Invite }>;
 };

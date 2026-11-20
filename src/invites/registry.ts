@@ -2,6 +2,7 @@ import type { TemplateId } from "@/data/templates";
 import { agni } from "./agni";
 import { angoothi, bagh, chandni, gopuram, haveli, khat, khatred, mahal, mudrika, rajwadasagai, roka } from "./illustrated-themes";
 import { gaurishankar } from "./gaurishankar";
+import { shivakalyanam } from "./shivakalyanam";
 import { gulmohar } from "./gulmohar";
 import { kolam } from "./kolam";
 import { chameli, chamelisagai } from "./chameli";
@@ -12,4 +13,4 @@ import { rajwada } from "./rajwada";
 import { sarovar } from "./sarovar";
 import type { InviteTheme } from "./types";
 
-export const themes: Record<TemplateId, InviteTheme> = { gaurishankar, mandir, mahal, khat, gopuram, bagh, rajwada, gulmohar, agni, noor, phulkari, kolam, haveli, khatred, sarovar, vachan, mudrika, angoothi, chandni, roka, rajwadasagai, chameli, chamelisagai };
+export const themes: Record<TemplateId, InviteTheme> = { gaurishankar, mandir, mahal, khat, gopuram, bagh, rajwada, gulmohar, agni, noor, phulkari, kolam, haveli, khatred, sarovar, vachan, mudrika, angoothi, chandni, roka, rajwadasagai, chameli, chamelisagai, shivakalyanam };

@@ -1,5 +1,6 @@
 "use client";
 
+import { recordRsvp } from "@/lib/rsvp-actions";
 import { AnimatePresence, motion, type HTMLMotionProps } from "framer-motion";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Invite, InviteEvent } from "@/data/invites";
@@ -67,7 +68,9 @@ export function Countdown({ invite, theme }: { invite: Invite; theme: InviteThem
             ))}
           </div>
         )}
-        <p className={`mt-6 text-center text-[3.6cqw] ${theme.ui.muted}`}>{d.long(invite.date)} · {invite.city}</p>
+        <p className={`mt-6 text-center text-[3.6cqw] ${theme.ui.muted}`}>{d.long(invite.date)}
+          {invite.hideCountdownCity ? "" : ` · ${invite.city}`}
+        </p>
       </Reveal>
     </section>
   );
@@ -280,9 +283,11 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
     }
     // With a single function there is nothing to pick, so it counts as picked.
     const going = choices.length === 1 ? choices : choices.filter((c) => events.includes(c));
-    const lines = attending === "yes" ? t.rsvpYes(a.first, b.first, name, guests, going.join(", ")) : t.rsvpNo(a.first, b.first, name);
+    const lines = attending === "yes" ? t.rsvpYes(a.first, b.first, name, guests, going.join(", "), invite.occasion) : t.rsvpNo(a.first, b.first, name, invite.occasion);
     if (askStay && attending === "yes") lines.push(stay === "yes" ? t.rsvpStay(stayDays) : t.rsvpNoStay);
     if (note.trim()) lines.push(t.rsvpNote(note.trim()));
+    // Counted on the couple's RSVP page too (new orders only); WhatsApp opens either way.
+    recordRsvp({ slug: invite.slug, name, coming: attending === "yes", guests, functions: attending === "yes" ? going : [], note }).catch(() => {});
     window.open(`https://wa.me/${invite.rsvp.phone}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank");
   };
 
@@ -303,7 +308,10 @@ export function Rsvp({ invite, theme }: { invite: Invite; theme: InviteTheme }) 
           </div>
         ) : (
           <>
-            <theme.Title kicker={t.rsvpKicker}>{invite.rsvpTitle ?? t.rsvpTitle}</theme.Title>
+            <theme.Title kicker={t.rsvpKicker} plain={invite.rsvpPlain}>
+              {invite.rsvpTitle ?? t.rsvpTitle}
+            </theme.Title>
+            {invite.rsvpLead && <p className={`inv-serif mx-auto max-w-[75cqw] text-center text-[4.4cqw] leading-snug italic ${invite.rsvpPlain ? "mt-[1.5cqw]" : ""}`}>{invite.rsvpLead}</p>}
             <p className={`mt-3 text-center text-[3.6cqw] ${theme.ui.muted}`}>{t.replyBy(d.dayMonthYear(invite.rsvp.by))}</p>
           </>
         )}

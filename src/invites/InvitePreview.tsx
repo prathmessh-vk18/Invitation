@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { fontVars } from "@/config/customise";
 import { getInvite, type Invite } from "@/data/invites";
 import { useFitScript } from "./fit";
-import { LangContext, langOf, langVars } from "./i18n";
+import { LangContext, WordsContext, langOf, langVars, wordsOf } from "./i18n";
 import { OpenedContext, PreviewContext } from "./opened";
 import { themes } from "./registry";
 
@@ -62,12 +62,13 @@ export function InvitePreview({
 
   return (
     <LangContext.Provider value={langOf(invite)}>
+    <WordsContext.Provider value={wordsOf(invite)}>
     <PreviewContext.Provider value={true}>
     <OpenedContext.Provider value={opened}>
       <div
         ref={ref}
         lang={langOf(invite)}
-        style={{ ...theme.vars, ...fontVars(invite.font, (theme.vars as Record<string, unknown>)["--inv-script"]), ...langVars(langOf(invite)), ["--screen-h" as string]: "100%" }}
+        style={{ ...theme.vars, ...fontVars(invite.font, (theme.vars as Record<string, unknown>)["--inv-script"]), ...langVars(langOf(invite), invite.scriptFont), ["--screen-h" as string]: "100%" }}
         className={`@container pointer-events-none relative h-full w-full overflow-hidden select-none ${theme.root}`}
         aria-hidden
       >
@@ -83,6 +84,7 @@ export function InvitePreview({
       </div>
     </OpenedContext.Provider>
     </PreviewContext.Provider>
+    </WordsContext.Provider>
     </LangContext.Provider>
   );
 }

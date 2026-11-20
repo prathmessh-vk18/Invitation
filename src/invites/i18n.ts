@@ -9,6 +9,12 @@ import { fmtDate } from "@/lib/format";
  */
 export type Lang = "en" | "hi";
 
+/** The celebration an RSVP message is for, from the invite's occasion. */
+const occasionWord = {
+  en: (o?: string) => (o === "engagement" ? "engagement" : o === "reception" ? "wedding reception" : "wedding"),
+  hi: (o?: string) => (o === "engagement" ? "शुभ सगाई" : o === "reception" ? "स्वागत समारोह" : "शुभ विवाह"),
+};
+
 const en = {
   tapToOpen: "Tap to open",
   scroll: "Scroll",
@@ -22,6 +28,7 @@ const en = {
   tapDupatta: "Tap to open the dupatta",
   tapCircle: "Tap the circle to open",
   tapAnywhere: "Tap anywhere to open",
+  tapHere: "Tap here",
   weds: "weds",
   and: "and",
   togetherWithFamilies: "Together with their families",
@@ -70,14 +77,26 @@ const en = {
   note: "A note for the couple",
   optional: "Optional",
   sendRsvp: "Send RSVP on WhatsApp",
-  rsvpYes: (a: string, b: string, name: string, guests: number, events: string) => [
-    `Namaste! RSVP for ${a} & ${b}'s wedding 🌸`,
+  // `occasion` names the celebration in the message (an engagement invite says "engagement").
+  rsvpYes: (a: string, b: string, name: string, guests: number, events: string, occasion?: string) => [
+    `Namaste! RSVP for ${a} & ${b}'s ${occasionWord.en(occasion)} 🌸`,
     `Name: ${name}`,
     `Guests: ${guests}`,
     `Attending: ${events || "—"}`,
   ],
-  rsvpNo: (a: string, b: string, name: string) => [`Namaste! RSVP for ${a} & ${b}'s wedding`, `Name: ${name}`, `Sadly we can't make it, but sending all our love 🙏`],
+  rsvpNo: (a: string, b: string, name: string, occasion?: string) => [`Namaste! RSVP for ${a} & ${b}'s ${occasionWord.en(occasion)}`, `Name: ${name}`, `Sadly we can't make it, but sending all our love 🙏`],
   rsvpNote: (n: string) => `Note: ${n}`,
+  // Chameli's own words.
+  specialInvite: "A special invitation awaits",
+  openInvitation: "Open the invitation",
+  heroThe: "The",
+  heroWedding: "Wedding",
+  heroEngagement: "Engagement",
+  heroReception: "Reception",
+  heroCelebrations: "Celebrations",
+  celebrationsKicker: "The Celebrations",
+  glanceTitle: "At a Glance",
+  craftedBy: (s: string) => `Crafted with love by ${s}`,
 };
 
 const hi: typeof en = {
@@ -93,6 +112,7 @@ const hi: typeof en = {
   tapDupatta: "दुपट्टा खोलने के लिए टैप करें",
   tapCircle: "खोलने के लिए टैप करें",
   tapAnywhere: "खोलने के लिए कहीं भी टैप करें",
+  tapHere: "यहाँ टैप करें",
   weds: "संग",
   and: "एवं",
   togetherWithFamilies: "समस्त परिवार सहित",
@@ -141,17 +161,38 @@ const hi: typeof en = {
   note: "नवयुगल के लिए संदेश",
   optional: "वैकल्पिक",
   sendRsvp: "WhatsApp पर उत्तर भेजें",
-  rsvpYes: (a, b, name, guests, events) => [
-    `नमस्ते! ${a} और ${b} के शुभ विवाह हेतु उत्तर 🌸`,
+  rsvpYes: (a, b, name, guests, events, occasion) => [
+    `नमस्ते! ${a} और ${b} के ${occasionWord.hi(occasion)} हेतु उत्तर 🌸`,
     `नाम: ${name}`,
     `अतिथि: ${guests}`,
     `कार्यक्रम: ${events || "—"}`,
   ],
-  rsvpNo: (a, b, name) => [`नमस्ते! ${a} और ${b} के शुभ विवाह हेतु उत्तर`, `नाम: ${name}`, `क्षमा करें, हम नहीं आ पाएंगे, पर हमारी शुभकामनाएँ आपके साथ हैं 🙏`],
+  rsvpNo: (a, b, name, occasion) => [`नमस्ते! ${a} और ${b} के ${occasionWord.hi(occasion)} हेतु उत्तर`, `नाम: ${name}`, `क्षमा करें, हम नहीं आ पाएंगे, पर हमारी शुभकामनाएँ आपके साथ हैं 🙏`],
   rsvpNote: (n) => `संदेश: ${n}`,
+  specialInvite: "आपके लिए एक विशेष निमंत्रण",
+  openInvitation: "निमंत्रण खोलें",
+  heroThe: "",
+  heroWedding: "शुभ विवाह",
+  heroEngagement: "शुभ सगाई",
+  heroReception: "स्वागत समारोह",
+  heroCelebrations: "समारोह",
+  celebrationsKicker: "शुभ अवसर",
+  glanceTitle: "मांगलिक कार्यक्रम",
+  craftedBy: (s) => `${s} द्वारा प्रेम से रचित`,
 };
 
 export const LangContext = createContext<Lang>("en");
+
+/** A couple's own wording for some of the invite's fixed words (e.g. "Their moments"), by key. */
+export const WordsContext = createContext<Record<string, string>>({});
+const NO_WORDS: Record<string, string> = {};
+export const wordsOf = (invite: { words?: Record<string, string> }) => invite.words ?? NO_WORDS;
+
+/** A design's own wording for one of its fixed words, before a couple changes it (the editor's starting text). */
+export const defaultWord = (lang: Lang, key: string): string => {
+  const v = (lang === "hi" ? hi : en)[key as keyof typeof en];
+  return typeof v === "string" ? v : "";
+};
 
 /** Date words in the invite's language. Numbers stay as 0–9 in both. */
 function dates(lang: Lang) {
@@ -178,7 +219,11 @@ function dates(lang: Lang) {
 
 export function useT() {
   const lang = useContext(LangContext);
-  return { lang, t: lang === "hi" ? hi : en, d: dates(lang) };
+  const words = useContext(WordsContext);
+  const base = lang === "hi" ? hi : en;
+  // Only plain words can be replaced; the RSVP message builders stay as they are.
+  const t = words === NO_WORDS ? base : ({ ...base, ...Object.fromEntries(Object.entries(words).filter(([k]) => typeof (base as Record<string, unknown>)[k] === "string")) } as typeof en);
+  return { lang, t, d: dates(lang) };
 }
 
 export const langOf = (invite: { lang?: string }): Lang => (invite.lang === "hi" ? "hi" : "en");
@@ -187,10 +232,12 @@ export const langOf = (invite: { lang?: string }): Lang => (invite.lang === "hi"
  * Hindi invites set their type in Devanagari faces: the decorative Latin scripts can't draw it, and
  * letter-spaced capitals break up Devanagari, so labels drop both.
  */
-export function langVars(lang: Lang): CSSProperties {
+export function langVars(lang: Lang, scriptFont?: string): CSSProperties {
   if (lang !== "hi") return {};
   return {
-    "--inv-script": "var(--font-rozha), var(--font-deva), serif",
+    // Tiro Devanagari for names and titles; Rozha One (heavy) only for invites pinned to it
+    // (scriptFont: "rozha"), the Hindi invites made before 19 Nov 2026.
+    "--inv-script": scriptFont === "rozha" ? "var(--font-rozha), var(--font-deva), serif" : "var(--font-deva), serif",
     "--inv-serif": "var(--font-deva), serif",
     "--inv-label": "var(--font-deva), serif",
   } as CSSProperties;

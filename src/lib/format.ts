@@ -17,6 +17,13 @@ export const monthName = (iso: string) => fmtDate(iso, { month: "long" });
 export const yearNum = (iso: string) => fmtDate(iso, { year: "numeric" });
 export const weekday = (iso: string) => fmtDate(iso, { weekday: "long" });
 
+/**
+ * Splits text after each match of `re` (a /g pattern whose first group is the mark to keep at the end
+ * of a line), dropping what else the match takes. Lookbehind would say this directly, but Safari
+ * before iOS 16.4 can't parse it and rejects the whole script, leaving invites blank on older iPhones.
+ */
+export const splitAfter = (text: string, re: RegExp) => text.replace(re, "$1\u0000").split("\u0000");
+
 export function mapsLink(address: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }

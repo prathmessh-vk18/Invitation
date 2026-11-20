@@ -19,6 +19,7 @@ import {
   Pinyon_Script,
   Tiro_Devanagari_Hindi,
   Great_Vibes,
+  Noto_Serif_Telugu,
 } from "next/font/google";
 
 // Site shell. Only these two are preloaded on every page; each invitation face loads when a page
@@ -71,9 +72,11 @@ export const dancing = Dancing_Script({ preload: false, subsets: ["latin"], vari
 export const alexBrush = Alex_Brush({ preload: false, subsets: ["latin"], variable: "--font-alex-brush", weight: "400" });
 export const italiana = Italiana({ preload: false, subsets: ["latin"], variable: "--font-italiana", weight: "400" });
 
-// The Marathi design's script for the couple's names.
+// The Marathi and Telugu designs' script for the couple's names.
 export const greatVibes = Great_Vibes({ preload: false, subsets: ["latin"], variable: "--font-great-vibes", weight: "400" });
+// Telugu lines (the Telugu design's mantras and blessings).
+export const telugu = Noto_Serif_Telugu({ preload: false, subsets: ["telugu"], variable: "--font-telugu", weight: ["400", "600"] });
 
-export const fontVars = [greatVibes, alexBrush, italiana, dancing, amiri, marcellus, gurmukhi, rozha, tamil, yeseva, fraunces, geist, inter, manrope, cinzel, cormorant, parisienne, pinyon, bodoni, devanagari]
+export const fontVars = [greatVibes, telugu, alexBrush, italiana, dancing, amiri, marcellus, gurmukhi, rozha, tamil, yeseva, fraunces, geist, inter, manrope, cinzel, cormorant, parisienne, pinyon, bodoni, devanagari]
   .map((f) => f.variable)
   .join(" ");

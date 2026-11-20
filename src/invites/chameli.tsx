@@ -3,13 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { site } from "@/config/site";
+import { extraLine } from "@/lib/extra-lines";
 import type { Invite } from "@/data/invites";
 import { fmtDate } from "@/lib/format";
 import { INVITE_ART_SIZES, PREVIEW_ART_SIZES, useOpened, usePreview } from "./opened";
 import { couple, EventActions, Reveal } from "./shared";
 import type { InviteTheme, OpeningProps } from "./types";
+import { InkCentered } from "./ink";
+import { useT } from "./i18n";
 
 /**
  * Chameli: ivory stationery with jasmine, a brass lantern and the Himalayan hills.
@@ -23,11 +26,13 @@ import type { InviteTheme, OpeningProps } from "./types";
  */
 
 const art = "/art/illus";
+// The text colours are variables so an invite set to bold text (data-bold-text) can darken them.
+const GOLD = "#b19254";
 const c = {
   paper: "#f3ece0",
-  ink: "#4f4020",
-  soft: "#6a5b38",
-  gold: "#b19254",
+  ink: "var(--ch-ink, #4f4020)",
+  soft: "var(--ch-soft, #6a5b38)",
+  gold: `var(--ch-gold, ${GOLD})`,
   goldHi: "#e9d39b",
   ribbon: "#e8dcc1",
 };
@@ -39,7 +44,10 @@ const ist = (iso: string, o: Intl.DateTimeFormatOptions) => fmtDate(iso, o);
 const suffix = (d: number) => (d % 10 === 1 && d !== 11 ? "st" : d % 10 === 2 && d !== 12 ? "nd" : d % 10 === 3 && d !== 13 ? "rd" : "th");
 /** "Friday, 11th December 2026" */
 function DayLine({ iso }: { iso: string }) {
+  const { lang, d: dt } = useT();
   const d = Number(ist(iso, { day: "numeric" }));
+  // Hindi has no "11th": "शुक्रवार, 11 दिसंबर 2026".
+  if (lang === "hi") return <>{dt.long(iso)}</>;
   return (
     <>
       {ist(iso, { weekday: "long" })}, {d}
@@ -84,13 +92,16 @@ function Divider({ className, delay = 0 }: { className?: string; delay?: number 
 
 /** Section titles in spaced capitals that settle in from wide tracking. */
 function Title({ kicker, children }: { kicker?: string; children: ReactNode }) {
+  // Spaced letters break up Devanagari, so Hindi titles only fade in.
+  const { lang } = useT();
+  const hi = lang === "hi";
   return (
     <div className="text-center">
       {kicker && <p className="inv-label text-[3.4cqw] tracking-[0.28em]">{kicker}</p>}
       <motion.h2
         className="inv-label mt-[1cqw] text-[5.6cqw]"
-        initial={{ opacity: 0, letterSpacing: "0.6em" }}
-        whileInView={{ opacity: 1, letterSpacing: "0.3em" }}
+        initial={hi ? { opacity: 0 } : { opacity: 0, letterSpacing: "0.6em" }}
+        whileInView={hi ? { opacity: 1 } : { opacity: 1, letterSpacing: "0.3em" }}
         viewport={{ once: true, amount: 0.6 }}
         transition={{ duration: 1.4, ease }}
       >
@@ -131,7 +142,7 @@ const SPARKS = (() => {
 })();
 
 /** The gold wax seal with the couple's initials, drawn so every couple gets their own. */
-function WaxSeal({ text }: { text: string }) {
+function WaxSeal({ text, image }: { text: string; image?: string }) {
   return (
     <div className="relative grid size-full place-items-center">
       <svg viewBox="0 0 100 100" className="absolute inset-0 size-full drop-shadow-[0_10px_16px_rgba(80,55,10,.45)]" aria-hidden>
@@ -151,9 +162,17 @@ function WaxSeal({ text }: { text: string }) {
         <circle cx="50" cy="50" r="31" fill="none" stroke="#fdeebf" strokeOpacity=".55" strokeWidth="1.4" />
         <circle cx="50" cy="50" r="27" fill="none" stroke="#7c5410" strokeOpacity=".35" strokeWidth=".8" />
       </svg>
-      <span className="relative text-[10cqw] leading-none text-[#6b4a10] [text-shadow:0_1px_0_rgba(255,240,200,.6)]" style={{ fontFamily: "var(--font-pinyon), cursive" }}>
-        {text}
-      </span>
+      {image ? (
+        // the couple's own emblem on the wax (e.g. a white Ganesha), in place of their initials
+        <span className="relative block aspect-[270/346] w-[11cqw] drop-shadow-[0_1px_2px_rgba(80,50,10,.65)]">
+          <Image src={image} alt={text} fill sizes="80px" className="object-contain" />
+        </span>
+      ) : (
+        // Centred by the letters' ink, both ways: Pinyon's capitals swing out and its S hangs low.
+        <InkCentered vertical className="relative text-[10cqw] leading-none text-[#6b4a10] [text-shadow:0_1px_0_rgba(255,240,200,.6)]" style={{ fontFamily: "var(--font-pinyon), cursive" }}>
+          {text}
+        </InkCentered>
+      )}
     </div>
   );
 }
@@ -166,6 +185,7 @@ function WaxSeal({ text }: { text: string }) {
 function Opening({ invite, opened, onOpen }: OpeningProps) {
   const reduce = useReducedMotion();
   const [a, b] = couple(invite);
+  const { t, lang } = useT();
   const go = opened && !reduce;
   const envelope = `url(${art}/chameli-envelope.jpg) center/cover`;
   return (
@@ -222,12 +242,12 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
           <button
             type="button"
             onClick={onOpen}
-            aria-label="Open the invitation"
+            aria-label={t.openInvitation}
             className="absolute size-[30cqw] -translate-x-1/2 -translate-y-1/2"
             style={{ left: "50%", top: `${FLAP.tip}%` }}
           >
             <motion.span className="block size-full" animate={go ? { scale: [1, 1.1, 1.04] } : { scale: [1, 1.035, 1] }} transition={go ? { duration: 0.45 } : { duration: 2.6, repeat: Infinity, ease: "easeInOut" }}>
-              <WaxSeal text={initials(invite)} />
+              <WaxSeal text={initials(invite)} image={invite.seal} />
             </motion.span>
           </button>
         </motion.div>
@@ -236,10 +256,10 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
       {/* Title above the flap, while it waits. */}
       <motion.div className="pointer-events-none absolute inset-x-0 top-[9%] text-center" animate={{ opacity: opened ? 0 : 1, y: opened ? -16 : 0 }} transition={{ duration: 0.4 }}>
         <p className="inv-label text-[2.9cqw] tracking-[0.34em]" style={{ color: c.soft }}>
-          A special invitation awaits
+          {t.specialInvite}
         </p>
         <p className="inv-script mt-[3cqw] text-[10cqw] leading-none" style={{ color: c.ink }}>
-          {a.first} <span style={{ color: c.gold }}>&amp;</span> {b.first}
+          {a.first} <span style={{ color: c.gold }}>{lang === "hi" ? t.and : "&"}</span> {b.first}
         </p>
       </motion.div>
 
@@ -308,6 +328,27 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
 /** A name in spaced capitals, each letter arriving out of a soft blur. */
 function Letters({ text, delay, className }: { text: string; delay: number; className: string }) {
   const opened = useOpened();
+  const { lang } = useT();
+  // Once the name has arrived, letters typed later (in the editor) appear at once rather than
+  // waiting for the opening's delay again.
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    if (!opened) return;
+    const t = window.setTimeout(() => setSettled(true), (delay + 1.5) * 1000);
+    return () => window.clearTimeout(t);
+  }, [opened, delay]);
+  // Devanagari letters join (क्ष, मी), so a Hindi name arrives as one word, not letter by letter.
+  if (lang === "hi")
+    return (
+      <motion.span
+        className={`inline-block ${className}`}
+        initial={{ opacity: 0, y: "0.3em", filter: "blur(6px)" }}
+        animate={opened ? { opacity: 1, y: "0em", filter: "blur(0px)" } : {}}
+        transition={{ delay: settled ? 0 : delay, duration: settled ? 0.3 : 1, ease }}
+      >
+        {text}
+      </motion.span>
+    );
   return (
     <span className={`inline-block ${className}`} aria-label={text}>
       {[...text].map((ch, i) => (
@@ -317,7 +358,7 @@ function Letters({ text, delay, className }: { text: string; delay: number; clas
           className="inline-block whitespace-pre"
           initial={{ opacity: 0, y: "0.3em", filter: "blur(6px)" }}
           animate={opened ? { opacity: 1, y: "0em", filter: "blur(0px)" } : {}}
-          transition={{ delay: delay + i * 0.045, duration: 0.7, ease }}
+          transition={settled ? { duration: 0.3, ease } : { delay: delay + i * 0.045, duration: 0.7, ease }}
         >
           {ch}
         </motion.span>
@@ -328,23 +369,34 @@ function Letters({ text, delay, className }: { text: string; delay: number; clas
 
 function Hero({ invite }: { invite: Invite }) {
   const opened = useOpened();
+  const { t } = useT();
   const [a, b] = couple(invite);
   const show = (d: number) => ({ initial: { opacity: 0, y: 14 }, animate: opened ? { opacity: 1, y: 0 } : {}, transition: { delay: AFTER_OPEN + d, duration: 1.1, ease } });
   return (
     <section className="relative flex min-h-[var(--screen-h,100svh)] flex-col items-center justify-center px-[12cqw] pt-[24cqw] pb-[44cqw] text-center">
+      {invite.invocationArt && (
+        // a small gold Ganesha (or other emblem) above the opening line, transparent PNG in /art/seals
+        <motion.div {...show(0)} className="relative mb-[3cqw] aspect-[270/346] w-[13cqw]">
+          <Image src={invite.invocationArt} alt="" fill sizes="120px" className="object-contain" />
+        </motion.div>
+      )}
       {invite.invocation && (
         <motion.p {...show(0)} className="inv-deva text-[4cqw]" style={{ color: c.gold }}>
           {invite.invocation}
         </motion.p>
       )}
-      <motion.p {...show(0.15)} className={`${caps} mt-[4cqw] text-[3.6cqw]`}>
-        The
-      </motion.p>
+      {t.heroThe ? (
+        <motion.p {...show(0.15)} className={`${caps} mt-[4cqw] text-[3.6cqw]`}>
+          {t.heroThe}
+        </motion.p>
+      ) : (
+        <div className="mt-[4cqw]" />
+      )}
       <motion.p {...show(0.3)} className="inv-script text-[15cqw] leading-none">
-        {invite.occasion === "engagement" ? "Engagement" : invite.occasion === "reception" ? "Reception" : "Wedding"}
+        {invite.occasion === "engagement" ? t.heroEngagement : invite.occasion === "reception" ? t.heroReception : t.heroWedding}
       </motion.p>
       <motion.p {...show(0.45)} className={`${caps} text-[3.6cqw]`}>
-        Celebrations
+        {t.heroCelebrations}
       </motion.p>
       <Divider className="my-[5cqw]" delay={AFTER_OPEN + 0.5} />
       <p className="mt-[3cqw] leading-tight">
@@ -357,31 +409,52 @@ function Hero({ invite }: { invite: Invite }) {
         animate={opened ? { opacity: 1, clipPath: "inset(0 0% 0 0)" } : {}}
         transition={{ delay: AFTER_OPEN + 1.5, duration: 0.9, ease }}
       >
-        and
+        {invite.joiner ?? t.and}
       </motion.p>
       <p className="leading-tight">
         <Letters text={b.first.toUpperCase()} delay={AFTER_OPEN + 1.7} className={`${caps} text-[7.4cqw] tracking-[0.24em]`} />
       </p>
-      <motion.p {...show(2.4)} className="inv-label mt-[6cqw] text-[3.3cqw] tracking-[0.16em] uppercase">
-        <DayLine iso={invite.date} />
-      </motion.p>
-      <motion.p {...show(2.55)} className={`${italic} mt-[1.5cqw] text-[4cqw]`} style={{ color: c.soft }}>
-        {invite.city}
-      </motion.p>
+      {!invite.hideHeroDate && (
+        <motion.p {...show(2.4)} className="inv-label mt-[6cqw] text-[3.3cqw] tracking-[0.16em] uppercase">
+          <DayLine iso={invite.date} />
+        </motion.p>
+      )}
+      {!invite.hideHeroCity && (
+        <motion.p {...show(2.55)} className={`${italic} mt-[1.5cqw] text-[4cqw]`} style={{ color: c.soft }}>
+          {invite.city}
+        </motion.p>
+      )}
     </section>
   );
 }
 
 function Blessing({ invite }: { invite: Invite }) {
+  const { t } = useT();
   const [a, b] = couple(invite);
+  // Grandparents: above the name, or under the parents with eldersBelow; in small capitals, or
+  // like the parents' line with eldersPlain.
+  const elders = (p: typeof a, below: boolean) =>
+    p.elders &&
+    !!p.eldersBelow === below &&
+    (p.eldersPlain ? (
+      <p className={`${italic} ${below ? "mt-[1.5cqw]" : "mb-[2cqw]"} text-[3.9cqw] leading-relaxed whitespace-pre-line`} style={{ color: c.soft }}>
+        {p.elders}
+      </p>
+    ) : (
+      <p className={`${caps} ${below ? "mt-[2cqw]" : "mb-[2cqw]"} text-[2.9cqw] leading-relaxed whitespace-pre-line`} style={{ color: c.soft }}>
+        {p.elders}
+      </p>
+    ));
   const person = (p: typeof a, i: number) => (
     <Reveal delay={i * 0.12} className="mt-[7cqw]">
+      {elders(p, false)}
       <p className={`${caps} text-[6cqw]`}>{p.full || p.first}</p>
       {p.parents && (
         <p className={`${italic} mt-[1.5cqw] text-[3.9cqw] leading-relaxed whitespace-pre-line`} style={{ color: c.soft }}>
           {p.parents}
         </p>
       )}
+      {elders(p, true)}
     </Reveal>
   );
   return (
@@ -396,7 +469,7 @@ function Blessing({ invite }: { invite: Invite }) {
       {person(a, 0)}
       <Reveal delay={0.1}>
         <p className="inv-script mt-[3cqw] text-[8cqw] leading-none" style={{ color: c.gold }}>
-          and
+          {invite.joiner ?? t.and}
         </p>
       </Reveal>
       {person(b, 1)}
@@ -407,18 +480,20 @@ function Blessing({ invite }: { invite: Invite }) {
 /* ───────── The celebrations ───────── */
 
 function Glance({ invite }: { invite: Invite }) {
+  const { t, lang, d } = useT();
+  const hi = lang === "hi";
   const events = [...invite.events].sort((x, y) => x.start.localeCompare(y.start));
   return (
     <section className="relative px-[11cqw] pt-[10cqw] text-center">
       <Reveal>
-        <Title kicker="The Celebrations">At a Glance</Title>
+        <Title kicker={t.celebrationsKicker}>{t.glanceTitle}</Title>
       </Reveal>
       <div className="grid gap-[8cqw]">
         {events.map((e, i) => (
           <motion.div
             key={e.name + i}
             className="relative overflow-hidden rounded-[3cqw] border px-[6cqw] pt-[6cqw] pb-[6cqw]"
-            style={{ borderColor: `${c.gold}66`, background: "rgba(251,247,239,.82)" }}
+            style={{ borderColor: `${GOLD}66`, background: "rgba(251,247,239,.82)" }}
             initial={{ opacity: 0, y: 36, scale: 0.97 }}
             whileInView={{ opacity: 1, y: 0, scale: 1 }}
             viewport={{ once: true, amount: 0.35 }}
@@ -427,15 +502,15 @@ function Glance({ invite }: { invite: Invite }) {
             <motion.p
               className="inv-label mx-auto w-fit px-[5cqw] py-[1.8cqw] text-[3.1cqw] tracking-[0.14em] uppercase"
               style={{ background: c.ribbon }}
-              initial={{ opacity: 0, letterSpacing: "0.32em" }}
-              whileInView={{ opacity: 1, letterSpacing: "0.14em" }}
+              initial={hi ? { opacity: 0 } : { opacity: 0, letterSpacing: "0.32em" }}
+              whileInView={hi ? { opacity: 1 } : { opacity: 1, letterSpacing: "0.14em" }}
               viewport={{ once: true }}
               transition={{ duration: 1, delay: 0.2, ease }}
             >
               <DayLine iso={e.start} />
             </motion.p>
             <p className="inv-script mt-[3cqw] text-[9cqw] leading-tight">{e.name}</p>
-            <p className="inv-label mt-[1.5cqw] text-[3.4cqw] tracking-[0.14em] uppercase">{clock(e.start)} onwards</p>
+            <p className="inv-label mt-[1.5cqw] text-[3.4cqw] tracking-[0.14em] uppercase">{e.timeText ?? (hi ? t.onwards(d.time(e.start)) : `${clock(e.start)} onwards`)}</p>
             <p className={`${italic} mt-[2cqw] text-[4cqw] leading-relaxed`} style={{ color: c.soft }}>
               {e.venue}
               {e.address && (
@@ -447,7 +522,7 @@ function Glance({ invite }: { invite: Invite }) {
             </p>
             {(e.dress || e.note) && (
               <p className="inv-serif mt-[2cqw] text-[3.8cqw] font-medium" style={{ color: c.gold }}>
-                {[e.dress && `Dress: ${e.dress}`, e.note].filter(Boolean).join(" · ")}
+                {[e.dress && t.dress(e.dress), e.note].filter(Boolean).join(" · ")}
               </p>
             )}
             <div className="mt-[4cqw]">
@@ -471,6 +546,7 @@ function Events({ invite }: { invite: Invite }) {
 /* ───────── Sign-off ───────── */
 
 function Closing({ invite }: { invite: Invite }) {
+  const { t, lang } = useT();
   const [a, b] = couple(invite);
   return (
     // Room at the end so the last lines scroll clear of the balustrade in the frame.
@@ -479,15 +555,56 @@ function Closing({ invite }: { invite: Invite }) {
       <Reveal>
         {invite.closing && <p className={`${italic} text-[4.6cqw] leading-relaxed whitespace-pre-line`}>{invite.closing}</p>}
         <p className="inv-script mt-[6cqw] text-[11cqw] leading-none">
-          {a.first} <span style={{ color: c.gold }}>&amp;</span> {b.first}
+          {a.first} <span style={{ color: c.gold }}>{invite.joiner ?? (lang === "hi" ? t.and : "&")}</span> {b.first}
         </p>
         {invite.hashtag && <p className="inv-serif mt-[4cqw] text-[4.2cqw] font-semibold tracking-[0.04em]" style={{ color: c.gold }}>{invite.hashtag}</p>}
-        {!invite.noBranding && (
-          <Link href="/" className="inv-label mt-[8cqw] inline-block text-[2.4cqw] tracking-[0.26em] opacity-70">
-            Crafted with love by {site.name}
-          </Link>
-        )}
       </Reveal>
+      {/* A family's own lists at the end, as on their printed card (lines may carry a sub-heading,
+          large names, a small "&" or a gap: src/lib/extra-lines.ts). */}
+      {invite.extras?.map((g, i) => (
+        <Reveal key={g.title + i} className="mt-[10cqw]">
+          <Divider className="mb-[7cqw]" />
+          <p className={`${caps} text-[3.8cqw] leading-snug font-semibold`} style={{ color: c.ink }}>
+            {g.title}
+          </p>
+          <div className="mt-[3.5cqw]">
+            {g.lines.map((l, j) => {
+              const x = extraLine(l);
+              if (x.kind === "gap") return <div key={j} className="h-[3cqw]" />;
+              if (x.kind === "and")
+                return (
+                  <p key={j} className={`${italic} my-[0.5cqw] text-[3.4cqw] leading-none`} style={{ color: c.gold }}>
+                    &amp;
+                  </p>
+                );
+              if (x.kind === "sub")
+                return (
+                  <p key={j} className={`${caps} mt-[2.5cqw] mb-[1cqw] text-[3.2cqw] font-semibold first:mt-0`} style={{ color: c.gold }}>
+                    {x.text}
+                  </p>
+                );
+              if (x.kind === "big")
+                return (
+                  <p key={j} className="inv-script my-[1.5cqw] text-[10cqw] leading-tight">
+                    {x.text}
+                  </p>
+                );
+              return (
+                <p key={j} className={`${italic} text-[3.95cqw] leading-relaxed`} style={{ color: c.soft, textWrap: "balance" }}>
+                  {x.text}
+                </p>
+              );
+            })}
+          </div>
+        </Reveal>
+      ))}
+      {!invite.noBranding && (
+        <Reveal>
+          <Link href="/" className="inv-label mt-[10cqw] inline-block text-[2.4cqw] tracking-[0.26em] opacity-70">
+            {t.craftedBy(site.name)}
+          </Link>
+        </Reveal>
+      )}
     </section>
   );
 }
@@ -517,8 +634,8 @@ function Frame() {
   const ledge = "linear-gradient(to bottom, transparent, #000 34%)";
   return (
     <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.6, delay: 1.2 }}>
-      <div className="absolute inset-[2.6cqw] border" style={{ borderColor: `${c.gold}aa` }} />
-      <div className="absolute inset-[3.6cqw] border" style={{ borderColor: `${c.gold}55` }} />
+      <div className="absolute inset-[2.6cqw] border" style={{ borderColor: `${GOLD}aa` }} />
+      <div className="absolute inset-[3.6cqw] border" style={{ borderColor: `${GOLD}55` }} />
 
       {/* Jasmine and the brass lantern, top left, swaying a touch, its flame breathing. */}
       <motion.div
@@ -567,6 +684,8 @@ function Frame() {
 export const chameli: InviteTheme = {
   id: "chameli",
   tapHint: "tapSeal",
+  // New Chameli invites have no faded text: the soft lines and muted notes are solid (data-readable).
+  readable: true,
   // The seal, the bloom and the petals take a little longer than other openings.
   openingMs: 3150,
   root: "",

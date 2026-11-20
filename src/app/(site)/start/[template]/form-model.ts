@@ -1,13 +1,16 @@
 import type { SectionId } from "@/config/customise";
 import type { EventKind, Invite } from "@/data/invites";
 import type { InviteDetails } from "@/lib/orders";
+import { setAt } from "@/config/editor";
+import { getTemplate } from "@/data/templates";
 import { isMapUrl, splitMapLink } from "@/lib/format";
 
 /* ───────── State ───────── */
 
-export type Person = { first: string; full: string; parents: string };
+// `elders`: a grandparents' line, above the parents' (or below, with eldersBelow), set like theirs.
+export type Person = { first: string; full: string; parents: string; elders?: string; eldersBelow?: boolean; eldersPlain?: boolean };
 // `devanagari` and `end` aren't in the form, but are kept when editing an order that has them.
-export type EventRow = { kind: EventKind; name: string; date: string; time: string; venue: string; address: string; mapUrl: string; dress: string; note: string; devanagari?: string; end?: string };
+export type EventRow = { kind: EventKind; name: string; date: string; time: string; venue: string; address: string; mapUrl: string; dress: string; note: string; devanagari?: string; end?: string; timeText?: string; noTime?: boolean; image?: string };
 export type FormState = {
   lead: "bride" | "groom";
   bride: Person;
@@ -33,6 +36,24 @@ export type FormState = {
   font: string;
   // Not in the form: kept so editing a Hindi invite doesn't turn it back into English.
   lang?: "hi";
+  // Only on designs that ask for them (TemplateMeta.extraFields): "With best compliments from"
+  // names, one per line, and a sign-off line at the end.
+  compliments: string;
+  signoff: string;
+  // "lists": a titled list printed at the end (e.g. "Our Associates"), one line per entry. Any further
+  // lists set by us ride along untouched.
+  listTitle: string;
+  listLines: string;
+  listsRest?: { title: string; lines: string[] }[];
+  // "More options" in Look: each left out means the design's own way.
+  heroKicker?: string;
+  joiner?: string;
+  hideHeroDate?: boolean;
+  hideHeroCity?: boolean;
+  textScale?: number;
+  // The design's own words and small layout options the couple changed ("words.countdownTitle",
+  // "rsvpTitle", "stackNames"…), by their path in the details (MoreWording.tsx). Left out = as designed.
+  more?: Record<string, string | boolean>;
 };
 
 export const LIMITS = { name: 40, fullName: 80, parents: 160, city: 80, message: 400, closing: 240, venue: 120, address: 200 };
@@ -45,6 +66,8 @@ export const mainCeremonies: EventKind[] = ["phere", "nikah", "anandkaraj", "muh
 
 /** Starts from the design's demo so the wording fits its tradition; personal details are left empty. */
 export function initialState(demo: Invite): FormState {
+  // A design made for one couple starts from their agreed content instead.
+  if (getTemplate(demo.template)?.prefill) return prefilled(demo);
   return {
     lead: demo.lead,
     bride: emptyPerson,
@@ -66,6 +89,44 @@ export function initialState(demo: Invite): FormState {
     music: demo.music ?? "synth:bhupali",
     hide: [],
     font: "",
+    compliments: (demo.compliments ?? []).join("\n"),
+    signoff: demo.signoff ?? "",
+    listTitle: demo.extras?.[0]?.title ?? "",
+    listLines: (demo.extras?.[0]?.lines ?? []).join("\n"),
+  };
+}
+
+/** Every detail of the demo as the form's starting point. */
+function prefilled(demo: Invite): FormState {
+  const wedding = istParts(demo.date);
+  return {
+    lead: demo.lead,
+    bride: { first: demo.bride.first, full: demo.bride.full === demo.bride.first ? "" : demo.bride.full, parents: demo.bride.parents },
+    groom: { first: demo.groom.first, full: demo.groom.full === demo.groom.first ? "" : demo.groom.full, parents: demo.groom.parents },
+    weddingDate: wedding.date,
+    weddingTime: wedding.time,
+    city: demo.city,
+    invocation: demo.invocation,
+    invocationMeaning: demo.invocationMeaning,
+    hosts: demo.hosts,
+    message: demo.message,
+    closing: demo.closing,
+    hashtag: demo.hashtag ?? "",
+    events: demo.events.map((e) => {
+      const start = istParts(e.start);
+      return { kind: e.kind, name: e.name, date: start.date, time: start.time, venue: e.venue, address: e.address ?? "", mapUrl: e.mapUrl ?? "", dress: e.dress ?? "", note: e.note ?? "" };
+    }),
+    rsvpSame: true,
+    rsvpPhone: "",
+    rsvpBy: "",
+    customer: { name: "", phone: "", email: "" },
+    music: demo.music ?? "synth:bhupali",
+    hide: (demo.hide ?? []) as FormState["hide"],
+    font: demo.font ?? "",
+    compliments: (demo.compliments ?? []).join("\n"),
+    signoff: demo.signoff ?? "",
+    listTitle: demo.extras?.[0]?.title ?? "",
+    listLines: (demo.extras?.[0]?.lines ?? []).join("\n"),
   };
 }
 
@@ -219,7 +280,16 @@ export function addDays(date: string, n: number) {
 const iso = (date: string, time: string) => (date ? `${date}T${time || "12:00"}:00+05:30` : "");
 
 /** The invite exactly as it will be submitted. */
-export function toDetails(s: FormState) {
+/** The couple's changes to the design's own words and options, set into the details at their paths. */
+function withMore<T>(d: T, more?: Record<string, string | boolean>): T {
+  return Object.entries(more ?? {}).reduce((out, [path, v]) => setAt(out, path, v), d);
+}
+
+export function toDetails(s: FormState, template?: string) {
+  return withMore(toDetailsBase(s, template), s.more);
+}
+
+function toDetailsBase(s: FormState, template?: string) {
   const rsvp = s.rsvpSame ? s.customer.phone : s.rsvpPhone;
   return {
     bride: { ...s.bride, first: s.bride.first.trim() },
@@ -243,6 +313,9 @@ export function toDetails(s: FormState) {
       note: e.note,
       ...(e.devanagari ? { devanagari: e.devanagari } : {}),
       ...(e.end ? { end: e.end } : {}),
+      ...(e.timeText ? { timeText: e.timeText } : {}),
+      ...(e.noTime ? { noTime: true } : {}),
+      ...(e.image ? { image: e.image } : {}),
     })),
     rsvp: { phone: waNumber(rsvp) ? `+${waNumber(rsvp)}` : "", by: s.rsvpBy ? iso(s.rsvpBy, "00:00") : "", contact: s.hosts },
     closing: s.closing,
@@ -250,6 +323,84 @@ export function toDetails(s: FormState) {
     hide: s.hide,
     font: s.font,
     ...(s.lang ? { lang: s.lang } : {}),
+    ...looks(s),
+    ...extras(s, template),
+  };
+}
+
+/** "More options" from Look, each only when the couple chose it. */
+function looks(s: FormState) {
+  return {
+    ...(s.heroKicker !== undefined ? { heroKicker: s.heroKicker } : {}),
+    ...(s.joiner?.trim() ? { joiner: s.joiner.trim() } : {}),
+    ...(s.hideHeroDate ? { hideHeroDate: true } : {}),
+    ...(s.hideHeroCity ? { hideHeroCity: true } : {}),
+    ...(s.textScale && s.textScale !== 1 ? { textScale: s.textScale } : {}),
+  };
+}
+
+/** A saved person as the form edits them, grandparents' line included. */
+function personFrom(p: InviteDetails["bride"]): Person {
+  return {
+    first: p.first,
+    full: p.full === p.first ? "" : p.full,
+    parents: p.parents,
+    ...(p.elders ? { elders: p.elders } : {}),
+    ...(p.eldersBelow ? { eldersBelow: true } : {}),
+    ...(p.eldersPlain !== undefined ? { eldersPlain: p.eldersPlain } : {}),
+  };
+}
+
+/* ───────── What each design can show ───────── */
+
+// Designs built on the illustrated engine (Khat and its family).
+const ILLUSTRATED = ["mahal", "khat", "mudrika", "khatred", "gopuram", "bagh", "haveli", "angoothi", "chandni", "roka", "rajwadasagai"];
+const MANDIR = ["mandir", "vachan"];
+const CHAMELI = ["chameli", "chamelisagai"];
+const SUPPORT = {
+  // A grandparents' line, above or below the parents'.
+  elders: [...MANDIR, "gaurishankar", ...CHAMELI, ...ILLUSTRATED],
+  // A function's time in the couple's own words.
+  timeText: [...MANDIR, "gaurishankar", ...CHAMELI, ...ILLUSTRATED],
+  // The small line above the names on the cover.
+  heroKicker: [...MANDIR, "gaurishankar", ...ILLUSTRATED],
+  // The word between the names ("&", "weds"…).
+  joiner: [...MANDIR, "gaurishankar", ...CHAMELI, ...ILLUSTRATED],
+  hideHeroDate: [...MANDIR, "gaurishankar", ...CHAMELI, ...ILLUSTRATED, "rajwada"],
+  hideHeroCity: [...MANDIR, "gaurishankar", ...CHAMELI, ...ILLUSTRATED],
+  // A heading with lines under it at the end ("Our Associates").
+  lists: [...MANDIR, "gaurishankar", ...CHAMELI, ...ILLUSTRATED],
+};
+export type Feature = keyof typeof SUPPORT | "textScale";
+
+/**
+ * What a design shows on its cover when the couple leaves it alone: the line above the names and
+ * the word between them (as mandir.tsx, gaurishankar.tsx, illustrated.tsx and chameli.tsx draw them).
+ */
+export function coverDefaults(template: string, occasion: string) {
+  const engaged = occasion === "engagement";
+  const kicker = MANDIR.includes(template)
+    ? template === "vachan" && engaged ? "The engagement of" : ""
+    : template === "gaurishankar"
+      ? "We cordially invite you to the wedding of"
+      : ILLUSTRATED.includes(template)
+        ? engaged ? "The engagement of" : "The wedding of"
+        : "";
+  const joiner = MANDIR.includes(template) ? (engaged ? "&" : "weds") : CHAMELI.includes(template) ? "and" : "&";
+  return { kicker, joiner };
+}
+
+/** Whether a design shows an option; the form offers only what the design can show. Text size works everywhere. */
+export const supports = (template: string, f: Feature) => f === "textScale" || SUPPORT[f].includes(template);
+
+/** The extra fields' values, each only for designs that ask for it (always sent there, so clearing one sticks). */
+function extras(s: FormState, template?: string) {
+  const asks = [...((template && getTemplate(template)?.extraFields) || []), ...(template && supports(template, "lists") ? (["lists"] as const) : [])];
+  const lines = s.listLines.split("\n").map((x) => x.trim()).filter(Boolean);
+  return {
+    ...(asks.includes("compliments") ? { compliments: s.compliments.split("\n").map((x) => x.trim()).filter(Boolean) } : {}),
+    ...(asks.includes("signoff") ? { signoff: s.signoff.trim() } : {}),
+    ...(asks.includes("lists") ? { extras: [...(lines.length ? [{ title: s.listTitle.trim(), lines }] : []), ...(s.listsRest ?? [])] } : {}),
   };
 }
 
@@ -272,14 +423,19 @@ export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState[
   return {
     ...initialState(demo),
     lead: d.lead,
-    bride: { first: d.bride.first, full: d.bride.full === d.bride.first ? "" : d.bride.full, parents: d.bride.parents },
-    groom: { first: d.groom.first, full: d.groom.full === d.groom.first ? "" : d.groom.full, parents: d.groom.parents },
+    bride: personFrom(d.bride),
+    groom: personFrom(d.groom),
     weddingDate: wedding.date,
     weddingTime: wedding.time,
     city: d.city,
     invocation: d.invocation,
     invocationMeaning: d.invocationMeaning,
     hosts: d.hosts,
+    ...(d.heroKicker !== undefined ? { heroKicker: d.heroKicker } : {}),
+    ...(d.joiner ? { joiner: d.joiner } : {}),
+    ...(d.hideHeroDate ? { hideHeroDate: true } : {}),
+    ...(d.hideHeroCity ? { hideHeroCity: true } : {}),
+    ...(d.textScale ? { textScale: d.textScale } : {}),
     message: d.message,
     closing: d.closing,
     hashtag: d.hashtag ?? "",
@@ -297,6 +453,10 @@ export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState[
         note: e.note ?? "",
         ...(e.devanagari ? { devanagari: e.devanagari } : {}),
         ...(e.end ? { end: e.end } : {}),
+        // set by hand: the couple's own wording for the time, kept through their edits
+        ...(e.timeText ? { timeText: e.timeText } : {}),
+        ...(e.noTime ? { noTime: true } : {}),
+        ...(e.image ? { image: e.image } : {}),
       };
     }),
     rsvpSame: !rsvp || rsvp === own,
@@ -307,12 +467,26 @@ export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState[
     hide: (d.hide ?? []) as FormState["hide"],
     font: d.font ?? "",
     ...(d.lang === "hi" ? { lang: "hi" as const } : {}),
+    compliments: (d.compliments ?? []).join("\n"),
+    signoff: d.signoff ?? "",
+    listTitle: d.extras?.[0]?.title ?? "",
+    listLines: (d.extras?.[0]?.lines ?? []).join("\n"),
+    ...(d.extras && d.extras.length > 1 ? { listsRest: d.extras.slice(1) } : {}),
   };
 }
 
 /** The same invite with friendly stand-ins for anything not filled yet, for the live preview. */
 export function toPreview(s: FormState, demo: Invite): Invite {
-  const person = (p: Person, fallback: string) => ({ first: p.first || fallback, full: p.full || p.first || fallback, parents: p.parents });
+  return withMore(toPreviewBase(s, demo), s.more);
+}
+
+function toPreviewBase(s: FormState, demo: Invite): Invite {
+  const person = (p: Person, fallback: string) => ({
+    first: p.first || fallback,
+    full: p.full || p.first || fallback,
+    parents: p.parents,
+    ...(p.elders?.trim() ? { elders: p.elders, eldersBelow: p.eldersBelow, eldersPlain: p.eldersPlain } : {}),
+  });
   const date = iso(s.weddingDate, s.weddingTime) || demo.date;
   const rsvpPhone = waNumber(s.rsvpSame ? s.customer.phone : s.rsvpPhone);
   return {
@@ -338,6 +512,8 @@ export function toPreview(s: FormState, demo: Invite): Invite {
     hide: s.hide,
     font: s.font || undefined,
     ...(s.lang ? { lang: s.lang } : {}),
+    ...looks(s),
+    ...extras(s, demo.template),
     events: s.events.map((e) => ({
       kind: e.kind,
       name: e.name || "Function",
@@ -346,6 +522,9 @@ export function toPreview(s: FormState, demo: Invite): Invite {
       address: e.address,
       dress: e.dress || undefined,
       note: e.note || undefined,
+      ...(e.timeText ? { timeText: e.timeText } : {}),
+      ...(e.noTime ? { noTime: true } : {}),
+      ...(e.image ? { image: e.image } : {}),
     })),
   };
 }

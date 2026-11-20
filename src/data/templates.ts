@@ -1,4 +1,4 @@
-export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli" | "khatred" | "sarovar" | "vachan" | "mudrika" | "angoothi" | "chandni" | "roka" | "rajwadasagai" | "chameli" | "chamelisagai";
+export type TemplateId = "gaurishankar" | "mandir" | "rajwada" | "gulmohar" | "agni" | "noor" | "phulkari" | "kolam" | "bagh" | "mahal" | "khat" | "gopuram" | "haveli" | "khatred" | "sarovar" | "vachan" | "mudrika" | "angoothi" | "chandni" | "roka" | "rajwadasagai" | "chameli" | "chamelisagai" | "shivakalyanam";
 export type CategoryId = "hindu" | "muslim" | "sikh" | "south-indian" | "engagement";
 
 export type TemplateMeta = {
@@ -30,6 +30,15 @@ export type TemplateMeta = {
   occasion?: "engagement";
   // A custom design whose couple pays us directly: no online checkout, and we publish by hand.
   payDirect?: boolean;
+  // The order form starts from the demo's own details (names, date, functions…), for a design made
+  // for one couple whose content is already agreed.
+  prefill?: boolean;
+  // Extra fields only this design shows in the order form.
+  extraFields?: ("compliments" | "signoff" | "lists")[];
+  // No printable PDF for this design.
+  noPdf?: boolean;
+  // The design doesn't show the opening line's meaning, so the form doesn't ask for it.
+  noInvocationMeaning?: boolean;
 };
 
 const DEVA = "var(--font-deva)";
@@ -163,6 +172,8 @@ export const templates: TemplateMeta[] = [
       "The rest of the invite scrolls inside a painted temple-arch frame, with both families named above your names, every function on its own arch-shaped card, and your photos as polaroids guests can swipe through.",
       "Scratch-to-reveal date, countdown, RSVP and music are all included.",
     ],
+    // A titled list at the end (associates, family, firms) the couple can edit themselves.
+    extraFields: ["lists"],
     price: 299,
     mrp: 999,
     demoSlug: "advait-weds-naina",
@@ -593,6 +604,8 @@ export const templates: TemplateMeta[] = [
       "Both families are named above your names, your ring ceremony and every other function get their own arch-shaped card, and your photos appear as polaroids guests can swipe through.",
       "Scratch-to-reveal date, a countdown to the ring ceremony, RSVP and music are all included.",
     ],
+    // A titled list at the end (associates, family, firms) the couple can edit themselves.
+    extraFields: ["lists"],
     price: 249,
     mrp: 799,
     demoSlug: "rohan-and-ishita",
@@ -694,6 +707,35 @@ export const privateTemplates: TemplateMeta[] = [
     tint: "#f6e6d6",
     icon: { bg: "#4a0b1b", fg: "#e9bf62" },
     addedOn: "2026-11-09",
+  },
+  {
+    id: "shivakalyanam",
+    category: "south-indian",
+    name: "Shiva Kalyanam",
+    native: "శివ కళ్యాణం",
+    nativeFont: "var(--font-telugu)",
+    mood: "Painted · Shiva and Parvati at a Himalayan dawn",
+    tagline: "Shiva and Parvati walk towards the rising sun, then Shiva's palm meets Parvati's step, over a beige, gold and maroon Telugu wedding invitation.",
+    description: ["A Telugu wedding design made for one couple: painted Shiva–Parvati scenes, a Kanjeevaram-trimmed card behind temple doors, talambralu and a Telugu mantra."],
+    price: 1000,
+    mrp: 1000,
+    payDirect: true,
+    prefill: true,
+    extraFields: ["compliments", "signoff"],
+    noPdf: true,
+    noInvocationMeaning: true,
+    demoSlug: "srilakshmi-weds-shiva-chander-design",
+    palette: [
+      { name: "Beige", hex: "#f5e9d2" },
+      { name: "Maroon", hex: "#6e1423" },
+      { name: "Antique gold", hex: "#8f6220" },
+      { name: "Dawn blue", hex: "#8ea7c8" },
+    ],
+    suits: ["A Telugu wedding with a Shiva–Parvati theme"],
+    signature: ["Walk towards the sun", "Palm and step", "Temple doors", "Talambralu"],
+    tint: "#f5e9d2",
+    icon: { bg: "#6e1423", fg: "#f7dc95" },
+    addedOn: "2026-11-15",
   },
 ];
 

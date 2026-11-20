@@ -1,4 +1,5 @@
-import { getFontStyle } from "@/config/customise";
+import { extraLine } from "@/lib/extra-lines";
+import { getFontStyle, isScriptFont, scriptFonts } from "@/config/customise";
 import type { Invite, InviteEvent } from "@/data/invites";
 
 /**
@@ -39,7 +40,7 @@ const chameliSkin: Skin = { cover: I("chameli-cover.jpg"), paper: I("chameli-pap
 
 export const skins: Record<string, Skin> = {
   sarovar: { cover: I("sarovar-hero.jpg"), paper: P("sarovar"), safe: [14, 14, 9], ink: "#3a1d20", accent: "#8a1c2b", soft: "#6b4a4c", script: "Dancing Script", label: "Cinzel" },
-  gaurishankar: { cover: I("shiv-kailash.jpg"), paper: I("shiv-card.webp"), safe: [22, 8, 12], ink: "#36101c", accent: "#9a1d45", soft: "#55303b", script: "Pinyon Script", label: "Cinzel", coverTop: 6 },
+  gaurishankar: { cover: I("shiv-kailash.jpg"), paper: I("shiv-card.webp"), safe: [22, 8, 12], ink: "#36101c", accent: "#9a1d45", soft: "#55303b", script: "Great Vibes", label: "Cinzel", coverTop: 6 },
   haveli: { cover: I("haveli-gate.jpg"), paper: I("haveli-card.jpg"), safe: [22, 14, 18], ink: "#5a1f2b", accent: "#9c4a3c", soft: "#6e564a", script: "Pinyon Script", label: "Cinzel" },
   mandir: mandirSkin,
   khat: khatSkin,
@@ -65,7 +66,10 @@ export const skins: Record<string, Skin> = {
 
 /** The design's skin, with the couple's own font style if they picked one in the form. */
 export function skinFor(invite: Invite): Skin {
-  const base = skins[invite.template] ?? khatSkin;
+  const pinned = skins[invite.template] ?? khatSkin;
+  // An invite pinned to one script face (scriptFont) prints in it, as on the invite.
+  // (A Hindi invite's pin is for the invite's own lettering; its PDF keeps its Devanagari faces.)
+  const base = isScriptFont(invite.scriptFont) && invite.lang !== "hi" ? { ...pinned, script: scriptFonts[invite.scriptFont] } : pinned;
   const style = getFontStyle(invite.font);
   if (!style) return base;
   const family = (cssVar: string) => FONT_FAMILIES[/--font-[a-z-]+/.exec(cssVar)?.[0] ?? ""];
@@ -93,6 +97,7 @@ const showPhone = (p: string) =>
 
 const FONT_FAMILIES: Record<string, string> = {
   "--font-pinyon": "Pinyon Script",
+  "--font-great-vibes": "Great Vibes",
   "--font-parisienne": "Parisienne",
   "--font-dancing": "Dancing Script",
   "--font-yeseva": "Yeseva One",
@@ -109,8 +114,6 @@ const FONT_FAMILIES: Record<string, string> = {
 };
 
 const TZ = { timeZone: "Asia/Kolkata" } as const;
-const f = (iso: string, o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("en-IN", { ...TZ, ...o }).format(new Date(iso));
-const time = (iso: string) => f(iso, { hour: "numeric", minute: "2-digit", hour12: true }).toUpperCase();
 const esc = (s: unknown = "") => String(s ?? "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!);
 const mapOf = (e: InviteEvent) => e.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([e.venue, e.address].filter(Boolean).join(", "))}`;
 
@@ -121,10 +124,23 @@ const mapOf = (e: InviteEvent) => e.mapUrl || `https://www.google.com/maps/searc
 export function pdfHtml(invite: Invite, opts: { siteUrl: string; inviteUrl: string; per?: number }) {
   const d = invite;
   const s = skinFor(invite);
+  // A Hindi invite (lang: "hi") prints its fixed words and dates in Hindi, as on the invite (i18n.ts).
+  const hi = d.lang === "hi";
+  const f = (iso: string, o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(hi ? "hi-IN-u-nu-latn" : "en-IN", { ...TZ, ...o }).format(new Date(iso));
+  const time = (iso: string) => {
+    if (!hi) return f(iso, { hour: "numeric", minute: "2-digit", hour12: true }).toUpperCase();
+    const h = Number(f(iso, { hour: "numeric", hourCycle: "h23" }));
+    const mm = f(iso, { minute: "2-digit" }).padStart(2, "0");
+    return `${h >= 4 && h < 12 ? "प्रातः" : h >= 12 && h < 16 ? "दोपहर" : h >= 16 && h < 20 ? "सायं" : "रात्रि"} ${h % 12 || 12}:${mm} बजे`;
+  };
+  const W = hi
+    ? { amp: "एवं", dress: "वेशभूषा", directions: "रास्ता देखें", memory: "पुण्य स्मृति में", queries: "किसी भी जानकारी के लिए", touch: "संपर्क करें", surprise: "एक छोटा सा उपहार", saveDate: "शुभ तिथि", joinUs: "शुभ अवसर", celebrations: "मांगलिक कार्यक्रम", fullInvite: "संगीत और नक्शे सहित पूरा निमंत्रण देखें:" }
+    : { amp: "&", dress: "Dress", directions: "Directions", memory: "In loving memory", queries: "For any queries", touch: "Get in touch", surprise: "A little surprise", saveDate: "Save the date", joinUs: "Join us for", celebrations: "The celebrations", fullInvite: "See the full invite with music and maps:" };
   const art = (p: string) => `${opts.siteUrl}${p}`;
   const per = opts.per ?? 2;
   const [A, B] = d.lead === "groom" ? [d.groom, d.bride] : [d.bride, d.groom];
   const occ = d.occasion === "engagement" ? "engagement" : d.occasion === "reception" ? "wedding reception" : "wedding";
+  const occKicker = hi ? (d.occasion === "engagement" ? "शुभ सगाई" : d.occasion === "reception" ? "स्वागत समारोह" : "शुभ विवाह") : `The ${occ} of`;
   const k = s.scriptScale ?? 1;
   const [top, bottom, side] = s.safe;
   // The glow is painted on the page behind the text's open space, so it never takes up room.
@@ -137,26 +153,69 @@ export function pdfHtml(invite: Invite, opts: { siteUrl: string; inviteUrl: stri
   for (let i = 0; i < events.length; i += per) chunks.push(events.slice(i, i + per));
   // A card holding several functions lists each time with what happens then, under the day.
   const ev = (e: InviteEvent) => `<div class="ev">
-    <p class="lab">${esc(f(e.start, { weekday: "long" }))} · ${esc(f(e.start, { day: "numeric", month: "short" }))}${e.schedule?.length ? "" : ` · ${time(e.start)}`}</p>
+    <p class="lab">${esc(f(e.start, { weekday: "long" }))} · ${esc(f(e.start, { day: "numeric", month: hi ? "long" : "short" }))}${e.schedule?.length || e.noTime ? "" : ` · ${esc(e.timeText ?? time(e.start))}`}</p>
     <p class="evn script">${esc(e.name)}</p>
     ${(e.schedule ?? []).map((x) => `<p class="ven"><b>${time(x.at)}</b> · ${esc(x.text)}</p>`).join("")}
-    <p class="ven">${esc(e.venue)}${e.address ? `<br><span>${esc(e.address)}</span>` : ""}</p>
-    ${e.dress ? `<p class="dress">Dress: ${esc(e.dress)}</p>` : ""}${e.note ? `<p class="dress">${esc(e.note)}</p>` : ""}
-    <a class="btn" href="${esc(mapOf(e))}">Directions ${ARROW}</a></div>`;
-  const coverInner = `<p class="inv">${esc(d.invocation)}</p>
-    <p class="lab" style="margin-top:12px">${esc(d.heroKicker ?? `The ${occ} of`)}</p>
+    ${
+      d.venueLines
+        ? `<p class="ven">${e.venue.split(/\s*,\s*/).map(esc).join("<br>")}</p>`
+        : `<p class="ven">${esc(e.venue)}${e.address ? `<br><span>${esc(e.address)}</span>` : ""}</p>`
+    }
+    ${e.dress ? `<p class="dress">${W.dress}: ${esc(e.dress)}</p>` : ""}${e.note ? `<p class="dress">${esc(e.note)}</p>` : ""}
+    ${e.mapUrl || !d.noMapSearch ? `<a class="btn" href="${esc(mapOf(e))}">${W.directions} ${ARROW}</a>` : ""}</div>`;
+  // A name nudged by eye (nameNudge, in em) where the couple asked for it, as on the invite.
+  const nudge = (p: typeof A) => {
+    const n = d.nameNudge?.[p === d.bride ? "bride" : "groom"];
+    return n ? ` style="transform:translateX(${n}em)"` : "";
+  };
+  const nudged = (p: typeof A, text: string) => (nudge(p) ? `<span style="display:inline-block;transform:translateX(${d.nameNudge?.[p === d.bride ? "bride" : "groom"]}em)">${text}</span>` : text);
+  // The opening line, broken after each half-verse when the invite asks for it.
+  const invocation = d.invocationLines ? d.invocation.split(/(?<=[|।])(?!\s*[॥|।]?\s*$)\s*/).map(esc).join("<br>") : esc(d.invocation);
+  // A Gauri Shankar reception's cover, worded as on the invite: "You are cordially invited to the Reception of".
+  const receptionCover = d.occasion === "reception" && d.template === "gaurishankar";
+  const coverInner = receptionCover
+    ? `<p class="inv">${invocation}</p>
+    ${d.invocationMeaning ? `<p class="serif" style="font-size:19px;font-style:italic;margin-top:6px">${esc(d.invocationMeaning)}</p>` : ""}
+    <p class="serif" style="font-size:22px;font-weight:600;margin-top:14px">You are cordially invited to the</p>
+    <p class="script" style="font-size:44px;line-height:1.1;color:#1c1414;margin-top:4px">Reception</p>
+    <p class="serif" style="font-size:20px;font-style:italic;margin-top:2px">of</p>
     <p class="script names">${esc(A.first)} <span class="amp">&amp;</span> ${esc(B.first)}</p>
+    <p class="serif" style="font-size:22px;font-weight:600;margin-top:12px">${esc(f(d.date, { weekday: "long" }))}, ${esc(f(d.date, { day: "numeric", month: "long", year: "numeric" }))} · ${esc(d.city)}</p>`
+    : `<p class="inv">${invocation}</p>
+    <p class="lab" style="margin-top:12px">${esc(d.heroKicker ?? occKicker)}</p>
+    <p class="script names">${esc(A.first)} <span class="amp">${esc(W.amp)}</span> ${esc(B.first)}</p>
     ${d.hideHeroDate ? "" : `<div class="dl"><span class="lab rule">${esc(f(d.date, { weekday: "long" }))}</span><span class="big">${esc(f(d.date, { day: "numeric" }))}</span><span class="lab rule">${esc(f(d.date, { month: "long", year: "numeric" }))}</span></div>`}
     ${d.hideHeroCity ? "" : `<p class="serif" style="font-size:22px;font-weight:600;margin-top:12px">${esc(d.city)}</p>`}`;
   const cover = s.cover
     ? `<section class="page" style="background:url(${art(s.cover)}) center/cover"><div class="glow"></div><div class="top" style="top:${s.coverTop ?? 9}%">${coverInner}</div></section>`
     : page(coverInner);
   const m = d.memorial;
-  const memorial = m ? page(`<p class="lab">In loving memory</p><img class="mem" src="${esc(m.photo)}" alt="">${m.name ? `<p class="script title">${esc(m.name)}</p>` : ""}`) : "";
+  const memorial = m ? page(`<p class="lab">${W.memory}</p><img class="mem" src="${esc(m.photo)}" alt="">${m.name ? `<p class="script title">${esc(m.name)}</p>` : ""}`) : "";
   const phone = (name: string, p: string, wa?: boolean) =>
     `<a class="btn" href="${wa ? `https://wa.me/${p}` : `tel:+${p}`}" aria-label="${wa ? "WhatsApp" : "Call"} ${esc(name)}">${wa ? WA : PHONE} ${esc(showPhone(p))}</a>`;
   const contacts = d.contacts?.length
-    ? page(`<p class="lab">For any queries</p><p class="script title">Get in touch</p>${d.contacts.map((c, i) => `${i ? sep : ""}<div class="ev"><p class="ven" style="font-size:calc(24px * var(--k,1))">${esc(c.name)}</p>${c.phones.map((p) => phone(c.name, p, c.whatsapp)).join(" ")}</div>`).join("")}`)
+    ? page(`<p class="lab">${W.queries}</p><p class="script title">${W.touch}</p>${d.contacts.map((c, i) => `${i ? sep : ""}<div class="ev"><p class="ven" style="font-size:calc(24px * var(--k,1))">${esc(c.name)}</p>${c.phones.map((p) => phone(c.name, p, c.whatsapp)).join(" ")}</div>`).join("")}`)
+    : "";
+  // The family's own lists (who to RSVP to, family members…) and their welcome, as on the invite.
+  const extras = d.extras?.length
+    ? page(
+        `${d.extras
+          .map(
+            (g, i) =>
+              `${i ? sep : ""}<div class="ev"><p class="script title" style="font-size:calc(46px * var(--k,1))">${esc(g.title)}</p>${g.lines
+                .map((l) => {
+                  // Sub-headings, large names, "&" and gaps, as on the invite (src/lib/extra-lines.ts).
+                  const x = extraLine(l);
+                  if (x.kind === "gap") return `<div style="height:calc(14px * var(--k,1))"></div>`;
+                  if (x.kind === "and") return `<p class="ven" style="font-size:calc(17px * var(--k,1));margin-top:2px;opacity:.75">&amp;</p>`;
+                  if (x.kind === "sub") return `<p class="ven" style="font-size:calc(19px * var(--k,1));margin-top:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">${esc(x.text)}</p>`;
+                  if (x.kind === "big") return `<p class="script" style="font-size:calc(40px * var(--k,1));margin-top:8px">${esc(x.text)}</p>`;
+                  return `<p class="ven" style="font-size:calc(22px * var(--k,1));margin-top:6px">${esc(x.text)}</p>`;
+                })
+                .join("")}</div>`,
+          )
+          .join("")}${d.welcome ? `<p class="msg" style="margin-top:26px">${esc(d.welcome)}</p>` : ""}`,
+      )
     : "";
   const fonts = [
     s.script,
@@ -212,18 +271,32 @@ body{color:${s.ink};font-family:${stack("Cormorant Garamond")};-webkit-print-col
 /* Never leave one word alone on a line ("With the blessings of Lord / Ganesha"): short lines split
    evenly, longer paragraphs keep at least two words on their last line. */
 p{text-wrap:balance}
+${hi ? ".lab,.mon,.btn{letter-spacing:.02em;text-transform:none}" : ""}
 .msg,.sign{text-wrap:pretty}
 </style></head><body>
 ${cover}
 ${m && !m.last ? memorial : ""}
-${page(`${d.invocationMeaning ? `<p class="lab">${esc(d.invocationMeaning)}</p>` : ""}<p class="lab" style="margin-top:10px">${esc(d.hosts)}</p><p class="msg">${esc(d.message)}</p>
-<div class="who"><p class="script n">${esc(A.full || A.first)}</p><p class="p">${esc(A.parents)}</p></div><p class="orn">${STAR(s.accent)}</p>
-<div class="who" style="margin-top:0"><p class="script n">${esc(B.full || B.first)}</p><p class="p">${esc(B.parents)}</p></div>`)}
-${page(`<p class="lab">A little surprise</p><p class="script title">Save the date</p><p class="day">${esc(f(d.date, { day: "numeric" }))}</p><p class="mon">${esc(f(d.date, { month: "long", year: "numeric" }).toUpperCase())}</p><p class="lab" style="margin-top:14px">${esc(f(d.date, { weekday: "long" }))} · ${time(d.date)}</p><p class="serif" style="font-size:24px;font-weight:600;margin-top:12px">${esc(d.city)}</p>`)}
-${chunks.map((ch, i) => page(`${i === 0 ? `<p class="lab">Join us for</p><p class="script title head">The celebrations</p>` : ""}${ch.map(ev).join(sep)}`)).join("")}
+${page(`${d.invocationMeaning && !receptionCover ? `<p class="lab">${esc(d.invocationMeaning)}</p>` : ""}<p class="lab" style="margin-top:10px">${esc(d.hosts)}</p><p class="msg"${d.justifyMessage ? ` style="text-align:justify;text-align-last:center;hyphens:none"` : ""}>${esc(d.message)}</p>
+<div class="who"><p class="script n"${nudge(A)}>${esc(A.full || A.first)}</p><p class="p">${esc(A.parents)}</p></div>${d.stackNames ? `<p class="script orn" style="font-size:34px;line-height:1;color:${s.accent}">${esc(d.joiner ?? "&")}</p>` : `<p class="orn">${STAR(s.accent)}</p>`}
+<div class="who" style="margin-top:0"><p class="script n"${nudge(B)}>${esc(B.full || B.first)}</p><p class="p">${esc(B.parents)}</p></div>`)}
+${page(`${(d.words?.scratchKicker ?? W.surprise) ? `<p class="lab">${esc(d.words?.scratchKicker ?? W.surprise)}</p>` : ""}<p class="script title">${esc(d.words?.scratchTitle ?? W.saveDate)}</p><p class="day">${esc(f(d.date, { day: "numeric" }))}</p><p class="mon">${esc(f(d.date, { month: "long", year: "numeric" }).toUpperCase())}</p><p class="lab" style="margin-top:14px">${esc(f(d.date, { weekday: "long" }))} · ${time(d.date)}</p><p class="serif" style="font-size:24px;font-weight:600;margin-top:12px">${esc(d.city)}</p>`)}
+${chunks.map((ch, i) => page(`${i === 0 ? `<p class="lab">${W.joinUs}</p><p class="script title head">${W.celebrations}</p>` : ""}${ch.map(ev).join(sep)}`)).join("")}
 ${contacts}
+${extras}
 ${m?.last ? memorial : ""}
-${page(`${d.closing ? `<p class="msg">${esc(d.closing)}</p>` : ""}<p class="script title" style="margin-top:26px">${esc(A.first)} &amp; ${esc(B.first)}</p>${d.hashtag ? `<p class="tag">${esc(d.hashtag)}</p>` : ""}${d.signoff ? `<p class="script sign">${esc(d.signoff)}</p>` : ""}${d.brandLine ? `<p class="lab" style="margin-top:18px">${esc(d.brandLine)}</p>` : ""}<p class="link">See the full invite with music and maps:<br><a href="${esc(opts.inviteUrl)}">${esc(opts.inviteUrl.replace(/^https?:\/\//, ""))}</a></p>`)}
+${page(`${
+  d.closing
+    ? d.closingLines
+      ? `<p class="msg">${d.closing.split(/(?<=[.!?])\s+/).map((l) => esc(l.replace(/\.$/, ""))).join("<br>")}</p>`
+      : `<p class="msg">${esc(d.closing)}</p>`
+    : ""
+}<p class="script title" style="margin-top:26px">${
+  d.closingNames
+    ? esc(d.closingNames)
+    : d.stackNames
+      ? `${nudged(A, esc(A.first))}<br><span class="amp">&amp;</span><br>${nudged(B, esc(B.first))}`
+      : `${esc(A.first)} ${esc(W.amp)} ${esc(B.first)}`
+}</p>${d.hashtag ? `<p class="tag"${d.template === "gaurishankar" ? ` style="font-size:30px;font-weight:700"` : ""}>${esc(d.hashtag)}</p>` : ""}${d.signoff ? `<p class="script sign">${esc(d.signoff)}</p>` : ""}${d.brandLine ? `<p class="lab" style="margin-top:18px">${esc(d.brandLine)}</p>` : ""}<p class="link">${W.fullInvite}<br><a href="${esc(opts.inviteUrl)}">${esc(opts.inviteUrl.replace(/^https?:\/\//, ""))}</a></p>`)}
 <script>
 // A style wider than the design's own script shrinks to it, as on the invite (fit.ts), and any
 // word wider than its line shrinks to fit. Sets --f on each script line; render.ts calls it once

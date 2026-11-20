@@ -38,13 +38,23 @@ const features: { t: string; b: string; v: ReactNode }[] = [
     ),
   },
   {
-    t: "RSVP on WhatsApp",
-    b: "Guests reply in two taps. Answers land in your chat.",
+    t: "RSVPs, counted for you",
+    b: "Guests reply in two taps on WhatsApp, and your free RSVP page counts who's coming to each function.",
     v: (
       <div className="flex h-full flex-col justify-center gap-2 px-5">
         <ChatBubble>RSVP · Sharma family · 4 guests</ChatBubble>
-        <ChatBubble>Sangeet, Pheras, Reception 🌸</ChatBubble>
-        <ChatBubble from="me">See you there! 🙏</ChatBubble>
+        <div className="grid grid-cols-3 gap-1.5">
+          {[
+            ["Coming", "126"],
+            ["Sangeet", "98"],
+            ["Wedding", "120"],
+          ].map(([k, v], i) => (
+            <div key={k} className={`rounded-xl px-2 py-2 text-center ${i === 0 ? "bg-ink text-white" : "bg-surface"}`}>
+              <p className={`text-[10px] font-medium ${i === 0 ? "text-white/70" : "text-subtle"}`}>{k}</p>
+              <p className="text-[18px] leading-tight font-semibold tabular-nums">{v}</p>
+            </div>
+          ))}
+        </div>
       </div>
     ),
   },
@@ -202,6 +212,7 @@ export function Comparison() {
     ["Cost", "High", "Medium", "Low"],
     ["Change a venue", "Reprint", "Re-edit", "Instant"],
     ["Maps & RSVP", "No", "No", "Built in"],
+    ["Guest count per function", "No", "No", "Free"],
     ["Readable for elders", "Yes", "Tiny text", "Yes"],
   ];
   return (

@@ -7,8 +7,9 @@ import { site } from "@/config/site";
 import { getInvite, invites, isListedDemo, type Invite } from "@/data/invites";
 import { couple } from "@/invites/people";
 import { InviteRenderer } from "@/invites/InviteRenderer";
+import { VideoInvite } from "@/invites/video";
 import { getPublishedInvite } from "@/lib/invites-db";
-import { longDate } from "@/lib/format";
+import { fmtDate, longDate } from "@/lib/format";
 
 // Demo invites are prerendered; customers' invites load from the database on first visit.
 export const instant = false;
@@ -29,8 +30,20 @@ export async function generateMetadata({ params }: PageProps<"/i/[slug]">): Prom
   const [a, b] = couple(found.invite);
   const occasion = found.invite.occasion;
   const kind = occasion === "engagement" ? "Engagement" : occasion === "reception" ? "Wedding Reception" : "Wedding";
-  const title = `${a.first} & ${b.first} · ${kind} Invitation`;
-  const description = `You're invited to celebrate ${a.first} & ${b.first}, ${longDate(found.invite.date)}, ${found.invite.city}.`;
+  // A second couple marrying the same day (secondCouple) is named too, in the invite's own order.
+  const sc = found.invite.secondCouple;
+  const second = sc ? (found.invite.lead === "bride" ? `${sc.bride.first} ${found.invite.joiner ?? "&"} ${sc.groom.first}` : `${sc.groom.first} ${found.invite.joiner ?? "&"} ${sc.bride.first}`) : "";
+  const j = sc ? (found.invite.joiner ?? "&") : "&";
+  const names = `${a.first} ${j} ${b.first}${second ? ` and ${second}` : ""}`;
+  let title = `${second ? `${a.first} ${j} ${b.first} · ${second}` : `${a.first} & ${b.first}`} · ${kind} Invitation`;
+  let description = `You're invited to celebrate ${names}, ${longDate(found.invite.date)}, ${found.invite.city}.`;
+  // A Hindi invite's WhatsApp preview reads in Hindi, like its card.
+  if (found.invite.lang === "hi" && !sc) {
+    const hiKind = occasion === "engagement" ? "सगाई" : occasion === "reception" ? "स्वागत समारोह" : "विवाह";
+    const when = fmtDate(found.invite.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" }, "hi-IN-u-nu-latn");
+    title = `${a.first} एवं ${b.first} · ${hiKind} निमंत्रण`;
+    description = `आप सादर आमंत्रित हैं: ${a.first} एवं ${b.first} का शुभ ${hiKind}, ${when}, ${found.invite.city}।`;
+  }
   return {
     title: { absolute: title },
     description,
@@ -72,6 +85,9 @@ async function InviteForSlug({ params }: { params: PageProps<"/i/[slug]">["param
     await connection();
     if (hasEnded(found.liveUntil)) return <Ended invite={found.invite} />;
   }
+  const { video } = found.invite;
+  // A couple's own finished video plays in place of the design.
+  if (video) return <VideoInvite invite={{ ...found.invite, video }} />;
   return <InviteRenderer invite={found.invite} />;
 }
 

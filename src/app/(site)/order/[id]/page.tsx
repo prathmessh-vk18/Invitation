@@ -17,6 +17,8 @@ import { dateLine, daysToWedding, LINK_IN, saving } from "@/lib/urgency";
 import { paysOnline } from "@/lib/razorpay";
 import { autoPublishOn, freeSlug } from "@/lib/publish";
 import { CopyLink } from "@/site/copy-link";
+import { tracksRsvps } from "@/lib/rsvp";
+import { shareText, WhatsAppMessage } from "@/site/whatsapp-message";
 import { RememberOrder } from "@/site/my-orders";
 import { AskAboutOrder } from "./AskAboutOrder";
 import { EditPackOnPage } from "./EditPackButton";
@@ -244,14 +246,34 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
         {order.status === "live" && inviteUrl && (
           <Panel className="p-6 sm:p-8">
             <p className="text-title">Your invite is live 🎉</p>
-            <p className="mt-2 break-all text-lead font-medium">{inviteUrl}</p>
+            <p className="mt-1 text-body text-muted">This is how your guests will get it on WhatsApp.</p>
+            <div className="mt-4">
+              <WhatsAppMessage
+                // eslint-disable-next-line @next/next/no-img-element -- the couple's own share card, already a sized JPEG
+                card={<img src={`/i/${order.invite_slug}/opengraph-image`} alt={`${a.first} & ${b.first}`} className="size-full object-cover" />}
+                names={`${a.first} & ${b.first}`}
+                occasion={t.occasion ?? d.occasion ?? "wedding"}
+                url={inviteUrl}
+              />
+            </div>
             <div className="mt-5 flex flex-wrap gap-2">
               <ButtonLink href={`/i/${order.invite_slug}`} newTab>Open invite</ButtonLink>
-              <CopyLink text={inviteUrl} />
-              <ButtonLink href={`https://wa.me/?text=${encodeURIComponent(`You're invited! ${inviteUrl}`)}`} variant="inverse">
+              <CopyLink text={shareText(`${a.first} & ${b.first}`, t.occasion ?? d.occasion ?? "wedding", inviteUrl)} label="Copy message" />
+              <ButtonLink href={`https://wa.me/?text=${encodeURIComponent(shareText(`${a.first} & ${b.first}`, t.occasion ?? d.occasion ?? "wedding", inviteUrl))}`} variant="inverse">
                 <WaIcon /> Share on WhatsApp
               </ButtonLink>
             </div>
+          </Panel>
+        )}
+
+        {order.status === "live" && tracksRsvps(order) && (
+          // Free with RSVP: guests' replies counted on the couple's own page.
+          <Panel className="p-6 sm:p-8">
+            <p className="text-title">Your RSVPs</p>
+            <p className="mt-1 text-body text-muted">See who&rsquo;s coming, how many guests for each function, and their notes, as guests reply. Replies still reach you on WhatsApp too.</p>
+            <ButtonLink href={`/order/${order.id}/rsvps`} className="mt-5">
+              See your RSVPs
+            </ButtonLink>
           </Panel>
         )}
 
@@ -269,7 +291,7 @@ async function OrderView({ params, searchParams }: { params: PageProps<"/order/[
         )}
 
         <Changes order={order} sent={sent} live={query.live === "1"} same={query.same === "1"} />
-        {(order.status === "paid" || order.status === "live") && (
+        {(order.status === "paid" || order.status === "live") && !t.noPdf && (
           <Panel className="p-6 sm:p-8">
             <p className="text-title">Printable PDF for elders</p>
             <p className="mt-1 text-body text-muted">

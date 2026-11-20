@@ -41,6 +41,11 @@ const nextConfig: NextConfig = {
       { source: "/i/vidhi-weds-akshay", destination: "/i/akshay-weds-vidhi", permanent: false },
       { source: "/i/priya-weds-samridha", destination: "/i/samriddha-weds-priya", permanent: false },
       { source: "/i/simran-weds-sahil", destination: "/i/simran-and-sahil", permanent: false },
+      { source: "/i/juhi-weds-jatin", destination: "/i/juhi-and-jatin", permanent: false },
+      { source: "/i/anshul-weds-surbhi", destination: "/i/anshul-and-surbhi", permanent: false },
+      { source: "/i/surbhi-weds-anshul", destination: "/i/surbhi-and-anshul", permanent: false },
+      // Two brothers' weddings on one invite: the link names the hosting family (AAV-1812).
+      { source: "/i/amaan-weds-warisha", destination: "/i/shamim-family-weddings", permanent: false },
     ];
   },
   turbopack: {

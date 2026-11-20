@@ -5,10 +5,10 @@ export const metadata = { title: "Privacy policy", description: "How Aavjoo hand
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Privacy policy" updated="28 October 2026">
+    <LegalPage title="Privacy policy" updated="19 November 2026">
       <div>
         <h2>What we collect</h2>
-        <p>To make your invitation we collect what you send us: names, family details, event dates, venues, photos and music. When guests RSVP, their reply goes to the WhatsApp number you choose; we do not store it.</p>
+        <p>To make your invitation we collect what you send us: names, family details, event dates, venues, photos and music. When guests RSVP, their reply goes to the WhatsApp number you choose. For invites ordered from 19 November 2026 we also keep a copy of each reply (the guest&rsquo;s name, whether they&rsquo;re coming, how many guests, which functions and their note; never a phone number) so the couple can see their RSVP count on a private page. Only the couple sees them, and we delete them whenever you ask us to.</p>
       </div>
       <div>
         <h2>How we use it</h2>

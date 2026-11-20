@@ -21,9 +21,9 @@ function ago(iso: string) {
 export const instant = false;
 
 const filters: { id: OrderStatus | "all"; label: string }[] = [
+  { id: "live", label: "Live" },
   { id: "awaiting_payment", label: "New orders" },
   { id: "paid", label: "Paid · ready to publish" },
-  { id: "live", label: "Live" },
   { id: "cancelled", label: "Cancelled" },
   { id: "all", label: "All" },
 ];
@@ -40,7 +40,7 @@ export default async function AdminOrders({ searchParams }: PageProps<"/admin">)
   }
 
   const raw = (await searchParams).status;
-  const active = (filters.find((f) => f.id === raw)?.id ?? "awaiting_payment") as OrderStatus | "all";
+  const active = (filters.find((f) => f.id === raw)?.id ?? "live") as OrderStatus | "all";
 
   let q = db().from("orders").select("*").order("created_at", { ascending: false }).limit(200);
   if (active !== "all") q = q.eq("status", active);

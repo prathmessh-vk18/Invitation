@@ -1,6 +1,6 @@
 import type { EventKind, Invite, InviteEvent } from "@/data/invites";
 import { getTemplate, type TemplateId } from "@/data/templates";
-import { getFontStyle, isSectionId } from "@/config/customise";
+import { getFontStyle, isScriptFont, isSectionId } from "@/config/customise";
 import { isTrackId } from "@/config/music";
 import { splitMapLink } from "@/lib/format";
 
@@ -144,6 +144,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
     return {
       kind,
       name: str(o.name, 40),
+      subtitle: str(o.subtitle, 80) || undefined,
       devanagari: str(o.devanagari, 40) || undefined,
       start: str(o.start, 40),
       end: str(o.end, 40) || undefined,
@@ -151,6 +152,9 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       address: rest.slice(0, 200),
       dress: str(o.dress, 80) || undefined,
       note: str(o.note, 240) || undefined,
+      timeText: str(o.timeText, 60) || undefined,
+      noTime: o.noTime === true || undefined,
+      image: typeof o.image === "string" && /^https:\/\/media\.aavjoo\.in\/photos\/[\w/.-]+\.(jpg|jpeg|png|webp)$/.test(o.image) ? o.image : undefined,
       ...(mapUrl ? { mapUrl } : {}),
       ...(Array.isArray(o.schedule) && o.schedule.length
         ? {
@@ -202,12 +206,13 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(hide.length ? { hide } : {}),
       ...(getFontStyle(d.font) ? { font: d.font as string } : {}),
       ...(d.wardrobe === true ? { wardrobe: true } : {}),
-      ...(Array.isArray(d.extras) && d.extras.length
+      // Kept even when empty, so a couple who clears their list in the form really clears it.
+      ...(Array.isArray(d.extras)
         ? {
-            extras: d.extras.slice(0, 8).map((g) => {
+            extras: d.extras.slice(0, 12).map((g) => {
               const o = (g ?? {}) as Record<string, unknown>;
-              return { title: str(o.title, 60), lines: (Array.isArray(o.lines) ? o.lines : []).slice(0, 20).map((l) => str(l, 120)).filter(Boolean) };
-            }),
+              return { title: str(o.title, 80), lines: (Array.isArray(o.lines) ? o.lines : []).slice(0, 80).map((l) => str(l, 240)).filter(Boolean) };
+            }).filter((g) => g.lines.length),
           }
         : {}),
       ...(str(d.welcome, 200) ? { welcome: str(d.welcome, 200) } : {}),
@@ -231,6 +236,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
           })()
         : {}),
       ...(typeof d.rsvpTitle === "string" && d.rsvpTitle.trim() ? { rsvpTitle: str(d.rsvpTitle, 60) } : {}),
+      ...(typeof d.rsvpLead === "string" && d.rsvpLead.trim() ? { rsvpLead: str(d.rsvpLead, 120) } : {}),
       ...(typeof d.countdownTitle === "string" && d.countdownTitle.trim() ? { countdownTitle: str(d.countdownTitle, 60) } : {}),
       ...(d.rsvpHeading && typeof d.rsvpHeading === "object"
         ? (() => {
@@ -240,10 +246,25 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
           })()
         : {}),
       ...(d.largeText === true ? { largeText: true } : {}),
+      ...(typeof d.textScale === "number" && [0.85, 0.92, 1.08, 1.16, 1.25].includes(d.textScale) ? { textScale: d.textScale } : {}),
+      // false keeps an invite made before a design went bold by default (Chameli) as its couple approved it.
+      ...(typeof d.boldText === "boolean" ? { boldText: d.boldText } : {}),
+      ...(isScriptFont(d.scriptFont) ? { scriptFont: d.scriptFont } : {}),
+      ...(typeof d.slugBase === "string" && isValidSlug(d.slugBase) ? { slugBase: d.slugBase } : {}),
+      ...(typeof d.readable === "boolean" ? { readable: d.readable } : {}),
+      ...(d.joinerGap && typeof d.joinerGap === "object"
+        ? (() => {
+            const g = d.joinerGap as Record<string, unknown>;
+            const ok = (v: unknown): v is number => typeof v === "number" && v >= -3 && v <= 8;
+            const out = { ...(ok(g.above) ? { above: g.above } : {}), ...(ok(g.below) ? { below: g.below } : {}) };
+            return Object.keys(out).length ? { joinerGap: out } : {};
+          })()
+        : {}),
       ...(d.stackNames === true ? { stackNames: true } : {}),
       ...(d.noSignoff === true ? { noSignoff: true } : {}),
-      ...(typeof d.signoff === "string" && d.signoff.trim() ? { signoff: str(d.signoff, 80) } : {}),
-      ...(typeof d.heroKicker === "string" && d.heroKicker.trim() ? { heroKicker: str(d.heroKicker, 60) } : {}),
+      ...(typeof d.signoff === "string" ? { signoff: str(d.signoff, 80) } : {}),
+      // "" is kept: on some designs it hides the line.
+      ...(typeof d.heroKicker === "string" ? { heroKicker: str(d.heroKicker, 120) } : {}),
       ...(d.parentsWide === true ? { parentsWide: true } : {}),
       ...(d.noBranding === true ? { noBranding: true } : {}),
       ...(str(d.brandLine, 80) ? { brandLine: str(d.brandLine, 80) } : {}),
@@ -251,7 +272,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.occasion === "engagement" || d.occasion === "reception" ? { occasion: d.occasion as "engagement" | "reception" } : {}),
       ...(d.namesFirst === true ? { namesFirst: true } : {}),
       ...(d.boldEvents === true ? { boldEvents: true } : {}),
-      ...(typeof d.nameScale === "number" && d.nameScale >= 0.6 && d.nameScale < 1 ? { nameScale: Math.round(d.nameScale * 100) / 100 } : {}),
+      ...(typeof d.nameScale === "number" && d.nameScale >= 0.45 && d.nameScale < 1 ? { nameScale: Math.round(d.nameScale * 100) / 100 } : {}),
       ...(d.tapAnywhere === true ? { tapAnywhere: true } : {}),
       ...(d.noMapSearch === true ? { noMapSearch: true } : {}),
       ...(typeof d.seal === "string" && /^\/art\/seals\/[\w-]+\.(png|jpg|webp)$/.test(d.seal) ? { seal: d.seal } : {}),
@@ -259,18 +280,65 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(d.doors === "maroon" ? { doors: "maroon" as const } : {}),
       ...(typeof d.invocationArt === "string" && /^\/art\/seals\/[\w-]+\.(png|webp)$/.test(d.invocationArt) ? { invocationArt: d.invocationArt } : {}),
       ...(d.hideHeroDate === true ? { hideHeroDate: true } : {}),
+      ...(d.hideEvents === true ? { hideEvents: true } : {}),
       ...(d.hideHeroCity === true ? { hideHeroCity: true } : {}),
+      ...(d.hideHeroHosts === true ? { hideHeroHosts: true } : {}),
+      ...(d.hideCountdownCity === true ? { hideCountdownCity: true } : {}),
+      ...(typeof d.closingNote === "string" && d.closingNote.trim() ? { closingNote: str(d.closingNote, 120) } : {}),
+      ...(typeof d.openingLine === "string" && d.openingLine.trim() ? { openingLine: str(d.openingLine, 80) } : {}),
+      ...(d.justifyMessage === true ? { justifyMessage: true } : {}),
+      ...(d.closingLines === true ? { closingLines: true } : {}),
+      ...(d.venueLines === true ? { venueLines: true } : {}),
+      ...(d.invocationLines === true ? { invocationLines: true } : {}),
+      ...(typeof d.closingNames === "string" && d.closingNames.trim() ? { closingNames: str(d.closingNames, 60) } : {}),
+      ...(d.hostsLines === true ? { hostsLines: true } : {}),
+      ...(d.hostsLarge === true ? { hostsLarge: true } : {}),
+      ...(d.rsvpPlain === true ? { rsvpPlain: true } : {}),
+      // false keeps a Mandir invite made before the blessing moved to the top as its couple approved it.
+      ...(typeof d.blessingTop === "boolean" ? { blessingTop: d.blessingTop } : {}),
+      ...(d.secondCouple && typeof d.secondCouple === "object"
+        ? (() => {
+            const sc = d.secondCouple as Record<string, Record<string, unknown>>;
+            const person = (p?: Record<string, unknown>) => ({ first: str(p?.first, 40), full: str(p?.full, 80), parents: str(p?.parents, 160) });
+            const groom = person(sc.groom), bride = person(sc.bride);
+            return groom.first && bride.first ? { secondCouple: { groom, bride } } : {};
+          })()
+        : {}),
+      ...(d.nameNudge && typeof d.nameNudge === "object"
+        ? {
+            nameNudge: Object.fromEntries(
+              (["bride", "groom"] as const)
+                .map((k) => [k, Number((d.nameNudge as Record<string, unknown>)[k])] as const)
+                .filter(([, v]) => Number.isFinite(v) && Math.abs(v) <= 0.5),
+            ),
+          }
+        : {}),
+      ...(Array.isArray(d.compliments)
+        ? { compliments: (d.compliments as unknown[]).map((x) => str(x, 80)).filter(Boolean).slice(0, 12) }
+        : {}),
+      ...(d.words && typeof d.words === "object" && !Array.isArray(d.words)
+        ? {
+            words: Object.fromEntries(
+              Object.entries(d.words as Record<string, unknown>)
+                .filter(([k, v]) => /^[a-zA-Z]{2,30}$/.test(k) && typeof v === "string")
+                .slice(0, 20)
+                .map(([k, v]) => [k, str(v as string, 80)]),
+            ),
+          }
+        : {}),
       ...(d.eventsByDay === true ? { eventsByDay: true } : {}),
       ...(Array.isArray(d.dayNames) && d.dayNames.length ? { dayNames: d.dayNames.slice(0, 10).map((x) => str(x, 30)) } : {}),
       ...(d.lang === "hi" ? { lang: "hi" as const } : {}),
+      ...(d.eventOm === "gold" || d.eventOm === "maroon" || d.eventOm === true ? { eventOm: d.eventOm } : {}),
     },
   };
 }
 
 // What the order form edits. Anything else on an order was set by us for one couple (a seal, a
 // custom heading, "Dr." on the cover…), and a form save or an approved change must never drop it.
-const FORM_FIELDS = new Set(["bride", "groom", "lead", "invocation", "invocationMeaning", "hosts", "message", "date", "city", "hashtag", "events", "rsvp", "closing", "music", "hide", "font", "lang"]);
-const FORM_PERSON_FIELDS = new Set(["first", "full", "parents"]);
+// The form now also offers the grandparents' line and Look's "more options", so a couple can clear them.
+const FORM_FIELDS = new Set(["bride", "groom", "lead", "invocation", "invocationMeaning", "hosts", "message", "date", "city", "hashtag", "events", "rsvp", "closing", "music", "hide", "font", "lang", "heroKicker", "joiner", "hideHeroDate", "hideHeroCity", "textScale"]);
+const FORM_PERSON_FIELDS = new Set(["first", "full", "parents", "elders", "eldersBelow", "eldersPlain"]);
 // Form fields that are left out when empty rather than sent blank, so a gap means "unchanged".
 const KEPT_IF_MISSING = ["lang"] as const;
 
@@ -290,13 +358,18 @@ export function keepInviteSettings(prev: InviteDetails | null | undefined, next:
     for (const [k, v] of Object.entries(was)) if (!FORM_PERSON_FIELDS.has(k) && now[k] === undefined && v !== undefined) now[k] = v;
     out[who] = now;
   }
-  // The form edits a function's own fields; a schedule set by us stays with the function of the
-  // same name.
+  // The form edits a function's own fields; a schedule or subtitle set by us stays with the function.
   const schedules = new Map(prev.events.filter((e) => e.schedule).map((e) => [e.name.trim().toLowerCase(), e.schedule]));
-  if (schedules.size)
+  const subtitles = new Map(prev.events.filter((e) => e.subtitle).map((e) => [e.name.trim().toLowerCase() + e.start, e.subtitle]));
+  if (schedules.size || subtitles.size)
     out.events = next.events.map((e) => {
       const schedule = schedules.get(e.name.trim().toLowerCase());
-      return schedule && !e.schedule ? { ...e, schedule } : e;
+      const subtitle = subtitles.get(e.name.trim().toLowerCase() + e.start);
+      return {
+        ...e,
+        ...(schedule && !e.schedule ? { schedule } : {}),
+        ...(subtitle && !e.subtitle ? { subtitle } : {}),
+      };
     });
   return out as InviteDetails;
 }

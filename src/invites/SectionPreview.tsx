@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { fontVars } from "@/config/customise";
 import type { Invite } from "@/data/invites";
 import { useFitScript } from "./fit";
-import { LangContext, langOf, langVars } from "./i18n";
+import { LangContext, WordsContext, langOf, langVars, wordsOf } from "./i18n";
 import { OpenedContext, PreviewContext } from "./opened";
 import { themes } from "./registry";
 import { Gallery, Rsvp } from "./shared";
@@ -51,7 +51,7 @@ export function SectionPreview({ invite, part, eventIndex }: { invite: Invite; p
         <theme.Closing invite={invite} />
       </>
     ),
-    gallery: <Gallery invite={invite} theme={theme} />,
+    gallery: theme.GallerySection ? <theme.GallerySection invite={invite} /> : <Gallery invite={invite} theme={theme} />,
     rsvp: (
       <>
         <Rsvp invite={invite} theme={theme} />
@@ -62,12 +62,13 @@ export function SectionPreview({ invite, part, eventIndex }: { invite: Invite; p
 
   return (
     <LangContext.Provider value={langOf(invite)}>
+    <WordsContext.Provider value={wordsOf(invite)}>
     <PreviewContext.Provider value={true}>
     <OpenedContext.Provider value={true}>
       <div
         ref={ref}
         lang={langOf(invite)}
-        style={{ ...theme.vars, ...fontVars(invite.font, (theme.vars as Record<string, unknown>)["--inv-script"]), ...langVars(langOf(invite)), ...(screenH ? { ["--screen-h" as string]: `${screenH}px` } : {}) }}
+        style={{ ...theme.vars, ...fontVars(invite.font, (theme.vars as Record<string, unknown>)["--inv-script"]), ...langVars(langOf(invite), invite.scriptFont), ...(screenH ? { ["--screen-h" as string]: `${screenH}px` } : {}) }}
         className={`@container no-scrollbar relative h-full w-full overflow-x-hidden overflow-y-auto overscroll-contain select-none ${theme.root}`}
         aria-hidden
       >
@@ -79,6 +80,7 @@ export function SectionPreview({ invite, part, eventIndex }: { invite: Invite; p
       </div>
     </OpenedContext.Provider>
     </PreviewContext.Provider>
+    </WordsContext.Provider>
     </LangContext.Provider>
   );
 }

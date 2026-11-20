@@ -7,10 +7,18 @@ export type EventKind = "engagement" | "haldi" | "mehndi" | "sangeet" | "baraat"
 export type InviteEvent = {
   kind: EventKind;
   name: string;
+  subtitle?: string;
   devanagari?: string;
   // ISO strings with the +05:30 offset so times render the same everywhere.
   start: string;
   end?: string;
+  // The couple's own wording for the time, shown in place of the start time (e.g. "शाम 8:30 से रात 2:00 बजे तक").
+  timeText?: string;
+  // No time on the card at all, only the day (a ritual with no fixed hour).
+  noTime?: boolean;
+  // The couple's own picture for this function's card, in place of the design's painting (Sarovar).
+  // Only our media address: https://media.aavjoo.in/photos/…
+  image?: string;
   venue: string;
   address: string;
   dress?: string;
@@ -75,8 +83,21 @@ export type Invite = {
   noMapSearch?: boolean;
   // Bigger, darker text throughout, for families whose guests are mostly older.
   largeText?: boolean;
+  // The couple's own text size (A− / A+ in the editor): body text scaled by this, e.g. 1.08. Names keep their size.
+  textScale?: number;
+  // Heavier, darker text for readability (darker colours on Chameli; heavier weight on any design).
+  boldText?: boolean;
+  // Faded text made solid, without heavier type. false keeps an invite made before its design turned it on.
+  readable?: boolean;
+  // The link to publish at when the names can't make one (e.g. Hindi names): "nikhil-weds-nandini".
+  slugBase?: string;
+  // Space above / below "weds" between the cover names, in cqw (Mandir; the design tucks both at -1).
+  joinerGap?: { above?: number; below?: number };
+  // Pin the design's script lettering to one face (customise.ts scriptFonts), unless a font style is picked.
+  scriptFont?: string;
   // Stack the couple's names vertically on the hero cover (first name, &, second name). On Rajwada,
-  // the couple's cards sit one below the other.
+  // the couple's cards sit one below the other. On Gauri Shankar, the opening, families and closing
+  // stack them while the cover keeps one line.
   stackNames?: boolean;
   // Hide the "With love · hosts" line at the end.
   noSignoff?: boolean;
@@ -102,6 +123,12 @@ export type Invite = {
   nameScale?: number;
   // A couple's own RSVP title (e.g. "Please join us" instead of "Will you join us?").
   rsvpTitle?: string;
+  // A smaller line under the RSVP title, in the design's own style (e.g. "with your blessings").
+  rsvpLead?: string;
+  // No ornament under the RSVP title, so the title and its lead read as one line of thought.
+  rsvpPlain?: boolean;
+  // Mandir: the blessing line above the hosts (new orders) or under the names (false: invites made before 17 Nov 2026).
+  blessingTop?: boolean;
   // A couple's own countdown title (e.g. "Our big day countdown" instead of "Until we say “I do”").
   countdownTitle?: string;
   // A couple's own RSVP heading in place of the design's.
@@ -118,12 +145,48 @@ export type Invite = {
   sealFull?: boolean;
   // Open on Mandir's carved temple doors re-coloured in Rajwada's maroon, whatever the design (first for Srinita & Smruti).
   doors?: "maroon";
-  // A small image above the invocation on the cover (e.g. a gold Ganesha), transparent PNG in /art/seals.
+  // A small image above the invocation on the cover (e.g. a gold Ganesha or the couple's monogram), transparent PNG in /art/seals. Rajwada and Phulkari.
   invocationArt?: string;
-  // Leave the date line off the cover (the dates still show on every function card). Rajwada and Gauri Shankar.
+  // A finished video invitation the couple brings (made elsewhere), played full screen in place of the design.
+  // The design (`template`) then only sets the share card's colours. Files live on R2 under videos/.
+  video?: { src: string; poster: string };
+  // Leave the date line off the cover (the dates still show on every function card). Rajwada, Gauri Shankar and Chameli.
   hideHeroDate?: boolean;
+  // A save-the-date: no functions section (the order still keeps one function, for the checks).
+  hideEvents?: boolean;
+  // Leave the hosts' line ("The … family") off the cover; it still opens the blessing (Phulkari).
+  hideHeroHosts?: boolean;
   // Leave the city off the cover too (Rajwada). Venues still show on every function card.
   hideHeroCity?: boolean;
+  // Just the date under the countdown, without the place (any design).
+  hideCountdownCity?: boolean;
+  // A line shown at the end in place of the couple's names, after a divider, e.g. "RSVP: Vandana & Sartaj Mathur" (painted designs).
+  closingNote?: string;
+  // The opening's two-line blessing in a couple's own words, e.g. "United by destiny,\nblessed by Mahadev" (Gauri Shankar).
+  openingLine?: string;
+  // The invitation paragraph set justified, its last line centred (Gauri Shankar).
+  justifyMessage?: boolean;
+  // The closing line shown one sentence per line (Gauri Shankar). Kept as a setting so the couple's own edits keep it.
+  closingLines?: boolean;
+  // A function's venue shown one comma-separated part per line, all in the venue's style (Gauri Shankar).
+  venueLines?: boolean;
+  // The invocation broken after each half-verse (after "।" or "|"), one line each (Gauri Shankar).
+  invocationLines?: boolean;
+  // Words shown at the very end in place of the couple's names, e.g. "Agarwal Family" (Mandir).
+  closingNames?: string;
+  // A second couple marrying on the same day and venue (e.g. a brother's wedding), shown beside the first (Noor).
+  secondCouple?: { groom: Person; bride: Person };
+  // An optical nudge (in em, minus is left) for a stacked name a couple feels sits off-centre (Gauri Shankar).
+  nameNudge?: { bride?: number; groom?: number };
+  // "With best compliments from" names, one per line (Shiva Kalyanam's own form field).
+  compliments?: string[];
+  // A couple's own wording for the invite's fixed words, by key in src/invites/i18n.ts (e.g.
+  // { momentsKicker: "Their moments", scratchTitle: "Date and Place" }). Any design.
+  words?: Record<string, string>;
+  // The hosts' line split at " & " onto separate lines, "&" on its own (Mandir).
+  hostsLines?: boolean;
+  // The family line above the wording a size up, for a family who want it to read clearly (Rajwada).
+  hostsLarge?: boolean;
   // Functions grouped into one card per day, instead of a card each.
   eventsByDay?: boolean;
   // With eventsByDay: a name for each day, in order ("Sagai", "Shaadi"…), shown beside its date in the RSVP.
@@ -143,6 +206,8 @@ export type Invite = {
   contacts?: { name: string; phones: string[]; whatsapp?: boolean }[];
   // "hi" prints the invite's own words (headings, buttons, dates) in Hindi. Set by an admin for now.
   lang?: "hi";
+  // Sacred emblem at the top of every function arch card (e.g. "maroon" or "gold" or true; Gauri Shankar).
+  eventOm?: boolean | "maroon" | "gold";
 };
 
 export const invites: Invite[] = [
@@ -922,6 +987,48 @@ export const privateInvites: Invite[] = [
       { kind: "other", name: "Dinner", start: "2026-12-12T21:00:00+05:30", venue: "The Durbar Hall, Jagmandir Palace", address: "Lake Pichola, Udaipur, Rajasthan 313001" },
     ],
     closing: "Your blessings will make our day complete.",
+  },
+  // Shiva Kalyanam, made for Srilakshmi & Shiva Chander: their approved content, which also starts
+  // the order form (the design is set to prefill).
+  {
+    slug: "srilakshmi-weds-shiva-chander-design",
+    template: "shivakalyanam",
+    lead: "bride",
+    bride: { first: "Srilakshmi", full: "Srilakshmi", parents: "daughter of Smt. Sridevi & Sri Saranala Srinath" },
+    groom: { first: "Shiva Chander", full: "Shiva Chander Reddy", parents: "elder son of Smt. Kavitha & Sri Chepyala Raji Reddy" },
+    invocation: "వక్రతుండ మహాకాయ కోటిసూర్యసమప్రభ | నిర్విఘ్నం కురుమే దేవ సర్వకార్యేషు సర్వదా ॥",
+    invocationMeaning: "",
+    hosts: "Smt. Jayalakshmi & Sri Saranala Babu Rao",
+    message: "request the pleasure of your company at the wedding ceremony of their granddaughter",
+    date: "2026-12-05T11:43:00+05:30",
+    city: "Hyderabad",
+    hashtag: "#Srilu’sChand",
+    events: [
+      {
+        kind: "muhurtham",
+        name: "Wedding",
+        start: "2026-12-05T11:43:00+05:30",
+        venue: "Sriman Convention",
+        address: "Aziz Nagar, Hyderabad",
+        mapUrl: "https://www.google.com/maps/search/?api=1&query=Sriman+Convention+Aziz+Nagar+Hyderabad",
+        note: "Followed by lunch",
+      },
+    ],
+    rsvp: { phone: "", by: "2026-12-05T11:43:00+05:30", contact: "Smt. Jayalakshmi & Sri Saranala Babu Rao" },
+    closing: "Blessed by Shiva and Parvati, two hearts become one. Come, bless the beginning of forever.",
+    compliments: ["Sri S. Sridhar Rao", "Sri S. Srikrishna", "and near & dear"],
+    signoff: "With love · the Saranala family",
+    // Their photos, graded to the design (on R2), and their song from 0:05.
+    gallery: [
+      "https://media.aavjoo.in/photos/moments/e63371fb-46dd-4d6f-a8ed-1763e856d4a7.jpg",
+      "https://media.aavjoo.in/photos/moments/29a10143-92b5-429a-93a1-3ee9a870cfae.jpg",
+      "https://media.aavjoo.in/photos/moments/52c450ba-eac6-4fa7-80c7-eea5a7c0fc04.jpg",
+      "https://media.aavjoo.in/photos/moments/2b62c77d-3c30-4bb2-9855-367a9b33696c.jpg",
+    ],
+    music: "file:/music/pournami-flute.mp3",
+    // The approved design had no RSVP section; she can turn it on in the form.
+    hide: ["rsvp"],
+    noBranding: true,
   },
 ];
 

@@ -334,18 +334,22 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
               {b.first}
             </motion.h1>
           )}
-          <motion.div {...show(1)} className="relative mt-[3cqw] flex items-center gap-[3cqw]" style={{ color: c.ink }}>
-            <span className="inv-label border-y px-[1cqw] py-[1cqw] text-[2.6cqw]" style={{ borderColor: `${c.ink}66` }}>
-              {weekday(invite.date)}
-            </span>
-            <span className="inv-serif text-[9cqw] leading-none">{dayNum(invite.date).replace(/^0/, "")}</span>
-            <span className="inv-label border-y px-[1cqw] py-[1cqw] text-[2.6cqw]" style={{ borderColor: `${c.ink}66` }}>
-              {monthName(invite.date)} {yearNum(invite.date)}
-            </span>
-          </motion.div>
-          <motion.p {...show(1.15)} className="inv-serif relative mt-[2cqw] text-[3.8cqw] italic" style={{ color: c.ink }}>
-            {invite.city}
-          </motion.p>
+          {!invite.hideHeroDate && (
+            <motion.div {...show(1)} className="relative mt-[3cqw] flex items-center gap-[3cqw]" style={{ color: c.ink }}>
+              <span className="inv-label border-y px-[1cqw] py-[1cqw] text-[2.6cqw]" style={{ borderColor: `${c.ink}66` }}>
+                {weekday(invite.date)}
+              </span>
+              <span className="inv-serif text-[9cqw] leading-none">{dayNum(invite.date).replace(/^0/, "")}</span>
+              <span className="inv-label border-y px-[1cqw] py-[1cqw] text-[2.6cqw]" style={{ borderColor: `${c.ink}66` }}>
+                {monthName(invite.date)} {yearNum(invite.date)}
+              </span>
+            </motion.div>
+          )}
+          {!invite.hideHeroCity && (
+            <motion.p {...show(1.15)} className="inv-serif relative mt-[2cqw] text-[3.8cqw] italic" style={{ color: c.ink }}>
+              {invite.city}
+            </motion.p>
+          )}
         </motion.div>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[10%] bg-gradient-to-b from-transparent" style={{ backgroundImage: `linear-gradient(to bottom, transparent, ${c.paper})` }} />
       </section>
@@ -404,8 +408,14 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
         <div className="mt-[8cqw] space-y-[6cqw]">
           {[a, b].map((p, i) => (
             <Reveal key={p === invite.bride ? "bride" : "groom"} delay={0.1 + i * 0.12}>
-              {p.elders && !p.eldersBelow && (
+              {p.elders && !p.eldersBelow && !p.eldersPlain && (
                 <p className={`inv-label mb-[3cqw] leading-relaxed ${L ? "text-[3.4cqw] font-semibold" : "text-[2.8cqw]"}`} style={{ color: c.accent }}>
+                  {p.elders}
+                </p>
+              )}
+              {/* eldersPlain: set like the parents' line, above the name as well as below. */}
+              {p.elders && !p.eldersBelow && p.eldersPlain && (
+                <p className={`inv-serif mb-[2cqw] whitespace-pre-line italic ${L ? "text-[4.4cqw] font-semibold" : "text-[3.6cqw] font-medium"}`} style={{ color: L ? c.ink : c.soft }}>
                   {p.elders}
                 </p>
               )}
@@ -453,10 +463,11 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
     const L = invite.largeText ?? spec.largeText;
     // boldEvents: a darker, heavier date line and venue, for couples who asked for easier reading.
     const B = invite.boldEvents;
+    const words = invite.words ?? {};
     return (
       <section className="relative px-[12cqw] py-[14cqw]">
         <Reveal>
-          <Title kicker="Join us for">The celebrations</Title>
+          <Title kicker={words.eventsKicker ?? "Join us for"}>{words.eventsTitle || "The celebrations"}</Title>
         </Reveal>
         <ol className="mt-[8cqw] space-y-[5cqw]">
           {invite.events.map((e, i) => {
@@ -476,7 +487,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
                   style={{ color: B ? c.ink : c.accent, ...(L ? { letterSpacing: "0.08em" } : B ? { letterSpacing: "0.14em" } : {}) }}
                 >
                   {weekday(e.start)} · {o.d}
-                  <sup>{o.s}</sup> {o.m} · {time(e.start)}
+                  <sup>{o.s}</sup> {o.m} · {e.timeText ?? time(e.start)}
                 </p>
                 <h3 className="inv-script mt-[1.5cqw] leading-none" style={{ color: c.ink, ...sz(9) }}>
                   {e.name}
@@ -587,7 +598,7 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
             ))}
             {invite.welcome && (
               <Reveal>
-                <p className="text-[4.4cqw] font-medium" style={{ color: c.ink, fontFamily: "var(--inv-serif), var(--font-deva)" }}>
+                <p className="text-[4.4cqw] font-medium whitespace-pre-line" style={{ color: c.ink, fontFamily: "var(--inv-serif), var(--font-deva)" }}>
                   {invite.welcome}
                 </p>
               </Reveal>
@@ -599,7 +610,17 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
           <p className={`inv-serif mt-[6cqw] leading-snug italic ${L ? "text-[5.6cqw] font-medium" : "text-[5cqw]"}`} style={{ color: c.ink }}>
             {invite.closing}
           </p>
-          {(invite.stackNames ?? spec.stackNames) ? (
+          {invite.closingNote ? (
+            // A line of the couple's choosing in place of their names (e.g. who to RSVP to).
+            <>
+              <div className="mt-[7cqw]">
+                <Divider />
+              </div>
+              <p className={`inv-serif mt-[6cqw] leading-snug font-semibold ${L ? "text-[5.6cqw]" : "text-[5cqw]"}`} style={{ color: c.ink }}>
+                {invite.closingNote}
+              </p>
+            </>
+          ) : (invite.stackNames ?? spec.stackNames) ? (
             <p className="mt-[4cqw] flex flex-col items-center leading-[0.95]" style={{ color: c.ink, ...sz(10.5) }}>
               <span className="inv-script">{a.first}</span>
               <span className="inv-script my-[0.6cqw] text-[6.5cqw]" style={{ color: c.accent }}>

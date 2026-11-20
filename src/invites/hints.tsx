@@ -25,7 +25,7 @@ export function TapHint({ theme, text, opened, onOpen }: { theme: InviteTheme; t
         className={pill}
         initial={{ opacity: 0, y: 12 }}
         animate={opened ? { opacity: 0, y: 12 } : { opacity: 1, y: [0, -4, 0] }}
-        transition={opened ? { duration: 0.25 } : { opacity: { delay: 0.6, duration: 0.5 }, y: { delay: 1, duration: 1.8, repeat: Infinity, ease: "easeInOut" } }}
+        transition={opened ? { duration: 0.25 } : { opacity: { delay: theme.tapHintDelay ?? 0.6, duration: 0.5 }, y: { delay: (theme.tapHintDelay ?? 0.6) + 0.4, duration: 1.8, repeat: Infinity, ease: "easeInOut" } }}
       >
         <motion.span aria-hidden className="text-[1.15em] leading-none" animate={{ scale: [1, 0.82, 1] }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}>
           👆
