@@ -8,7 +8,7 @@ Where things stand, for whoever picks this up next.
 2. Change `orders.details` **and** `invites.data` (same keys).
 3. Log it in `order_edits` with `source: "by hand"`.
 4. Run `npx tsx --env-file=.env.local scripts/check-approvals.mts`. These listings are known and harmless: AAV-1012, 1027, 1567, 1189, 1813.
-5. Refresh the live site with an empty commit to `main`. Pages are cached, and a deploy clears the cache.
+5. Refresh the live invite: `npx tsx --env-file=.env.local scripts/refresh-invite.mts <slug>` (seconds, no deploy). **Don't push empty commits to refresh**: each one is a full build, billed in build minutes. A code deploy also clears the cache.
 6. Check the live page.
 7. Run `npx tsx --env-file=.env.local scripts/backup-invites.mts`.
 
@@ -122,6 +122,13 @@ Source: a Bing keyword export (worldwide; check India in Google Keyword Planner 
 - **Target:** save the date (19.9k/yr), wedding card / card design / cards, wedding invitation card / marriage invitation card, digital wedding invitations (rising), indian wedding invitation card design (rising fast), online wedding invitations / e invitations, wedding invitation website (rising), wedding invitations with rsvp, wedding invitation templates, examples / sample / ideas, invitation maker.
 - **Plan:** 1) Retitle the home page and /designs with these words. 2) Six intent landing pages: /digital-wedding-invitations, /wedding-invitation-website, /wedding-invitations-with-rsvp, /indian-wedding-invitation-card-design, /wedding-invitation-templates, /wedding-invitation-examples (each with a demo, price, comparison, FAQs and links; follow the SEO page rules). 3) Save the date category plus its landing page. 4) Showing up in AI answers: quotable facts, product and FAQ markup, `llms.txt`, a comparison page, mentions on other sites (Reddit, Quora, WedMeGood, Instagram). 5) Measure in Search Console 2–3 weeks after each batch.
 - **Start with:** step 1, the first three landing pages, and `llms.txt`.
+
+## Hosting costs (Vercel, from 2026-11-20)
+
+- Vercel Analytics skips guests' invite pages (`src/site/analytics.tsx`); Google Analytics still counts them.
+- `vercel.json` `ignoreCommand` skips builds when, since the last deploy, only `*.md`, `scripts/`, `supabase/` or `art-source/` changed (and for branches other than main). Group code changes into fewer pushes.
+- Refresh invites with `scripts/refresh-invite.mts` (route `/api/admin/refresh-invite`, `CRON_SECRET`).
+- Decided: stay on Vercel. PDFs (headless Chrome) and share cards (sharp) don't run on Cloudflare Workers.
 
 ## Next up (owner's list, 2026-11-20)
 
