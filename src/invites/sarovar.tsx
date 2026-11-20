@@ -67,6 +67,8 @@ function Art({
       priority={priority && !preview}
       sizes={preview ? PREVIEW_ART_SIZES : INVITE_ART_SIZES}
       className={className}
+      // A couple's own picture from our media storage is already sized; it loads as it is.
+      unoptimized={src.startsWith("http")}
     />
   );
 }
@@ -581,7 +583,8 @@ function Event({
       >
         {n}
       </span>
-      {v ? <Vignette src={`${art}/sarovar-${v}.jpg`} /> : <Rings />}
+      {/* The couple's own picture for this function, or the design's painting for its kind. */}
+      {e.image ? <Vignette src={e.image} /> : v ? <Vignette src={`${art}/sarovar-${v}.jpg`} /> : <Rings />}
       <Ghost delay={0.2}>
         <p
           className="inv-label mt-[6cqw] text-[3.2cqw] tracking-[0.25em] uppercase"

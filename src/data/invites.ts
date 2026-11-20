@@ -16,6 +16,9 @@ export type InviteEvent = {
   timeText?: string;
   // No time on the card at all, only the day (a ritual with no fixed hour).
   noTime?: boolean;
+  // The couple's own picture for this function's card, in place of the design's painting (Sarovar).
+  // Only our media address: https://media.aavjoo.in/photos/…
+  image?: string;
   venue: string;
   address: string;
   dress?: string;

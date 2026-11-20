@@ -154,6 +154,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       note: str(o.note, 240) || undefined,
       timeText: str(o.timeText, 60) || undefined,
       noTime: o.noTime === true || undefined,
+      image: typeof o.image === "string" && /^https:\/\/media\.aavjoo\.in\/photos\/[\w/.-]+\.(jpg|jpeg|png|webp)$/.test(o.image) ? o.image : undefined,
       ...(mapUrl ? { mapUrl } : {}),
       ...(Array.isArray(o.schedule) && o.schedule.length
         ? {
