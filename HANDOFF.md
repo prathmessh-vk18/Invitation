@@ -115,6 +115,14 @@ This was done for shamim-family-weddings.
 - `WORDING_LIVE` (src/data/wordings/index.ts) puts them in the sitemap, footer and guides; bump `WORDING_UPDATED` when the pages change.
 - Rules for new SEO pages (from Search Console): self-canonical, unique titles, no `?…` links, no links to `/start/`, real sitemap dates, review a batch before going live.
 
+## SEO keyword plan (from KeywordStats_11_20_2026.csv, paused until after the tech optimisation)
+
+Source: a Bing keyword export (worldwide; check India in Google Keyword Planner / Search Console before building).
+- **Skip:** brands (evite, minted, invitae, zola, etsy, canva, vistaprint, the knot, wedding wire, greeting island), head terms (wedding, invitation, invite), unrelated (hiraya manawari, felicitations, "wedding meaning", French/UK queries).
+- **Target:** save the date (19.9k/yr), wedding card / card design / cards, wedding invitation card / marriage invitation card, digital wedding invitations (rising), indian wedding invitation card design (rising fast), online wedding invitations / e invitations, wedding invitation website (rising), wedding invitations with rsvp, wedding invitation templates, examples / sample / ideas, invitation maker.
+- **Plan:** 1) Retitle the home page and /designs with these words. 2) Six intent landing pages: /digital-wedding-invitations, /wedding-invitation-website, /wedding-invitations-with-rsvp, /indian-wedding-invitation-card-design, /wedding-invitation-templates, /wedding-invitation-examples (each with a demo, price, comparison, FAQs and links; follow the SEO page rules). 3) Save the date category plus its landing page. 4) Showing up in AI answers: quotable facts, product and FAQ markup, `llms.txt`, a comparison page, mentions on other sites (Reddit, Quora, WedMeGood, Instagram). 5) Measure in Search Console 2–3 weeks after each batch.
+- **Start with:** step 1, the first three landing pages, and `llms.txt`.
+
 ## Next up (owner's list, 2026-11-20)
 
 1. **Save the date** as a category.
