@@ -5,6 +5,9 @@ const WEEK = 7 * 24 * 60 * 60;
 const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
+  // Dev only: lets a phone on the home Wi-Fi open the dev server by the laptop's address (local
+  // design previews). Without it the page shows but its scripts never start.
+  allowedDevOrigins: ["192.168.31.101", "192.168.*.*"],
   // The printable-PDF add-on renders pages in a serverless Chrome: keep it out of the bundle and
   // ship its compressed browser with the PDF route.
   serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],

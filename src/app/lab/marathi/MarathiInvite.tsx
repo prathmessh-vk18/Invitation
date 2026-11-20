@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
+import { Countdown, Functions, RubTheGold } from "./Celebrations";
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 
 /**
@@ -61,6 +62,8 @@ export function MarathiInvite() {
       <div key={run} className="@container relative w-full max-w-[480px]" style={{ background: C.paper }}>
         <Cover opened={opened} />
         <Families />
+        <RubTheGold />
+        <Countdown />
         <Functions />
         <Closing />
         <Frame opened={opened} />
@@ -451,36 +454,6 @@ function Families() {
         <p className="text-[12cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>Divyesh</p>
         <p className="mt-[1cqw] text-[3.6cqw] italic" style={{ fontFamily: serif, color: C.ink }}>son of Mr. Prakash &amp; Mrs. Meera Deshpande</p>
       </Reveal>
-    </Page>
-  );
-}
-
-function Event({ mr, en, when, venue, dress }: { mr: string; en: string; when: string; venue: string; dress: string }) {
-  return (
-    <Reveal>
-      <p className="text-[11cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>{mr}</p>
-      <Small className="mt-[1cqw]" color={C.gold}>{en}</Small>
-      <p className="mt-[2.5cqw] text-[4.4cqw] font-semibold" style={{ fontFamily: serif, color: C.ink }}>{when}</p>
-      <p className="mt-[0.5cqw] text-[3.8cqw] leading-snug" style={{ fontFamily: serif, color: C.ink }}>{venue}</p>
-      <p className="mt-[1.5cqw] text-[3.6cqw] italic" style={{ fontFamily: serif, color: C.green }}>Dress: {dress}</p>
-      <span className="mt-[2.5cqw] rounded-full px-[4cqw] py-[1.5cqw] text-[3cqw] tracking-[0.12em] text-white" style={{ background: C.maroon, fontFamily: label }}>
-        DIRECTIONS →
-      </span>
-    </Reveal>
-  );
-}
-
-function Functions() {
-  return (
-    <Page>
-      <Reveal>
-        <Small color={C.gold}>Join us for</Small>
-        <p className="text-[11cqw] leading-tight" style={{ fontFamily: script, color: C.maroon }}>The celebrations</p>
-      </Reveal>
-      <div className="mt-[3cqw]" />
-      <Event mr="Haldi" en="The turmeric ceremony" when="Friday, 19 Feb · 10:00 am" venue="Kulkarni Wada, Sadashiv Peth, Pune" dress="Shades of yellow" />
-      <Divider />
-      <Event mr="Lagna" en="The wedding · Muhurta 11:45 am" when="Saturday, 20 Feb · 11:45 am" venue="Shree Ganesh Mangal Karyalay, Kothrud, Pune" dress="Paithani & pheta" />
     </Page>
   );
 }
