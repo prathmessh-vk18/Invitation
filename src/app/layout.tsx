@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Analytics } from "@vercel/analytics/next";
+import { SiteAnalytics } from "@/site/analytics";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { fontVars } from "@/lib/fonts";
@@ -29,7 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${fontVars} antialiased`}>
       <body>
         {children}
-        <Analytics />
+        <SiteAnalytics />
         {/* A quarter of visits is plenty for performance scores, at a quarter of the requests. */}
         <SpeedInsights sampleRate={0.25} />
         {/* Google Analytics, on aavjoo.in only: local and preview builds don't report. */}
