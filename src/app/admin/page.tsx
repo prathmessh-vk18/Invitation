@@ -45,9 +45,15 @@ export default async function AdminOrders({ searchParams }: PageProps<"/admin">)
   let q = db().from("orders").select("*").order("created_at", { ascending: false }).limit(200);
   if (active !== "all") q = q.eq("status", active);
   // The tab counts and the list don't depend on each other, so fetch them together.
-  const [{ data: counts }, { data }] = await Promise.all([db().from("orders").select("status"), q]);
+  const [{ data: counts }, { data }, { data: recent }] = await Promise.all([
+    db().from("orders").select("status"),
+    q,
+    // Empty (not an error page) until the orders.source column exists.
+    db().from("orders").select("status, source, amount").gte("created_at", weekAgo()).neq("status", "cancelled"),
+  ]);
   const count = (s: string) => (counts ?? []).filter((r) => s === "all" || r.status === s).length;
   const orders = (data ?? []) as Order[];
+  const sources = bySource((recent ?? []) as { status: string; source: string | null; amount: number }[]);
 
   return (
     <>
@@ -66,6 +72,18 @@ export default async function AdminOrders({ searchParams }: PageProps<"/admin">)
           ))}
         </div>
 
+        {sources.length > 0 && (
+          <div className="mt-6 rounded-card border border-line p-4">
+            <p className="text-caption text-subtle">Where orders came from · last 7 days (tracked since 21 Nov)</p>
+            <div className="mt-2 flex flex-wrap gap-x-6 gap-y-2 text-[14px]">
+              {sources.map((s) => (
+                <span key={s.source}>
+                  <span className="font-semibold">{s.source}</span> {s.orders} orders · {s.paid} paid · {formatINR(s.revenue)}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         <BulkCancel />
         <div className="mt-6 overflow-x-auto rounded-card border border-line">
           <table className="w-full min-w-[820px] text-left text-[14px]">
@@ -99,6 +117,7 @@ export default async function AdminOrders({ searchParams }: PageProps<"/admin">)
                       <span className="block text-caption text-subtle">
                         {o.customer_name}
                         {o.partner_code && ` · via ${o.partner_code}`}
+                        {o.source && ` · from ${o.source}`}
                       </span>
                     </td>
                     <td className="px-4 py-3">{getTemplate(o.template)?.name ?? o.template}</td>
@@ -134,4 +153,22 @@ export default async function AdminOrders({ searchParams }: PageProps<"/admin">)
       </main>
     </>
   );
+}
+
+const weekAgo = () => new Date(Date.now() - 7 * 864e5).toISOString();
+
+/** Orders, paid orders and paid revenue per source, most orders first. Unknown = before tracking or no clue. */
+function bySource(rows: { status: string; source: string | null; amount: number }[]) {
+  const m = new Map<string, { source: string; orders: number; paid: number; revenue: number }>();
+  for (const r of rows) {
+    const k = r.source || "unknown";
+    const s = m.get(k) ?? { source: k, orders: 0, paid: 0, revenue: 0 };
+    s.orders++;
+    if (r.status === "live") {
+      s.paid++;
+      s.revenue += r.amount ?? 0;
+    }
+    m.set(k, s);
+  }
+  return [...m.values()].sort((a, b) => b.orders - a.orders);
 }

@@ -2,6 +2,7 @@ import { ChatWidget } from "@/site/chat";
 import { Footer, Header } from "@/site/chrome";
 import { OfferBar } from "@/site/offer";
 import { ReferralWhatsApp } from "@/site/referral";
+import { RememberSource } from "@/site/source";
 
 export default function SiteLayout({ children }: LayoutProps<"/">) {
   return (
@@ -12,6 +13,7 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
       <Footer />
       <ChatWidget />
       <ReferralWhatsApp />
+      <RememberSource />
     </>
   );
 }

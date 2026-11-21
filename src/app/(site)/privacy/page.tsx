@@ -23,7 +23,8 @@ export default function PrivacyPage() {
         <p>
           To understand how people find and use {site.name}, we use Google Analytics, which sets cookies in your browser and records things like the pages
           you visit, the device and browser you use, and roughly where you are (city or country). It doesn&rsquo;t receive your name, phone number or the
-          details of your invitation. We also use Vercel Analytics, which counts visits without cookies. You can block or delete cookies in your browser
+          details of your invitation. We also use Vercel Analytics, which counts visits without cookies. When you arrive from an ad or another site, a small cookie of our own remembers which one for 30
+          days, and if you place an order we save that with it (for example &ldquo;instagram&rdquo;), so we know which ads work. You can block or delete cookies in your browser
           settings, or use Google&rsquo;s{" "}
           <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noreferrer">
             opt-out add-on

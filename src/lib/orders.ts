@@ -36,6 +36,8 @@ export type Order = {
   admin_notes: string | null;
   invite_slug: string | null;
   partner_code?: string | null;
+  // where the buyer came from: an ad's tag ("instagram:ad3"), "instagram", "google"… (src/config/source.ts)
+  source?: string | null;
   partner_commission?: number | null;
   created_at: string;
   updated_at: string;

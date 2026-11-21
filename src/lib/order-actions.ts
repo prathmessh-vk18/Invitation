@@ -13,6 +13,8 @@ import { applyChanges } from "@/lib/apply-changes";
 import { changeSummary } from "@/lib/change-requests";
 import { holdReason } from "@/lib/edit-hold";
 import { site } from "@/config/site";
+import { cleanSource, sourceCookie } from "@/config/source";
+import { cookies } from "next/headers";
 import { db, isSupabaseConfigured, PHOTOS_BUCKET, SONGS_BUCKET } from "@/lib/supabase";
 import { overLimit, TOO_MANY } from "@/lib/rate-limit";
 import { applyPaidAddons } from "@/lib/branding";
@@ -147,24 +149,26 @@ export async function createOrder(input: CreateOrderInput): Promise<{ id: string
   delete details.noBranding;
   if (nobrand) details.noBranding = true;
 
-  const { data, error } = await db()
-    .from("orders")
-    .insert({
-      template: t.id,
-      // The add-on's price comes from our config, never from the browser.
-      amount: orderTotal(t.id) + (pdf ? site.pdfAddon.price : 0) + (nobrand ? site.brandingAddon.price : 0),
-      addons: [...(pdf ? ["pdf"] : []), ...(nobrand ? ["nobrand"] : [])],
-      customer_name: name,
-      customer_phone: phone,
-      customer_email: email || null,
-      details,
-      song_path: songPath,
-      // Only sent when there are photos, so orders still save on a database without the photos column.
-      ...(photoPaths.length ? { photo_paths: photoPaths } : {}),
-      ...(credited ? { partner_code: credited.code, partner_commission: credited.commission } : {}),
-    })
-    .select("id")
-    .single();
+  // Where the buyer came from (an ad's tag, Instagram, Google…), remembered by the site in a cookie.
+  const source = cleanSource((await cookies()).get(sourceCookie.name)?.value ?? "");
+
+  const row = {
+    template: t.id,
+    // The add-on's price comes from our config, never from the browser.
+    amount: orderTotal(t.id) + (pdf ? site.pdfAddon.price : 0) + (nobrand ? site.brandingAddon.price : 0),
+    addons: [...(pdf ? ["pdf"] : []), ...(nobrand ? ["nobrand"] : [])],
+    customer_name: name,
+    customer_phone: phone,
+    customer_email: email || null,
+    details,
+    song_path: songPath,
+    // Only sent when there are photos, so orders still save on a database without the photos column.
+    ...(photoPaths.length ? { photo_paths: photoPaths } : {}),
+    ...(credited ? { partner_code: credited.code, partner_commission: credited.commission } : {}),
+  };
+  let { data, error } = await db().from("orders").insert({ ...row, ...(source ? { source } : {}) }).select("id").single();
+  // Never lose an order over the source: if the database doesn't have the column yet, save without it.
+  if (error && source) ({ data, error } = await db().from("orders").insert(row).select("id").single());
 
   if (error || !data) return { errors: ["We couldn't save your order. Please try again in a moment."] };
   return { id: data.id as string };

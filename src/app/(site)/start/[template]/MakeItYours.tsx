@@ -261,7 +261,7 @@ export function MakeItYours({ t }: { t: TemplateMeta }) {
       <Card title="On the cover" note="Filled in as the design has it. Change anything you like.">
         <Text k="invocation" label="Blessing at the top" optional value={s.invocation} onChange={(v) => set("invocation", v)} placeholder="Shri Ganeshaya Namah" max={120} />
         {!t.noInvocationMeaning && (
-          <Text k="invocationMeaning" label="Its meaning, shown small" optional value={s.invocationMeaning} onChange={(v) => set("invocationMeaning", v)} placeholder="With the blessings of Lord Ganesha" max={120} />
+          <Text k="invocationMeaning" label={t.meaningPdfOnly ? "Its meaning (printed on the PDF only)" : "Its meaning, shown small"} optional value={s.invocationMeaning} onChange={(v) => set("invocationMeaning", v)} placeholder="With the blessings of Lord Ganesha" max={120} />
         )}
         {supports(t.id, "heroKicker") && (
           <Text

@@ -1025,7 +1025,7 @@ export function OrderForm({ t, mode = { kind: "new" }, start: given }: { t: Temp
 
   const wording = (
     <div className="space-y-4">
-      {!t.noInvocationMeaning && <Input k="invocationMeaning" label="Meaning of the opening line" hint="shown small, with the blessing" value={s.invocationMeaning} onChange={(v) => set("invocationMeaning", v)} onBlur={() => touch("invocationMeaning")} placeholder="With the blessings of Lord Ganesha" maxLength={120} />}
+      {!t.noInvocationMeaning && <Input k="invocationMeaning" label="Meaning of the opening line" hint={t.meaningPdfOnly ? "printed on the PDF only, not shown on the online invite" : "shown small, with the blessing"} value={s.invocationMeaning} onChange={(v) => set("invocationMeaning", v)} onBlur={() => touch("invocationMeaning")} placeholder="With the blessings of Lord Ganesha" maxLength={120} />}
       <Input k="hosts" label="Hosted by" hint="optional" value={s.hosts} onChange={(v) => set("hosts", v)} onBlur={() => touch("hosts")} placeholder={demo.hosts} maxLength={160} />
       <TextArea k="message" label="Invitation message" value={s.message} onChange={(v) => set("message", v)} onBlur={() => touch("message")} error={shown("message")} maxLength={LIMITS.message} />
       {t.extraFields?.includes("compliments") && (
