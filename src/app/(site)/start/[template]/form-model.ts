@@ -10,7 +10,7 @@ import { isMapUrl, splitMapLink } from "@/lib/format";
 // `elders`: a grandparents' line, above the parents' (or below, with eldersBelow), set like theirs.
 export type Person = { first: string; full: string; parents: string; elders?: string; eldersBelow?: boolean; eldersPlain?: boolean };
 // `devanagari` and `end` aren't in the form, but are kept when editing an order that has them.
-export type EventRow = { kind: EventKind; name: string; date: string; time: string; venue: string; address: string; mapUrl: string; dress: string; note: string; devanagari?: string; end?: string; timeText?: string; noTime?: boolean; image?: string };
+export type EventRow = { kind: EventKind; name: string; date: string; time: string; venue: string; address: string; mapUrl: string; dress: string; note: string; devanagari?: string; end?: string; timeText?: string; noTime?: boolean; image?: string; schedule?: { at: string; text: string }[] };
 export type FormState = {
   lead: "bride" | "groom";
   bride: Person;
@@ -316,6 +316,7 @@ function toDetailsBase(s: FormState, template?: string) {
       ...(e.timeText ? { timeText: e.timeText } : {}),
       ...(e.noTime ? { noTime: true } : {}),
       ...(e.image ? { image: e.image } : {}),
+      ...(e.schedule?.length ? { schedule: e.schedule } : {}),
     })),
     rsvp: { phone: waNumber(rsvp) ? `+${waNumber(rsvp)}` : "", by: s.rsvpBy ? iso(s.rsvpBy, "00:00") : "", contact: s.hosts },
     closing: s.closing,
@@ -457,6 +458,8 @@ export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState[
         ...(e.timeText ? { timeText: e.timeText } : {}),
         ...(e.noTime ? { noTime: true } : {}),
         ...(e.image ? { image: e.image } : {}),
+        // set by hand: a function's timed list (10 am Baraat, 11 am Anand Karaj…), shown in the preview too
+        ...(e.schedule?.length ? { schedule: e.schedule } : {}),
       };
     }),
     rsvpSame: !rsvp || rsvp === own,
@@ -525,6 +528,7 @@ function toPreviewBase(s: FormState, demo: Invite): Invite {
       ...(e.timeText ? { timeText: e.timeText } : {}),
       ...(e.noTime ? { noTime: true } : {}),
       ...(e.image ? { image: e.image } : {}),
+      ...(e.schedule?.length ? { schedule: e.schedule } : {}),
     })),
   };
 }
