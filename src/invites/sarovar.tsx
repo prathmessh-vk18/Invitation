@@ -395,6 +395,15 @@ function Blessing({ invite }: { invite: Invite }) {
       )}
       <Divider />
       <Reveal>
+        {/* The opening line's meaning, small, just above the hosts (as on every design); invites from 21 Nov 2026 on. */}
+        {invite.showMeaning && invite.invocationMeaning && (
+          <p
+            className="inv-serif mb-[3cqw] text-[3.8cqw] italic"
+            style={{ color: c.soft }}
+          >
+            {invite.invocationMeaning}
+          </p>
+        )}
         <p
           className="inv-label text-[4.2cqw] tracking-[0.06em]"
           style={{ color: c.maroon }}

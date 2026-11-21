@@ -170,6 +170,8 @@ function Blessing({ invite }: { invite: Invite }) {
   return (
     <section className="relative px-[7cqw] py-[14cqw] text-center">
       <Reveal>
+        {/* The opening line's meaning, small, just above the hosts (as on every design); invites from 21 Nov 2026 on. */}
+        {invite.showMeaning && invite.invocationMeaning && <p className="inv-serif mb-[3cqw] text-[3.6cqw] text-[#fbf1dc]/75 italic">{invite.invocationMeaning}</p>}
         <p className={`inv-label text-[#f6d987] ${invite.hostsLarge ? "text-[4cqw]" : "text-[2.6cqw]"}`}>{invite.hosts}</p>
         <p className="inv-serif mx-auto mt-[4cqw] max-w-[78cqw] text-[5cqw] leading-snug whitespace-pre-line text-[#fbf1dc]/90 italic">{invite.message}</p>
       </Reveal>

@@ -89,6 +89,9 @@ export type Invite = {
   boldText?: boolean;
   // Faded text made solid, without heavier type. false keeps an invite made before its design turned it on.
   readable?: boolean;
+  // Shows invocationMeaning on designs that didn't before (templates' meaningOptIn): on for orders
+  // from 21 Nov 2026; older invites keep their approved look (most hold an unseen default line).
+  showMeaning?: boolean;
   // The link to publish at when the names can't make one (e.g. Hindi names): "nikhil-weds-nandini".
   slugBase?: string;
   // Space above / below "weds" between the cover names, in cqw (Mandir; the design tucks both at -1).
@@ -219,6 +222,7 @@ export const invites: Invite[] = [
     lead: "groom",
     invocation: "॥ ਸਤਿਨਾਮ ਵਾਹਿਗੁਰੂ ॥",
     invocationMeaning: "",
+    showMeaning: true,
     hosts: "Sdn. Manpreet Kaur & S. Gurbir Singh",
     message: "seek the pleasure of your gracious presence at the wedding celebrations of their beloved son",
     date: "2027-02-14T11:00:00+05:30",
@@ -242,6 +246,7 @@ export const invites: Invite[] = [
     lead: "groom",
     invocation: "॥ श्री गणेशाय नमः ॥",
     invocationMeaning: "With the blessings of Lord Ganesha",
+    showMeaning: true,
     hosts: "The Rathore & Shekhawat families",
     message:
       "request the honour of your presence as we celebrate the union of our children, and seek your blessings as they begin their journey together.",
@@ -308,6 +313,7 @@ export const invites: Invite[] = [
     lead: "bride",
     invocation: "॥ श्री गणेशाय नमः ॥",
     invocationMeaning: "With the blessings of Lord Ganesha",
+    showMeaning: true,
     hosts: "Together with their families",
     message: "invite you to a weekend of flowers, music and love as they tie the knot.",
     date: "2027-01-24T11:30:00+05:30",
@@ -459,6 +465,7 @@ export const invites: Invite[] = [
     lead: "groom",
     invocation: "ੴ",
     invocationMeaning: "Ik Onkar",
+    showMeaning: true,
     hosts: "The Gill & Sandhu families",
     message: "invite you to bless Jasraj and Simran as they are joined in Anand Karaj, and to dance with us all weekend.",
     date: "2027-02-14T10:00:00+05:30",
@@ -625,6 +632,7 @@ export const invites: Invite[] = [
     lead: "bride",
     invocation: "॥ श्री गणेशाय नमः ॥",
     invocationMeaning: "With the blessings of Lord Ganesha",
+    showMeaning: true,
     hosts: "The Mehta & Desai families",
     message: "request the pleasure of your company as our children begin their life together.",
     date: "2027-01-26T19:30:00+05:30",
@@ -667,6 +675,7 @@ export const invites: Invite[] = [
     lead: "groom",
     invocation: "॥ श्री गणेशाय नमः ॥",
     invocationMeaning: "With the blessings of Lord Ganesha",
+    showMeaning: true,
     hosts: "The Chauhan & Rathore families",
     message: "request the honour of your presence as we celebrate the union of our children by the lake.",
     date: "2027-02-06T19:00:00+05:30",
@@ -688,6 +697,7 @@ export const invites: Invite[] = [
     lead: "bride",
     invocation: "॥ श्री गणेशाय नमः ॥",
     invocationMeaning: "With the blessings of Lord Ganesha",
+    showMeaning: true,
     hosts: "Together with their families",
     message: "invite you to a weekend of flowers, music and love as they say yes to forever.",
     date: "2027-03-13T17:30:00+05:30",
@@ -709,6 +719,7 @@ export const invites: Invite[] = [
     lead: "bride",
     invocation: "சுப முகூர்த்தம்",
     invocationMeaning: "Subha Muhurtham",
+    showMeaning: true,
     hosts: "With the blessings of elders, the Krishnan & Narayanan families",
     message: "request the pleasure of your company at the marriage of their children, and seek your blessings.",
     date: "2027-02-11T07:00:00+05:30",
@@ -729,6 +740,7 @@ export const invites: Invite[] = [
     lead: "groom",
     invocation: "॥ श्री गणेशाय नमः ॥",
     invocationMeaning: "With the blessings of Lord Ganesha",
+    showMeaning: true,
     hosts: "The Mertiya & Kothari families",
     message: "cordially invite you to the wedding of their children and seek your blessings as they begin a new life together.",
     date: "2027-02-18T16:15:00+05:30",
@@ -789,6 +801,7 @@ export const invites: Invite[] = [
     lead: "bride",
     invocation: "॥ श्री गणेशाय नमः ॥",
     invocationMeaning: "With the blessings of Lord Ganesha",
+    showMeaning: true,
     hosts: "The Kapoor & Malhotra families",
     message: "invite you to celebrate with us as our children exchange rings and say yes to forever.",
     date: "2027-02-14T19:00:00+05:30",
@@ -823,6 +836,7 @@ export const invites: Invite[] = [
     lead: "bride",
     invocation: "॥ श्री गणेशाय नमः ॥",
     invocationMeaning: "With the blessings of Lord Ganesha",
+    showMeaning: true,
     hosts: "The Gupta & Agarwal families",
     message: "joyfully invite you to the ring ceremony of their children, and seek your blessings as they begin a new chapter together.",
     date: "2027-01-24T12:00:00+05:30",
@@ -857,6 +871,7 @@ export const invites: Invite[] = [
     lead: "bride",
     invocation: "॥ श्री गणेशाय नमः ॥",
     invocationMeaning: "With the blessings of Lord Ganesha",
+    showMeaning: true,
     hosts: "The Chopra & Mehta families",
     message: "invite you to an evening of rings, music and moonlight as their children get engaged.",
     date: "2027-02-06T19:30:00+05:30",
@@ -891,6 +906,7 @@ export const invites: Invite[] = [
     lead: "groom",
     invocation: "॥ श्री गणेशाय नमः ॥",
     invocationMeaning: "With the blessings of Lord Ganesha",
+    showMeaning: true,
     hosts: "The Bedi & Khanna families",
     message: "request the pleasure of your company at the Roka of their children. Come, bless the couple and celebrate with us.",
     date: "2027-01-10T11:00:00+05:30",

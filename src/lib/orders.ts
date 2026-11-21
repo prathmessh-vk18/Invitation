@@ -254,6 +254,7 @@ export function validateDetails(input: unknown): { ok: true; details: InviteDeta
       ...(isScriptFont(d.scriptFont) ? { scriptFont: d.scriptFont } : {}),
       ...(typeof d.slugBase === "string" && isValidSlug(d.slugBase) ? { slugBase: d.slugBase } : {}),
       ...(typeof d.readable === "boolean" ? { readable: d.readable } : {}),
+      ...(d.showMeaning === true ? { showMeaning: true } : {}),
       ...(d.joinerGap && typeof d.joinerGap === "object"
         ? (() => {
             const g = d.joinerGap as Record<string, unknown>;

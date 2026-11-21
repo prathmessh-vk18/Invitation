@@ -20,6 +20,8 @@ export type FormState = {
   city: string;
   invocation: string;
   invocationMeaning: string;
+  // the opening line's meaning shows on every design (new orders; older invites keep their look)
+  showMeaning?: boolean;
   hosts: string;
   message: string;
   closing: string;
@@ -67,8 +69,9 @@ export const mainCeremonies: EventKind[] = ["phere", "nikah", "anandkaraj", "muh
 /** Starts from the design's demo so the wording fits its tradition; personal details are left empty. */
 export function initialState(demo: Invite): FormState {
   // A design made for one couple starts from their agreed content instead.
-  if (getTemplate(demo.template)?.prefill) return prefilled(demo);
+  if (getTemplate(demo.template)?.prefill) return { ...prefilled(demo), showMeaning: true };
   return {
+    showMeaning: true,
     lead: demo.lead,
     bride: emptyPerson,
     groom: emptyPerson,
@@ -297,6 +300,7 @@ function toDetailsBase(s: FormState, template?: string) {
     lead: s.lead,
     invocation: s.invocation,
     invocationMeaning: s.invocationMeaning,
+    ...(s.showMeaning ? { showMeaning: true } : {}),
     hosts: s.hosts,
     message: s.message,
     date: iso(s.weddingDate, s.weddingTime),
@@ -423,6 +427,8 @@ export function fromDetails(d: InviteDetails, demo: Invite, customer: FormState[
   const own = phoneField(customer.phone);
   return {
     ...initialState(demo),
+    // an order from before 21 Nov 2026 keeps its approved look unless we turned this on
+    showMeaning: Boolean(d.showMeaning),
     lead: d.lead,
     bride: personFrom(d.bride),
     groom: personFrom(d.groom),
@@ -499,6 +505,7 @@ function toPreviewBase(s: FormState, demo: Invite): Invite {
     lead: s.lead,
     invocation: s.invocation || demo.invocation,
     invocationMeaning: s.invocationMeaning,
+    ...(s.showMeaning ? { showMeaning: true } : {}),
     hosts: s.hosts || "Together with their families",
     message: s.message,
     date,

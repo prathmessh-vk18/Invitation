@@ -393,6 +393,12 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
     return (
       <section className="relative px-[14cqw] pt-[16cqw] pb-[14cqw] text-center">
         <Reveal>
+          {/* The opening line's meaning, small, just above the hosts (as on every design); invites from 21 Nov 2026 on. */}
+          {invite.showMeaning && invite.invocationMeaning && (
+            <p className={`inv-serif mb-[3cqw] italic ${L ? "text-[4.2cqw]" : "text-[3.6cqw]"}`} style={{ color: c.ink, opacity: 0.9 }}>
+              {invite.invocationMeaning}
+            </p>
+          )}
           {/* With elders printed above each name, the families' line moves there and the wording leads. */}
           {!(a.elders || b.elders) || invite.hosts ? (
             <div className={`inv-label mb-[4cqw] space-y-[1.8cqw] leading-relaxed ${L ? "text-[3.4cqw] font-semibold" : "text-[2.8cqw]"}`} style={{ color: c.accent }}>

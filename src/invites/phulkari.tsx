@@ -242,6 +242,12 @@ function Hero({ invite }: { invite: Invite }) {
         <motion.p {...pop(0.3)} className="text-[16cqw] leading-none text-[#f6c445] [text-shadow:0_1.2cqw_0_#d6246e]" style={gurmukhi}>
           {invite.invocation}
         </motion.p>
+        {/* The opening line's meaning, small, just above the hosts (as on every design); invites from 21 Nov 2026 on. */}
+        {invite.showMeaning && invite.invocationMeaning && (
+          <motion.p {...pop(0.4)} className="mt-[2cqw] text-[3.4cqw] text-[#fff4e0]/85 italic">
+            {invite.invocationMeaning}
+          </motion.p>
+        )}
         {!invite.hideHeroHosts && (
           <motion.p {...pop(0.45)} className="mt-[2cqw] text-[2.8cqw] font-bold tracking-[0.25em] text-[#fff4e0]/80 uppercase" style={gurmukhi}>
             {invite.hosts}

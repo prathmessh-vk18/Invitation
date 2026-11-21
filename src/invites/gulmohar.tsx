@@ -189,6 +189,12 @@ function Hero({ invite }: { invite: Invite }) {
           <motion.p {...show(0.5)} className="inv-deva text-[4cqw] text-[#a2405f]">
             {invite.invocation}
           </motion.p>
+          {/* The opening line's meaning, small, just above the hosts (as on every design); invites from 21 Nov 2026 on. */}
+          {invite.showMeaning && invite.invocationMeaning && (
+            <motion.p {...show(0.6)} className="inv-serif mt-[2cqw] text-[3.4cqw] text-[#a2405f]/80 italic">
+              {invite.invocationMeaning}
+            </motion.p>
+          )}
           <motion.p {...show(0.7)} className="inv-label mt-[4cqw] text-[2.3cqw] text-[#869d7a]">
             {invite.hosts}
           </motion.p>

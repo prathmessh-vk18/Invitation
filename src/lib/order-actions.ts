@@ -148,6 +148,8 @@ export async function createOrder(input: CreateOrderInput): Promise<{ id: string
   const details = { ...checked.details } as InviteDetails;
   delete details.noBranding;
   if (nobrand) details.noBranding = true;
+  // New orders show the opening line's meaning on every design (older invites keep their look).
+  details.showMeaning = true;
 
   // Where the buyer came from (an ad's tag, Instagram, Google…), remembered by the site in a cookie.
   const source = cleanSource((await cookies()).get(sourceCookie.name)?.value ?? "");

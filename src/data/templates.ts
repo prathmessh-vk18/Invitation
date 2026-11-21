@@ -39,8 +39,9 @@ export type TemplateMeta = {
   noPdf?: boolean;
   // The design doesn't show the opening line's meaning, so the form doesn't ask for it.
   noInvocationMeaning?: boolean;
-  // The online design doesn't show invocationMeaning; the printable PDF does (the form says so).
-  meaningPdfOnly?: boolean;
+  // Shows invocationMeaning only when the invite has showMeaning (orders from 21 Nov 2026); older
+  // invites on it print the line on the PDF only (the form says so).
+  meaningOptIn?: boolean;
 };
 
 const DEVA = "var(--font-deva)";
@@ -106,8 +107,8 @@ export const templates: TemplateMeta[] = [
   },
   {
     id: "sarovar",
-    // The design doesn't show the opening line's meaning online; only the printable PDF prints it.
-    meaningPdfOnly: true,
+    // Shows the opening line's meaning only on invites with showMeaning (orders from 21 Nov 2026).
+    meaningOptIn: true,
     category: "sikh",
     name: "Sarovar",
     native: "ਸਰੋਵਰ",
@@ -137,8 +138,8 @@ export const templates: TemplateMeta[] = [
   },
   {
     id: "haveli",
-    // The design doesn't show the opening line's meaning online; only the printable PDF prints it.
-    meaningPdfOnly: true,
+    // Shows the opening line's meaning only on invites with showMeaning (orders from 21 Nov 2026).
+    meaningOptIn: true,
     category: "hindu",
     name: "Haveli",
     native: "हवेली",
@@ -197,8 +198,8 @@ export const templates: TemplateMeta[] = [
   },
   {
     id: "khat",
-    // The design doesn't show the opening line's meaning online; only the printable PDF prints it.
-    meaningPdfOnly: true,
+    // Shows the opening line's meaning only on invites with showMeaning (orders from 21 Nov 2026).
+    meaningOptIn: true,
     category: "hindu",
     name: "Khat",
     native: "ख़त",
@@ -228,8 +229,8 @@ export const templates: TemplateMeta[] = [
   },
   {
     id: "bagh",
-    // The design doesn't show the opening line's meaning online; only the printable PDF prints it.
-    meaningPdfOnly: true,
+    // Shows the opening line's meaning only on invites with showMeaning (orders from 21 Nov 2026).
+    meaningOptIn: true,
     category: "hindu",
     name: "Bagh",
     native: "बाग़",
@@ -259,8 +260,8 @@ export const templates: TemplateMeta[] = [
   },
   {
     id: "gulmohar",
-    // The design doesn't show the opening line's meaning online; only the printable PDF prints it.
-    meaningPdfOnly: true,
+    // Shows the opening line's meaning only on invites with showMeaning (orders from 21 Nov 2026).
+    meaningOptIn: true,
     category: "hindu",
     name: "Gulmohar",
     native: "गुलमोहर",
@@ -289,8 +290,8 @@ export const templates: TemplateMeta[] = [
   },
   {
     id: "rajwada",
-    // The design doesn't show the opening line's meaning online; only the printable PDF prints it.
-    meaningPdfOnly: true,
+    // Shows the opening line's meaning only on invites with showMeaning (orders from 21 Nov 2026).
+    meaningOptIn: true,
     category: "hindu",
     name: "Rajwada",
     native: "राजवाड़ा",
@@ -319,8 +320,8 @@ export const templates: TemplateMeta[] = [
   },
   {
     id: "mahal",
-    // The design doesn't show the opening line's meaning online; only the printable PDF prints it.
-    meaningPdfOnly: true,
+    // Shows the opening line's meaning only on invites with showMeaning (orders from 21 Nov 2026).
+    meaningOptIn: true,
     category: "hindu",
     name: "Mahal",
     native: "महल",
@@ -349,8 +350,8 @@ export const templates: TemplateMeta[] = [
   },
   {
     id: "gopuram",
-    // The design doesn't show the opening line's meaning online; only the printable PDF prints it.
-    meaningPdfOnly: true,
+    // Shows the opening line's meaning only on invites with showMeaning (orders from 21 Nov 2026).
+    meaningOptIn: true,
     category: "south-indian",
     name: "Gopuram",
     native: "கோபுரம்",
@@ -435,8 +436,8 @@ export const templates: TemplateMeta[] = [
   },
   {
     id: "phulkari",
-    // The design doesn't show the opening line's meaning online; only the printable PDF prints it.
-    meaningPdfOnly: true,
+    // Shows the opening line's meaning only on invites with showMeaning (orders from 21 Nov 2026).
+    meaningOptIn: true,
     category: "sikh",
     name: "Phulkari",
     native: "ਫੁਲਕਾਰੀ",
@@ -523,8 +524,8 @@ export const templates: TemplateMeta[] = [
   },
   {
     id: "chandni",
-    // The design doesn't show the opening line's meaning online; only the printable PDF prints it.
-    meaningPdfOnly: true,
+    // Shows the opening line's meaning only on invites with showMeaning (orders from 21 Nov 2026).
+    meaningOptIn: true,
     category: "engagement",
     occasion: "engagement",
     name: "Chandni",
@@ -555,8 +556,8 @@ export const templates: TemplateMeta[] = [
   },
   {
     id: "angoothi",
-    // The design doesn't show the opening line's meaning online; only the printable PDF prints it.
-    meaningPdfOnly: true,
+    // Shows the opening line's meaning only on invites with showMeaning (orders from 21 Nov 2026).
+    meaningOptIn: true,
     category: "engagement",
     occasion: "engagement",
     name: "Angoothi",
@@ -587,8 +588,8 @@ export const templates: TemplateMeta[] = [
   },
   {
     id: "roka",
-    // The design doesn't show the opening line's meaning online; only the printable PDF prints it.
-    meaningPdfOnly: true,
+    // Shows the opening line's meaning only on invites with showMeaning (orders from 21 Nov 2026).
+    meaningOptIn: true,
     category: "engagement",
     occasion: "engagement",
     name: "Roka",
@@ -650,8 +651,8 @@ export const templates: TemplateMeta[] = [
   },
   {
     id: "mudrika",
-    // The design doesn't show the opening line's meaning online; only the printable PDF prints it.
-    meaningPdfOnly: true,
+    // Shows the opening line's meaning only on invites with showMeaning (orders from 21 Nov 2026).
+    meaningOptIn: true,
     category: "engagement",
     occasion: "engagement",
     name: "Mudrika",
@@ -689,8 +690,8 @@ export const templates: TemplateMeta[] = [
 export const privateTemplates: TemplateMeta[] = [
   {
     id: "khatred",
-    // The design doesn't show the opening line's meaning online; only the printable PDF prints it.
-    meaningPdfOnly: true,
+    // Shows the opening line's meaning only on invites with showMeaning (orders from 21 Nov 2026).
+    meaningOptIn: true,
     category: "hindu",
     name: "Khat (Ivory Red)",
     native: "ख़त",
@@ -715,8 +716,8 @@ export const privateTemplates: TemplateMeta[] = [
   },
   {
     id: "rajwadasagai",
-    // The design doesn't show the opening line's meaning online; only the printable PDF prints it.
-    meaningPdfOnly: true,
+    // Shows the opening line's meaning only on invites with showMeaning (orders from 21 Nov 2026).
+    meaningOptIn: true,
     category: "engagement",
     occasion: "engagement",
     name: "Rajwada Sagai",
