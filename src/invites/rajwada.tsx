@@ -93,7 +93,7 @@ function Opening({ invite, opened, onOpen }: OpeningProps) {
           style={{ background: "radial-gradient(circle at 35% 30%, #fff1b8, #e0ae4c 45%, #9c6d22 100%)" }}
         />
         <Mandala color="#6d1328" className="absolute inset-[2cqw] animate-spin-slow opacity-50" stroke={1.4} />
-        <span className="inv-script relative text-[12cqw] leading-none text-[#4f0c1d]">{initials(invite)}</span>
+        <span className="inv-script relative px-[3cqw] py-[2cqw] text-[12cqw] leading-none text-[#4f0c1d]">{initials(invite)}</span>
       </motion.button>
     </div>
   );

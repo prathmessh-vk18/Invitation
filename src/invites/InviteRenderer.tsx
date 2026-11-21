@@ -78,8 +78,11 @@ export function InviteRenderer({ invite: given, editing, bare }: { invite: Invit
 
         {opened && theme.Frame && !bare && (
           <div className="pointer-events-none fixed inset-0 z-30 flex justify-center">
-            {/* A size container, so a frame drawn in cqw scales with the invite (≤480px), not the window. */}
-            <div className="@container relative h-full w-full max-w-[480px] overflow-hidden">
+            {/* A size container, so a frame drawn in cqw scales with the invite (≤480px), not the window.
+                As tall as the card behind it (100svh, its sticky backdrop), not the window: in WhatsApp's
+                browser the window grows when the toolbar hides, the two drifted apart, and the frame's
+                painted figures showed twice (Haveli's musicians, Mandir's border). */}
+            <div className="@container relative h-[var(--screen-h,100svh)] w-full max-w-[480px] overflow-hidden">
               <theme.Frame />
             </div>
           </div>

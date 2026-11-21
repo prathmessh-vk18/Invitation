@@ -226,7 +226,8 @@ export function makeIllustrated(spec: IllustratedSpec): InviteTheme {
               <Image src={spec.sealImage} alt={initials(invite)} fill sizes="120px" className="object-cover mix-blend-multiply" />
             </span>
           ) : (
-            <span className="inv-script relative text-[9cqw] leading-none text-[#4a2c08]">{initials(invite)}</span>
+            // padded: iPhone Safari clips a script letter's swash outside its box on the pulsing seal (a P lost its loop)
+            <span className="inv-script relative px-[3cqw] py-[2cqw] text-[9cqw] leading-none text-[#4a2c08]">{initials(invite)}</span>
           )}
           </>
         )}

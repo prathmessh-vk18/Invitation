@@ -92,7 +92,7 @@ function Seal({ invite, className }: { invite: Invite; className?: string }) {
         <circle r={33} fill="none" stroke="#f7c8d2" strokeOpacity={0.55} strokeWidth={1.2} />
         <circle r={29} fill="none" stroke="#5e1d36" strokeOpacity={0.4} strokeWidth={0.8} strokeDasharray="1 3" />
       </svg>
-      <span className="inv-script relative text-[9cqw] leading-none text-[#fbe1e6] [text-shadow:0_1px_0_#5e1d36]">{initials(invite)}</span>
+      <span className="inv-script relative px-[3cqw] py-[2cqw] text-[9cqw] leading-none text-[#fbe1e6] [text-shadow:0_1px_0_#5e1d36]">{initials(invite)}</span>
     </span>
   );
 }
